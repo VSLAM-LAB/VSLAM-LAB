@@ -12,11 +12,11 @@ class ORBSLAM3_baseline(BaselineVSLAMLab):
     def __init__(self, baseline_name='orbslam3', baseline_folder='ORB_SLAM3'):
         default_parameters = {'verbose': 1,
                               'vocabulary': os.path.join(VSLAMLAB_BASELINES, baseline_folder, 'Vocabulary', 'ORBvoc.txt'),
-                              'mode': 'mono'}
+                              'mode': 'mono_inertial'}
         
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
-        self.color = 'blue' #change
+        self.color = 'orange' #change
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         vslamlab_command = super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
@@ -46,14 +46,14 @@ class ORBSLAM3_baseline(BaselineVSLAMLab):
     
     def info_print(self):
         super().info_print()
-        print(f"Default executable: vslamlab_orbslam2_mono")
+        print(f"Default executable: vslamlab_orbslam3_mono_inertial")
 
     def orbslam3_download_vocabulary(self): # Download ORBvoc.txt
         vocabulary_folder = os.path.join(self.baseline_path, 'Vocabulary')
         vocabulary_txt = os.path.join(vocabulary_folder, 'ORBvoc.txt')
         if not os.path.isfile(vocabulary_txt):
             print_msg(SCRIPT_LABEL, "Downloading ORBvoc.txt ...",'info')
-            file_path = hf_hub_download(repo_id='vslamlab/orbslam2', filename='ORBvoc.txt.tar.gz', repo_type='model',
+            file_path = hf_hub_download(repo_id='vslamlab/orbslam3', filename='ORBvoc.txt.tar.gz', repo_type='model',
                                         local_dir=vocabulary_folder)
             with tarfile.open(file_path, "r:gz") as tar:
                 tar.extractall(path=vocabulary_folder)
