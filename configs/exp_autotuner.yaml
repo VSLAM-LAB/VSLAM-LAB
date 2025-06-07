@@ -1,0 +1,18 @@
+exp_orbslam2:
+  Config: config_autotuner.yaml
+  NumRuns: 5
+  Parameters: {verbose: 0}
+  Module: orbslam2
+
+exp_orbslam2autotune:
+  Config: config_autotuner.yaml
+  NumRuns: 5
+  Parameters: {verbose: 0}
+  Module: orbslam2autotune-dev
+
+# exp_orbslam2:
+#   Config: config_autotuner.yaml
+#   NumRuns: 5
+#   Parameters: {verbose: 1, rgb_idx: [0,500]}
+#   Module: orbslam2
+

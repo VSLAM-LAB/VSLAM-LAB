@@ -19,7 +19,7 @@ print_datasets = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities
 print_baselines = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_baselines"}
 get-benchmark-path = {cmd = "VSLAMLAB_BENCHMARK=$(python3 -c 'from path_constants import VSLAMLAB_BENCHMARK; print(VSLAMLAB_BENCHMARK)')"}
 clean_swap = {cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a"}
-kill_all = {cmd = "pkill -f -e 'droidslam|dpvo|orbslam2|mast3rslam|monogs|colmap|glomap|gensfm|mast3r|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
+kill_all = {cmd = "pkill -f -e 'droidslam|dpvo|orbslam2|mast3rslam|monogs|colmap|glomap|gensfm|mast3r|orbslam2autotune|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
 
 # environments begin
 [environments]
@@ -46,6 +46,7 @@ orbslam2-dev = {features = ["orbslam2-dev", "x11", "opengl"], no-default-feature
 vggt-dev = {features = ["vggt-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 gensfm-dev = {features = ["gensfm-dev", "cuda126", "py10", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py10"}
 mast3r-dev = {features = ["mast3r-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
+orbslam2autotune-dev = {features = ["orbslam2autotune-dev", "x11", "opengl"], no-default-feature = true}
 
 # environments end
 
@@ -444,6 +445,29 @@ eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
 pangolin = {channel="fontan"}
 # orbslam2-dev end
+
+########################################################################################################################
+########################################################################################################################
+# orbslam2autotune-dev begin
+[feature.orbslam2autotune-dev]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.orbslam2autotune-dev.tasks]
+git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2_AUTOTUNE ORB_SLAM2_AUTOTUNE-DEV"
+install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2_AUTOTUNE-DEV"}
+execute_mono = {cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2_AUTOTUNE-DEV"}
+
+[feature.orbslam2autotune-dev.dependencies]
+compilers = "*"
+ninja = ">=1.12.1 ,<1.13"
+cmake = ">=3.31.1 ,<3.32"
+pkg-config = ">=0.29.2 ,<0.30"
+opencv = ">=4.10.0 ,<5"
+eigen = ">=3.4.0 ,<3.5.0"
+yaml-cpp = ">=0.8.0,<0.9"
+pangolin = {channel="fontan"}
+# orbslam2autotune-dev end
 
 ########################################################################################################################
 ########################################################################################################################
