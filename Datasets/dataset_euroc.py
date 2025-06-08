@@ -101,7 +101,30 @@ class EUROC_dataset(DatasetVSLAMLab):
                 name, ext = os.path.splitext(filename)
                 ts = float(name) / 10e8
                 file.write(f"{ts:.5f} rgb/{filename}\n") 
-           
+    def create_imu_folder(self, sequence_name):
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        rgb_path = os.path.join(sequence_path, 'rgb')
+        
+        if not os.path.exists(rgb_path):
+            os.makedirs(rgb_path, exist_ok=True)
+            rgb_files = glob.glob(os.path.join(sequence_path, 'mav0', 'cam0', 'data', '*.png'))
+            for png_path in rgb_files:
+                rgb_name = os.path.basename(png_path)
+                shutil.copy(png_path, os.path.join(rgb_path, rgb_name))   
+       
+    def create_imu_txt(self, sequence_name):        
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        imu_path = os.path.join(sequence_path, 'imu')
+        imu_txt = os.path.join(sequence_path, 'imu.txt')
+        
+        imu_files = [f for f in os.listdir(imu_path) if os.path.isfile(os.path.join(imu_path, f))]
+        imu_files.sort()
+        with open(imu_txt, 'w') as file:
+            for iIMU, filename in enumerate(imu_files, start=0):             
+                name, ext = os.path.splitext(filename)
+                ts = float(name) / 10e8
+                file.write(f"{ts:.5f} imu/{filename}\n") 
+
     def create_calibration_yaml(self, sequence_name):
 
         sequence_path = os.path.join(self.dataset_path, sequence_name)
