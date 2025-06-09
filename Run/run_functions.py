@@ -64,10 +64,9 @@ def create_rgb_exp_txt(exp, dataset, sequence_name, default_parameters = ""):
         os.remove(rgb_exp_txt)
     shutil.copy(rgb_txt, rgb_exp_txt)
 
-
-    max_rgb = 'max_rgb' in exp.parameters or  'max_rgb' in default_parameters
     rgb_idx = 'rgb_idx' in exp.parameters
-
+    max_rgb = 'max_rgb' in exp.parameters or 'max_rgb' in default_parameters and not rgb_idx
+       
     if max_rgb or rgb_idx:
         if max_rgb:
             max_rgb_num = exp.parameters['max_rgb'] if 'max_rgb' in exp.parameters else default_parameters['max_rgb']

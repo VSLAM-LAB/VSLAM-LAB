@@ -145,7 +145,7 @@ class BaselineVSLAMLab:
         memory_stats['gpu'] = gpu_inc_max
 
 
-    def execute(self, command, exp_it, exp_folder, timeout_seconds=1*60*10):
+    def execute(self, command, exp_it, exp_folder, timeout_seconds=1*60*1000000):
         log_file_path = os.path.join(exp_folder, "system_output_" + str(exp_it).zfill(5) + ".txt")
         comments = ""
         comment_queue = queue.Queue()

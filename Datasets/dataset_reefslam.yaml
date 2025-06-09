@@ -1,0 +1,14 @@
+dataset_name: videos
+rgb_hz: 30.0
+videos_path: /home/alejandro/VSLAM-LAB-Benchmark/Reef-SLAM
+resolution_size:
+- 640
+- 480
+sequence_names:
+- Fisheye_EasyMovement_MildCaustics-004
+- Linear_EasyMovement_LotsOfFish
+- Linear_EasyMovement_StrongCaustics-003
+- Linear_EasyMovement_SwayingAlgae
+- Linear_HardMovement-001
+- Linear_VeryHardMovement_Divers
+

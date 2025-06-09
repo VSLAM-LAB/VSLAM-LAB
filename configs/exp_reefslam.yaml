@@ -1,0 +1,17 @@
+exp_glomap_reefslam:
+  Config: config_reefslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, rgb_idx: [0,4000]}
+  Module: glomap
+
+exp_colmap_reefslam:
+  Config: config_reefslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, rgb_idx: [0,4000]}
+  Module: colmap
+
+exp_gensfm_reefslam:
+  Config: config_reefslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, rgb_idx: [0,4000]}
+  Module: gensfm-dev
