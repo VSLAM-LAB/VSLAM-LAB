@@ -104,38 +104,63 @@ class EUROC_dataset(DatasetVSLAMLab):
        
     def create_imu_txt(self, sequence_name):        
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        imu_txt = os.path.join(sequence_path, 'imu.txt')
-        imu_data = glob.glob(os.path.join(sequence_path, 'mav0', 'imu0', 'data', '*.csv'))
-        ## read the IMU data line by line from the CSV and populate the imu.txt file
-        with open(imu_txt, 'w') as file:
-            for imu_file in imu_data:
-                with open(imu_file, 'r') as imu_file_read:
-                    for line in imu_file_read:
-                        if not line.startswith('#'):
-                            parts = line.strip().split(',')
-                            if len(parts) >= 7:
-                                ts = float(parts[0]) / 10e8
-                                acc_x, acc_y, acc_z = parts[1], parts[2], parts[3]
-                                gyro_x, gyro_y, gyro_z = parts[4], parts[5], parts[6]
-                                file.write(f"{ts:.5f} {acc_x} {acc_y} {acc_z} {gyro_x} {gyro_y} {gyro_z}\n")
+
+        # Find the IMU CSV file
+        imu_csv_path = os.path.join(sequence_path, 'mav0', 'imu0', 'data.csv')
+    
+        # Destination path for the renamed file
+        imu_destination = os.path.join(sequence_path, 'imu.csv')
+    
+        # Copy and rename the file
+        if os.path.exists(imu_csv_path):
+            shutil.copy(imu_csv_path, imu_destination)
+        else:
+            print(f"Warning: IMU data file not found at {imu_csv_path}")
+
+        # ## read the IMU data line by line from the CSV and populate the imu.txt file
+        # imu_txt = os.path.join(sequence_path, 'imu.txt')
+        # with open(imu_txt, 'w') as file:
+        #     for imu_file in imu_data:
+        #         with open(imu_file, 'r') as imu_file_read:
+        #             for line in imu_file_read:
+        #                 parts = line.strip().split(',')
+        #                 if len(parts) >= 7:
+        #                     ts = float(parts[0]) / 10e8
+        #                     acc_x, acc_y, acc_z = parts[1], parts[2], parts[3]
+        #                     gyro_x, gyro_y, gyro_z = parts[4], parts[5], parts[6]
+        #                     file.write(f"{ts:.5f} {acc_x} {acc_y} {acc_z} {gyro_x} {gyro_y} {gyro_z}\n")
 
 
     def create_calibration_yaml(self, sequence_name):
 
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_file_yaml = os.path.join(sequence_path, 'mav0', 'cam0', 'sensor.yaml')
-               
+        calibration_file_yaml_cam = os.path.join(sequence_path, 'mav0', 'cam0', 'sensor.yaml')
+        calibration_file_yaml_imu = os.path.join(sequence_path, 'mav0', 'imu0', 'sensor.yaml')
+
         # Load calibration from .yaml file
-        with open(calibration_file_yaml, 'r') as file:
-            data = yaml.safe_load(file)
+        with open(calibration_file_yaml_cam, 'r') as cam_file:
+            cam_data = yaml.safe_load(cam_file)
         
-        intrinsics = data['intrinsics']
-        fx, fy, cx, cy = intrinsics[0], intrinsics[1], intrinsics[2], intrinsics[3]
-        distortion = data['distortion_coefficients']
-        k1, k2, p1, p2, k3 = distortion[0], distortion[1], distortion[2], distortion[3], 0.0
+        intrinsics = cam_data['intrinsics']
+        distortion = cam_data['distortion_coefficients']
+        camera0 = {'model': cam_data['camera_model'],
+                'fx': intrinsics[0], 'fy': intrinsics[1], 'cx': intrinsics[2], 'cy': intrinsics[3],
+                'k1': distortion[0], 'k2': distortion[1], 'p1': distortion[2], 'p2': distortion[3], 'k3': 0.0 
+                }
+
+        with open(calibration_file_yaml_imu, 'r') as imu_file:
+            imu_data = yaml.safe_load(imu_file)
+
+        imu = {
+                'transform': cam_data['T_BS']['data'],  # 4x4 transformation matrix from camera to IMU
+                'gyro_noise': imu_data['gyroscope_noise_density'],
+                'gyro_bias': imu_data['gyroscope_random_walk'],
+                'accel_noise': imu_data['accelerometer_noise_density'],
+                'accel_bias': imu_data['accelerometer_random_walk'],
+                'frequency': imu_data['rate_hz'],
+            }
+        self.write_calibration_yaml(sequence_name, camera0=camera0, imu=imu)
         
-        self.write_calibration_yaml('OPENCV', fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
-            
     def create_groundtruth_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')

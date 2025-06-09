@@ -45,5 +45,9 @@ Baselines/MAGiC-SLAM
 
 path_constants.py
 
+#generated_configs
+configs/exp_demo.yaml
+configs/config_demo.yaml
+
 #VSCode
 .vscode/
