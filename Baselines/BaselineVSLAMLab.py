@@ -186,19 +186,6 @@ class BaselineVSLAMLab:
             "gpu": memory_stats.get('gpu', 'N/A')
         }
 
-    
-    def build_execute_command(self, sequence_path, exp_folder, exp_it, parameters):
-        exec_command = [f"sequence_path:{sequence_path}", f"exp_folder:{exp_folder}", f"exp_id:{exp_it}"]
-
-        i_par = 0
-        for parameter in parameters:
-            exec_command += [str(parameter)]
-            i_par += 1
-        command_str = ' '.join(exec_command)
-
-        full_command = f"pixi run -e {self.baseline_name} execute " + command_str
-        return full_command
-
     def build_execute_command_cpp(self, exp_it, exp, dataset, sequence_name):
         sequence_path = os.path.join(dataset.dataset_path, sequence_name)
         exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
@@ -218,7 +205,12 @@ class BaselineVSLAMLab:
             else:
                 vslamlab_command += [f"{str(parameter_name)}:{str(parameter_value)}"]
 
-        vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute " + ' '.join(vslamlab_command)
+        if "mode:mono" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
+
+        if "mode:mono-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
+
         return vslamlab_command
 
     def build_execute_command_python(self, exp_it, exp, dataset, sequence_name):
@@ -242,6 +234,9 @@ class BaselineVSLAMLab:
 
         if "--mode mono" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
+
+        if "--mode mono-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
 
         return vslamlab_command
 
