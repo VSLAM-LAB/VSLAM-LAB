@@ -66,6 +66,7 @@ class DatasetVSLAMLab:
         self.download_sequence_data(sequence_name)
         self.create_rgb_folder(sequence_name)
         self.create_rgb_txt(sequence_name)
+        self.create_imu_csv(sequence_name)
         self.create_calibration_yaml(sequence_name)
         self.create_groundtruth_txt(sequence_name)
         self.remove_unused_files(sequence_name)
@@ -77,6 +78,9 @@ class DatasetVSLAMLab:
         return
 
     def create_rgb_txt(self, sequence_name):
+        return
+    
+    def create_imu_csv(self, sequence_name):
         return
 
     def create_calibration_yaml(self, sequence_name):
@@ -91,60 +95,119 @@ class DatasetVSLAMLab:
     def get_download_issues(self, sequence_names):
         return {}
 
-    def get_calibration_yaml(self, camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name):
+    def write_calibration_yaml(self, sequence_name, camera0=None, camera1=None, imu=None, rgbd=None):
+    #Write calibration YAML file with flexible sensor configuration.
+    #Args:
+    #    sequence_name: Name of the sequence
+    #    camera0: Dict with keys: model, fx, fy, cx, cy, k1, k2, p1, p2, k3
+    #    camera1: Dict with keys: model, fx, fy, cx, cy, k1, k2, p1, p2, k3 (for stereo)
+    #    imu: Dict with keys: transform, accel_noise, gyro_noise, accel_bias, gyro_bias, frequency
+    #    rgbd: Dict with keys: depth_factor, depth_scale (optional)
+    
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+        
+        yaml_content_lines = ["%YAML:1.0", ""]
+        
+        # Camera0 parameters (required)
+        if camera0:
+            yaml_content_lines.extend(["", "# Camera calibration and distortion parameters"])
+            yaml_content_lines.extend(self._get_camera_yaml_section(camera0, sequence_name, "Camera"))
+        
+        # Camera1 parameters (for stereo)
+        if camera1:
+            yaml_content_lines.extend(["", "# Camera1 calibration and distortion parameters"])
+            yaml_content_lines.extend(self._get_camera_yaml_section(camera1, sequence_name, "Camera1"))
+        
+        # IMU parameters
+        if imu:
+            yaml_content_lines.extend(["", "# IMU parameters"])
+            yaml_content_lines.extend(self._get_imu_yaml_section(imu))
+        
+        # RGBD parameters
+        if rgbd:
+            yaml_content_lines.extend(["", "#Depth map parameters"])
+            yaml_content_lines.extend(self._get_rgbd_yaml_section(rgbd))
+        
+        with open(calibration_yaml, 'w') as file:
+            for line in yaml_content_lines:
+                file.write(f"{line}\n")
+
+    def _get_camera_yaml_section(self, camera_params, sequence_name, prefix="Camera"):
+        """Generate YAML lines for camera parameters."""
+        # Get image dimensions
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         rgb_path = os.path.join(sequence_path, 'rgb')
         rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
         image_0 = cv2.imread(os.path.join(rgb_path, rgb_files[0]))
         h, w, channels = image_0.shape
-
-        yaml_content_lines = [
-            "%YAML:1.0",
+        
+        return [
+            f"{prefix}.model: {camera_params['model']}",
             "",
-            "# Camera calibration and distortion parameters",
-            "Camera.model: " + camera_model,
+            f"{prefix}.fx: {camera_params['fx']}",
+            f"{prefix}.fy: {camera_params['fy']}",
+            f"{prefix}.cx: {camera_params['cx']}",
+            f"{prefix}.cy: {camera_params['cy']}",
             "",
-            "Camera.fx: " + str(fx),
-            "Camera.fy: " + str(fy),
-            "Camera.cx: " + str(cx),
-            "Camera.cy: " + str(cy),
+            f"{prefix}.k1: {camera_params['k1']}",
+            f"{prefix}.k2: {camera_params['k2']}",
+            f"{prefix}.p1: {camera_params['p1']}",
+            f"{prefix}.p2: {camera_params['p2']}",
+            f"{prefix}.k3: {camera_params['k3']}",
             "",
-            "Camera.k1: " + str(k1),
-            "Camera.k2: " + str(k2),
-            "Camera.p1: " + str(p1),
-            "Camera.p2: " + str(p2),
-            "Camera.k3: " + str(k3),
-            "",
-            "Camera.w: " + str(w),
-            "Camera.h: " + str(h),
+            f"{prefix}.w: {w}",
+            f"{prefix}.h: {h}",
             "",
             "# Camera frames per second",
-            "Camera.fps: " + str(self.rgb_hz)
+            f"{prefix}.fps: {self.rgb_hz}"
         ]
 
-        return yaml_content_lines
+    def _get_imu_yaml_section(self, imu_params):
+        """Generate YAML lines for IMU parameters."""
+        lines = []
+        
+        # IMU transform
+        if 'transform' in imu_params:
+            transform = imu_params['transform']
+            lines.extend([
+                "# Transformation from camera to IMU",
+                "IMU.T_b_c1: !!opencv-matrix",
+                "  rows: 4",
+                "  cols: 4",
+                "  dt: f",
+                "  data: [" + ", ".join(map(str, transform[:4])) + ",",
+                "         " + ", ".join(map(str, transform[4:8])) + ",",
+                "         " + ", ".join(map(str, transform[8:12])) + ",",
+                "         " + ", ".join(map(str, transform[12:16])) + "]",
+                ""
+            ])
+        lines.append("# IMU noise")
+        # Noise parameters
+        if 'gyro_noise' in imu_params:
+            lines.append(f"IMU.NoiseGyro: {imu_params['gyro_noise']}")
+        if 'accel_noise' in imu_params:
+            lines.append(f"IMU.NoiseAcc: {imu_params['accel_noise']}")
+        if 'gyro_bias' in imu_params:
+            lines.append(f"IMU.GyroWalk: {imu_params['gyro_bias']}")
+        if 'accel_bias' in imu_params:
+            lines.append(f"IMU.AccWalk: {imu_params['accel_bias']}")
+        if 'frequency' in imu_params:
+            lines.append(f"IMU.Frequency: {imu_params['frequency']}")
+        
+        return lines
 
-    def write_calibration_yaml(self, camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name):
-
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
-
-        yaml_content_lines = self.get_calibration_yaml(camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
-
-        with open(calibration_yaml, 'w') as file:
-            for line in yaml_content_lines:
-                file.write(f"{line}\n")
-
-    def write_calibration_rgbd_yaml(self, camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name, depth_factor):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
-
-        yaml_content_lines = self.get_calibration_yaml(camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
-        yaml_content_lines.extend(["", "# Depth map factor", "depth_factor: " + str(depth_factor)])
-
-        with open(calibration_yaml, 'w') as file:
-            for line in yaml_content_lines:
-                file.write(f"{line}\n")
+    def _get_rgbd_yaml_section(self, rgbd_params):
+        """Generate YAML lines for RGBD parameters."""
+        lines = []
+        
+        if 'depth_factor' in rgbd_params:
+            lines.append(f"depth_factor: {rgbd_params['depth_factor']}")
+        
+        if 'depth_scale' in rgbd_params:
+            lines.append(f"depth_scale: {rgbd_params['depth_scale']}")
+        
+        return lines
 
     def check_sequence_availability(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
