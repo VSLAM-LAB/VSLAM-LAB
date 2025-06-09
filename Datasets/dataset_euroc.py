@@ -102,7 +102,7 @@ class EUROC_dataset(DatasetVSLAMLab):
                 ts = float(name) / 10e8
                 file.write(f"{ts:.5f} rgb/{filename}\n")
        
-    def create_imu_txt(self, sequence_name):        
+    def create_imu_csv(self, sequence_name):        
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
         # Find the IMU CSV file
@@ -116,20 +116,6 @@ class EUROC_dataset(DatasetVSLAMLab):
             shutil.copy(imu_csv_path, imu_destination)
         else:
             print(f"Warning: IMU data file not found at {imu_csv_path}")
-
-        # ## read the IMU data line by line from the CSV and populate the imu.txt file
-        # imu_txt = os.path.join(sequence_path, 'imu.txt')
-        # with open(imu_txt, 'w') as file:
-        #     for imu_file in imu_data:
-        #         with open(imu_file, 'r') as imu_file_read:
-        #             for line in imu_file_read:
-        #                 parts = line.strip().split(',')
-        #                 if len(parts) >= 7:
-        #                     ts = float(parts[0]) / 10e8
-        #                     acc_x, acc_y, acc_z = parts[1], parts[2], parts[3]
-        #                     gyro_x, gyro_y, gyro_z = parts[4], parts[5], parts[6]
-        #                     file.write(f"{ts:.5f} {acc_x} {acc_y} {acc_z} {gyro_x} {gyro_y} {gyro_z}\n")
-
 
     def create_calibration_yaml(self, sequence_name):
 

@@ -66,7 +66,7 @@ class DatasetVSLAMLab:
         self.download_sequence_data(sequence_name)
         self.create_rgb_folder(sequence_name)
         self.create_rgb_txt(sequence_name)
-        self.create_imu_txt(sequence_name)
+        self.create_imu_csv(sequence_name)
         self.create_calibration_yaml(sequence_name)
         self.create_groundtruth_txt(sequence_name)
         self.remove_unused_files(sequence_name)
@@ -80,7 +80,7 @@ class DatasetVSLAMLab:
     def create_rgb_txt(self, sequence_name):
         return
     
-    def create_imu_txt(self, sequence_name):
+    def create_imu_csv(self, sequence_name):
         return
 
     def create_calibration_yaml(self, sequence_name):
