@@ -129,7 +129,7 @@ class EUROC_dataset(DatasetVSLAMLab):
         
         intrinsics = cam_data['intrinsics']
         distortion = cam_data['distortion_coefficients']
-        camera0 = {'model': cam_data['camera_model'],
+        camera0 = {'model': cam_data['camera_model'].upper(),
                 'fx': intrinsics[0], 'fy': intrinsics[1], 'cx': intrinsics[2], 'cy': intrinsics[3],
                 'k1': distortion[0], 'k2': distortion[1], 'p1': distortion[2], 'p2': distortion[3], 'k3': 0.0 
                 }

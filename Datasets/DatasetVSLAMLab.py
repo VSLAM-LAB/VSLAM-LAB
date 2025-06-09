@@ -185,15 +185,15 @@ class DatasetVSLAMLab:
         lines.append("# IMU noise")
         # Noise parameters
         if 'gyro_noise' in imu_params:
-            lines.append(f"IMU.NoiseGyro: {imu_params['gyro_noise']}")
+            lines.append(f"IMU.NoiseGyro: {imu_params['gyro_noise']:e}")
         if 'accel_noise' in imu_params:
-            lines.append(f"IMU.NoiseAcc: {imu_params['accel_noise']}")
+            lines.append(f"IMU.NoiseAcc: {imu_params['accel_noise']:e}")
         if 'gyro_bias' in imu_params:
-            lines.append(f"IMU.GyroWalk: {imu_params['gyro_bias']}")
+            lines.append(f"IMU.GyroWalk: {imu_params['gyro_bias']:e}")
         if 'accel_bias' in imu_params:
-            lines.append(f"IMU.AccWalk: {imu_params['accel_bias']}")
+            lines.append(f"IMU.AccWalk: {imu_params['accel_bias']:e}")
         if 'frequency' in imu_params:
-            lines.append(f"IMU.Frequency: {imu_params['frequency']}")
+            lines.append(f"IMU.Frequency: {imu_params['frequency']:e}")
         
         return lines
 
@@ -202,10 +202,10 @@ class DatasetVSLAMLab:
         lines = []
         
         if 'depth_factor' in rgbd_params:
-            lines.append(f"depth_factor: {rgbd_params['depth_factor']}")
+            lines.append(f"depth_factor: {rgbd_params['depth_factor']:e}")
         
         if 'depth_scale' in rgbd_params:
-            lines.append(f"depth_scale: {rgbd_params['depth_scale']}")
+            lines.append(f"depth_scale: {rgbd_params['depth_scale']:e}")
         
         return lines
 
