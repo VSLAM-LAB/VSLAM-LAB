@@ -100,30 +100,25 @@ class EUROC_dataset(DatasetVSLAMLab):
             for iRGB, filename in enumerate(rgb_files, start=0):             
                 name, ext = os.path.splitext(filename)
                 ts = float(name) / 10e8
-                file.write(f"{ts:.5f} rgb/{filename}\n") 
-    def create_imu_folder(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        
-        if not os.path.exists(rgb_path):
-            os.makedirs(rgb_path, exist_ok=True)
-            rgb_files = glob.glob(os.path.join(sequence_path, 'mav0', 'cam0', 'data', '*.png'))
-            for png_path in rgb_files:
-                rgb_name = os.path.basename(png_path)
-                shutil.copy(png_path, os.path.join(rgb_path, rgb_name))   
+                file.write(f"{ts:.5f} rgb/{filename}\n")
        
     def create_imu_txt(self, sequence_name):        
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        imu_path = os.path.join(sequence_path, 'imu')
         imu_txt = os.path.join(sequence_path, 'imu.txt')
-        
-        imu_files = [f for f in os.listdir(imu_path) if os.path.isfile(os.path.join(imu_path, f))]
-        imu_files.sort()
+        imu_data = glob.glob(os.path.join(sequence_path, 'mav0', 'imu0', 'data', '*.csv'))
+        ## read the IMU data line by line from the CSV and populate the imu.txt file
         with open(imu_txt, 'w') as file:
-            for iIMU, filename in enumerate(imu_files, start=0):             
-                name, ext = os.path.splitext(filename)
-                ts = float(name) / 10e8
-                file.write(f"{ts:.5f} imu/{filename}\n") 
+            for imu_file in imu_data:
+                with open(imu_file, 'r') as imu_file_read:
+                    for line in imu_file_read:
+                        if not line.startswith('#'):
+                            parts = line.strip().split(',')
+                            if len(parts) >= 7:
+                                ts = float(parts[0]) / 10e8
+                                acc_x, acc_y, acc_z = parts[1], parts[2], parts[3]
+                                gyro_x, gyro_y, gyro_z = parts[4], parts[5], parts[6]
+                                file.write(f"{ts:.5f} {acc_x} {acc_y} {acc_z} {gyro_x} {gyro_y} {gyro_z}\n")
+
 
     def create_calibration_yaml(self, sequence_name):
 

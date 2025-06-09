@@ -97,7 +97,7 @@ class DatasetVSLAMLab:
         rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
         image_0 = cv2.imread(os.path.join(rgb_path, rgb_files[0]))
         h, w, channels = image_0.shape
-
+        ## Add IMU parameters here
         yaml_content_lines = [
             "%YAML:1.0",
             "",
