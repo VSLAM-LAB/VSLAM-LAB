@@ -15,6 +15,9 @@ class ORBSLAM3_baseline(BaselineVSLAMLab):
         self.color = 'blue'
         self.modes = ['mono-vi']
 
+    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
+        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+
     def is_installed(self): 
         return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
     
