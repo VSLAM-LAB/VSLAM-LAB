@@ -37,7 +37,6 @@ class VITUM_dataset(DatasetVSLAMLab):
             self.sequence_nicknames.append(sequence_nickname)
 
     def download_sequence_data(self, sequence_name):
-
         # Variables
         compressed_name = sequence_name
         compressed_name_ext = 'dataset-' + compressed_name + '_512_16' + '.tar' 
@@ -61,6 +60,27 @@ class VITUM_dataset(DatasetVSLAMLab):
         # Delete the compressed file
         if os.path.exists(compressed_file):
             os.remove(compressed_file)
+
+        # download the seperately provided calibration files
+        calibration_name = 'pinhole-equi-512'
+        calibration_compressed = calibration_name + 'zip'
+        calibration_url = 'https://cvg.cit.tum.de/_media/data/datasets/visual-inertial-dataset/' + calibration_compressed
+        calib_compressed_path = os.path.join(self.dataset_path, calibration_compressed)
+        calib_path = os.path.join(self.dataset_path, calibration_name)
+
+        # download
+        if not os.path.exists(calib_compressed_path):
+            downloadFile(calibration_url, self.dataset_path)
+
+        # decompress
+        if not os.path.exists(calib_path):
+            shutil.rmtree(calib_path)
+        decompressFile(calibration_compressed, self.dataset_path)
+
+        # delete the compressed file
+        if os.path.exists(compressed_file):
+            os.remove(compressed_file)
+        
 
     def create_rgb_folder(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
@@ -93,18 +113,50 @@ class VITUM_dataset(DatasetVSLAMLab):
                 ts = float(times[iRGB])
                 file.write(f'{ts:.5f} rgb/{filename}\n')
 
+    def create_imu_csv(self, sequence_name):        
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
+
+        # Find the IMU CSV file
+        imu_csv_path = os.path.join(sequence_path, 'mav0', 'imu0', 'data.csv')
+    
+        # Destination path for the renamed file
+        imu_destination = os.path.join(sequence_path, 'imu.csv')
+    
+        # Copy and rename the file
+        if os.path.exists(imu_csv_path):
+            shutil.copy(imu_csv_path, imu_destination)
+        else:
+            print(f"Warning: IMU data file not found at {imu_csv_path}")
+
     def create_calibration_yaml(self, sequence_name):
 
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_txt = os.path.join(sequence_path, 'calibration.txt')
-        with open(calibration_txt, 'r') as file:
-            calibration = [value for value in file.readline().split()]
+        calibration_file_yaml_cam = os.path.join(sequence_path, 'mav0', 'cam0', 'sensor.yaml')
+        calibration_file_yaml_imu = os.path.join(sequence_path, 'mav0', 'imu0', 'sensor.yaml')
 
-        fx, fy, cx, cy = calibration[0], calibration[1], calibration[2], calibration[3]
-        k1, k2, p1, p2, k3 = 0.0, 0.0, 0.0, 0.0, 0.0
+        # Load calibration from .yaml file
+        with open(calibration_file_yaml_cam, 'r') as cam_file:
+            cam_data = yaml.safe_load(cam_file)
+        
+        intrinsics = cam_data['intrinsics']
+        distortion = cam_data['distortion_coefficients']
+        camera0 = {'model': cam_data['camera_model'],
+                'fx': intrinsics[0], 'fy': intrinsics[1], 'cx': intrinsics[2], 'cy': intrinsics[3],
+                'k1': distortion[0], 'k2': distortion[1], 'p1': distortion[2], 'p2': distortion[3], 'k3': 0.0 
+                }
 
-        self.write_calibration_yaml('OPENCV', fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
+        with open(calibration_file_yaml_imu, 'r') as imu_file:
+            imu_data = yaml.safe_load(imu_file)
 
+        imu = {
+                'transform': cam_data['T_BS']['data'],  # 4x4 transformation matrix from camera to IMU
+                'gyro_noise': imu_data['gyroscope_noise_density'],
+                'gyro_bias': imu_data['gyroscope_random_walk'],
+                'accel_noise': imu_data['accelerometer_noise_density'],
+                'accel_bias': imu_data['accelerometer_random_walk'],
+                'frequency': imu_data['rate_hz'],
+            }
+        self.write_calibration_yaml(sequence_name, camera0=camera0, imu=imu)
     def create_groundtruth_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')

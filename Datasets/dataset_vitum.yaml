@@ -2,7 +2,6 @@ dataset_name: vitum
 
 rgb_hz: 40.0
 url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/512_16/"
-#url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/1024_16/"
 
 sequence_names: 
  - corridor1
