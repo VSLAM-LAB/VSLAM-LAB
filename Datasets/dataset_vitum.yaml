@@ -1,0 +1,35 @@
+dataset_name: vitum
+
+rgb_hz: 40.0
+url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/512_16/"
+#url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/1024_16/"
+
+sequence_names: 
+ - corridor1
+ - corridor2
+ - corridor3
+ - corridor4
+ - corridor5
+ - magistrale1
+ - magistrale2
+ - magistrale3
+ - magistrale4
+ - magistrale5
+ - magistrale6
+ - outdoors1
+ - outdoors2
+ - outdoors3
+ - outdoors4
+ - outdoors5
+ - outdoors6
+ - outdoors7
+ - outdoors8
+ - room1
+ - room2
+ - room3
+ - room4
+ - room5
+ - room6
+ - slides1
+ - slides2
+ - slides3
