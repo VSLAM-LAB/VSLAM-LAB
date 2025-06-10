@@ -711,7 +711,7 @@ cuda = "12.0"
 [feature.okvis2-dev.tasks]
 git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
 install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j5", cwd = "Baselines/OKVIS2-DEV"}
-execute_mono_vi = {cmd = "./build/vslamlab_okvis2_mono_vi vslamlab_okvis2-dev_settings.yaml /home/alejandro/Downloads/MH_01_easy/mav0/",  cwd = "Baselines/OKVIS2-DEV"}
+execute_mono_vi = {cmd = "./build/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
 
 [feature.okvis2-dev.dependencies]
 cmake = "<4"
