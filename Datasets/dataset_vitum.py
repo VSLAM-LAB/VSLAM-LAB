@@ -40,7 +40,7 @@ class VITUM_dataset(DatasetVSLAMLab):
 
         # Variables
         compressed_name = sequence_name
-        compressed_name_ext = compressed_name + '.zip'
+        compressed_name_ext = 'dataset-' + compressed_name + '_512_16' + '.tar' 
         decompressed_name = sequence_name
 
         download_url = os.path.join(self.url_download_root, compressed_name_ext)
