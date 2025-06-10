@@ -29,6 +29,9 @@ class VITUM_dataset(DatasetVSLAMLab):
 
         # Get download url
         self.url_download_root = data['url_download_root']
+        self.calibration_url = data['url_download_calib_root']
+        self.calibration_name = data['calib_filename']
+        
 
         # Create sequence_nicknames
         self.sequence_nicknames = []
@@ -38,15 +41,13 @@ class VITUM_dataset(DatasetVSLAMLab):
 
     def download_sequence_data(self, sequence_name):
         # Variables
-        compressed_name = sequence_name
-        compressed_name_ext = 'dataset-' + compressed_name + '_512_16' + '.tar' 
-        decompressed_name = sequence_name
+        compressed_name = 'dataset-' + sequence_name + '_512_16' + '.tar' 
 
-        download_url = os.path.join(self.url_download_root, compressed_name_ext)
+        download_url = os.path.join(self.url_download_root, compressed_name)
 
         # Constants
-        compressed_file = os.path.join(self.dataset_path, compressed_name_ext)
-        decompressed_folder = os.path.join(self.dataset_path, decompressed_name)
+        compressed_file = os.path.join(self.dataset_path, compressed_name)
+        decompressed_folder = os.path.join(self.dataset_path, sequence_name)
 
         # Download the compressed file
         if not os.path.exists(compressed_file):
@@ -62,15 +63,14 @@ class VITUM_dataset(DatasetVSLAMLab):
             os.remove(compressed_file)
 
         # download the seperately provided calibration files
-        calibration_name = 'pinhole-equi-512'
-        calibration_compressed = calibration_name + 'zip'
-        calibration_url = 'https://cvg.cit.tum.de/_media/data/datasets/visual-inertial-dataset/' + calibration_compressed
+        calibration_compressed = self.calibration_name + '.zip'
+        full_calibration_url = self.calibration_url + calibration_compressed
         calib_compressed_path = os.path.join(self.dataset_path, calibration_compressed)
-        calib_path = os.path.join(self.dataset_path, calibration_name)
+        calib_path = os.path.join(self.dataset_path, self.calibration_name)
 
         # download
         if not os.path.exists(calib_compressed_path):
-            downloadFile(calibration_url, self.dataset_path)
+            downloadFile(full_calibration_url, self.dataset_path)
 
         # decompress
         if not os.path.exists(calib_path):
@@ -88,8 +88,9 @@ class VITUM_dataset(DatasetVSLAMLab):
 
         os.makedirs(rgb_path, exist_ok=True)
 
-        command = f"pixi run -e monodataset undistort {os.path.join(sequence_path, '')} {sequence_path}"
-        subprocess.run(command, shell=True)
+        ##TODO FIGURE OUT WHAT THESE COMMANDS DO
+        ##command = f"pixi run -e monodataset undistort {os.path.join(sequence_path, '')} {sequence_path}" # 
+        #subprocess.run(command, shell=True)
 
         os.remove(os.path.join(sequence_path, 'images.zip'))
 
