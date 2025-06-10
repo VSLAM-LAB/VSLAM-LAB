@@ -48,6 +48,7 @@ opengl = {features = ["opengl"], no-default-feature = true, solve-group = "openg
 # mast3r-dev = {features = ["mast3r-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
 
 orbslam3-dev = {features = ["orbslam3-dev", "x11", "opengl"], no-default-feature = true}
+okvis2-dev = {features = ["okvis2-dev", "cuda126", "py11"], no-default-feature = true}
 
 # environments end
 
@@ -694,3 +695,35 @@ eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
 pangolin = {channel="fontan"}
 boost = "*"
+# orbslam3-dev end
+
+# ########################################################################################################################
+# ########################################################################################################################
+# okvis2-dev begin
+[feature.okvis2-dev]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+
+[feature.okvis2-dev.system-requirements]
+cuda = "12.0"
+
+[feature.okvis2-dev.tasks]
+git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
+install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j5", cwd = "Baselines/OKVIS2-DEV"}
+execute_mono_vi = {cmd = "./build/vslamlab_okvis2_mono_vi vslamlab_okvis2-dev_settings.yaml /home/alejandro/Downloads/MH_01_easy/mav0/",  cwd = "Baselines/OKVIS2-DEV"}
+
+[feature.okvis2-dev.dependencies]
+cmake = "<4"
+glog = "*"
+blas = "*"
+lapack = "*"
+eigen = "*"
+suitesparse = "*"
+boost = "*"
+opencv = "*"
+libtorch = "*"
+librealsense = "*"
+openmp = "*"
+libgfortran = "3.*"
+# okvis2-dev end
