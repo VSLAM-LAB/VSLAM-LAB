@@ -155,11 +155,14 @@ class VITUM_dataset(DatasetVSLAMLab):
         distortion_coeffs = np.array([distortion[0], distortion[1], distortion[2], distortion[3]]) #fisheye model so k1, k2, k3, k4
         fx, fy, cx, cy = undistort_fisheye(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
         camera_model = 'PINHOLE' # manually specifcy pinhole model after undistortion
-        k1, k2, k3, k4 = distortion # likely don't need these anymore, but keeping for reference
+        k1 = 0.0
+        k2 = 0.0 
+        p1 = 0.0 
+        p2 = 0.0 
 
         camera0 = {'model': camera_model,
                 'fx': fx, 'fy': fy, 'cx': cx, 'cy': cy,
-                'k1': k1, 'k2': k2, 'k3': k3, 'k4': k4,
+                'k1': k1, 'k2': k2, 'p1': p1, 'p2': p2,
                 }
 
         imu = {
@@ -190,4 +193,4 @@ class VITUM_dataset(DatasetVSLAMLab):
     def remove_unused_files(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
-        os.remove(os.path.join(sequence_path, 'dataset-' + sequence_name + '_512_16'))
+        shutil.rmtree((os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')))
