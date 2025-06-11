@@ -56,10 +56,10 @@ class VITUM_dataset(DatasetVSLAMLab):
         if os.path.exists(decompressed_folder):
             shutil.rmtree(decompressed_folder)
         decompressFile(compressed_file, self.dataset_path)
-        #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        
         # Delete the compressed file
-        #if os.path.exists(compressed_file):
-        #    os.remove(compressed_file)
+        if os.path.exists(compressed_file):
+           os.remove(compressed_file)
         
 
     def create_rgb_folder(self, sequence_name):
@@ -190,45 +190,4 @@ class VITUM_dataset(DatasetVSLAMLab):
     def remove_unused_files(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
-        #os.remove(os.path.join(sequence_path, 'calibration.txt'))
-        #os.remove(os.path.join(sequence_path, 'camera.txt'))
-        #os.remove(os.path.join(sequence_path, 'pcalib.txt'))
-        #os.remove(os.path.join(sequence_path, 'statistics.txt'))
-        #os.remove(os.path.join(sequence_path, 'times.txt'))
-        #os.remove(os.path.join(sequence_path, 'vignette.png'))
-        #os.remove(os.path.join(sequence_path, 'groundtruthSync.txt'))
-
-    ############ Couldn't find the IVTUM dataset code
-    # def get_vitum_dataset_code(self):
-
-    #     # Clone and compile "https://github.com/tum-vision/mono_dataset_code.git"
-    #     self.mono_dataset_code_directory = os.path.join(VSLAM_LAB_DIR, 'Baselines', 'mono_dataset_code')
-
-    #     if not os.path.exists(os.path.join(self.mono_dataset_code_directory, 'bin', 'playbackDataset')):
-
-    #         command = f"pixi run -e monodataset git-clone"
-    #         subprocess.run(command, shell=True)
-
-    #         replace_string_in_files(self.mono_dataset_code_directory, 'CV_LOAD_IMAGE_UNCHANGED', 'cv::IMREAD_UNCHANGED')
-    #         replace_string_in_files(self.mono_dataset_code_directory, 'CV_LOAD_IMAGE_GRAYSCALE', 'cv::IMREAD_GRAYSCALE')
-
-    #         CMakeLists_txt = os.path.join(self.mono_dataset_code_directory, 'CMakeLists.txt')
-    #         CMakeLists_txt_new = os.path.join(VSLAM_LAB_DIR, 'Datasets', 'extraFiles', 'CMakeLists.txt')
-    #         os.remove(CMakeLists_txt)
-    #         shutil.copy(CMakeLists_txt_new, CMakeLists_txt)
-
-    #         main_playbackDataset_cpp = os.path.join(self.mono_dataset_code_directory, 'src', 'main_playbackDataset.cpp')
-    #         main_playbackDataset_cpp_new = os.path.join(VSLAM_LAB_DIR, 'Datasets', 'extraFiles',
-    #                                                     'main_playbackDataset.cpp')
-    #         os.remove(main_playbackDataset_cpp)
-    #         shutil.copy(main_playbackDataset_cpp_new, main_playbackDataset_cpp)
-
-    #         build_sh = os.path.join(self.mono_dataset_code_directory, 'build.sh')
-    #         build_sh_new = os.path.join(VSLAM_LAB_DIR, 'Datasets', 'extraFiles', 'build.sh')
-    #         shutil.copy(build_sh_new, build_sh)
-
-    #         command = f"pixi run -e monodataset build"
-    #         subprocess.run(command, shell=True)
-
-    #     else:
-    #         print('[dataset_monotum.py] \'' + self.mono_dataset_code_directory + '\' already built')
+        os.remove(os.path.join(sequence_path, 'dataset-' + sequence_name + '_512_16'))
