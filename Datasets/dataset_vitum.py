@@ -40,12 +40,13 @@ class VITUM_dataset(DatasetVSLAMLab):
 
     def download_sequence_data(self, sequence_name):
         # Variables
-        compressed_name = 'dataset-' + sequence_name + '_512_16' + '.tar' 
+        sequence_filename = 'dataset-' + sequence_name + '_512_16'
+        compressed_name = sequence_filename + '.tar' 
         download_url = os.path.join(self.url_download_root, compressed_name)
 
         # Constants
         compressed_file = os.path.join(self.dataset_path, compressed_name)
-        decompressed_folder = os.path.join(self.dataset_path, sequence_name)
+        decompressed_folder = os.path.join(self.dataset_path, sequence_filename)
 
         # Download the sequence data
         if not os.path.exists(compressed_file):
@@ -55,42 +56,53 @@ class VITUM_dataset(DatasetVSLAMLab):
         if os.path.exists(decompressed_folder):
             shutil.rmtree(decompressed_folder)
         decompressFile(compressed_file, self.dataset_path)
-
+        #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         # Delete the compressed file
-        if os.path.exists(compressed_file):
-            os.remove(compressed_file)
+        #if os.path.exists(compressed_file):
+        #    os.remove(compressed_file)
         
 
     def create_rgb_folder(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
+        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
+        images_path = os.path.join(source_path, 'mav0', 'cam0', 'data')
         rgb_path = os.path.join(sequence_path, 'rgb')
 
         os.makedirs(rgb_path, exist_ok=True)
-
-        command = f"pixi run -e monodataset undistort {os.path.join(sequence_path, '')} {sequence_path}" # 
-        subprocess.run(command, shell=True)
-
-        os.remove(os.path.join(sequence_path, 'images.zip'))
+        #copy images to rgb folder
+        for filename in os.listdir(images_path):
+            if filename.endswith('.png') or filename.endswith('.jpg'):
+                source_file = os.path.join(images_path, filename)
+                destination_file = os.path.join(rgb_path, filename)
+                shutil.copy(source_file, destination_file) 
 
     def create_rgb_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
+        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
         rgb_path = os.path.join(sequence_path, 'rgb')
         rgb_txt = os.path.join(sequence_path, 'rgb.txt')
 
-        times = []
-        times_txt = os.path.join(sequence_path, 'times.txt')
+        # Create filename -> timestamp mapping
+        filename_to_timestamp = {}
+        times_txt = os.path.join(source_path, 'dso', 'cam0', 'times.txt')
         with open(times_txt, 'r') as file:
             for line in file:
+                if line.startswith('#'):  # Skip header
+                    continue
                 columns = line.split()
-                if columns:
-                    times.append(columns[1])
+                if len(columns) >= 2:
+                    filename = columns[0]  # e.g., "1520621175986840704"
+                    timestamp = columns[1]  # e.g., "1520621175.986840704"
+                    filename_to_timestamp[filename] = float(timestamp)
 
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
-        rgb_files.sort()
+        # Write rgb.txt using the mapping
+        rgb_files = sorted([f for f in os.listdir(rgb_path) if f.endswith('.png')])
         with open(rgb_txt, 'w') as file:
-            for iRGB, filename in enumerate(rgb_files, start=0):
-                ts = float(times[iRGB])
-                file.write(f'{ts:.5f} rgb/{filename}\n')
+            for filename in rgb_files:
+                base_name = filename.replace('.png', '')  # Remove extension
+                if base_name in filename_to_timestamp:
+                    timestamp = filename_to_timestamp[base_name]
+                    file.write(f'{timestamp:.6f} rgb/{filename}\n')
 
     def create_imu_csv(self, sequence_name):        
         sequence_path = os.path.join(self.dataset_path, sequence_name)
@@ -109,8 +121,9 @@ class VITUM_dataset(DatasetVSLAMLab):
 
     def create_calibration_yaml(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_file_cam0 = os.path.join(sequence_path, 'dso', 'camchain.yaml')
-        calibration_file_imu0 = os.path.join(sequence_path, 'dso', 'imu_config.yaml')
+        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
+        calibration_file_cam0 = os.path.join(source_path, 'dso', 'camchain.yaml')
+        calibration_file_imu0 = os.path.join(source_path, 'dso', 'imu_config.yaml')
 
         # Load camera calibration from .yaml file
         with open(calibration_file_cam0, 'r') as cam_file:
@@ -154,14 +167,14 @@ class VITUM_dataset(DatasetVSLAMLab):
                 'gyro_bias': gyro_bias,
                 'accel_noise': accel_noise,
                 'accel_bias': accel_bias,
-                'frequency': imu_data['update_hz'],
+                'frequency': imu_data['update_rate'],
             }
         self.write_calibration_yaml(sequence_name, camera0=camera0, imu=imu)
 
     def create_groundtruth_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
-        source_path = os.path.join(sequence_path, 'dso', 'gt_imu.csv')
+        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16', 'dso', 'gt_imu.csv')
 
         with open(source_path) as source_file:
             with open(groundtruth_txt, 'w') as destination_file:

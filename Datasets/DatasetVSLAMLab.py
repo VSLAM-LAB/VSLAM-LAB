@@ -208,7 +208,7 @@ class DatasetVSLAMLab:
             transform = imu_params['transform']
             lines.extend([
                 "# Transformation from camera to IMU",
-                "IMU.T_b_c1: !!opencv-matrix",
+                "IMU.T_c_i: !!opencv-matrix",
                 "  rows: 4",
                 "  cols: 4",
                 "  dt: f",
