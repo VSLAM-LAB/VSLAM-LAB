@@ -106,9 +106,10 @@ class VITUM_dataset(DatasetVSLAMLab):
 
     def create_imu_csv(self, sequence_name):        
         sequence_path = os.path.join(self.dataset_path, sequence_name)
+        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
 
         # Find the IMU CSV file
-        imu_csv_path = os.path.join(sequence_path, 'mav0', 'imu0', 'data.csv')
+        imu_csv_path = os.path.join(source_path, 'mav0', 'imu0', 'data.csv')
     
         # Destination path for the renamed file
         imu_destination = os.path.join(sequence_path, 'imu.csv')
