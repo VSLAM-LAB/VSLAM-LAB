@@ -206,16 +206,23 @@ class DatasetVSLAMLab:
         # IMU transform
         if 'transform' in imu_params:
             transform = imu_params['transform']
+            
+            # Flatten the transform if it's a nested list
+            if isinstance(transform[0], list):  # nested list format [[...], [...], ...]
+                flat_transform = [item for row in transform for item in row]
+            else:  # already flat list [...]
+                flat_transform = transform
+            
             lines.extend([
                 "# Transformation from camera to IMU",
                 "IMU.T_c_i: !!opencv-matrix",
                 "  rows: 4",
                 "  cols: 4",
                 "  dt: f",
-                "  data: [" + ", ".join(map(str, transform[:4])) + ",",
-                "         " + ", ".join(map(str, transform[4:8])) + ",",
-                "         " + ", ".join(map(str, transform[8:12])) + ",",
-                "         " + ", ".join(map(str, transform[12:16])) + "]",
+                "  data: [" + ", ".join(map(str, flat_transform[:4])) + ",",
+                "         " + ", ".join(map(str, flat_transform[4:8])) + ",",
+                "         " + ", ".join(map(str, flat_transform[8:12])) + ",",
+                "         " + ", ".join(map(str, flat_transform[12:16])) + "]",
                 ""
             ])
         lines.append("# IMU noise")
