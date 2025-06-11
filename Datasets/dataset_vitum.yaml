@@ -1,6 +1,7 @@
 dataset_name: vitum
 
 rgb_hz: 20.0
+imu_hz:: 200.0
 url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/512_16/"
 
 sequence_names: 
