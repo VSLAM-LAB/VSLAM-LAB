@@ -1,12 +1,13 @@
 import os
 import yaml
 import shutil
-
+import numpy as np
 import subprocess
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile
 from utilities import decompressFile
+from Datasets.dataset_utilities import undistort_fisheye
 
 from utilities import replace_string_in_files
 from path_constants import VSLAM_LAB_DIR
@@ -16,7 +17,7 @@ from Evaluate import metrics
 
 from utilities import ws
 
-
+SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 class VITUM_dataset(DatasetVSLAMLab):
 
     def __init__(self, benchmark_path):
@@ -42,14 +43,18 @@ class VITUM_dataset(DatasetVSLAMLab):
     def download_sequence_data(self, sequence_name):
         # Variables
         compressed_name = 'dataset-' + sequence_name + '_512_16' + '.tar' 
-
         download_url = os.path.join(self.url_download_root, compressed_name)
+
+        calibration_compressed = self.calibration_name + '.zip'
+        full_calibration_url = self.calibration_url + calibration_compressed
+        calib_compressed_path = os.path.join(self.dataset_path, calibration_compressed)
+        calib_path = os.path.join(self.dataset_path, self.calibration_name)
 
         # Constants
         compressed_file = os.path.join(self.dataset_path, compressed_name)
         decompressed_folder = os.path.join(self.dataset_path, sequence_name)
 
-        # Download the compressed file
+        # Download the sequence data
         if not os.path.exists(compressed_file):
             downloadFile(download_url, self.dataset_path)
 
@@ -62,13 +67,7 @@ class VITUM_dataset(DatasetVSLAMLab):
         if os.path.exists(compressed_file):
             os.remove(compressed_file)
 
-        # download the seperately provided calibration files
-        calibration_compressed = self.calibration_name + '.zip'
-        full_calibration_url = self.calibration_url + calibration_compressed
-        calib_compressed_path = os.path.join(self.dataset_path, calibration_compressed)
-        calib_path = os.path.join(self.dataset_path, self.calibration_name)
-
-        # download
+        # download calibration files
         if not os.path.exists(calib_compressed_path):
             downloadFile(full_calibration_url, self.dataset_path)
 
@@ -78,8 +77,8 @@ class VITUM_dataset(DatasetVSLAMLab):
         decompressFile(calibration_compressed, self.dataset_path)
 
         # delete the compressed file
-        if os.path.exists(compressed_file):
-            os.remove(compressed_file)
+        if os.path.exists(calibration_compressed):
+            os.remove(calibration_compressed)
         
 
     def create_rgb_folder(self, sequence_name):
@@ -88,9 +87,8 @@ class VITUM_dataset(DatasetVSLAMLab):
 
         os.makedirs(rgb_path, exist_ok=True)
 
-        ##TODO FIGURE OUT WHAT THESE COMMANDS DO
-        ##command = f"pixi run -e monodataset undistort {os.path.join(sequence_path, '')} {sequence_path}" # 
-        #subprocess.run(command, shell=True)
+        command = f"pixi run -e monodataset undistort {os.path.join(sequence_path, '')} {sequence_path}" # 
+        subprocess.run(command, shell=True)
 
         os.remove(os.path.join(sequence_path, 'images.zip'))
 
@@ -130,34 +128,46 @@ class VITUM_dataset(DatasetVSLAMLab):
             print(f"Warning: IMU data file not found at {imu_csv_path}")
 
     def create_calibration_yaml(self, sequence_name):
-
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_file_yaml_cam = os.path.join(sequence_path, 'mav0', 'cam0', 'sensor.yaml')
-        calibration_file_yaml_imu = os.path.join(sequence_path, 'mav0', 'imu0', 'sensor.yaml')
-
-        # Load calibration from .yaml file
-        with open(calibration_file_yaml_cam, 'r') as cam_file:
-            cam_data = yaml.safe_load(cam_file)
+        calibration_file_yaml = os.path.join(sequence_path, self.calibration_name, 'camchain-imucam-imucalib.yaml')
         
+        # Load calibration from .yaml file
+        with open(calibration_file_yaml, 'r') as file:
+            data = yaml.safe_load(file)
+
+        rgb_path = os.path.join(sequence_path, 'rgb')
+        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+        if os.path.exists(calibration_yaml):
+            return    
+        cam_data = data['cam0']
+        imu_data = data['imu_parameters']
+        ##TODO UNDISTORT THESE FROM FISHEYE TO PINHOLE
         intrinsics = cam_data['intrinsics']
-        distortion = cam_data['distortion_coefficients']
-        camera0 = {'model': cam_data['camera_model'],
-                'fx': intrinsics[0], 'fy': intrinsics[1], 'cx': intrinsics[2], 'cy': intrinsics[3],
-                'k1': distortion[0], 'k2': distortion[1], 'p1': distortion[2], 'p2': distortion[3], 'k3': 0.0 
+        distortion = cam_data['distortion_coeffs']
+
+        print(f"{SCRIPT_LABEL}Undistorting images with fisheye model: {rgb_path}")
+        camera_matrix = np.array([[intrinsics[0], 0, intrinsics[2]], [0, intrinsics[1], intrinsics[3]], [0, 0, 1]])
+        distortion_coeffs = np.array([distortion[0], distortion[1], distortion[2], distortion[3]]) #fisheye model so k1, k2, k3, k4
+        fx, fy, cx, cy = undistort_fisheye(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
+        camera_model = 'PINHOLE' # manually specifcy pinhole model after undistortion
+        k1, k2, k3, k4 = distortion # likely don't need these anymore, but keeping for reference
+
+        camera0 = {'model': camera_model,
+                'fx': fx, 'fy': fy, 'cx': cx, 'cy': cy,
+                'k1': k1, 'k2': k2, 'k3': k3, 'k4': k4,
                 }
 
-        with open(calibration_file_yaml_imu, 'r') as imu_file:
-            imu_data = yaml.safe_load(imu_file)
-
         imu = {
-                'transform': cam_data['T_BS']['data'],  # 4x4 transformation matrix from camera to IMU
-                'gyro_noise': imu_data['gyroscope_noise_density'],
-                'gyro_bias': imu_data['gyroscope_random_walk'],
-                'accel_noise': imu_data['accelerometer_noise_density'],
-                'accel_bias': imu_data['accelerometer_random_walk'],
+                'transform': cam_data['T_cam_imu'],  # 4x4 transformation matrix from camera to IMU
+                'gyro_noise': imu_data['sigma_g_c'],
+                'gyro_bias': imu_data['sigma_bg'],
+                'accel_noise': imu_data['sigma_a_c'],
+                'accel_bias': imu_data['sigma_ba'],
                 'frequency': imu_data['rate_hz'],
             }
         self.write_calibration_yaml(sequence_name, camera0=camera0, imu=imu)
+
     def create_groundtruth_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')

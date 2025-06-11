@@ -1,9 +1,8 @@
 dataset_name: vitum
 
-rgb_hz: 40.0
+rgb_hz: 20.0
+imu_hz:: 200.0
 url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/512_16/"
-url_download_calib_root: "https://cvg.cit.tum.de/_media/data/datasets/visual-inertial-dataset/""
-calib_filename: "pinhole-equi-512"
 
 sequence_names: 
  - corridor1
