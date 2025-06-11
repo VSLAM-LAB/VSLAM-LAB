@@ -1,4 +1,5 @@
 import os
+import csv
 import yaml
 import shutil
 import numpy as np
@@ -30,9 +31,6 @@ class VITUM_dataset(DatasetVSLAMLab):
 
         # Get download url
         self.url_download_root = data['url_download_root']
-        self.calibration_url = data['url_download_calib_root']
-        self.calibration_name = data['calib_filename']
-        
 
         # Create sequence_nicknames
         self.sequence_nicknames = []
@@ -44,11 +42,6 @@ class VITUM_dataset(DatasetVSLAMLab):
         # Variables
         compressed_name = 'dataset-' + sequence_name + '_512_16' + '.tar' 
         download_url = os.path.join(self.url_download_root, compressed_name)
-
-        calibration_compressed = self.calibration_name + '.zip'
-        full_calibration_url = self.calibration_url + calibration_compressed
-        calib_compressed_path = os.path.join(self.dataset_path, calibration_compressed)
-        calib_path = os.path.join(self.dataset_path, self.calibration_name)
 
         # Constants
         compressed_file = os.path.join(self.dataset_path, compressed_name)
@@ -66,19 +59,6 @@ class VITUM_dataset(DatasetVSLAMLab):
         # Delete the compressed file
         if os.path.exists(compressed_file):
             os.remove(compressed_file)
-
-        # download calibration files
-        if not os.path.exists(calib_compressed_path):
-            downloadFile(full_calibration_url, self.dataset_path)
-
-        # decompress
-        if not os.path.exists(calib_path):
-            shutil.rmtree(calib_path)
-        decompressFile(calibration_compressed, self.dataset_path)
-
-        # delete the compressed file
-        if os.path.exists(calibration_compressed):
-            os.remove(calibration_compressed)
         
 
     def create_rgb_folder(self, sequence_name):
@@ -129,22 +109,32 @@ class VITUM_dataset(DatasetVSLAMLab):
 
     def create_calibration_yaml(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_file_yaml = os.path.join(sequence_path, self.calibration_name, 'camchain-imucam-imucalib.yaml')
-        
-        # Load calibration from .yaml file
-        with open(calibration_file_yaml, 'r') as file:
-            data = yaml.safe_load(file)
+        calibration_file_cam0 = os.path.join(sequence_path, 'dso', 'camchain.yaml')
+        calibration_file_imu0 = os.path.join(sequence_path, 'dso', 'imu_config.yaml')
+
+        # Load camera calibration from .yaml file
+        with open(calibration_file_cam0, 'r') as cam_file:
+            cam_data = yaml.safe_load(cam_file)
+
+        # Load IMU calibration from .yaml file
+        with open(calibration_file_imu0, 'r') as imu_file:
+            imu_data = yaml.safe_load(imu_file)
 
         rgb_path = os.path.join(sequence_path, 'rgb')
         rgb_txt = os.path.join(sequence_path, 'rgb.txt')
         calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+
         if os.path.exists(calibration_yaml):
-            return    
-        cam_data = data['cam0']
-        imu_data = data['imu_parameters']
-        ##TODO UNDISTORT THESE FROM FISHEYE TO PINHOLE
+            return
+        
+        cam_data = cam_data['cam0']
         intrinsics = cam_data['intrinsics']
         distortion = cam_data['distortion_coeffs']
+
+        gyro_noise = imu_data['gyroscope_noise_density']
+        gyro_bias = imu_data['gyroscope_random_walk']
+        accel_noise = imu_data['accelerometer_noise_density']
+        accel_bias = imu_data['accelerometer_random_walk']
 
         print(f"{SCRIPT_LABEL}Undistorting images with fisheye model: {rgb_path}")
         camera_matrix = np.array([[intrinsics[0], 0, intrinsics[2]], [0, intrinsics[1], intrinsics[3]], [0, 0, 1]])
@@ -160,23 +150,28 @@ class VITUM_dataset(DatasetVSLAMLab):
 
         imu = {
                 'transform': cam_data['T_cam_imu'],  # 4x4 transformation matrix from camera to IMU
-                'gyro_noise': imu_data['sigma_g_c'],
-                'gyro_bias': imu_data['sigma_bg'],
-                'accel_noise': imu_data['sigma_a_c'],
-                'accel_bias': imu_data['sigma_ba'],
-                'frequency': imu_data['rate_hz'],
+                'gyro_noise': gyro_noise,
+                'gyro_bias': gyro_bias,
+                'accel_noise': accel_noise,
+                'accel_bias': accel_bias,
+                'frequency': imu_data['update_hz'],
             }
         self.write_calibration_yaml(sequence_name, camera0=camera0, imu=imu)
 
     def create_groundtruth_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
+        source_path = os.path.join(sequence_path, 'dso', 'gt_imu.csv')
 
-        with open(os.path.join(sequence_path, 'groundtruthSync.txt')) as source_file:
+        with open(source_path) as source_file:
             with open(groundtruth_txt, 'w') as destination_file:
-                for line in source_file:
-                    if 'NaN' not in line:
-                        destination_file.write(line)
+                csv_reader = csv.reader(source_file)
+                header = next(csv_reader, None) # Skip header row if it exists
+
+                for row in csv_reader:
+                    line_to_write = " ".join(row) # Join row elements for NaN check and writing
+                    if 'NaN' not in line_to_write:
+                        destination_file.write(line_to_write + '\n')
 
     def remove_unused_files(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
