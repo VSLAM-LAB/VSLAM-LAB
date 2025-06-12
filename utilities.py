@@ -179,6 +179,7 @@ def check_sequence_integrity(dataset_path, sequence_name, verbose):
     sequence_path = os.path.join(dataset_path, sequence_name)
     rgb_path = os.path.join(sequence_path, 'rgb')
     rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+    imu_csv = os.path.join(sequence_path, 'imu.csv')
     calibration_yaml = os.path.join(sequence_path, "calibration.yaml")
 
     complete_sequence = True
@@ -195,6 +196,11 @@ def check_sequence_integrity(dataset_path, sequence_name, verbose):
     if not os.path.exists(rgb_txt):
         if verbose:
             print(f"        The file {rgb_txt} doesn't exist !!!!!")
+        complete_sequence = False
+
+    if not os.path.exists(imu_csv):
+        if verbose:
+            print(f"        The file {imu_csv} doesn't exist !!!!!")
         complete_sequence = False
 
     if not os.path.exists(calibration_yaml):
