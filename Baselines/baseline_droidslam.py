@@ -34,7 +34,7 @@ class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
         self.droidslam_download_weights()
         
     def is_installed(self):
-        is_installed = os.path.isfile(os.path.join(self.baseline_path, f'install_{self.baseline_name}.txt'))
+        is_installed = os.path.isfile(os.path.join(self.baseline_path, 'build', 'lib.linux-x86_64-cpython-311', 'droid_backends.so'))
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
         
     def droidslam_download_weights(self): # Download droid.pth
@@ -45,4 +45,3 @@ class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
                                         local_dir=self.baseline_path)
             with ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(self.baseline_path)
-        return os.path.isfile(weights_pth)

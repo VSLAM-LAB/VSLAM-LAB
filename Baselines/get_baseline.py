@@ -3,12 +3,12 @@ from Baselines.baseline_droidslam import DROIDSLAM_baseline
 from Baselines.baseline_droidslam import DROIDSLAM_baseline_dev
 from Baselines.baseline_mast3rslam import MAST3RSLAM_baseline
 from Baselines.baseline_mast3rslam import MAST3RSLAM_baseline_dev
-from Baselines.baseline_orbslam2 import ORBSLAM2_baseline
-from Baselines.baseline_orbslam2 import ORBSLAM2_baseline_dev
 from Baselines.baseline_dpvo import DPVO_baseline
 from Baselines.baseline_dpvo import DPVO_baseline_dev
 from Baselines.baseline_monogs import MONOGS_baseline
 from Baselines.baseline_monogs import MONOGS_baseline_dev
+from Baselines.baseline_orbslam2 import ORBSLAM2_baseline
+from Baselines.baseline_orbslam2 import ORBSLAM2_baseline_dev
 from Baselines.baseline_colmap import COLMAP_baseline
 from Baselines.baseline_glomap import GLOMAP_baseline
 from Baselines.baseline_gensfm import GENSFM_baseline_dev
@@ -24,12 +24,12 @@ def get_baseline_switcher():
         "droidslam-dev": lambda: DROIDSLAM_baseline_dev(),
         "mast3rslam": lambda: MAST3RSLAM_baseline(),
         "mast3rslam-dev": lambda: MAST3RSLAM_baseline_dev(),
-        "orbslam2": lambda: ORBSLAM2_baseline(),
-        "orbslam2-dev": lambda: ORBSLAM2_baseline_dev(),  
         "dpvo": lambda: DPVO_baseline(),
         "dpvo-dev": lambda: DPVO_baseline_dev(),
         "monogs": lambda: MONOGS_baseline(),
         "monogs-dev": lambda: MONOGS_baseline_dev(),
+        "orbslam2": lambda: ORBSLAM2_baseline(),
+        "orbslam2-dev": lambda: ORBSLAM2_baseline_dev(),  
         "colmap": lambda: COLMAP_baseline(),
         "glomap": lambda: GLOMAP_baseline(),
         "gensfm-dev": lambda: GENSFM_baseline_dev(),
