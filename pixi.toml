@@ -49,6 +49,7 @@ opengl = {features = ["opengl"], no-default-feature = true, solve-group = "openg
 
 orbslam3-dev = {features = ["orbslam3-dev", "x11", "opengl"], no-default-feature = true}
 okvis2-dev = {features = ["okvis2-dev", "cuda126", "py11"], no-default-feature = true}
+# pycuslam-dev = {features = ["pycuslam-dev","cuda126", "py10"], no-default-feature = true}
 
 # environments end
 
@@ -269,6 +270,7 @@ libcurand-dev = "*"
 libcusolver-dev = "*"
 cusparselt = "*"
 libnvjitlink = "*"
+libcublas = "*"
 # cuda126 end
 
 # ########################################################################################################################
@@ -701,7 +703,7 @@ boost = "*"
 # ########################################################################################################################
 # okvis2-dev begin
 [feature.okvis2-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://fast.prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 
@@ -727,3 +729,29 @@ librealsense = "*"
 openmp = "*"
 libgfortran = "3.*"
 # okvis2-dev end
+
+# ########################################################################################################################
+# ########################################################################################################################
+# pycuslam-dev begin
+# [feature.pycuslam-dev]
+# channels = ["https://fast.prefix.dev/conda-forge"]
+# platforms = ["linux-64"]
+
+
+# [feature.pycuslam-dev.system-requirements]
+# cuda = "12.0"
+
+# [feature.pycuslam-dev.tasks]
+# git-clone = {cmd = "git-clone.sh VSLAM-LAB PyCuVSLAM PyCuVSLAM-DEV"}
+# install = {cmd = "pip install -e cuvslam/x86", cwd = "Baselines/PyCuVSLAM-DEV"}
+# execute_mono_vi = {cmd = " export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python3 examples/euroc/track_euroc.py",  cwd = "Baselines/PyCuVSLAM-DEV"}
+
+# [feature.pycuslam-dev.dependencies]
+# libstdcxx-ng="=12.2.0"
+# cuda-runtime={version=">=12.0"}
+# numpy="*"
+# pillow="*"
+# pyyaml="*"
+# rerun-sdk="*"
+# scipy="*"
+# pycuslam-dev end
