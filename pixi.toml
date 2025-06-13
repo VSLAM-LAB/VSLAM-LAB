@@ -38,6 +38,8 @@ opengl = {features = ["opengl"], no-default-feature = true, solve-group = "openg
 # colmap = {features = ["colmap"], no-default-feature = true, solve-group = "colmap"}
 # glomap = {features = ["glomap", "colmap"], no-default-feature = true, solve-group = "colmap"}
 
+orbslam3 = {features = ["orbslam3"], no-default-feature = true}
+
 # droidslam-dev = {features = ["droidslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 # mast3rslam-dev = {features = ["mast3rslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 # dpvo-dev = {features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py11"}
@@ -230,6 +232,23 @@ piexif = "*"
 # [feature.glomap.dependencies]
 # glomap="*"
 # # glomap end
+
+########################################################################################################################
+########################################################################################################################
+# orbslam3 begin
+[feature.orbslam3]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.orbslam3.tasks]
+git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/orbslam3 Baselines/ORB_SLAM3'}
+execute_mono_vi = {cmd = "vslamlab_orbslam3_mono_vi"}
+
+[feature.orbslam3.dependencies]
+orbslam3 = {channel="fontan"}
+pangolin = {channel="fontan"}
+opencv = ">=4.10.0 ,<5"
+# orbslam3 end
 
 ########################################################################################################################
 ########################################################################################################################
