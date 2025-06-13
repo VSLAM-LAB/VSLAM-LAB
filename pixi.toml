@@ -19,7 +19,7 @@ print_datasets = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities
 print_baselines = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_baselines"}
 get-benchmark-path = {cmd = "VSLAMLAB_BENCHMARK=$(python3 -c 'from path_constants import VSLAMLAB_BENCHMARK; print(VSLAMLAB_BENCHMARK)')"}
 clean_swap = {cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a"}
-kill_all = {cmd = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
+kill_all = {cmd = "pkill -f -e 'orbslam3|okvis2|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
 
 # environments begin
 [environments]
@@ -39,6 +39,7 @@ opengl = {features = ["opengl"], no-default-feature = true, solve-group = "openg
 # glomap = {features = ["glomap", "colmap"], no-default-feature = true, solve-group = "colmap"}
 
 orbslam3 = {features = ["orbslam3"], no-default-feature = true}
+okvis2 = {features = ["okvis2"], no-default-feature = true}
 
 # droidslam-dev = {features = ["droidslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 # mast3rslam-dev = {features = ["mast3rslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
@@ -249,6 +250,21 @@ orbslam3 = {channel="fontan"}
 pangolin = {channel="fontan"}
 opencv = ">=4.10.0 ,<5"
 # orbslam3 end
+
+########################################################################################################################
+########################################################################################################################
+# okvis2 begin
+[feature.okvis2]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.okvis2.tasks]
+git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/okvis2 Baselines/OKVIS2'}
+execute_mono_vi = {cmd = "vslamlab_okvis2_mono_vi"}
+
+[feature.okvis2.dependencies]
+okvis2 = {channel="fontan"}
+# okvis2 end
 
 ########################################################################################################################
 ########################################################################################################################
@@ -731,8 +747,9 @@ cuda = "12.0"
 
 [feature.okvis2-dev.tasks]
 git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
-install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j5", cwd = "Baselines/OKVIS2-DEV"}
-execute_mono_vi = {cmd = "./build/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
+# install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j12", cwd = "Baselines/OKVIS2-DEV"}
+install = {cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV"}
+execute_mono_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
 
 [feature.okvis2-dev.dependencies]
 cmake = "<4"
