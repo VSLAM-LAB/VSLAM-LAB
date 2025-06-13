@@ -78,18 +78,18 @@ pixi run set-evaluation-path /media/${USER}/data
 With **VSLAM-LAB**, you can easily design and configure experiments using a YAML file and run them with a single command.
 To **run** the experiment demo, execute the following command:
 ```
-ARGUMENT="--exp_yaml exp_demo.yaml" pixi run vslamlab
+ARGUMENT="--exp_yaml exp_mono.yaml" pixi run vslamlab
 ```
 
-Experiments in **VSLAM-LAB** are sequences of entries in a YAML file (see example **~/VSLAM-LAB/configs/exp_demo.yaml**):
+Experiments in **VSLAM-LAB** are sequences of entries in a YAML file (see example **~/VSLAM-LAB/configs/exp_mono.yaml**):
 ```
 exp_vslamlab:
-  Config: config_demo.yaml     # YAML file containing the sequences to be run 
+  Config: config_mono.yaml     # YAML file containing the sequences to be run 
   NumRuns: 1                   # Maximum number of executions per sequence
   Parameters: {verbose: 1}     # Vector with parameters that will be input to the baseline executable 
   Module: droidslam            # droidslam/monogs/orbslam2/mast3rslam/dpvo/...                    
 ```
-**Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_demo.yaml**):
+**Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_mono.yaml**):
 ```
 rgbdtum:
   - 'rgbd_dataset_freiburg1_xyz'

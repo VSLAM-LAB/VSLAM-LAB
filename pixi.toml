@@ -6,7 +6,7 @@ channels = ["https://fast.prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [tasks]
-vslamlab = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_demo.yaml", OVEWRITE = "-overwrite"}}
+vslamlab = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_mono.yaml", OVEWRITE = "-overwrite"}}
 vslamlab_debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
 evaluate = {cmd = "pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
 
