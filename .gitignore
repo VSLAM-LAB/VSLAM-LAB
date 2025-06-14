@@ -32,6 +32,8 @@ Baselines/OKVIS2
 Baselines/OKVIS2-DEV
 Baselines/PyCuVSLAM-DEV/
 
+Baselines/PYSLAM-DEV/
+
 Baselines/AnyFeature-VSLAM
 Baselines/dso
 Baselines/dust3r
