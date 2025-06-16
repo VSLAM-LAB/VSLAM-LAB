@@ -686,7 +686,7 @@ cuda = "12.0"
 [feature.pyslam-dev.tasks]
 git-clone = {cmd = "git-clone.sh VSLAM-LAB pyslam_pixi PYSLAM-DEV && cd Baselines/PYSLAM-DEV && git checkout vslamlab"}
 install = {cmd = "./install_thirdparty_pixi.sh", cwd = "Baselines/PYSLAM-DEV"}
-execute_mono = {cmd = 'python main_slam.py', cwd = "Baselines/PYSLAM-DEV"}
+execute_mono = {cmd = 'python vslamlab_pyslam_mono.py', cwd = "Baselines/PYSLAM-DEV"}
 
 [feature.pyslam-dev.dependencies]
 absl-py = "*"
