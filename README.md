@@ -26,6 +26,12 @@
     <a href="https://scholar.google.com/citations?user=eq46ylAAAAAJ&hl=en"><strong>Tobias Fischer</strong></a>
     ·
     <a href="https://nmarticorena.github.io/"><strong>Nicolas Marticorena</strong></a>
+  </p>
+
+  <p align="center">
+     <a href="https://www.linkedin.com/in/somayeh-hussaini/?originalSubdomain=au"><strong>Somayeh Hussaini</strong></a>
+    ·
+     <a href="https://github.com/TedVanderfeen"><strong>Ted Vanderfeen </strong></a>
     ·
     <a href="https://scholar.google.com/citations?user=j_sMzokAAAAJ&hl=en"><strong>Javier Civera</strong></a>
     ·
@@ -212,7 +218,7 @@ We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6
 | [**GenSfM**](https://github.com/Ivonne320/GenSfM)                                     |  SfM   |       mono       |                [BSD](https://github.com/Ivonne320/GenSfM/blob/main/COPYING.txt)                 |   `gensfm`   | 
 | [**DSO**](https://github.com/alejandrofontan/dso)                           |   VO   |       mono       |       [GPLv3](https://github.com/JakobEngel/dso/blob/master/LICENSE)        |    `dso`     |
 | [**AnyFeature-VSLAM**](https://github.com/alejandrofontan/AnyFeature-VSLAM) | VSLAM  |       mono       | [GPLv3](https://github.com/alejandrofontan/VSLAM-LAB/blob/main/LICENSE.txt) | `anyfeature` |
-| [**evo**](https://github.com/princeton-vl/DROID-SLAM)                       |  Eval  |        -         |    [GPLv3](https://github.com/MichaelGrupp/evo/blob/master/LICENSE)    |    `evo`     |
+| [**evo**](https://github.com/MichaelGrupp/evo)                       |  Eval  |        -         |    [GPLv3](https://github.com/MichaelGrupp/evo/blob/master/LICENSE)    |    `evo`     |
 
 
 
