@@ -27,6 +27,14 @@ Baselines/GenSfM-DEV
 Baselines/MASt3R-DEV
 Baselines/ORB_SLAM2_AUTOTUNE-DEV
 
+Baselines/ORB_SLAM3
+Baselines/ORB_SLAM3-DEV
+Baselines/OKVIS2
+Baselines/OKVIS2-DEV
+Baselines/PyCuVSLAM-DEV/
+
+Baselines/PYSLAM-DEV/
+
 Baselines/AnyFeature-VSLAM
 Baselines/dso
 Baselines/dust3r
@@ -45,6 +53,9 @@ Baselines/pyslam
 Baselines/MAGiC-SLAM
 
 path_constants.py
+
+configs/config_demo.yaml
+configs/exp_demo.yaml
 
 #VSCode
 .vscode/

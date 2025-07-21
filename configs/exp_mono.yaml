@@ -1,0 +1,29 @@
+exp_demo_mast3rslam:
+  Config: config_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,100]}
+  Module: mast3rslam
+
+exp_demo_droidslam:
+  Config: config_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,100]}
+  Module: droidslam
+
+exp_demo_dpvo:
+  Config: config_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,100]}
+  Module: dpvo
+
+exp_demo_orbslam2:
+  Config: config_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,100]}
+  Module: orbslam2
+
+exp_demo_glomap:
+  Config: config_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,100], matcher_type: exhaustive}
+  Module: glomap

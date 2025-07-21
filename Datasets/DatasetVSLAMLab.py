@@ -37,6 +37,7 @@ class DatasetVSLAMLab:
         self.sequence_names = data['sequence_names']
         self.rgb_hz = data['rgb_hz']
         self.sequence_nicknames = []
+        self.modes = data.get('modes', 'mono')
 
     ####################################################################################################################
     # Download methods

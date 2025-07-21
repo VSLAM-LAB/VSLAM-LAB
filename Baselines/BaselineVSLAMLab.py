@@ -19,6 +19,7 @@ class BaselineVSLAMLab:
 
     def __init__(self, baseline_name, baseline_folder, default_parameters=''):
         self.baseline_name = baseline_name
+        self.baseline_folder = baseline_folder
         self.baseline_path = os.path.join(VSLAMLAB_BASELINES, baseline_folder)
         self.label = f"\033[96m{baseline_name}\033[0m"
         self.settings_yaml = os.path.join(self.baseline_path, f'vslamlab_{baseline_name}_settings.yaml')
@@ -49,7 +50,7 @@ class BaselineVSLAMLab:
         return False
 
     def install(self):
-        if self.is_installed():
+        if self.is_installed()[0]:
             return
 
         log_file_path = os.path.join(self.baseline_path, f'install_{self.baseline_name}.txt')
@@ -65,11 +66,16 @@ class BaselineVSLAMLab:
 
     def info_print(self):
         print(f'Name: {self.label}')
-        is_installed = self.is_installed()
-        print(
-            f"Installed:\033[92m {is_installed}\033[0m" if is_installed else f"Installed:\033[91m {is_installed}\033[0m")
-        print(
-            f"Path:\033[92m {self.baseline_path}\033[0m" if is_installed else f"Path:\033[91m {self.baseline_path}\033[0m")
+        is_installed, install_msg = self.is_installed()
+
+        if is_installed:
+            print_msg(f"{ws(0)}", f"Installed:\033[92m {install_msg}\033[0m", verb='LOW')
+        else:    
+            print_msg(f"{ws(0)}", f"Installed:\033[93m {install_msg}\033[0m", verb='LOW')
+  
+        is_cloned = self.is_cloned()
+        print(f"Path:\033[92m {self.baseline_path}\033[0m" if is_cloned else f"Path:\033[93m {self.baseline_path} (missing)\033[0m")
+        print(f'Modalities: {self.modes}')
         print(f'Default parameters: {self.get_default_parameters()}')
 
     def download_vslamlab_settings(self): # Download vslamlab_{baseline_name}_settings.yaml
@@ -180,19 +186,6 @@ class BaselineVSLAMLab:
             "gpu": memory_stats.get('gpu', 'N/A')
         }
 
-    
-    def build_execute_command(self, sequence_path, exp_folder, exp_it, parameters):
-        exec_command = [f"sequence_path:{sequence_path}", f"exp_folder:{exp_folder}", f"exp_id:{exp_it}"]
-
-        i_par = 0
-        for parameter in parameters:
-            exec_command += [str(parameter)]
-            i_par += 1
-        command_str = ' '.join(exec_command)
-
-        full_command = f"pixi run -e {self.baseline_name} execute " + command_str
-        return full_command
-
     def build_execute_command_cpp(self, exp_it, exp, dataset, sequence_name):
         sequence_path = os.path.join(dataset.dataset_path, sequence_name)
         exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
@@ -212,7 +205,12 @@ class BaselineVSLAMLab:
             else:
                 vslamlab_command += [f"{str(parameter_name)}:{str(parameter_value)}"]
 
-        vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute " + ' '.join(vslamlab_command)
+        if "mode:mono" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
+
+        if "mode:mono-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
+
         return vslamlab_command
 
     def build_execute_command_python(self, exp_it, exp, dataset, sequence_name):
@@ -234,7 +232,12 @@ class BaselineVSLAMLab:
             else:
                 vslamlab_command += [f"--{str(parameter_name)} {str(parameter_value)}"]
 
-        vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute " + ' '.join(vslamlab_command)
+        if "--mode mono" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
+
+        if "--mode mono-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
+
         return vslamlab_command
 
     def modify_yaml_parameter(self, settings_ablation_yaml, section_name, parameter_name, new_value):

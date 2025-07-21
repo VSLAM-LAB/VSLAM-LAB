@@ -74,6 +74,10 @@ def check_experiments(exp_yaml, overwrite):
     check_experiment_baseline_names(exp_data, exp_yaml)
     check_experiment_sequence_names(exp_data)
 
+    # Check conflicting parameters
+    config_mode = check_experiment_baselines_conflicts(exp_data, exp_yaml)
+    check_experiment_sequence_conflicts(exp_data, exp_yaml, config_mode)
+
     # Check experiment resources
     num_baselines_to_install, num_automatic_install, baselines_to_install = check_experiment_baselines_installed(exp_data)
     num_download_issues, num_automatic_download, sequences_to_download = check_experiment_sequences_available(exp_data, exp_yaml)
@@ -132,10 +136,11 @@ def check_experiment_baselines_installed(exp_data):
     baselines_to_install = []
     for baseline_name, exp_name in baselines.items():
         baseline = get_baseline(baseline_name)
-        if baseline.is_installed():
-            print_msg(f"{ws(4)}", f"- {baseline.label}:\033[92m installed\033[0m", verb='LOW')
+        is_baseline_installed, install_msg = baseline.is_installed()
+        if is_baseline_installed:
+            print_msg(f"{ws(4)}", f"- {baseline.label}:\033[92m {install_msg}\033[0m", verb='LOW')
         else:    
-            print_msg(f"{ws(4)}", f"- {baseline.label}:\033[93m not installed\033[0m \033[92m (automatic install)\033[0m", verb='LOW')
+            print_msg(f"{ws(4)}", f"- {baseline.label}:\033[93m {install_msg}\033[0m", verb='LOW')
             num_baselines_to_install += 1
             baselines_to_install.append(baseline_name)
 
@@ -230,6 +235,41 @@ def check_experiment_baseline_names(exp_data, exp_yaml=''):
             print_msg(f"{ws(4)}",f"[Error] 'Module: {baseline_name}' baseline in '{exp_name}' doesn't exist.",'error')
             print_baselines()
             sys.exit(1)
+
+def check_experiment_baselines_conflicts(exp_data, exp_yaml=''):
+    modes = {}
+    for exp_name, settings in exp_data.items():
+        baseline_name = settings.get('Module')
+        baseline = get_baseline(baseline_name)
+        mode = settings.get('Parameters', {}).get('mode', baseline.default_parameters.get('mode'))
+        modes[mode] = baseline_name
+        if not mode in baseline.modes:
+            print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment baseline conflicts (in '{exp_yaml}'):",'info')
+            print_msg(f"{ws(4)}",f"[Error] Baseline '{baseline_name}' in '{exp_name}' doesn't handle  mode '{mode}'.",'error')
+            print_msg(f"{ws(4)}",f"        Available modes are: {baseline.modes}.",'error')
+            sys.exit(1)
+
+    if len(modes) > 1:
+        print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment baseline conflicts (in '{exp_yaml}'):",'info')
+        print_msg(ws(4), f"[Error] Only one mode is allowed per config file",'error')
+        print_msg(ws(12), f"Conflicts: {modes}",'error')
+        sys.exit(1)  
+
+    config_mode = list(modes.keys())[0]
+    return config_mode
+
+def check_experiment_sequence_conflicts(exp_data, exp_yaml='', config_mode = 'mono'):
+    for exp_name, settings in exp_data.items():
+        config_file = os.path.join(VSLAM_LAB_DIR, 'configs', settings.get('Config'))
+        with open(config_file, 'r') as file:
+            config_file_data = yaml.safe_load(file)
+            for dataset_name, _ in config_file_data.items():
+                dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+                if config_mode not in dataset.modes:
+                    print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment dataset conflicts (in '{exp_yaml}'):",'info')
+                    print_msg(f"{ws(4)}",f"[Error] Dataset '{dataset_name}' in '{exp_name}' doesn't handle  mode '{config_mode}'.",'error')
+                    print_msg(f"{ws(4)}",f"        Available modes are: {dataset.modes}.",'error')
+                    sys.exit(1)
 
 def check_experiment_sequence_names(exp_data):
 
