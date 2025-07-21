@@ -10,7 +10,7 @@ from utilities import print_msg, ws, format_msg
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
 def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
-    command =  "pixi run -e evo evo_config set save_traj_in_zip true"
+    command =  "pixi run -e vslamlab evo_config set save_traj_in_zip true"
     subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     METRIC = 'ate'
