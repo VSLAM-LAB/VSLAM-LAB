@@ -141,7 +141,7 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
     def remove_unused_files(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         if VSLAMLAB_BENCHMARK_WEIGHT == 'light':
-            shutil.rmtree(os.path.join(sequence_path, 'depth'))
+            #shutil.rmtree(os.path.join(sequence_path, 'depth'))
             os.remove(os.path.join(sequence_path, 'depth.txt'))
             os.remove(os.path.join(sequence_path, 'accelerometer.txt'))
             os.remove(os.path.join(sequence_path, 'rgb_original.txt'))
