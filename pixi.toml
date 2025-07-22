@@ -569,26 +569,27 @@ libopengl-devel = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
-# # orbslam2-dev begin
-# [feature.orbslam2-dev]
-# channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
-# platforms = ["linux-64"]
+# orbslam2-dev begin
+[feature.orbslam2-dev]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
 
-# [feature.orbslam2-dev.tasks]
-# git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
-# install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV"}
-# execute_mono = {cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV"}
+[feature.orbslam2-dev.tasks]
+git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
+install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV"}
+execute_mono = {cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV"}
+execute_rgbd = {cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV"}
 
-# [feature.orbslam2-dev.dependencies]
-# compilers = "*"
-# ninja = ">=1.12.1 ,<1.13"
-# cmake = ">=3.31.1 ,<3.32"
-# pkg-config = ">=0.29.2 ,<0.30"
-# opencv = ">=4.10.0 ,<5"
-# eigen = ">=3.4.0 ,<3.5.0"
-# yaml-cpp = ">=0.8.0,<0.9"
-# pangolin = {channel="fontan"}
-# # orbslam2-dev end
+[feature.orbslam2-dev.dependencies]
+compilers = "*"
+ninja = ">=1.12.1 ,<1.13"
+cmake = ">=3.31.1 ,<3.32"
+pkg-config = ">=0.29.2 ,<0.30"
+opencv = ">=4.10.0 ,<5"
+eigen = ">=3.4.0 ,<3.5.0"
+yaml-cpp = ">=0.8.0,<0.9"
+pangolin = {channel="fontan"}
+# orbslam2-dev end
 
 # ########################################################################################################################
 # ########################################################################################################################
