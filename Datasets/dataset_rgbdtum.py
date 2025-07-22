@@ -114,7 +114,8 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
             if VSLAMLAB_BENCHMARK_WEIGHT != 'light':
                 undistort_depth_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
 
-        self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name)
+        #self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name)
+        self.write_calibration_rgbd_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name, depth_factor=5000)
 
     def create_groundtruth_txt(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
@@ -141,7 +142,7 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
     def remove_unused_files(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         if VSLAMLAB_BENCHMARK_WEIGHT == 'light':
-            shutil.rmtree(os.path.join(sequence_path, 'depth'))
+            #shutil.rmtree(os.path.join(sequence_path, 'depth'))
             os.remove(os.path.join(sequence_path, 'depth.txt'))
             os.remove(os.path.join(sequence_path, 'accelerometer.txt'))
             os.remove(os.path.join(sequence_path, 'rgb_original.txt'))
