@@ -17,7 +17,7 @@ class ORBSLAM2_baseline(BaselineVSLAMLab):
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = 'blue'
-        self.modes = ['mono']
+        self.modes = ['mono', 'rgbd']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
@@ -42,6 +42,7 @@ class ORBSLAM2_baseline(BaselineVSLAMLab):
 class ORBSLAM2_baseline_dev(ORBSLAM2_baseline):
     def __init__(self):
         super().__init__(baseline_name = 'orbslam2-dev', baseline_folder = 'ORB_SLAM2-DEV')
+        self.default_parameters['mode'] = 'rgbd'
     
     def is_installed(self):
         is_installed = os.path.isfile(os.path.join(self.baseline_path, 'bin', 'vslamlab_orbslam2_mono' ))

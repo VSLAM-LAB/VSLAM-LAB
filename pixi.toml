@@ -539,6 +539,7 @@ platforms = ["linux-64"]
 git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
 install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV"}
 execute_mono = {cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV"}
+execute_rgbd = {cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV"}
 
 [feature.orbslam2-dev.dependencies]
 compilers = "*"
