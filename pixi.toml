@@ -2,7 +2,7 @@
 name = "VSLAM-LAB"
 version = "0.1.0"
 description = "VSLAM-LAB"
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [tasks]
@@ -50,7 +50,7 @@ vggt-dev = { features = ["vggt-dev", "cuda126", "py11"], no-default-feature = tr
 
 # VSLAM-LAB
 [feature.vslamlab]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.vslamlab.dependencies]
@@ -80,7 +80,7 @@ piexif = "*"
 ########################################################################################################################
 # droidslam begin
 [feature.droidslam]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.droidslam.system-requirements]
@@ -100,7 +100,7 @@ open3d = ">=0.18.0,<0.19"
 # ########################################################################################################################
 # mast3rslam begin
 [feature.mast3rslam]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.mast3rslam.system-requirements]
@@ -121,7 +121,7 @@ roma = { channel = "fontan" }
 ########################################################################################################################
 # dpvo begin
 [feature.dpvo]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.dpvo.system-requirements]
@@ -147,7 +147,7 @@ numba = "*"
 ########################################################################################################################
 # monogs begin
 [feature.monogs]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.monogs.system-requirements]
@@ -181,7 +181,7 @@ open3d = "==0.17.0"
 ########################################################################################################################
 # orbslam2 begin
 [feature.orbslam2]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2.tasks]
@@ -198,7 +198,7 @@ opencv = ">=4.10.0 ,<5"
 ########################################################################################################################
 # colmap begin
 [feature.colmap]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.colmap.tasks]
@@ -216,7 +216,7 @@ scipy = "*"
 ########################################################################################################################
 # glomap begin
 [feature.glomap]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.glomap.tasks]
@@ -238,7 +238,7 @@ glomap = "*"
 # cuda126 begin
 [feature.cuda126]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 
 [feature.cuda126.system-requirements]
 cuda = "12.0"
@@ -274,7 +274,7 @@ libnvjitlink = "*"
 # py10 begin
 [feature.py10]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 
 [feature.py10.dependencies]
 python = "3.10.*"
@@ -286,7 +286,7 @@ pip = "*"
 # py11 begin
 [feature.py11]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 
 [feature.py11.dependencies]
 python = "3.11.*"
@@ -298,7 +298,7 @@ pip = "*"
 # x11 begin
 [feature.x11]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 
 [feature.x11.dependencies]
 xorg-libxext = "*"
@@ -317,7 +317,7 @@ libxkbcommon = "*"
 # opengl begin
 [feature.opengl]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 
 [feature.opengl.dependencies]
 libgl-devel = "*"
@@ -330,7 +330,7 @@ libopengl-devel = "*"
 ########################################################################################################################
 # droidslam-dev begin
 [feature.droidslam-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.droidslam-dev.system-requirements]
@@ -369,7 +369,7 @@ tqdm = "*"
 # ########################################################################################################################
 # mast3rslam-dev begin
 [feature.mast3rslam-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.mast3rslam-dev.system-requirements]
@@ -429,7 +429,7 @@ pyrealsense2 = "*"
 ########################################################################################################################
 # dpvo-dev begin
 [feature.dpvo-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.dpvo-dev.system-requirements]
@@ -482,7 +482,7 @@ yacs = "*"
 ########################################################################################################################
 # monogs-dev begin
 [feature.monogs-dev]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.monogs-dev.system-requirements]
@@ -532,7 +532,7 @@ open3d = "==0.17.0"
 ########################################################################################################################
 # orbslam2-dev begin
 [feature.orbslam2-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2-dev.tasks]
@@ -555,7 +555,7 @@ pangolin = { channel = "fontan" }
 ########################################################################################################################
 # gensfm-dev begin
 [feature.gensfm-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.gensfm-dev.system-requirements]
@@ -591,7 +591,7 @@ scipy = "*"
 # mast3r-dev begin
 [feature.mast3r-dev]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 
 [feature.mast3r-dev.system-requirements]
 cuda = "12.0"
@@ -640,7 +640,7 @@ gradio = "*"
 ########################################################################################################################
 # vggt-dev begin
 [feature.vggt-dev]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.vggt-dev.dependencies]
