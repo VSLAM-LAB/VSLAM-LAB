@@ -6,20 +6,18 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64"]
 
 [tasks]
-vslamlab = { cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = { ARGUMENT = "--exp_yaml exp_mono.yaml", OVEWRITE = "-overwrite" } }
-vslamlab_debug = { cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = { ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " " } }
-evaluate = { cmd = "pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = { ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " " } }
+# XXX: currently no way to set `env.PIXI_FROZEN` for a dependency task
+# see prefix-dev/pixi#4208
+demo = "pixi run --frozen -e vslamlab python vslamlab_demo.py"
 
-set-benchmark-path = { cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_BENCHMARK_path" }
-set-evaluation-path = { cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_EVALUATION_path" }
-demo = { cmd = "pixi run --frozen -e vslamlab python vslamlab_demo.py" }
-baseline-info = { cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py baseline_info" }
-sequence-info = { cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py sequence_info" }
-print_datasets = { cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_datasets" }
-print_baselines = { cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_baselines" }
-get-benchmark-path = { cmd = "VSLAMLAB_BENCHMARK=$(python3 -c 'from path_constants import VSLAMLAB_BENCHMARK; print(VSLAMLAB_BENCHMARK)')" }
-clean_swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
-kill_all = { cmd = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+baseline-info = "pixi run --frozen utilities baseline_info"
+sequence-info = "pixi run --frozen utilities sequence_info"
+print_datasets = "pixi run --frozen utilities print_datasets"
+print_baselines = "pixi run --frozen utilities print_baselines"
+
+get-benchmark-path = "VSLAMLAB_BENCHMARK=$(python3 -c 'from path_constants import VSLAMLAB_BENCHMARK; print(VSLAMLAB_BENCHMARK)')"
+clean_swap = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a"
+kill_all = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"
 
 # environments begin
 [environments]
@@ -52,6 +50,41 @@ vggt-dev = { features = ["vggt-dev", "cuda126", "py11"], no-default-feature = tr
 [feature.vslamlab]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64"]
+
+[feature.vslamlab.tasks]
+vslamlab.depends-on = [
+  { "task" = "vslamlab_run_eval", "args" = ["--exp_yaml exp_mono.yaml", "-overwrite"] },
+]
+
+vslamlab_debug.depends-on = [
+  { "task" = "vslamlab_run_eval", "args" = ["--exp_yaml exp_debug.yaml", " "] },
+]
+
+evaluate.depends-on = [
+  { "task" = "vslamlab_eval", "args" = ["--exp_yaml exp_debug.yaml", " "] },
+]
+
+# `vslamlab_run` and `vslamlab_eval` with the same args
+vslamlab_run_eval.depends-on = [
+  { "task" = "vslamlab_run", "args" = ["ARGUMENT", "OVERWRITE"] },
+  { "task" = "vslamlab_eval", "args" = ["ARGUMENT", "OVERWRITE"] },
+]
+vslamlab_run_eval.args = ["ARGUMENT", "OVERWRITE"]
+
+vslamlab_run.cmd = "python vslamlab_run.py {{ ARGUMENT }} {{ OVERWRITE }}"
+vslamlab_run.args = ["ARGUMENT", "OVERWRITE"]
+
+vslamlab_eval.cmd = "python vslamlab_eval.py {{ ARGUMENT }} {{ OVERWRITE }}"
+vslamlab_eval.args = ["ARGUMENT", "OVERWRITE"]
+
+set-benchmark-path.cmd = "python path_constants.py set_VSLAMLAB_BENCHMARK_path {{ path }}"
+set-benchmark-path.args = ["path"]
+
+set-evaluation-path.cmd = "python path_constants.py set_VSLAMLAB_EVALUATION_path {{ path }}"
+set-evaluation-path.args = ["path"]
+
+utilities.cmd = "python vslamlab_utilities.py {{ utility }}"
+utilities.args = ["utility"]
 
 [feature.vslamlab.dependencies]
 python = "*"
