@@ -3,7 +3,7 @@ name = "VSLAM-LAB"
 version = "0.1.0"
 description = "VSLAM-LAB"
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64"]
 
 [tasks]
 vslamlab = { cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = { ARGUMENT = "--exp_yaml exp_mono.yaml", OVEWRITE = "-overwrite" } }
@@ -51,7 +51,7 @@ vggt-dev = { features = ["vggt-dev", "cuda126", "py11"], no-default-feature = tr
 # VSLAM-LAB
 [feature.vslamlab]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64"]
 
 [feature.vslamlab.dependencies]
 python = "*"
