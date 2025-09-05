@@ -29,6 +29,7 @@ from Datasets.dataset_sweetcorals import SWEETCORALS_dataset
 from Datasets.dataset_ut_coda import UT_CODA_dataset
 from Datasets.dataset_ntnu_arl_uw import NTNU_ARL_UW_dataset
 from Datasets.dataset_reefslam import REEFSLAM_dataset
+from Datasets.dataset_rover import ROVER_dataset
 
 SCRIPT_LABEL = "[dataset_utilities.py] "
 
@@ -66,6 +67,7 @@ def get_dataset(dataset_name, benchmark_path):
         "ut_coda": lambda: UT_CODA_dataset(benchmark_path),
         "ntnu_arl_uw": lambda: NTNU_ARL_UW_dataset(benchmark_path),
         "reefslam": lambda: REEFSLAM_dataset(benchmark_path),
+        "rover": lambda: ROVER_dataset(benchmark_path),
     }
 
     return switcher.get(dataset_name, lambda: "Invalid case")()
