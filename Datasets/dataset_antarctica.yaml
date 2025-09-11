@@ -1,11 +1,15 @@
 dataset_name: antarctica
+folder_with_raw_data: "/home/alejandro/VSLAM-LAB-Benchmark/Antarctica_raw_data"
 rgb_hz: 30.0
 resolution_size: [640, 480]
 sequence_names:
   - ASPA135
   - ASPA136
   - Robbos
-  - DJI_202401111904_001
-  - DJI_202401111932_002
-  - DJI_202401111932_003
-  - DJI_202401112014_004
+  - Q3_DJI_202401111904_001
+  - Q3_DJI_202401111932_002
+  - Q3_DJI_202401111932_003
+  - Q3_DJI_202401112014_004
+  - Q1_2023-12-26_P1
+  - Q2_DJI_202401121044_005
+  - Q2_DJI_202401121140_006
