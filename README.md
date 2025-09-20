@@ -205,36 +205,37 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 # VSLAM-LAB Supported Baselines and Datasets
 We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6x_TXkgLsw9zWszHU9M-0mGgDT92TEs/edit?usp=drive_link) with more detailed information for each baseline and dataset.
 
-| Baselines                                                                   | System |     Sensors      |                                   License                                   |    Label     |  Conda Pkg     | 
-|:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|
-| [**MASt3R-SLAM**](https://github.com/rmurai0610/MASt3R-SLAM)                | VSLAM  |       mono       |    [CC BY-NC-SA 4.0](https://github.com/rmurai0610/MASt3R-SLAM/blob/main/LICENSE.md)    | `mast3rslam`  | ✅ |
-| [**DROID-SLAM**](https://github.com/princeton-vl/DROID-SLAM)                | VSLAM  |       mono       |    [BSD-3](https://github.com/princeton-vl/DROID-SLAM/blob/main/LICENSE)    | `droidslam`  | ✅ |
-| [**DPVO**](https://github.com/princeton-vl/DPVO)                            | VSLAM  |       mono       |    [License](https://github.com/princeton-vl/DPVO/blob/main/LICENSE)    | `dpvo`  | ✅ |
-| [**ORB-SLAM2**](https://github.com/alejandrofontan/ORB_SLAM2)               | VSLAM  | mono |    [GPLv3](https://github.com/raulmur/ORB_SLAM2/blob/master/LICENSE.txt)    |  `orbslam2`  | ✅ |
-| [**MonoGS**](https://github.com/muskie82/MonoGS)                            | VSLAM  | mono |     [License](https://github.com/muskie82/MonoGS?tab=License-1-ov-file)     |   `monogs`   | ✅ |
-| [**AnyFeature-VSLAM**](https://github.com/alejandrofontan/AnyFeature-VSLAM) | VSLAM  | ⛔ | [GPLv3](https://github.com/alejandrofontan/VSLAM-LAB/blob/main/LICENSE.txt) | `anyfeature` | ⛔ |
-| [**DSO**](https://github.com/alejandrofontan/dso)                           |   VO   | ⛔ |        [GPLv3](https://github.com/JakobEngel/dso/blob/master/LICENSE)        |    `dso`     | ⛔ | 
-| [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | mono-vi |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ |
-| [**OKVIS2**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | mono-vi |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ |
-| [**GLOMAP**](https://lpanaf.github.io/eccv24_glomap/)                       |  SfM   |       mono       |         [BSD-3](https://github.com/colmap/glomap/blob/main/LICENSE)         |   `glomap`   | ✅ |
-| [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       mono       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ |
-| [**GenSfM**](https://github.com/Ivonne320/GenSfM)                                     |  SfM   |       ⛔       |                [BSD](https://github.com/Ivonne320/GenSfM/blob/main/COPYING.txt)                 |   `gensfm`   | ⛔ | 
+| Baselines                                                                   | System |     Sensors      |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |  
+|:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|:------------:|
+| [**MASt3R-SLAM**](https://github.com/rmurai0610/MASt3R-SLAM)                | VSLAM  |       `mono`       |    [CC BY-NC-SA 4.0](https://github.com/rmurai0610/MASt3R-SLAM/blob/main/LICENSE.md)    | `mast3rslam`  | ✅ | `Pinhole` |
+| [**DPVO**](https://github.com/princeton-vl/DPVO)                            | VSLAM  |       `mono`       |    [License](https://github.com/princeton-vl/DPVO/blob/main/LICENSE)    | `dpvo`  | ✅ | `Pinhole` |
+| [**DROID-SLAM**](https://github.com/princeton-vl/DROID-SLAM)                | VSLAM  |`mono` `rgbd` `stereo`|    [BSD-3](https://github.com/princeton-vl/DROID-SLAM/blob/main/LICENSE)    | `droidslam`  | ✅ | `Pinhole` |
+| [**ORB-SLAM2**](https://github.com/alejandrofontan/ORB_SLAM2)               | VSLAM  |`mono` `rgbd` `stereo`|    [GPLv3](https://github.com/raulmur/ORB_SLAM2/blob/master/LICENSE.txt)    |  `orbslam2`  | ✅ | `Pinhole` |
+| [**MonoGS**](https://github.com/muskie82/MonoGS)                            | VSLAM  | `mono` |     [License](https://github.com/muskie82/MonoGS?tab=License-1-ov-file)     |   `monogs`   | ✅ | `Pinhole` |
+| [**AnyFeature-VSLAM**](https://github.com/alejandrofontan/AnyFeature-VSLAM) | VSLAM  | ⛔ | [GPLv3](https://github.com/alejandrofontan/VSLAM-LAB/blob/main/LICENSE.txt) | `anyfeature` | ⛔ | `Pinhole` |
+| [**DSO**](https://github.com/alejandrofontan/dso)                           |   VO   | ⛔ |        [GPLv3](https://github.com/JakobEngel/dso/blob/master/LICENSE)        |    `dso`     | ⛔ | `Pinhole` | 
+| [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | `mono-vi` |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ | `Pinhole` |
+| [**OKVIS2**](https://github.com/ethz-mrl/okvis2)               | VSLAM  | `mono-vi` |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ | `Pinhole` |
+| [**PyCuVSLAM**](https://github.com/NVlabs/PyCuVSLAM)               | VSLAM  | `mono` `rgbd` `stereo` `stereo-vi` |    [NPSL](https://github.com/NVlabs/PyCuVSLAM/blob/main/LICENSE)    |  `pycuvslam`  | ✅ | `Pinhole` |
+| [**GLOMAP**](https://lpanaf.github.io/eccv24_glomap/)                       |  SfM   |       `mono`       |         [BSD-3](https://github.com/colmap/glomap/blob/main/LICENSE)         |   `glomap`   | ✅ | `Pinhole` |
+| [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `Pinhole` |
+| [**GenSfM**](https://github.com/Ivonne320/GenSfM)                                     |  SfM   |       ⛔       |                [BSD](https://github.com/Ivonne320/GenSfM/blob/main/COPYING.txt)                 |   `gensfm`   | ⛔ | `Pinhole` | 
 | [**evo**](https://github.com/MichaelGrupp/evo)                       |  Eval  |        -         |    [GPLv3](https://github.com/MichaelGrupp/evo/blob/master/LICENSE)    |    `evo`     |
 
 
 
-| Datasets                                                                                                                        |   Data    |    Mode    |    Label    |     Sensors      |       
-|:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:----------:|:-----------:|:----------:|
-| [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |   real    |  handheld  |    `eth`    | mono  |
-| [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |   real    |  handheld  |  `rgbdtum`  | mono  |
-| [**ICL-NUIM RGB-D Benchmark Dataset**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html)                                    | synthetic |  handheld  |   `nuim`    | mono  | 
-| [**Monocular Visual Odometry Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset)                                      |   real    |  handheld  |  `monotum`  | mono  |
-| [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |   real    |  vehicle   |   `kitti`   | mono  |
-| [**RGB-D Dataset 7-Scenes**](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)                          |   real    |  handheld  |  `7scenes`  | mono  |
-| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |   real    |    UAV     |   `euroc`   | mono, mono-vi  |
-| [**TartanAir: A Dataset to Push the Limits of Visual SLAM**](https://theairlab.org/tartanair-dataset/)                          | synthetic |  handheld  | `tartanair` | mono  |
-| [**The Drunkard's Dataset**](https://davidrecasens.github.io/TheDrunkard%27sOdometry)                                           | synthetic |  handheld  | `drunkards` | mono  |
-| [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) | synthetic |  handheld  |  `replica`  | mono  |
-| [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/)                                             |   real    |  handheld  |  `hamlyn`   | mono  |
-| [**Underwater caves sonar and vision data set**](https://cirs.udg.edu/caves-dataset/)                                           |   real    | underwater |   `caves`  | mono  |
-| [**HILTI-OXFORD 2022**](http://hilti-challenge.com/dataset-2022.html)   |   real    | handheld |  `hilti2022`  | mono  |
+| Datasets                                                                                                                        |   Data    |    Mode    |    Label    |     Sensors      |  Camera Models     |        
+|:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:----------:|:-----------:|:----------:|:----------:|
+| [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |   real    |  handheld  |    `eth`    |`mono` `rgbd` | `Pinhole` |
+| [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |   real    |  handheld  |  `rgbdtum`  |`mono` `rgbd`| `Pinhole` |
+| [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |   real    |  vehicle   |   `kitti`   |`mono` `stereo`| `Pinhole` |
+| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |   real    |    UAV     |   `euroc`   | `mono`,`stereo`, `mono-vi`, `stereo-vi` | `Pinhole` |
+| [**ICL-NUIM RGB-D Benchmark Dataset**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html)                                    | synthetic |  handheld  |   `nuim`    | ⛔  | `Pinhole` | 
+| [**Monocular Visual Odometry Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset)                                      |   real    |  handheld  |  `monotum`  | ⛔  | `Pinhole` |
+| [**RGB-D Dataset 7-Scenes**](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)                          |   real    |  handheld  |  `7scenes`  | ⛔  | `Pinhole` |
+| [**TartanAir: A Dataset to Push the Limits of Visual SLAM**](https://theairlab.org/tartanair-dataset/)                          | synthetic |  handheld  | `tartanair` | ⛔  | `Pinhole` |
+| [**The Drunkard's Dataset**](https://davidrecasens.github.io/TheDrunkard%27sOdometry)                                           | synthetic |  handheld  | `drunkards` | ⛔  | `Pinhole` |
+| [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) | synthetic |  handheld  |  `replica`  | ⛔  | `Pinhole` |
+| [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/)                                             |   real    |  handheld  |  `hamlyn`   | ⛔  | `Pinhole` |
+| [**Underwater caves sonar and vision data set**](https://cirs.udg.edu/caves-dataset/)                                           |   real    | underwater |   `caves`  | ⛔  | `Pinhole` |
+| [**HILTI-OXFORD 2022**](http://hilti-challenge.com/dataset-2022.html)   |   real    | handheld |  `hilti2022`  | ⛔  | `Pinhole` |
