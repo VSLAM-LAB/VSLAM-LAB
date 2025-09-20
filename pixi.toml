@@ -38,6 +38,9 @@ orbslam2 = {features = ["orbslam2"], no-default-feature = true}
 colmap = {features = ["colmap"], no-default-feature = true, solve-group = "colmap"}
 glomap = {features = ["glomap", "colmap"], no-default-feature = true, solve-group = "colmap"}
 
+orbslam3 = {features = ["orbslam3"], no-default-feature = true}
+okvis2 = {features = ["okvis2"], no-default-feature = true}
+
 droidslam-dev = {features = ["droidslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 mast3rslam-dev = {features = ["mast3rslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 dpvo-dev = {features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py11"}
@@ -46,6 +49,10 @@ orbslam2-dev = {features = ["orbslam2-dev", "x11", "opengl"], no-default-feature
 gensfm-dev = {features = ["gensfm-dev", "cuda126", "py10", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py10"}
 mast3r-dev = {features = ["mast3r-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
 vggt-dev = {features = ["vggt-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
+
+orbslam3-dev = {features = ["orbslam3-dev", "x11", "opengl"], no-default-feature = true}
+okvis2-dev = {features = ["okvis2-dev", "cuda126", "py11"], no-default-feature = true}
+
 # environments end
 
 # VSLAM-LAB
@@ -226,6 +233,38 @@ execute_mono = {cmd = './Baselines/glomap/glomap_reconstruction.sh'}
 [feature.glomap.dependencies]
 glomap="*"
 # glomap end
+
+########################################################################################################################
+########################################################################################################################
+# orbslam3 begin
+[feature.orbslam3]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.orbslam3.tasks]
+git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/orbslam3 Baselines/ORB_SLAM3'}
+execute_mono_vi = {cmd = "vslamlab_orbslam3_mono_vi"}
+
+[feature.orbslam3.dependencies]
+orbslam3 = {channel="fontan"}
+pangolin = {channel="fontan"}
+opencv = ">=4.10.0 ,<5"
+# orbslam3 end
+
+########################################################################################################################
+########################################################################################################################
+# okvis2 begin
+[feature.okvis2]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.okvis2.tasks]
+git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/okvis2 Baselines/OKVIS2'}
+execute_mono_vi = {cmd = "vslamlab_okvis2_mono_vi"}
+
+[feature.okvis2.dependencies]
+okvis2 = {channel="fontan"}
+# okvis2 end
 
 ########################################################################################################################
 ########################################################################################################################
@@ -672,3 +711,59 @@ viser="*"
 git-clone = {cmd = "git-clone.sh VSLAM-LAB vggt VGGT-DEV"}
 execute_mono = {cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT-DEV"}
 # vggt end
+
+# ########################################################################################################################
+# ########################################################################################################################
+# orbslam3-dev begin
+[feature.orbslam3-dev]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.orbslam3-dev.tasks]
+git-clone = {cmd = "git-clone.sh VSLAM-LAB ORB_SLAM3 ORB_SLAM3-DEV"}
+install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM3-DEV"}
+execute_mono_vi = {cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB_SLAM3-DEV"}
+
+[feature.orbslam3-dev.dependencies]
+compilers = "*"
+ninja = ">=1.12.1 ,<1.13"
+cmake = ">=3.31.1 ,<3.32"
+pkg-config = ">=0.29.2 ,<0.30"
+opencv = ">=4.10.0 ,<5"
+eigen = ">=3.4.0 ,<3.5.0"
+yaml-cpp = ">=0.8.0,<0.9"
+pangolin = {channel="fontan"}
+boost = "*"
+# orbslam3-dev end
+
+# ########################################################################################################################
+# ########################################################################################################################
+# okvis2-dev begin
+[feature.okvis2-dev]
+channels = ["https://fast.prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+
+[feature.okvis2-dev.system-requirements]
+cuda = "12.0"
+
+[feature.okvis2-dev.tasks]
+git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
+# install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j12", cwd = "Baselines/OKVIS2-DEV"}
+install = {cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV"}
+execute_mono_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
+
+[feature.okvis2-dev.dependencies]
+cmake = "<4"
+glog = "*"
+blas = "*"
+lapack = "*"
+eigen = "*"
+suitesparse = "*"
+boost = "*"
+opencv = "*"
+libtorch = "*"
+librealsense = "*"
+openmp = "*"
+libgfortran = "3.*"
+# okvis2-dev end
