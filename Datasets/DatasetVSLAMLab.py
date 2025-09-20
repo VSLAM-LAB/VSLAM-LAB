@@ -10,7 +10,8 @@ DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
 
 """
 
-import os, yaml
+import os, sys, yaml
+from utilities import ws
 from path_constants import VSLAM_LAB_DIR
 from Datasets.dataset_calibration import _get_camera_yaml_section
 from Datasets.dataset_calibration import _get_imu_yaml_section
@@ -45,14 +46,14 @@ class DatasetVSLAMLab:
 
         # Check if sequence is already available
         sequence_availability = self.check_sequence_availability(sequence_name)
-        # if sequence_availability == "available":
-        #     #print(f"{SCRIPT_LABEL}Sequence {self.dataset_color}{sequence_name}:\033[92m downloaded\033[0m")
-        #     return
-        # if sequence_availability == "corrupted":
-        #     print(f"{ws(8)}Some files in sequence {sequence_name} are corrupted.")
-        #     print(f"{ws(8)}Removing and downloading again sequence {sequence_name} ")
-        #     print(f"{ws(8)}THIS PART OF THE CODE IS NOT YET IMPLEMENTED. REMOVE THE FILES MANUALLY")
-        #     sys.exit(1)
+        if sequence_availability == "available":
+            #print(f"{SCRIPT_LABEL}Sequence {self.dataset_color}{sequence_name}:\033[92m downloaded\033[0m")
+            return
+        if sequence_availability == "corrupted":
+            print(f"{ws(8)}Some files in sequence {sequence_name} are corrupted.")
+            print(f"{ws(8)}Removing and downloading again sequence {sequence_name} ")
+            print(f"{ws(8)}THIS PART OF THE CODE IS NOT YET IMPLEMENTED. REMOVE THE FILES MANUALLY")
+            sys.exit(1)
 
         # Download process
         if not os.path.exists(self.dataset_path):
