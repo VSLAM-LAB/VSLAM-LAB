@@ -15,8 +15,14 @@ from Baselines.baseline_gensfm import GENSFM_baseline_dev
 from Baselines.baseline_mast3r import MAST3R_baseline_dev
 from Baselines.baseline_vggt import VGGT_baseline_dev
 
+from Baselines.baseline_orbslam3 import ORBSLAM3_baseline
+from Baselines.baseline_orbslam3 import ORBSLAM3_baseline_dev
+from Baselines.baseline_okvis2 import OKVIS2_baseline
+from Baselines.baseline_okvis2 import OKVIS2_baseline_dev
+
 def get_baseline_switcher():
     return {
+        # ADD your baselines here
         "droidslam": lambda: DROIDSLAM_baseline(),
         "droidslam-dev": lambda: DROIDSLAM_baseline_dev(),
         "mast3rslam": lambda: MAST3RSLAM_baseline(),
@@ -32,6 +38,12 @@ def get_baseline_switcher():
         "gensfm-dev": lambda: GENSFM_baseline_dev(),
         "mast3r-dev": lambda: MAST3R_baseline_dev(),
         "vggt-dev": lambda: VGGT_baseline_dev(),
+
+        #Baselines for Visual-Inertial SLAM
+        "orbslam3": lambda: ORBSLAM3_baseline(),
+        "orbslam3-dev": lambda: ORBSLAM3_baseline_dev(),
+        "okvis2": lambda: OKVIS2_baseline(),
+        "okvis2-dev": lambda: OKVIS2_baseline_dev(),
     }
 
 def get_baseline(baseline_name):
