@@ -157,31 +157,39 @@ class DatasetVSLAMLab:
         return "non-available"
 
     def check_sequence_integrity(self, sequence_name, verbose):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
-        calibration_yaml = os.path.join(sequence_path, "calibration.yaml")
-
+        
         complete_sequence = True
+
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
         if not os.path.exists(sequence_path):
             if verbose:
                 print(f"        The folder {sequence_path} doesn't exist !!!!!")
             complete_sequence = False
 
+        rgb_path = os.path.join(sequence_path, 'rgb')
         if not os.path.exists(rgb_path):
             if verbose:
                 print(f"        The folder {rgb_path} doesn't exist !!!!!")
             complete_sequence = False
 
+        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
         if not os.path.exists(rgb_txt):
             if verbose:
                 print(f"        The file {rgb_txt} doesn't exist !!!!!")
             complete_sequence = False
 
+        calibration_yaml = os.path.join(sequence_path, "calibration.yaml")
         if not os.path.exists(calibration_yaml):
             if verbose:
                 print(f"        The file {calibration_yaml} doesn't exist !!!!!")
             complete_sequence = False
+
+        if 'mono-vi' in self.modes:
+            imu_csv = os.path.join(sequence_path, 'imu.csv')
+            if not os.path.exists(imu_csv):
+                if verbose:
+                    print(f"        The file {imu_csv} doesn't exist !!!!!")
+                complete_sequence = False
 
         return complete_sequence
 
