@@ -174,37 +174,6 @@ def list_image_files_in_folder(folder_path):
             image_files.append(filename)
     return image_files
 
-
-def check_sequence_integrity(dataset_path, sequence_name, verbose):
-    sequence_path = os.path.join(dataset_path, sequence_name)
-    rgb_path = os.path.join(sequence_path, 'rgb')
-    rgb_txt = os.path.join(sequence_path, 'rgb.txt')
-    calibration_yaml = os.path.join(sequence_path, "calibration.yaml")
-
-    complete_sequence = True
-    if not os.path.exists(sequence_path):
-        if verbose:
-            print(f"        The folder {sequence_path} doesn't exist !!!!!")
-        complete_sequence = False
-
-    if not os.path.exists(rgb_path):
-        if verbose:
-            print(f"        The folder {rgb_path} doesn't exist !!!!!")
-        complete_sequence = False
-
-    if not os.path.exists(rgb_txt):
-        if verbose:
-            print(f"        The file {rgb_txt} doesn't exist !!!!!")
-        complete_sequence = False
-
-    if not os.path.exists(calibration_yaml):
-        if verbose:
-            print(f"        The file {calibration_yaml} doesn't exist !!!!!")
-        complete_sequence = False
-
-    return complete_sequence
-
-
 def deactivate_env(vslamlab_env):
     file_path = os.path.join(VSLAM_LAB_DIR, 'pixi.toml')
     with open(file_path, 'r') as file:

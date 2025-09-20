@@ -11,7 +11,8 @@ DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
 """
 
 import os, sys, cv2, yaml
-from utilities import ws, check_sequence_integrity
+from utilities import ws
+from Datasets.dataset_utilities import check_sequence_integrity
 from path_constants import VSLAM_LAB_DIR, VSLAM_LAB_EVALUATION_FOLDER
 
 
