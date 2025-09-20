@@ -10,13 +10,13 @@ DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
 
 """
 
-import os, sys, cv2, yaml
-from utilities import ws
-from path_constants import VSLAM_LAB_DIR, VSLAM_LAB_EVALUATION_FOLDER
-
+import os, yaml
+from path_constants import VSLAM_LAB_DIR
+from Datasets.dataset_calibration import _get_camera_yaml_section
+from Datasets.dataset_calibration import _get_imu_yaml_section
+from Datasets.dataset_calibration import _get_rgbd_yaml_section
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
-
 
 class DatasetVSLAMLab:
 
@@ -45,14 +45,14 @@ class DatasetVSLAMLab:
 
         # Check if sequence is already available
         sequence_availability = self.check_sequence_availability(sequence_name)
-        if sequence_availability == "available":
-            #print(f"{SCRIPT_LABEL}Sequence {self.dataset_color}{sequence_name}:\033[92m downloaded\033[0m")
-            return
-        if sequence_availability == "corrupted":
-            print(f"{ws(8)}Some files in sequence {sequence_name} are corrupted.")
-            print(f"{ws(8)}Removing and downloading again sequence {sequence_name} ")
-            print(f"{ws(8)}THIS PART OF THE CODE IS NOT YET IMPLEMENTED. REMOVE THE FILES MANUALLY")
-            sys.exit(1)
+        # if sequence_availability == "available":
+        #     #print(f"{SCRIPT_LABEL}Sequence {self.dataset_color}{sequence_name}:\033[92m downloaded\033[0m")
+        #     return
+        # if sequence_availability == "corrupted":
+        #     print(f"{ws(8)}Some files in sequence {sequence_name} are corrupted.")
+        #     print(f"{ws(8)}Removing and downloading again sequence {sequence_name} ")
+        #     print(f"{ws(8)}THIS PART OF THE CODE IS NOT YET IMPLEMENTED. REMOVE THE FILES MANUALLY")
+        #     sys.exit(1)
 
         # Download process
         if not os.path.exists(self.dataset_path):
@@ -68,7 +68,7 @@ class DatasetVSLAMLab:
         self.create_rgb_txt(sequence_name)
         self.create_calibration_yaml(sequence_name)
         self.create_groundtruth_txt(sequence_name)
-        self.remove_unused_files(sequence_name)
+        # self.remove_unused_files(sequence_name)
 
     def download_sequence_data(self, sequence_name):
         return
@@ -91,56 +91,39 @@ class DatasetVSLAMLab:
     def get_download_issues(self, sequence_names):
         return {}
 
-    def get_calibration_yaml(self, camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
-        image_0 = cv2.imread(os.path.join(rgb_path, rgb_files[0]))
-        h, w, channels = image_0.shape
-
-        yaml_content_lines = [
-            "%YAML:1.0",
-            "",
-            "# Camera calibration and distortion parameters",
-            "Camera.model: " + camera_model,
-            "",
-            "Camera.fx: " + str(fx),
-            "Camera.fy: " + str(fy),
-            "Camera.cx: " + str(cx),
-            "Camera.cy: " + str(cy),
-            "",
-            "Camera.k1: " + str(k1),
-            "Camera.k2: " + str(k2),
-            "Camera.p1: " + str(p1),
-            "Camera.p2: " + str(p2),
-            "Camera.k3: " + str(k3),
-            "",
-            "Camera.w: " + str(w),
-            "Camera.h: " + str(h),
-            "",
-            "# Camera frames per second",
-            "Camera.fps: " + str(self.rgb_hz)
-        ]
-
-        return yaml_content_lines
-
-    def write_calibration_yaml(self, camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name):
+    def write_calibration_yaml(self, sequence_name, camera0=None, camera1=None, imu=None, rgbd=None):
+    #Write calibration YAML file with flexible sensor configuration.
+    #Args:
+    #    sequence_name: Name of the sequence
+    #    camera0: Dict with keys: model, fx, fy, cx, cy, k1, k2, p1, p2, k3
+    #    camera1: Dict with keys: model, fx, fy, cx, cy, k1, k2, p1, p2, k3 (for stereo)
+    #    imu: Dict with keys: transform, accel_noise, gyro_noise, accel_bias, gyro_bias, frequency
+    #    rgbd: Dict with keys: depth_factor, depth_scale (optional)       
 
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+        
+        yaml_content_lines = ["%YAML:1.0", ""]
 
-        yaml_content_lines = self.get_calibration_yaml(camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
+        # Camera0 parameters (required)
+        if camera0:
+            yaml_content_lines.extend(["", "# Camera calibration and distortion parameters"])
+            yaml_content_lines.extend(_get_camera_yaml_section(self.dataset_path, camera0, sequence_name, self.rgb_hz, "Camera"))
 
-        with open(calibration_yaml, 'w') as file:
-            for line in yaml_content_lines:
-                file.write(f"{line}\n")
+        # Camera1 parameters (for stereo)
+        if camera1:
+            yaml_content_lines.extend(["", "# Camera1 calibration and distortion parameters"])
+            yaml_content_lines.extend(_get_camera_yaml_section(self.dataset_path, camera1, sequence_name, self.rgb_hz, "Camera1"))
 
-    def write_calibration_rgbd_yaml(self, camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name, depth_factor):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+        # IMU parameters
+        if imu:
+            yaml_content_lines.extend(["", "# IMU parameters"])
+            yaml_content_lines.extend(_get_imu_yaml_section(imu))
 
-        yaml_content_lines = self.get_calibration_yaml(camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
-        yaml_content_lines.extend(["", "# Depth map factor", "depth_factor: " + str(depth_factor)])
+        # RGBD parameters
+        if rgbd:
+            yaml_content_lines.extend(["", "#Depth map parameters"])
+            yaml_content_lines.extend(_get_rgbd_yaml_section(rgbd))
 
         with open(calibration_yaml, 'w') as file:
             for line in yaml_content_lines:
