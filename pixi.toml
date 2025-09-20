@@ -354,6 +354,8 @@ lietorch = {version = "*", channel = "fontan"}
 pytorch-gpu = "*"
 opencv = "*"
 torch-scatter ="*"
+torchvision = "*"
+tensorboard = "*"
 
 # Logging, Evaluation & Visualization
 open3d = ">=0.18.0,<0.19"
