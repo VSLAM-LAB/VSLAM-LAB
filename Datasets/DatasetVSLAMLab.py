@@ -12,7 +12,6 @@ DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
 
 import os, sys, cv2, yaml
 from utilities import ws
-from Datasets.dataset_utilities import check_sequence_integrity
 from path_constants import VSLAM_LAB_DIR, VSLAM_LAB_EVALUATION_FOLDER
 
 
@@ -150,12 +149,41 @@ class DatasetVSLAMLab:
     def check_sequence_availability(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         if os.path.exists(sequence_path):
-            sequence_complete = check_sequence_integrity(self.dataset_path, sequence_name, True)
+            sequence_complete = self.check_sequence_integrity(sequence_name, verbose=True)
             if sequence_complete:
                 return "available"
             else:
                 return "corrupted"
         return "non-available"
+
+    def check_sequence_integrity(self, sequence_name, verbose):
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        rgb_path = os.path.join(sequence_path, 'rgb')
+        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        calibration_yaml = os.path.join(sequence_path, "calibration.yaml")
+
+        complete_sequence = True
+        if not os.path.exists(sequence_path):
+            if verbose:
+                print(f"        The folder {sequence_path} doesn't exist !!!!!")
+            complete_sequence = False
+
+        if not os.path.exists(rgb_path):
+            if verbose:
+                print(f"        The folder {rgb_path} doesn't exist !!!!!")
+            complete_sequence = False
+
+        if not os.path.exists(rgb_txt):
+            if verbose:
+                print(f"        The file {rgb_txt} doesn't exist !!!!!")
+            complete_sequence = False
+
+        if not os.path.exists(calibration_yaml):
+            if verbose:
+                print(f"        The file {calibration_yaml} doesn't exist !!!!!")
+            complete_sequence = False
+
+        return complete_sequence
 
     ####################################################################################################################
     # Utils
