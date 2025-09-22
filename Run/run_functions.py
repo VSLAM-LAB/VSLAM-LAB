@@ -2,12 +2,13 @@
 
 import time
 import os
+import csv
 import shutil
 
 from Baselines.baseline_utilities import log_run_sequence_time
 from path_constants import RGB_BASE_FOLDER
 from Run import ablations
-from Baselines.downsample_rgb_frames import downsample_rgb_frames, get_rows
+from Run.downsample_rgb_frames import downsample_rgb_frames, get_rows
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
@@ -24,7 +25,7 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
         os.makedirs(exp_folder, exist_ok=True)
 
     # Select images
-    create_rgb_exp_txt(exp, dataset, sequence_name, baseline.default_parameters)
+    create_rgb_exp_csv(exp, dataset, sequence_name, baseline.default_parameters)
 
     # Build execution command
     exec_command = baseline.build_execute_command(exp_it, exp, dataset, sequence_name)
@@ -49,20 +50,20 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     return results
 
 
-def create_rgb_exp_txt(exp, dataset, sequence_name, default_parameters = ""):
+def create_rgb_exp_csv(exp, dataset, sequence_name, default_parameters = ""):
     sequence_path = os.path.join(dataset.dataset_path, sequence_name)
     exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
 
-    if 'rgb_txt' in exp.parameters:
-        rgb_txt = os.path.join(sequence_path, exp.parameters['rgb_txt'])
+    if 'rgb_csv' in exp.parameters:
+        rgb_csv = os.path.join(sequence_path, exp.parameters['rgb_csv'])
     else:
-        rgb_txt = os.path.join(sequence_path, f"{RGB_BASE_FOLDER}.txt")
+        rgb_csv = os.path.join(sequence_path, f"{RGB_BASE_FOLDER}.csv")
 
-    rgb_exp_txt = os.path.join(exp_folder, f"{RGB_BASE_FOLDER}_exp.txt")
+    rgb_exp_csv = os.path.join(exp_folder, f"{RGB_BASE_FOLDER}_exp.csv")
 
-    if os.path.exists(rgb_exp_txt):
-        os.remove(rgb_exp_txt)
-    shutil.copy(rgb_txt, rgb_exp_txt)
+    if os.path.exists(rgb_exp_csv):
+        os.remove(rgb_exp_csv)
+    shutil.copy(rgb_csv, rgb_exp_csv)
 
     rgb_idx = 'rgb_idx' in exp.parameters
     max_rgb = 'max_rgb' in exp.parameters or 'max_rgb' in default_parameters and not rgb_idx
@@ -71,11 +72,13 @@ def create_rgb_exp_txt(exp, dataset, sequence_name, default_parameters = ""):
         if max_rgb:
             max_rgb_num = exp.parameters['max_rgb'] if 'max_rgb' in exp.parameters else default_parameters['max_rgb']
             min_fps = dataset.rgb_hz / 10
-            _, _, downsampled_rows = downsample_rgb_frames(rgb_txt, max_rgb_num, min_fps, True)
+            _, _, downsampled_rows = downsample_rgb_frames(rgb_csv, max_rgb_num, min_fps, True)
 
         if rgb_idx:
-            downsampled_rows = get_rows(list(range(exp.parameters['rgb_idx'][0], exp.parameters['rgb_idx'][1]+1)), rgb_txt)
+            downsampled_rows = get_rows(
+                list(range(exp.parameters['rgb_idx'][0], exp.parameters['rgb_idx'][1] + 1)), rgb_csv)
         
-        with open(rgb_exp_txt, 'w') as file:
-            for row in downsampled_rows:
-                file.write(f"{row}\n")
+        with open(rgb_exp_csv, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=list(downsampled_rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(downsampled_rows)

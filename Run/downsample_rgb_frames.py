@@ -1,3 +1,5 @@
+from pathlib import Path
+import pandas as pd
 import argparse
 import os
 
@@ -25,30 +27,26 @@ def downsample_rgb(timestamps, rgb_paths, rows, step, max_count):
 
     return selected_rgb_paths, selected_timestamps, selected_rows
 
-def get_rows(rows_idx, rgb_txt):
-    rows = []
-    with open(rgb_txt, 'r') as file:
-        for line in file:
-            rows.append(line)
-    rows = [line.strip() for line in rows]
-    return [rows[i] for i in rows_idx if 0 <= i < len(rows)]
+def get_rows(rows_idx, rgb_csv):
+    csv_path = Path(rgb_csv)  
+    df = pd.read_csv(csv_path)     
 
-def downsample_rgb_frames(rgb_txt, max_rgb_count, min_fps, verbose=False):
-    # Read timestamps and paths from rgb.txt
-    rgb_paths = []
-    rgb_timestamps = []
-    rows = []
-    with open(rgb_txt, 'r') as file:
-        for line in file:
-            timestamp, path, *extra = line.strip().split(' ')
-            rgb_paths.append(path)
-            rgb_timestamps.append(float(timestamp))
-            rows.append(line)
-    rows = [line.strip() for line in rows]
+    idx = [int(i) for i in rows_idx if isinstance(i, (int,)) or str(i).lstrip("-").isdigit()]
+    idx = [i for i in idx if 0 <= i < len(df)]
+
+    return df.iloc[idx].to_dict(orient="records")
+
+def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
+
+    csv_path = Path(rgb_csv)  
+    df = pd.read_csv(csv_path)     
+    rgb_paths = df['rgb_path'].to_list()
+    rgb_timestamps = df['ts (s)'].to_list()
+    rows = df[['ts (s)', 'rgb_path']].to_dict(orient="records")
 
     # Determine downsampling parameters
     if verbose:
-        print(f"\n{SCRIPT_LABEL} Processing file: {rgb_txt}")
+        print(f"\n{SCRIPT_LABEL} Processing file: {rgb_csv}")
         print("\nDownsampling settings:")
         print(f"  Maximum number of RGB images: {max_rgb_count}")
         print(f"  Minimum FPS: {min_fps:.1f} Hz")
@@ -89,28 +87,3 @@ def downsample_rgb_frames(rgb_txt, max_rgb_count, min_fps, verbose=False):
         print(f"  RGB frequency: {downsampled_fps:.2f} / {actual_fps:.2f} Hz")
 
     return downsampled_paths, downsampled_timestamps, downsampled_rows
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=f"{__file__}")
-    parser.add_argument('sequence_path', type=str, help="Path to the sequence directory.")
-    parser.add_argument('--rgb_txt', type=str, default="rgb.txt", help="Filename of the input RGB list.")
-    parser.add_argument('--rgb_ds_txt', type=str, default="rgb_ds.txt", help="Filename for the downsampled RGB list.")
-    parser.add_argument('--max_rgb', type=int, default=10, help="Maximum number of RGB images.")
-    parser.add_argument('--min_fps', type=float, default=10.0, help="Minimum downsampled frames per second.")
-    parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose output")
-
-    args = parser.parse_args()
-
-    rgb_txt = os.path.join(args.sequence_path, args.rgb_txt)
-    rgb_ds_txt = os.path.join(args.sequence_path, args.rgb_ds_txt)
-    max_rgb = args.max_rgb
-    min_fps = args.min_fps
-
-    downsampled_paths, downsampled_timestamps, downsampled_rows = downsample_rgb_frames(rgb_txt, max_rgb, min_fps, args.verbose)
-
-    # Write downsampled RGB data to file
-    print(f"\nWriting downsampled RGB list to: {rgb_ds_txt}")
-    with open(rgb_ds_txt, 'w') as file:
-        for row in downsampled_rows:
-            file.write(f"{row}\n")
