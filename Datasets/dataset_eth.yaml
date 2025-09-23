@@ -2,6 +2,7 @@ dataset_name: eth
 
 rgb_hz: 30.0
 url_download_root: "https://www.eth3d.net/data/slam"
+modes: ['mono', 'rgbd']
 
 sequence_names:
   - cables_1

@@ -6,7 +6,7 @@ def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz,
     """Generate YAML lines for camera parameters."""
     # Get image dimensions
     sequence_path = os.path.join(dataset_path, sequence_name)
-    rgb_path = os.path.join(sequence_path, 'rgb')
+    rgb_path = os.path.join(sequence_path, 'rgb_0')
     
     # Ensure rgb_path exists and has images before trying to read
     if not os.path.exists(rgb_path) or not any(f.lower().endswith(('.png', '.jpg', '.jpeg')) for f in os.listdir(rgb_path)):
@@ -109,14 +109,14 @@ def _get_imu_yaml_section(imu_params):
     return lines
 
 
-def _get_rgbd_yaml_section(rgbd_params):
+def _get_rgbd_yaml_section(rgbd_params, prefix="Depth"):
     """Generate YAML lines for RGBD parameters."""
     lines = []
     
-    if 'depth_factor' in rgbd_params:
-        lines.append(f"depth_factor: {rgbd_params['depth_factor']:e}")
+    if 'depth0_factor' in rgbd_params:
+        lines.append(f"{prefix}.factor: {rgbd_params['depth0_factor']:e}")
     
-    if 'depth_scale' in rgbd_params:
-        lines.append(f"depth_scale: {rgbd_params['depth_scale']:e}")
+    if 'depth0_scale' in rgbd_params:
+        lines.append(f"{prefix}.scale: {rgbd_params['depth0_scale']:e}")
     
     return lines

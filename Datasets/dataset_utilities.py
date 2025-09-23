@@ -1,44 +1,27 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
+from pathlib import Path
 
-def load_rgb_txt(rgb_txt):
-    with open(rgb_txt, 'r') as file:
-        lines = file.readlines()
-        columns = len(lines[0].strip().split(' '))
+def load_rgb_csv(rgb_csv):
 
-        rgb_paths = []
-        rgb_timestamps = []
+    csv_path = Path(rgb_csv)  
+    df = pd.read_csv(csv_path)  
+    rgb_paths = df['path_rgb0'].to_list()
+    rgb_timestamps = df['ts_rgb0 (s)'].to_list()
 
-        if columns == 2: # rgb_timestamp rgb_path
-            for line in lines:
-                rgb_timestamp, rgb_path = line.strip().split(' ')
-                rgb_paths.append(rgb_path)
-                rgb_timestamps.append(rgb_timestamp)
-            return rgb_paths, rgb_timestamps
-        
-        if columns == 4: # rgb_timestamp rgb_path depth_timestamp depth_path
-            depth_paths = []
-            depth_timestamps = []
-            for line in lines:
-                rgb_timestamp, rgb, depth_timestamp, depth_path, = line.strip().split(' ')
-                rgb_paths.append(rgb)
-                rgb_timestamps.append(rgb_timestamp)
-                depth_paths.append(depth_path)
-                depth_timestamps.append(depth_timestamp)
-            return rgb_paths, rgb_timestamps, depth_paths, depth_timestamps
-        
-        if columns > 4: # rgb_timestamp rgb_path ...
-            for line in lines:
-                rgb_timestamp, rgb_path, *extra = line.strip().split(' ')
-                rgb_paths.append(rgb_path)
-                rgb_timestamps.append(rgb_timestamp)
-            return rgb_paths, rgb_timestamps
-        
-def undistort_rgb_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coeffs):
+    if 'ts_depth0 (s)' in df.columns and 'path_depth0' in df.columns:
+        depth_paths = df['path_depth0'].to_list()
+        depth_timestamps = df['ts_depth0 (s)'].to_list()
+        return rgb_paths, rgb_timestamps, depth_paths, depth_timestamps
+    
+    return rgb_paths, rgb_timestamps
 
-    rgb_paths, *_ = load_rgb_txt(rgb_txt)
+def undistort_rgb_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_coeffs):
+
+    rgb_paths, *_ = load_rgb_csv(rgb_csv)
 
     # Estimate undistortion transformation
     rgb_path = os.path.join(sequence_path, rgb_paths[0])
@@ -60,9 +43,9 @@ def undistort_rgb_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coef
                       new_camera_matrix[0, 2], new_camera_matrix[1, 2])
     return fx, fy, cx, cy
 
-def undistort_depth_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coeffs):
+def undistort_depth_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_coeffs):
     
-    _, _, depth_paths, _ = load_rgb_txt(rgb_txt)
+    _, _, depth_paths, _ = load_rgb_csv(rgb_csv)
 
     # Estimate undistortion transformation
     depth_path = os.path.join(sequence_path, depth_paths[0])
@@ -73,7 +56,7 @@ def undistort_depth_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_co
     x, y, w, h = roi
 
     # Undistort depth images
-    for depth_subpath in tqdm(depth_paths):
+    for depth_subpath in tqdm(depth_paths, desc="Undistorting Depth Images"):
         depth_path = os.path.join(sequence_path, depth_subpath)
         depth = cv2.imread(depth_path)
         undistorted_depth = cv2.remap(depth, map1, map2, interpolation=cv2.INTER_NEAREST, borderMode=cv2.BORDER_CONSTANT)
@@ -84,9 +67,9 @@ def undistort_depth_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_co
                       new_camera_matrix[0, 2], new_camera_matrix[1, 2])
     return fx, fy, cx, cy
 
-def undistort_fisheye(rgb_txt, sequence_path, camera_matrix, distortion_coeffs):
+def undistort_fisheye(rgb_csv, sequence_path, camera_matrix, distortion_coeffs):
     image_list = []
-    with open(rgb_txt, 'r') as file:
+    with open(rgb_csv, 'r') as file:
         for line in file:
             timestamp, path, *extra = line.strip().split(' ')
             image_list.append(path)
@@ -111,9 +94,9 @@ def undistort_fisheye(rgb_txt, sequence_path, camera_matrix, distortion_coeffs):
     return fx, fy, cx, cy
 
 
-def resize_rgb_images(rgb_txt, sequence_path, target_width, target_height, camera_matrix):
+def resize_rgb_images(rgb_csv, sequence_path, target_width, target_height, camera_matrix):
     
-    rgb_paths, *_ = load_rgb_txt(rgb_txt)
+    rgb_paths, *_ = load_rgb_csv(rgb_csv)
 
     # Load the first image to get original dimensions and compute scaling factors
     sample_rgb_path = os.path.join(sequence_path, rgb_paths[0])

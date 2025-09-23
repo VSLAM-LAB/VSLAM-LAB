@@ -175,7 +175,7 @@ class BaselineVSLAMLab:
             while not comment_queue.empty():
                 comments += comment_queue.get() + "\n"
 
-        if not os.path.exists(os.path.join(exp_folder, str(exp_it).zfill(5) + f"_{TRAJECTORY_FILE_NAME}.txt" )):
+        if not os.path.exists(os.path.join(exp_folder, str(exp_it).zfill(5) + f"_{TRAJECTORY_FILE_NAME}.csv" )):
             success_flag[0] = False
 
         return {
@@ -190,11 +190,11 @@ class BaselineVSLAMLab:
         sequence_path = os.path.join(dataset.dataset_path, sequence_name)
         exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
         calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
-        rgb_exp_txt = os.path.join(exp_folder, 'rgb_exp.txt')
+        rgb_exp_csv = os.path.join(exp_folder, 'rgb_exp.csv')
 
         vslamlab_command = [f"sequence_path:{sequence_path}",
                             f"calibration_yaml:{calibration_yaml}",
-                            f"rgb_txt:{rgb_exp_txt}",
+                            f"rgb_csv:{rgb_exp_csv}",
                             f"exp_folder:{exp_folder}",
                             f"exp_id:{exp_it}",
                             f"settings_yaml:{self.settings_yaml}"]
@@ -208,6 +208,9 @@ class BaselineVSLAMLab:
         if "mode:mono" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
 
+        if "mode:rgbd" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-rgbd " + ' '.join(vslamlab_command)
+
         if "mode:mono-vi" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
 
@@ -217,11 +220,11 @@ class BaselineVSLAMLab:
         sequence_path = os.path.join(dataset.dataset_path, sequence_name)
         exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
         calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
-        rgb_exp_txt = os.path.join(exp_folder, 'rgb_exp.txt')
+        rgb_exp_csv = os.path.join(exp_folder, 'rgb_exp.csv')
 
         vslamlab_command = [f"--sequence_path {sequence_path}",
                             f"--calibration_yaml {calibration_yaml}",
-                            f"--rgb_txt {rgb_exp_txt}",
+                            f"--rgb_csv {rgb_exp_csv}",
                             f"--exp_folder {exp_folder}",
                             f"--exp_it {exp_it}",
                             f"--settings_yaml {self.settings_yaml}"]
@@ -234,7 +237,8 @@ class BaselineVSLAMLab:
 
         if "--mode mono" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
-
+        if "--mode rgbd" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-rgbd " + ' '.join(vslamlab_command)
         if "--mode mono-vi" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
 

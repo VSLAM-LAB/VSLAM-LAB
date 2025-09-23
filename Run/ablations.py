@@ -12,7 +12,7 @@ from path_constants import ABLATION_PARAMETERS_CSV
 
 from utilities import ws
 from Baselines.baseline_utilities import append_ablation_parameters_to_csv
-from Datasets.dataset_utilities import load_rgb_txt
+from Datasets.dataset_utilities import load_rgb_csv
 
 SCRIPT_LABEL = f"\033[35m[{os.path.basename(__file__)}]\033[0m "
 
@@ -82,7 +82,7 @@ def add_noise_to_images_start(exp_it, exp, dataset, sequence_name, image_noise):
     with open(rgb_exp_txt, 'r') as file:
         lines = file.readlines()
 
-    rgb_paths, *_ = load_rgb_txt(rgb_exp_txt)
+    rgb_paths, *_ = load_rgb_csv(rgb_exp_txt)
     with open(rgb_exp_txt, 'w') as file:
         for i, line in enumerate(lines):
             rgb_path = rgb_paths[i]

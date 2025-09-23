@@ -7,6 +7,7 @@ import subprocess
 from PIL import Image
 from colorama import Fore, Style
 import pandas as pd
+from pathlib import Path
 
 from path_constants import VSLAM_LAB_DIR, VSLAMLAB_VERBOSITY, VerbosityManager
 
@@ -283,17 +284,26 @@ def print_msg(script_label, msg, flag="info", verb='NONE'):
     if VerbosityManager[verb] <= VerbosityManager[VSLAMLAB_VERBOSITY]:
         print(format_msg(script_label, msg, flag))
     
-def read_trajectory_txt(txt_file, delimiter=' ', header=None):
+def read_trajectory_csv(csv_file):
     try:
-        trajectory = pd.read_csv(txt_file, delimiter=delimiter, header=header)
+        trajectory = pd.read_csv(Path(csv_file))
         if trajectory.empty:
             trajectory = None
     except (pd.errors.EmptyDataError, FileNotFoundError):
         trajectory = None
     return trajectory
 
-def save_trajectory_txt(trajectory_txt, trajectory, header=None, index=False, sep=' ', lineterminator='\n'):
-    trajectory.to_csv(trajectory_txt, header=header, index=index, sep=sep, lineterminator=lineterminator)
+def read_trajectory_txt(txt_file):
+    try:
+        trajectory = pd.read_csv(Path(txt_file), header = None, sep = ' ', lineterminator = '\n')
+        if trajectory.empty:
+            trajectory = None
+    except (pd.errors.EmptyDataError, FileNotFoundError):
+        trajectory = None
+    return trajectory
+
+def save_trajectory_csv(trajectory_csv, trajectory, header=None, index=False, sep=' ', lineterminator='\n'):
+    trajectory.to_csv(trajectory_csv, header=header, index=index, sep=sep, lineterminator=lineterminator)
 
 def read_csv(csv_file):
     if not os.path.exists(csv_file):

@@ -1,6 +1,7 @@
-import os, yaml, shutil
+import os, yaml
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
@@ -57,18 +58,27 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
         if not os.path.exists(sequence_path):
             decompressFile(compressed_file, self.dataset_path)
             os.rename(decompressed_folder, sequence_path)
-            rgb_txt = os.path.join(sequence_path, 'rgb.txt')
-            os.rename(rgb_txt, rgb_txt.replace('rgb.txt', 'rgb_original.txt'))
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_folder(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_path_raw = os.path.join(sequence_path, 'rgb')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        depth_path_raw = os.path.join(sequence_path, 'depth')
+        depth_path = os.path.join(sequence_path, 'depth_0')
+        if os.path.isdir(rgb_path_raw) and not os.path.isdir(rgb_path): 
+            os.replace(rgb_path_raw, rgb_path)
+        if os.path.isdir(depth_path_raw) and not os.path.isdir(depth_path): 
+            os.replace(depth_path_raw, depth_path)
+
+    def create_rgb_csv(self, sequence_name):
+        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
         depth_txt = os.path.join(sequence_path, 'depth.txt')
-        rgb_original_txt = os.path.join(sequence_path, 'rgb_original.txt')
-        if os.path.exists(rgb_txt):
+        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        if os.path.exists(rgb_csv):
             return   
 
-        rgb_df = pd.read_csv(rgb_original_txt, sep=' ', comment='#', header=None, names=['timestamp', 'rgb_filename'])
+        rgb_df = pd.read_csv(rgb_txt, sep=' ', comment='#', header=None, names=['timestamp', 'rgb_filename'])
         depth_df = pd.read_csv(depth_txt, sep=' ', comment='#', header=None, names=['timestamp', 'depth_filename'])
 
         time_difference_threshold = 0.02 
@@ -89,15 +99,21 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
         matched_pairs['timestamp'] = matched_pairs['timestamp'].apply(lambda x: f"{x:.6f}")
         matched_pairs['depth_timestamp'] = matched_pairs['depth_timestamp'].apply(lambda x: f"{x:.6f}")
 
-        matched_pairs[['timestamp', 'rgb_filename', 'depth_timestamp', 'matched_depth']].to_csv(
-            rgb_txt, sep=' ', index=False, header=False
-        )
+        out = matched_pairs.rename(columns={
+            'timestamp': 'ts_rgb0 (s)',
+            'rgb_filename': 'path_rgb0',
+            'depth_timestamp': 'ts_depth0 (s)',
+            'matched_depth': 'path_depth0',
+        })[['ts_rgb0 (s)', 'path_rgb0', 'ts_depth0 (s)', 'path_depth0']]
 
+        out['path_rgb0'] = out['path_rgb0'].astype(str).str.replace(r'^rgb/', 'rgb_0/', regex=True)
+        out['path_depth0'] = out['path_depth0'].astype(str).str.replace(r'^depth/', 'depth_0/', regex=True)
 
+        out.to_csv(rgb_csv, index=False, header=True)
 
     def create_calibration_yaml(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
         if "freiburg1" in sequence_name:
             fx, fy, cx, cy, k1, k2, p1, p2, k3 = (
                 517.306408, 516.469215, 318.643040, 255.313989, 0.262383, -0.953104, -0.005358, 0.002628, 1.163314)
@@ -110,13 +126,18 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
         if "freiburg1" in sequence_name or "freiburg2" in sequence_name:
             camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
             distortion_coeffs = np.array([k1, k2, p1, p2, k3])
-            fx, fy, cx, cy = undistort_rgb_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
-            if VSLAMLAB_BENCHMARK_WEIGHT != 'light':
-                undistort_depth_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
+            fx, fy, cx, cy = undistort_rgb_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_coeffs)
+            undistort_depth_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_coeffs)
 
-        self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name)
+        camera0 = {}
+        camera0['model'] = 'Pinhole'
+        camera0['fx'], camera0['fy'], camera0['cx'], camera0['cy'] = fx, fy, cx, cy
 
-    def create_groundtruth_txt(self, sequence_name):
+        rgbd = {}
+        rgbd['depth0_factor'] = 5000.0
+        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd = rgbd)
+
+    def create_groundtruth_csv(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
         groundtruth_csv = os.path.join(sequence_path, 'groundtruth.csv')
@@ -139,10 +160,6 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
                 file.write(','.join(values) + '\n')
 
     def remove_unused_files(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        if VSLAMLAB_BENCHMARK_WEIGHT == 'light':
-            shutil.rmtree(os.path.join(sequence_path, 'depth'))
-            os.remove(os.path.join(sequence_path, 'depth.txt'))
-            os.remove(os.path.join(sequence_path, 'accelerometer.txt'))
-            os.remove(os.path.join(sequence_path, 'rgb_original.txt'))
-            os.remove(os.path.join(self.dataset_path, f'{sequence_name}.tgz'))
+        sequence_path = Path(self.dataset_path, sequence_name)
+        for name in ("accelerometer.txt", "depth.txt", "groundtruth.txt", "rgb.txt"):
+            Path(sequence_path, name).unlink(missing_ok=True)

@@ -40,9 +40,9 @@ def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
 
     csv_path = Path(rgb_csv)  
     df = pd.read_csv(csv_path)     
-    rgb_paths = df['rgb_path'].to_list()
-    rgb_timestamps = df['ts (s)'].to_list()
-    rows = df[['ts (s)', 'rgb_path']].to_dict(orient="records")
+    rgb_paths = df['path_rgb0'].to_list()
+    rgb_timestamps = df['ts_rgb0 (s)'].to_list()
+    rows = df.to_dict(orient="records")
 
     # Determine downsampling parameters
     if verbose:

@@ -2,6 +2,7 @@ dataset_name: rgbdtum
 
 rgb_hz: 30.0
 url_download_root: "https://cvg.cit.tum.de/rgbd/dataset"
+modes: ['mono', 'rgbd']
 
 sequence_names:
   - rgbd_dataset_freiburg1_xyz

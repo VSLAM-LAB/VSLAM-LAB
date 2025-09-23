@@ -11,6 +11,7 @@ DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
 """
 
 import os, sys, yaml
+
 from utilities import ws
 from path_constants import VSLAM_LAB_DIR
 from Datasets.dataset_calibration import _get_camera_yaml_section
@@ -66,10 +67,10 @@ class DatasetVSLAMLab:
         print(SCRIPT_LABEL + msg)
         self.download_sequence_data(sequence_name)
         self.create_rgb_folder(sequence_name)
-        self.create_rgb_txt(sequence_name)
+        self.create_rgb_csv(sequence_name)
         self.create_calibration_yaml(sequence_name)
-        self.create_groundtruth_txt(sequence_name)
-        # self.remove_unused_files(sequence_name)
+        self.create_groundtruth_csv(sequence_name)
+        self.remove_unused_files(sequence_name)
 
     def download_sequence_data(self, sequence_name):
         return
@@ -77,13 +78,13 @@ class DatasetVSLAMLab:
     def create_rgb_folder(self, sequence_name):
         return
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_csv(self, sequence_name):
         return
 
     def create_calibration_yaml(self, sequence_name):
         return
 
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name):
         return
 
     def remove_unused_files(self, sequence_name):
@@ -108,8 +109,8 @@ class DatasetVSLAMLab:
 
         # Camera0 parameters (required)
         if camera0:
-            yaml_content_lines.extend(["", "# Camera calibration and distortion parameters"])
-            yaml_content_lines.extend(_get_camera_yaml_section(self.dataset_path, camera0, sequence_name, self.rgb_hz, "Camera"))
+            yaml_content_lines.extend(["", "# Camera0 calibration and distortion parameters"])
+            yaml_content_lines.extend(_get_camera_yaml_section(self.dataset_path, camera0, sequence_name, self.rgb_hz, "Camera0"))
 
         # Camera1 parameters (for stereo)
         if camera1:
@@ -123,8 +124,8 @@ class DatasetVSLAMLab:
 
         # RGBD parameters
         if rgbd:
-            yaml_content_lines.extend(["", "#Depth map parameters"])
-            yaml_content_lines.extend(_get_rgbd_yaml_section(rgbd))
+            yaml_content_lines.extend(["", "# Depth0 map parameters"])
+            yaml_content_lines.extend(_get_rgbd_yaml_section(rgbd, "Depth0"))
 
         with open(calibration_yaml, 'w') as file:
             for line in yaml_content_lines:
@@ -150,16 +151,16 @@ class DatasetVSLAMLab:
                 print(f"        The folder {sequence_path} doesn't exist !!!!!")
             complete_sequence = False
 
-        rgb_path = os.path.join(sequence_path, 'rgb')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
         if not os.path.exists(rgb_path):
             if verbose:
                 print(f"        The folder {rgb_path} doesn't exist !!!!!")
             complete_sequence = False
 
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
-        if not os.path.exists(rgb_txt):
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
+        if not os.path.exists(rgb_csv):
             if verbose:
-                print(f"        The file {rgb_txt} doesn't exist !!!!!")
+                print(f"        The file {rgb_csv} doesn't exist !!!!!")
             complete_sequence = False
 
         calibration_yaml = os.path.join(sequence_path, "calibration.yaml")

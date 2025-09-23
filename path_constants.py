@@ -15,6 +15,7 @@ CONFIG_DEFAULT = 'config_debug.yaml'
 
 VSLAM_LAB_EVALUATION_FOLDER = 'vslamlab_evaluation'
 RGB_BASE_FOLDER = 'rgb'
+GROUNTRUTH_FILE = 'groundtruth.csv'
 
 ABLATION_PARAMETERS_CSV = 'log_ablation_parameters.csv'
 

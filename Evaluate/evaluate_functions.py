@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from Evaluate.evo_functions import evo_metric, evo_get_accuracy
-from path_constants import VSLAM_LAB_EVALUATION_FOLDER, TRAJECTORY_FILE_NAME
+from path_constants import VSLAM_LAB_EVALUATION_FOLDER, TRAJECTORY_FILE_NAME, GROUNTRUTH_FILE
 from utilities import print_msg, ws, format_msg
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
@@ -17,8 +17,8 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     
     trajectories_path = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
     sequence_path = os.path.join(dataset.dataset_path, sequence_name)
-    groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
-    evaluation_folder = os.path.join(trajectories_path, VSLAM_LAB_EVALUATION_FOLDER)
+    groundtruth_csv = os.path.join(sequence_path, GROUNTRUTH_FILE)
+    evaluation_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name, VSLAM_LAB_EVALUATION_FOLDER)
     accuracy_csv = os.path.join(evaluation_folder, f'{METRIC}.csv')
 
     # Load experiments log
@@ -45,8 +45,8 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     # Evaluate runs
     zip_files = []
     for exp_it in tqdm(runs_to_evaluate):
-        trajectory_file = os.path.join(trajectories_path, f"{exp_it}_{TRAJECTORY_FILE_NAME}.txt")
-        success = evo_metric('ate', groundtruth_txt, trajectory_file, evaluation_folder, 1.0 / dataset.rgb_hz)
+        trajectory_file = os.path.join(trajectories_path, f"{exp_it}_{TRAJECTORY_FILE_NAME}.csv")
+        success = evo_metric('ate', groundtruth_csv, trajectory_file, evaluation_folder, 1.0 / dataset.rgb_hz)
         if success[0]:
             zip_files.append(os.path.join(evaluation_folder, f"{exp_it}_{TRAJECTORY_FILE_NAME}.zip"))
         else:
@@ -74,14 +74,14 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
             exp_log.loc[run_mask, "EVALUATION"] = METRIC
 
             # Find number of frames in the sequence
-            rgb_exp_txt = os.path.join(trajectories_path, f"rgb_exp.txt")
-            with open(rgb_exp_txt, "r") as file:
+            rgb_exp_csv = os.path.join(trajectories_path, f"rgb_exp.csv")
+            with open(rgb_exp_csv, "r") as file:
                 num_frames = sum(1 for _ in file)
             accuracy.loc[accuracy["traj_name"] == trajectory_file,"num_frames"] = num_frames
             exp_log.loc[run_mask, "num_frames"] = num_frames
 
             # Find number of tracked frames
-            trajectory_file_txt = os.path.join(trajectories_path, trajectory_file)
+            trajectory_file_txt = os.path.join(evaluation_folder, trajectory_file)
             if not os.path.exists(trajectory_file_txt):
                 exp_log.loc[(exp_log["exp_it"] == int(evaluated_run)) & (exp_log["sequence_name"] == sequence_name),"EVALUATION"] = 'failed'
                 continue
@@ -91,7 +91,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
             exp_log.loc[run_mask, "num_tracked_frames"] = num_tracked_frames
 
             # Find number of evaluated frames
-            trajectory_file_tum = os.path.join(trajectories_path,VSLAM_LAB_EVALUATION_FOLDER, trajectory_file.replace(".txt", ".tum"))
+            trajectory_file_tum = os.path.join(trajectories_path,VSLAM_LAB_EVALUATION_FOLDER, trajectory_file.replace(".csv", ".tum"))
             if not os.path.exists(trajectory_file_tum):
                 exp_log.loc[(exp_log["exp_it"] == int(evaluated_run)) & (exp_log["sequence_name"] == sequence_name),"EVALUATION"] = 'failed'
                 continue

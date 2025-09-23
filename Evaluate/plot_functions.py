@@ -556,9 +556,9 @@ def create_and_show_canvas(dataset_sequences, VSLAMLAB_BENCHMARK, comparison_pat
     for dataset_name, sequence_names in dataset_sequences.items():
         for sequence_name in sequence_names:
             image_files = list_image_files_in_folder(
-                os.path.join(VSLAMLAB_BENCHMARK, dataset_name.upper(), sequence_name, 'rgb'))
+                os.path.join(VSLAMLAB_BENCHMARK, dataset_name.upper(), sequence_name, 'rgb_0'))
             image_paths.append(
-                os.path.join(VSLAMLAB_BENCHMARK, dataset_name.upper(), sequence_name, 'rgb', image_files[0]))
+                os.path.join(VSLAMLAB_BENCHMARK, dataset_name.upper(), sequence_name, 'rgb_0', image_files[0]))
 
     m = 5  # Number of columns
     n = math.ceil(len(image_paths) / m)  # Number of rows
