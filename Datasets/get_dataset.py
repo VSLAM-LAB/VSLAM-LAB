@@ -1,12 +1,13 @@
 # ADD your imports here
-
 from Datasets.dataset_rgbdtum import RGBDTUM_dataset
 from Datasets.dataset_eth import ETH_dataset
+from Datasets.dataset_euroc import EUROC_dataset
+
+# Development
+from Datasets.dataset_vitum import VITUM_dataset
+
 from Datasets.dataset_nuim import NUIM_dataset
 from Datasets.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
-
-from Datasets.dataset_euroc import EUROC_dataset
-from Datasets.dataset_vitum import VITUM_dataset
 
 from Datasets.dataset_lizardisland import LIZARDISLAND_dataset
 from Datasets.dataset_ariel import ARIEL_dataset
@@ -41,14 +42,15 @@ def get_dataset(dataset_name, benchmark_path):
         # ADD your datasets here
         "rgbdtum": lambda: RGBDTUM_dataset(benchmark_path),
         "eth": lambda: ETH_dataset(benchmark_path),
-        "nuim": lambda: NUIM_dataset(benchmark_path),
-        "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
-        
-        #Datasets for Visual-Inertial SLAM
         "euroc": lambda: EUROC_dataset(benchmark_path),
+
+        # Development
+
         "vitum": lambda: VITUM_dataset(benchmark_path),
         
         #other datasets
+        "nuim": lambda: NUIM_dataset(benchmark_path),
+        "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
         "lizardisland": lambda: LIZARDISLAND_dataset(benchmark_path),
         "hamlyn": lambda: HAMLYN_dataset(benchmark_path),
         "replica": lambda: REPLICA_dataset(benchmark_path),

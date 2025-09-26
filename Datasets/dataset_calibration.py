@@ -1,6 +1,20 @@
 import os, cv2
+import numpy as np
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+
+def _opencv_matrix_yaml(name, M, dtype='f'):
+    M = np.asarray(M).reshape(M.shape[0], M.shape[1])
+    rows, cols = M.shape
+    flat = ", ".join(map(lambda x: f"{x}", M.flatten()))
+    return [
+        f"{name}: !!opencv-matrix",
+        f"  rows: {rows}",
+        f"  cols: {cols}",
+        f"  dt: {dtype}",
+        f"  data: [{flat}]",
+        ""
+    ]
 
 def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz, prefix="Camera"):
     """Generate YAML lines for camera parameters."""
@@ -118,5 +132,14 @@ def _get_rgbd_yaml_section(rgbd_params, prefix="Depth"):
     
     if 'depth0_scale' in rgbd_params:
         lines.append(f"{prefix}.scale: {rgbd_params['depth0_scale']:e}")
+    
+    return lines
+
+def _get_stereo_yaml_section(stereo_params):
+    """Generate YAML lines for STEREO parameters."""
+    lines = []
+    
+    if 'bf' in stereo_params:
+        lines.append(f"Stereo.bf: {stereo_params['bf']:e}")
     
     return lines

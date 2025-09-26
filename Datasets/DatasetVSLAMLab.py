@@ -11,35 +11,41 @@ DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
 """
 
 import os, sys, yaml
+from pathlib import Path
+from typing import Iterable, List, Union
+from abc import ABC, abstractmethod
 
 from utilities import ws
 from path_constants import VSLAM_LAB_DIR
 from Datasets.dataset_calibration import _get_camera_yaml_section
 from Datasets.dataset_calibration import _get_imu_yaml_section
 from Datasets.dataset_calibration import _get_rgbd_yaml_section
+from Datasets.dataset_calibration import _get_stereo_yaml_section
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
 class DatasetVSLAMLab:
+    """Base dataset class for VSLAM-LAB."""
+    def __init__(self, dataset_name: str, benchmark_path: Union[str, Path]) -> None:  
+        # Basic fields
+        self.dataset_name: str = dataset_name
+        self.dataset_color: str = "\033[38;2;255;165;0m"
+        self.dataset_label: str = f"{self.dataset_color}{dataset_name}\033[0m"
+        self.dataset_folder: str = dataset_name.upper()
 
-    def __init__(self, dataset_name, benchmark_path):
+        # Paths
+        self.benchmark_path: Path = Path(benchmark_path)
+        self.dataset_path: Path = self.benchmark_path / self.dataset_folder
+        self.yaml_file: Path = Path(VSLAM_LAB_DIR) / "Datasets" / f"dataset_{self.dataset_name}.yaml"
 
-        self.dataset_name = dataset_name
-        self.dataset_color = "\033[38;2;255;165;0m"
-        self.dataset_label = f"{self.dataset_color}{dataset_name}\033[0m"
-        self.dataset_folder = dataset_name.upper()
-        self.benchmark_path = benchmark_path
-        self.dataset_path = os.path.join(self.benchmark_path, self.dataset_folder)
+        # Load YAML config
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
 
-        self.yaml_file = os.path.join(VSLAM_LAB_DIR, 'Datasets', 'dataset_' + self.dataset_name + '.yaml')
-
-        with open(self.yaml_file, 'r') as file:
-            data = yaml.safe_load(file)
-
-        self.sequence_names = data['sequence_names']
-        self.rgb_hz = data['rgb_hz']
-        self.sequence_nicknames = []
-        self.modes = data.get('modes', 'mono')
+        self.sequence_names: List[str] = cfg["sequence_names"]
+        self.rgb_hz: float = float(cfg["rgb_hz"])
+        self.modes: List[str] = cfg.get("modes", ["mono"])
+        self.sequence_nicknames: List[str] = []
 
     ####################################################################################################################
     # Download methods
@@ -68,32 +74,32 @@ class DatasetVSLAMLab:
         self.download_sequence_data(sequence_name)
         self.create_rgb_folder(sequence_name)
         self.create_rgb_csv(sequence_name)
+        self.create_imu_csv(sequence_name)
         self.create_calibration_yaml(sequence_name)
         self.create_groundtruth_csv(sequence_name)
         self.remove_unused_files(sequence_name)
+        
+    # ---- Abstract hooks that concrete datasets must implement ----
+    @abstractmethod
+    def download_sequence_data(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_rgb_folder(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_rgb_csv(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_imu_csv(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_calibration_yaml(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_groundtruth_csv(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def remove_unused_files(self, sequence_name: str) -> None: ...
 
-    def download_sequence_data(self, sequence_name):
-        return
-
-    def create_rgb_folder(self, sequence_name):
-        return
-
-    def create_rgb_csv(self, sequence_name):
-        return
-
-    def create_calibration_yaml(self, sequence_name):
-        return
-
-    def create_groundtruth_csv(self, sequence_name):
-        return
-
-    def remove_unused_files(self, sequence_name):
-        return
 
     def get_download_issues(self, sequence_names):
         return {}
 
-    def write_calibration_yaml(self, sequence_name, camera0=None, camera1=None, imu=None, rgbd=None):
+    def write_calibration_yaml(self, sequence_name, camera0=None, camera1=None, imu=None, rgbd=None, stereo=None):
     #Write calibration YAML file with flexible sensor configuration.
     #Args:
     #    sequence_name: Name of the sequence
@@ -126,7 +132,12 @@ class DatasetVSLAMLab:
         if rgbd:
             yaml_content_lines.extend(["", "# Depth0 map parameters"])
             yaml_content_lines.extend(_get_rgbd_yaml_section(rgbd, "Depth0"))
-
+        
+        # STEREO parameters
+        if stereo:
+            yaml_content_lines.extend(["", "# Stereo map parameters"])
+            yaml_content_lines.extend(_get_stereo_yaml_section(stereo))
+        
         with open(calibration_yaml, 'w') as file:
             for line in yaml_content_lines:
                 file.write(f"{line}\n")
@@ -174,6 +185,13 @@ class DatasetVSLAMLab:
             if not os.path.exists(imu_csv):
                 if verbose:
                     print(f"        The file {imu_csv} doesn't exist !!!!!")
+                complete_sequence = False
+
+        if 'stereo' in self.modes:
+            rgb_path = os.path.join(sequence_path, 'rgb_1')
+            if not os.path.exists(rgb_path):
+                if verbose:
+                    print(f"        The folder {rgb_path} doesn't exist !!!!!")
                 complete_sequence = False
 
         return complete_sequence
