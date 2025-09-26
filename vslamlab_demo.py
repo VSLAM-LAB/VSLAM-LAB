@@ -17,8 +17,6 @@ def main():
     baseline_name = sys.argv[1]
     dataset_name = sys.argv[2]
     sequence_name = sys.argv[3]
-
-    mode = sys.argv[4] if len(sys.argv) > 4 else 'mono'
     
     if dataset_name == 'videos':
         sequence_name = add_video(sequence_name)
@@ -34,7 +32,9 @@ def main():
     exp_data[exp_demo]['Parameters'] = baseline.get_default_parameters()
     exp_data[exp_demo]['Module'] = baseline_name
 
-    exp_data[exp_demo]['Parameters']['mode'] = mode
+    if len(sys.argv) > 4:
+        exp_data[exp_demo]['Parameters']['mode'] = sys.argv[4]
+        
     yaml.safe_dump(exp_data, open(exp_yaml, 'w'))
 
     # Write config yaml
