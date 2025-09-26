@@ -1,10 +1,9 @@
 dataset_name: iis_rover
 
+rgb_hz: 30.0
 url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 # url_download_root_huggingface: "https://huggingface.co/datasets/iis-esslingen/ROVER/blob/main/"
-
-
-rgb_hz: 30.0
+modes: ['mono', 'rgbd'] #, 'stereo', 'mono-vi', 'stereo-vi']
 
 sequence_names:
   - campus_small_autumn_d435i

@@ -4,11 +4,13 @@ import pandas as pd
 import numpy as np
 import cv2
 import tqdm
+from typing import Final
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from Datasets.dataset_utilities import undistort_fisheye
 from utilities import downloadFile, decompressFile
 
+DEFAULT_DEPTH_FACTOR: Final = 5000.0
 
 class ROVER_dataset(DatasetVSLAMLab):
     DATES = {
@@ -66,7 +68,7 @@ class ROVER_dataset(DatasetVSLAMLab):
     
     
     SENSOR_NICKNAMES = {"picam": "pi_cam", "d435i": "realsense_D435i", "t265": "realsense_T265", "vn100": "vn100"}
-    
+
     # persist between get_dataset calls
     seq2group = {}
     
@@ -132,51 +134,52 @@ class ROVER_dataset(DatasetVSLAMLab):
             camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
             distortion_coeffs = np.array([k1, k2, k3, k4])
             fx, fy, cx, cy = self._undistort_fish_pinhole(rgb_txt, camera_matrix, distortion_coeffs, sequence_path)
-            self.write_calibration_yaml(
-                'PINHOLE',
-                float(fx), float(fy),
-                float(cx), float(cy),
-                0.0, 0.0, 0.0, 0.0, 0.0,
-                sequence_name
-            )
+            camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
+            rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
+
+            self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
         else:
             cam_intrinsics_data = data["Cam_Intrinsics"]
             fx, fy, cx, cy = cam_intrinsics_data["intrinsics"]
             k1, k2, p1, p2 = cam_intrinsics_data["distortion_coeffs"]
             k3 = 0.0
-            self.write_calibration_yaml(
-                "PINHOLE", 
-                float(fx), float(fy), 
-                float(cx), float(cy), 
-                float(k1), float(k2), 
-                float(p1), float(p2), float(k3), 
-                sequence_name
-            )
-
-
+            camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
+            rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
+            self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
+            
     def create_rgb_folder(self, sequence_name):
         _, _, sensor, _ = self._sequence_data_from_name(sequence_name)
         if sensor == "t265":
             sequence_path = os.path.join(self.dataset_path, sequence_name)
-            rgb_path = os.path.join(sequence_path, "rgb")
+            rgb_path = os.path.join(sequence_path, "rgb_0")
             left_rgb = os.path.join(sequence_path, "cam_left")
             if not os.path.exists(rgb_path):
                 os.symlink(left_rgb, rgb_path)
-        
+        else:
+            sequence_path = os.path.join(self.dataset_path, sequence_name)
+            rgb_path_original = os.path.join(sequence_path, "rgb")
+            rgb_path = os.path.join(sequence_path, "rgb_0")
+            os.rename(rgb_path_original, rgb_path)
+            depth_path_original = os.path.join(sequence_path, "depth")
+            depth_path = os.path.join(sequence_path, "depth_0")
+            os.rename(depth_path_original, depth_path)
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_csv(self, sequence_name):
         _, _, sensor, _ = self._sequence_data_from_name(sequence_name)
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
         # rgbd sensor, see `dataset_rgbdtum.py`
         if sensor == "d435i":
             rgb_original_txt = os.path.join(sequence_path, 'rgb_original.txt')
+            rgb_csv = os.path.join(sequence_path, 'rgb.csv')
             rgb_txt = os.path.join(sequence_path, 'rgb.txt')
             depth_txt = os.path.join(sequence_path, 'depth.txt')
             os.rename(rgb_txt, rgb_original_txt)
         
             rgb_df = pd.read_csv(rgb_original_txt, sep=' ', comment='#', header=None, names=['timestamp', 'rgb_filename'])
+            rgb_df['rgb_filename'] = rgb_df['rgb_filename'].str.replace(r'^rgb/', 'rgb_0/', regex=True)
             depth_df = pd.read_csv(depth_txt, sep=' ', comment='#', header=None, names=['timestamp', 'depth_filename'])
+            depth_df['depth_filename'] = depth_df['depth_filename'].str.replace(r'^depth/', 'depth_0/', regex=True)
 
             time_difference_threshold = 0.02 
             def find_closest_depth(rgb_ts):
@@ -196,8 +199,9 @@ class ROVER_dataset(DatasetVSLAMLab):
             matched_pairs['timestamp'] = matched_pairs['timestamp'].apply(lambda x: f"{x:.6f}")
             matched_pairs['depth_timestamp'] = matched_pairs['depth_timestamp'].apply(lambda x: f"{x:.6f}")
 
+            header = ["ts_rgb0 (s)", "path_rgb0", "ts_depth0 (s)", "path_depth0"]
             matched_pairs[['timestamp', 'rgb_filename', 'depth_timestamp', 'matched_depth']].to_csv(
-                rgb_txt, sep=' ', index=False, header=False
+                rgb_csv, sep=',', index=False, header=header
             )
             
         # stereo not currently supported
@@ -209,7 +213,7 @@ class ROVER_dataset(DatasetVSLAMLab):
             pass
     
      
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         gt_src = os.path.join(self.seq2group[sequence_name], "groundtruth.txt")
         gt_dst_txt = os.path.join(sequence_path, "groundtruth.txt")
