@@ -7,8 +7,9 @@ platforms = ["linux-64"]
 
 [tasks]
 vslamlab = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_mono.yaml", OVEWRITE = "-overwrite"}}
-vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
-evaluate = {cmd = "pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
+vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = "-overwrite"}}
+#vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
+evaluate = {cmd = "pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = "-overwrite"}}
 
 set-benchmark-path  = {cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_BENCHMARK_path"}
 set-evaluation-path = {cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_EVALUATION_path"}
@@ -96,6 +97,8 @@ cuda = "12.0"
 [feature.droidslam.tasks]
 git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/droidslam Baselines/DROID-SLAM'}
 execute_mono = {cmd = 'vslamlab_droidslam_mono'}
+execute-rgbd = {cmd = 'vslamlab_droidslam_rgbd'}
+execute-stereo = {cmd = 'vslamlab_droidslam_stereo'}
 
 [feature.droidslam.dependencies]
 droidslam="*"
@@ -129,6 +132,7 @@ roma = {channel = "fontan"}
 # dpvo begin
 [feature.dpvo]
 channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+
 platforms = ["linux-64"]
 
 [feature.dpvo.system-requirements]
@@ -194,6 +198,8 @@ platforms = ["linux-64"]
 [feature.orbslam2.tasks]
 git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/orbslam2 Baselines/ORB_SLAM2'}
 execute_mono = {cmd = "vslamlab_orbslam2_mono"}
+execute-rgbd = {cmd = "vslamlab_orbslam2_rgbd"}
+execute-stereo = {cmd = "vslamlab_orbslam2_stereo"}
 
 [feature.orbslam2.dependencies]
 orbslam2 = {channel="fontan"}
@@ -213,7 +219,7 @@ git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/colmap', cwd = 'Ba
 execute_mono = {cmd = './Baselines/colmap/colmap_reconstruction.sh'}
 
 [feature.colmap.dependencies]
-colmap="*"
+colmap={build="*cuda*"}
 yq = "*"
 numpy = "*"
 scipy = "*"
@@ -231,7 +237,7 @@ git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/glomap', cwd = 'Ba
 execute_mono = {cmd = './Baselines/glomap/glomap_reconstruction.sh'}
 
 [feature.glomap.dependencies]
-glomap="*"
+glomap={build="*cuda*"}
 # glomap end
 
 ########################################################################################################################
@@ -379,6 +385,8 @@ cuda = "12.0"
 git-clone = {cmd = "git-clone.sh VSLAM-LAB DROID-SLAM DROID-SLAM-DEV"}
 install = {cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV"}
 execute_mono = {cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
+execute-rgbd = {cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
+execute-stereo = {cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
 
 [feature.droidslam-dev.dependencies]
 # Build Tools
@@ -404,6 +412,7 @@ matplotlib = ">=3.9.2,<4"
 pyyaml = ">=6.0.2,<7"
 huggingface_hub="*"
 tqdm = "*"
+pandas="*"
 # droidslam-dev end
 
 # ########################################################################################################################
@@ -580,6 +589,8 @@ platforms = ["linux-64"]
 git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
 install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV"}
 execute_mono = {cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV"}
+execute-rgbd = {cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV"}
+execute-stereo = {cmd = "./bin/vslamlab_orbslam2_stereo",  cwd = "Baselines/ORB_SLAM2-DEV"}
 
 [feature.orbslam2-dev.dependencies]
 compilers = "*"
