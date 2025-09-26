@@ -1,8 +1,31 @@
-sweetcorals:
-- '_indonesia_tabuhan_p1_20250210'
+eth:
+  - 'table_3'
+rgbdtum:
+  - 'rgbd_dataset_freiburg1_xyz'
+euroc:
+  - MH_01_easy
 
-# eth:
-# - 'table_3'
+# kitti:
+#  - '04'
+
+tartanair:
+ - 'ME000'
+
+# replica:
+#  - 'office0'
+
+  # - MH_02_easy
+  # - MH_03_medium
+  # - MH_04_difficult
+  # - MH_05_difficult
+  # - V1_01_easy
+  # - V1_02_medium
+  # - V1_03_difficult
+  # - V2_01_easy
+  # - V2_02_medium
+  # - V2_03_difficult
+# sweetcorals:
+# - '_indonesia_tabuhan_p1_20250210'
 
 #openloris:
 #   - cafe1-1
