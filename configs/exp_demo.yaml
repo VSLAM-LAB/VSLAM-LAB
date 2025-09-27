@@ -1,0 +1,8 @@
+demo:
+  Config: /home/alejandro/VSLAM-LAB/configs/config_demo.yaml
+  Module: orbslam3
+  NumRuns: 1
+  Parameters:
+    mode: mono-vi
+    verbose: 1
+    vocabulary: /home/alejandro/VSLAM-LAB/Baselines/ORB_SLAM3/Vocabulary/ORBvoc.txt
