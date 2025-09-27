@@ -72,8 +72,6 @@ Example commands:
 pixi run demo mast3rslam eth table_3
 pixi run demo droidslam euroc MH_01_easy
 pixi run demo orbslam2 rgbdtum rgbd_dataset_freiburg1_xyz
-pixi run demo dpvo 7scenes chess_seq-01
-pixi run demo monogs hamlyn rectified01
 ```
 *To change the paths where VSLAM-LAB-Benchmark or/and VSLAM-LAB-Evaluation data are stored (for example, to /media/${USER}/data), use the following commands:*
 ```

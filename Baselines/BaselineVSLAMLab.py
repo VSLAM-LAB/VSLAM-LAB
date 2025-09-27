@@ -206,7 +206,7 @@ class BaselineVSLAMLab:
                 vslamlab_command += [f"{str(parameter_name)}:{str(parameter_value)}"]
 
         if "mode:mono" in vslamlab_command:
-            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono " + ' '.join(vslamlab_command)
 
         if "mode:rgbd" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-rgbd " + ' '.join(vslamlab_command)
@@ -215,7 +215,7 @@ class BaselineVSLAMLab:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-stereo " + ' '.join(vslamlab_command)
 
         if "mode:mono-vi" in vslamlab_command:
-            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono_vi " + ' '.join(vslamlab_command)
 
         return vslamlab_command
 
@@ -239,13 +239,13 @@ class BaselineVSLAMLab:
                 vslamlab_command += [f"--{str(parameter_name)} {str(parameter_value)}"]
 
         if "--mode mono" in vslamlab_command:
-            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono " + ' '.join(vslamlab_command)
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono " + ' '.join(vslamlab_command)
         if "--mode rgbd" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-rgbd " + ' '.join(vslamlab_command)
         if "--mode stereo" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-stereo " + ' '.join(vslamlab_command)    
         if "--mode mono-vi" in vslamlab_command:
-            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute_mono_vi " + ' '.join(vslamlab_command)
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono_vi " + ' '.join(vslamlab_command)
 
         return vslamlab_command
 
