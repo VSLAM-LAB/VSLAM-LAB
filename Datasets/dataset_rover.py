@@ -1,18 +1,20 @@
-import sys, os, yaml
+import os, yaml
 import shutil
 import pandas as pd
 import numpy as np
 import cv2
 import tqdm
 from typing import Final
+from pathlib import Path
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from Datasets.dataset_utilities import undistort_fisheye
 from utilities import downloadFile, decompressFile
 
 DEFAULT_DEPTH_FACTOR: Final = 5000.0
 
 class ROVER_dataset(DatasetVSLAMLab):
+    """ROVER dataset helper for VSLAMLab benchmark."""    
+
     DATES = {
         "campus_small": {
             "autumn": "2023-11-23",
@@ -73,20 +75,22 @@ class ROVER_dataset(DatasetVSLAMLab):
     seq2group = {}
     
     
-    def __init__(self, benchmark_path):
-        super().__init__("rover", benchmark_path)
-        
-        with open(self.yaml_file, "r") as file:
-            data = yaml.safe_load(file)
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
+
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+
+        # Get download url
+        self.url_download_root: str = cfg["url_download_root"]
+
+        # Sequence nicknames
+        self.sequence_nicknames = self.sequence_names[:]     
             
-        self.url_download_root = data["url_download_root"]
-        
-        self.sequence_nicknames = self.sequence_names[:]
-        
         self.master_calibration_path = os.path.join(self.dataset_path, "calibration")
 
-
-    def download_sequence_data(self, sequence_name):
+    def download_sequence_data(self, sequence_name: str) -> None:
         location, setting, sensor, date = self._sequence_data_from_name(sequence_name)
         sequence_group_name = "_".join([location, setting, date])
         resource_name = "_".join([location, date])
@@ -117,7 +121,7 @@ class ROVER_dataset(DatasetVSLAMLab):
         self.seq2group[sequence_name] = sequence_group_path
                
 
-    def create_calibration_yaml(self, sequence_name):
+    def create_calibration_yaml(self, sequence_name: str) -> None:
         self._download_master_calibration_archive()
         _, _, sensor, _ = self._sequence_data_from_name(sequence_name)
         calibration_file = os.path.join(self.master_calibration_path, f"calib_{sensor}.yaml")
@@ -147,7 +151,7 @@ class ROVER_dataset(DatasetVSLAMLab):
             rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
             self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
             
-    def create_rgb_folder(self, sequence_name):
+    def create_rgb_folder(self, sequence_name: str) -> None:
         _, _, sensor, _ = self._sequence_data_from_name(sequence_name)
         if sensor == "t265":
             sequence_path = os.path.join(self.dataset_path, sequence_name)
@@ -164,7 +168,7 @@ class ROVER_dataset(DatasetVSLAMLab):
             depth_path = os.path.join(sequence_path, "depth_0")
             os.rename(depth_path_original, depth_path)
 
-    def create_rgb_csv(self, sequence_name):
+    def create_rgb_csv(self, sequence_name: str) -> None:
         _, _, sensor, _ = self._sequence_data_from_name(sequence_name)
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
@@ -213,7 +217,7 @@ class ROVER_dataset(DatasetVSLAMLab):
             pass
     
      
-    def create_groundtruth_csv(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         gt_src = os.path.join(self.seq2group[sequence_name], "groundtruth.txt")
         gt_dst_txt = os.path.join(sequence_path, "groundtruth.txt")
@@ -229,7 +233,7 @@ class ROVER_dataset(DatasetVSLAMLab):
                 dst.write(",".join(cleaned.split(" ")) + "\n")
     
 
-    def remove_unused_files(self, sequence_name):
+    def remove_unused_files(self, sequence_name: str) -> None:
         # sequence_path = os.path.join(self.dataset_path, sequence_name)
         # os.remove(os.path.join(sequence_path, 'rgb_original.txt'))
         pass

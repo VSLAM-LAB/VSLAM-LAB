@@ -1,36 +1,35 @@
 import os
 import yaml
 import shutil
-from inputimeout import inputimeout, TimeoutOccurred
+import csv
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+from pathlib import Path
+
+
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from utilities import downloadFile
-from utilities import decompressFile
-
-from Evaluate.align_trajectories import align_trajectory_with_groundtruth
-from Evaluate import metrics
-
+from utilities import downloadFile, decompressFile
+from Datasets.DatasetIssues import _get_dataset_issue
 
 class KITTI_dataset(DatasetVSLAMLab):
-    def __init__(self, benchmark_path):
+    """KITTI dataset helper for VSLAMLab benchmark."""
 
-        # Initialize the dataset
-        super().__init__('kitti', benchmark_path)
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "kitti") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
 
-        # Load settings from .yaml file
-        with open(self.yaml_file, 'r') as file:
-            data = yaml.safe_load(file)
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.url_download_root = data['url_download_root']
-        self.url_download_root_gt = data['url_download_root_gt']
+        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root_gt: str = cfg["url_download_root_gt"]
 
-        # Create sequence_nicknames
+        # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
 
-    def download_sequence_data(self, sequence_name):
+    def download_sequence_data(self, sequence_name: str) -> None:
 
         # Variables
         compressed_name = 'data_odometry_gray'
@@ -44,14 +43,6 @@ class KITTI_dataset(DatasetVSLAMLab):
 
         # Download the compressed file
         if not os.path.exists(compressed_file):
-            message = f"[dataset_{self.dataset_name}.py] The \'{self.dataset_name}\' dataset does not permit downloading individual sequences. Would you like to continue downloading the full dataset (?? GB) (Y/n): "
-            try:
-                user_input = inputimeout(prompt=message, timeout=10).strip().upper()
-            except TimeoutOccurred:
-                user_input = 'Y'
-                print("        No input detected. Defaulting to 'Y'.")
-            if user_input != 'Y':
-                exit()
             downloadFile(download_url, self.dataset_path)
             downloadFile(self.url_download_root_gt, self.dataset_path)
 
@@ -60,9 +51,9 @@ class KITTI_dataset(DatasetVSLAMLab):
             decompressFile(compressed_file, self.dataset_path)
             decompressFile(os.path.join(self.dataset_path, 'data_odometry_poses.zip'), self.dataset_path)
 
-    def create_rgb_folder(self, sequence_name):
+    def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
         if not os.path.exists(rgb_path):
             os.makedirs(rgb_path)
 
@@ -76,26 +67,33 @@ class KITTI_dataset(DatasetVSLAMLab):
 
         shutil.rmtree(rgb_path_0)
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
 
         times_txt = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'times.txt')
-        times = []
-        with open(times_txt, 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                time = line.strip()
-                times.append(float(time))
 
+        # Read timestamps
+        times = []
+        with open(times_txt, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    times.append(float(line))
+
+        # Collect and sort image filenames
         rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
         rgb_files.sort()
-        with open(rgb_txt, 'w') as file:
-            for idx, time in enumerate(times, start=0):
-                file.write(f"{time} rgb/{rgb_files[idx]}\n")
 
-    def create_calibration_yaml(self, sequence_name):
+        # Write CSV with header
+        with open(rgb_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['ts_rgb0 (s)', 'path_rgb0']) 	
+            for t, fname in zip(times, rgb_files):  # pairs safely to the shorter list
+                writer.writerow([f"{t:.6f}", f"rgb_0/{fname}"])
+
+    def create_calibration_yaml(self, sequence_name: str) -> None:
 
         calibration_txt = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'calib.txt')
         if not os.path.exists(calibration_txt):
@@ -104,66 +102,78 @@ class KITTI_dataset(DatasetVSLAMLab):
         with open(calibration_txt, 'r') as file:
             calibration = [value for value in file.readline().split()]
 
-        fx, fy, cx, cy, k1, k2, p1, p2, k3 = calibration[1], calibration[6], calibration[3], calibration[
-            7], 0.0, 0.0, 0.0, 0.0, 0.0
+        fx, fy, cx, cy = calibration[1], calibration[6], calibration[3], calibration[7]
 
-        self.write_calibration_yaml('OPENCV', fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
+        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
+        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0)
 
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
+        out_csv = os.path.join(sequence_path, 'groundtruth.csv')
 
+        # Keep your original guard
         sequence_name_int = int(sequence_name)
         if sequence_name_int > 10:
             return
 
+        # Read timestamps
         times_txt = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'times.txt')
         times = []
-        with open(times_txt, 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                time = line.strip()
-                times.append(float(time))
-
-        groundtruth_txt_0 = os.path.join(self.dataset_path, 'dataset', 'poses', sequence_name + '.txt')
-        with open(groundtruth_txt_0, 'r') as source_file, open(groundtruth_txt, 'w') as destination_file:
-            for idx, line in enumerate(source_file, start=0):
+        with open(times_txt, 'r') as f:
+            for line in f:
                 line = line.strip()
-                values = line.split(' ')
-                rotation_matrix = np.array([[values[0], values[1], values[2]],
-                                            [values[4], values[5], values[6]],
-                                            [values[8], values[9], values[10]]])
-                rotation = R.from_matrix(rotation_matrix)
-                quaternion = rotation.as_quat()
+                if line:
+                    times.append(float(line))
+
+        # Read trajectory and write CSV
+        poses_txt = os.path.join(self.dataset_path, 'dataset', 'poses', sequence_name + '.txt')
+        with open(poses_txt, 'r') as src, open(out_csv, 'w', newline='') as dst:
+            writer = csv.writer(dst)
+            writer.writerow(['ts', 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw'])  # header
+
+            for idx, line in enumerate(src):
+                if idx >= len(times):
+                    break  # avoid index error if poses has extra lines
+                vals = list(map(float, line.strip().split()))
+                # row-major 3x4: r00 r01 r02 tx r10 r11 r12 ty r20 r21 r22 tz
+                Rm = np.array([[vals[0], vals[1], vals[2]],
+                            [vals[4], vals[5], vals[6]],
+                            [vals[8], vals[9], vals[10]]], dtype=float)
+                tx, ty, tz = vals[3], vals[7], vals[11]
+                qx, qy, qz, qw = R.from_matrix(Rm).as_quat()  # [x, y, z, w]
                 ts = times[idx]
-                tx, ty, tz = values[3], values[7], values[11]
-                qx, qy, qz, qw = quaternion[0], quaternion[1], quaternion[2], quaternion[3]
-                line2 = str(ts) + " " + str(tx) + " " + str(ty) + " " + str(tz) + " " + str(qx) + " " + str(
-                    qy) + " " + str(qz) + " " + str(qw) + "\n"
-                destination_file.write(line2)
 
-    def remove_unused_files(self, sequence_name):
-        sequence_folder = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name)
-        if os.path.exists(sequence_folder):
-            shutil.rmtree(sequence_folder)
+                writer.writerow([f"{ts:.6f}", tx, ty, tz, qx, qy, qz, qw])
 
-        sequences_folder = os.path.join(self.dataset_path, 'dataset', 'sequences')
-        if os.path.exists(sequences_folder):
-            if not os.listdir(sequences_folder):
-                shutil.rmtree(sequences_folder)
+    # def remove_unused_files(self, sequence_name: str) -> None:
+    #     sequence_folder = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name)
+    #     if os.path.exists(sequence_folder):
+    #         shutil.rmtree(sequence_folder)
 
-        sequence_name_int = int(sequence_name)
-        if sequence_name_int < 11:
-            groundtruth_txt_0 = os.path.join(self.dataset_path, 'dataset', 'poses', sequence_name + '.txt')
-            if os.path.exists(groundtruth_txt_0):
-                os.remove(groundtruth_txt_0)
+    #     sequences_folder = os.path.join(self.dataset_path, 'dataset', 'sequences')
+    #     if os.path.exists(sequences_folder):
+    #         if not os.listdir(sequences_folder):
+    #             shutil.rmtree(sequences_folder)
 
-        poses_folder = os.path.join(self.dataset_path, 'dataset', 'poses')
-        if os.path.exists(poses_folder):
-            if not os.listdir(poses_folder):
-                shutil.rmtree(poses_folder)
+    #     sequence_name_int = int(sequence_name)
+    #     if sequence_name_int < 11:
+    #         groundtruth_txt_0 = os.path.join(self.dataset_path, 'dataset', 'poses', sequence_name + '.txt')
+    #         if os.path.exists(groundtruth_txt_0):
+    #             os.remove(groundtruth_txt_0)
 
-        dataset_folder = os.path.join(self.dataset_path, 'dataset')
-        if os.path.exists(dataset_folder):
-            if not os.listdir(dataset_folder):
-                shutil.rmtree(dataset_folder)
+    #     poses_folder = os.path.join(self.dataset_path, 'dataset', 'poses')
+    #     if os.path.exists(poses_folder):
+    #         if not os.listdir(poses_folder):
+    #             shutil.rmtree(poses_folder)
+
+    #     dataset_folder = os.path.join(self.dataset_path, 'dataset')
+    #     if os.path.exists(dataset_folder):
+    #         if not os.listdir(dataset_folder):
+    #             shutil.rmtree(dataset_folder)
+
+    def get_download_issues(self, _):
+        return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=23.2)]
+
+    def download_process(self, _):
+        for sequence_name in self.sequence_names:
+            super().download_process(sequence_name)

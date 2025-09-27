@@ -222,21 +222,81 @@ We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6
 | [**GenSfM**](https://github.com/Ivonne320/GenSfM)                                     |  SfM   |       ⛔       |                [BSD](https://github.com/Ivonne320/GenSfM/blob/main/COPYING.txt)                 |   `gensfm`   | ⛔ | `Pinhole` | 
 
 
-
-<<<<<<< HEAD
 | Datasets                                                                                                                        |   Data    |    Mode    |    Label    |     Sensors      |  Camera Models     |        
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:----------:|:-----------:|:----------:|:----------:|
-| [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |   real    |  handheld  |    `eth`    |`mono` `rgbd` | `Pinhole` |
+| [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |   real    |  handheld  |    `eth`    |`mono` `rgbd`| `Pinhole` |
 | [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |   real    |  handheld  |  `rgbdtum`  |`mono` `rgbd`| `Pinhole` |
-| [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |   real    |  vehicle   |   `kitti`   |`mono` `stereo`| `Pinhole` |
-| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |   real    |    UAV     |   `euroc`   | `mono`,`stereo`, `mono-vi`, `stereo-vi` | `Pinhole` |
-| [**ICL-NUIM RGB-D Benchmark Dataset**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html)                                    | synthetic |  handheld  |   `nuim`    | ⛔  | `Pinhole` | 
+| [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |   real    |  vehicle   |   `kitti`   |`mono`| `Pinhole` |
+| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |   real    |    UAV     |   `euroc`   | `mono`,`stereo`, `mono-vi` | `Pinhole` |
+| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/)   |   real    | vehicle |  `rover`  |`mono` `rgbd` | `Pinhole` |
+| [**The UT Campus Object Dataset**](https://amrl.cs.utexas.edu/coda/) | real | handheld |  `ut_coda`  |`mono`| `Pinhole` |
+| [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) | synthetic |  handheld  |  `replica`  | `mono` `rgbd`  | `Pinhole` |
+| [**TartanAir: A Dataset to Push the Limits of Visual SLAM**](https://theairlab.org/tartanair-dataset/)                          | synthetic |  handheld  | `tartanair` | `mono`  | `Pinhole` |
+| [**ICL-NUIM RGB-D Benchmark Dataset**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html)                                    | synthetic |  handheld  |   `nuim`    | `mono` `rgbd`  | `Pinhole` | 
 | [**Monocular Visual Odometry Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset)                                      |   real    |  handheld  |  `monotum`  | ⛔  | `Pinhole` |
 | [**RGB-D Dataset 7-Scenes**](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)                          |   real    |  handheld  |  `7scenes`  | ⛔  | `Pinhole` |
-| [**TartanAir: A Dataset to Push the Limits of Visual SLAM**](https://theairlab.org/tartanair-dataset/)                          | synthetic |  handheld  | `tartanair` | ⛔  | `Pinhole` |
 | [**The Drunkard's Dataset**](https://davidrecasens.github.io/TheDrunkard%27sOdometry)                                           | synthetic |  handheld  | `drunkards` | ⛔  | `Pinhole` |
-| [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) | synthetic |  handheld  |  `replica`  | ⛔  | `Pinhole` |
 | [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/)                                             |   real    |  handheld  |  `hamlyn`   | ⛔  | `Pinhole` |
 | [**Underwater caves sonar and vision data set**](https://cirs.udg.edu/caves-dataset/)                                           |   real    | underwater |   `caves`  | ⛔  | `Pinhole` |
 | [**HILTI-OXFORD 2022**](http://hilti-challenge.com/dataset-2022.html)   |   real    | handheld |  `hilti2022`  | ⛔  | `Pinhole` |
-| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/)   |   real    | vehicle |  `rover`  | ⛔  | `Pinhole` |
+
+
+## VSLAM-LAB v1.0 Roadmap
+
+### Core
+- [ ] Build system set up (CMake + options for CUDA/CPU)
+- [ ] Docker dev image (CUDA + ROS optional)
+- [ ] Pre-commit hooks (clang-format, clang-tidy, black/isort if Python)
+- [ ] Licensing & citation (LICENSE + CITATION.cff + BibTeX snippet)
+- [ ] Example dataset download script (`scripts/get_data.sh`)
+
+### Datasets
+- [ ] KITTI extension to `stereo`
+- [ ] ROVER extension to `stereo`, `mono-vi`, `stereo-vi`
+- [ ] TartanAir extension to `stereo`
+- [ ] EuRoC extension to `stereo-vi`
+- [ ] monotum re-implement `mono`
+- [ ] 7scenes re-implement `mono`, `rgbd`
+- [ ] drunkards re-implement `mono`, `rgbd`
+- [ ] hamlyn re-implement mono `mono`
+- [ ] caves re-implement `mono`
+- [ ] hilti2022 re-implement `mono`
+- [ ] scannetplusplus re-implement `mono`
+- [ ] ariel re-implement `mono`
+- [ ] lamar implement `mono`
+- [ ] squidle implement `mono`
+- [ ] openloris re-implement `mono`
+- [ ] madmax implement `mono`, `rgbd`, `stereo`, `mono-vi`, `stereo-vi`
+- [ ] sweetcorals implement `mono`
+- [ ] reefslam implement `mono`
+- [ ] ...
+
+### Baselines
+- [ ] AnyFeature VSLAM implement `mono`, `rgbd`, `stereo`
+- [ ] DSO VSLAM implement `mono`
+- [ ] MonoGS re-implement `mono`, `rgbd`
+- [ ] VGGT implement SfM
+- [ ] ORBSLAM3 implement `mono`, `rgbd`, `stereo`, `stereo-vi`, `rgbd-vi`
+- [ ] OKVIS2 implement `mono`, `stereo-vi`
+- [ ] pyCuVSLAM implement `mono`, `rgbd`, `stereo`, `mono-vi`, `stereo-vi`
+
+### Metrics
+- [ ] Include RPE
+- [ ] Link metrics with modalities
+
+### Tooling
+- [ ] Ablation tools
+- [ ] ROS 
+
+### Docs
+- [ ] README quickstart (build, run, datasets)
+- [ ] Config reference (YAML/TOML)
+- [ ] Architecture diagram
+- [ ] Contributing guide
+
+### Demos
+- [ ] Example video/gif of live run
+
+### Project Management
+- [ ] Define statuses: Backlog → In Progress → Review → Done
+- [ ] Convert key items above to sub-issues

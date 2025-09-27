@@ -1,26 +1,31 @@
+from pathlib import Path
 import os, yaml, shutil
 import csv
+from typing import Final
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
 
-class NUIM_dataset(DatasetVSLAMLab):
-    def __init__(self, benchmark_path, dataset_name = 'nuim'):
-        # Initialize the dataset
-        super().__init__(dataset_name, benchmark_path)
+DEFAULT_DEPTH_FACTOR: Final = 5000.0
 
-        # Load settings from .yaml file
-        with open(self.yaml_file, 'r') as file:
-            data = yaml.safe_load(file)
+class NUIM_dataset(DatasetVSLAMLab):
+    """NUIM dataset helper for VSLAMLab benchmark."""
+
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "nuim") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
+
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.url_download_root = data['url_download_root']
+        self.url_download_root: str = cfg["url_download_root"]
 
-        # Create sequence_nicknames
+        # Sequence nicknames
         self.sequence_nicknames = [s.replace('_frei_png', '') for s in self.sequence_names]
         self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_nicknames]
 
-    def download_sequence_data(self, sequence_name):
+    def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
         # Variables
@@ -41,9 +46,17 @@ class NUIM_dataset(DatasetVSLAMLab):
         if not os.path.exists(decompressed_folder):
             decompressFile(compressed_file, sequence_path)
 
-    def create_rgb_folder(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
+    def create_rgb_folder(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        rgb_path = sequence_path / 'rgb_0'
+        depth_path = sequence_path / 'depth_0'
+        rgb_path_original = sequence_path / 'rgb'
+        depth_path_original = sequence_path / 'depth'
+
+        if rgb_path_original.is_dir() and not rgb_path.is_dir():
+            os.rename(rgb_path_original, rgb_path) 
+        if depth_path_original.is_dir() and not depth_path.is_dir():    
+            os.rename(depth_path_original, depth_path) 
 
         for png_file in os.listdir(rgb_path):
             if png_file.endswith(".png"):
@@ -53,27 +66,39 @@ class NUIM_dataset(DatasetVSLAMLab):
                 new_file = os.path.join(rgb_path, new_name)
                 os.rename(old_file, new_file)
 
-    def create_rgb_txt(self, sequence_name):
+        for png_file in os.listdir(depth_path):
+            if png_file.endswith(".png"):
+                name, ext = os.path.splitext(png_file)
+                new_name = f"{int(name):05}{ext}"
+                old_file = os.path.join(depth_path, png_file)
+                new_file = os.path.join(depth_path, new_name)
+                os.rename(old_file, new_file)
+
+    def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
 
         rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
         rgb_files.sort()
-        with open(rgb_txt, 'w') as file:
+
+        with open(rgb_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['ts_rgb0 (s)', 'path_rgb0', 'ts_depth0 (s)', 'path_depth0'])  # header
             for filename in rgb_files:
                 name, _ = os.path.splitext(filename)
-                ts = float(name) / self.rgb_hz
-                file.write(f"{ts:.5f} rgb/{filename}\n")
+                ts = float(name) / self.rgb_hz 
+                writer.writerow([f"{ts:.5f}", f"rgb_0/{filename}", f"{ts:.5f}", f"depth_0/{filename}"])
 
-    def create_calibration_yaml(self, sequence_name):
+    def create_calibration_yaml(self, sequence_name: str) -> None:
 
         fx, fy, cx, cy = 481.20, -480.00, 319.50, 239.50
-        k1, k2, p1, p2, k3 = 0.0, 0.0, 0.0, 0.0, 0.0
+        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
+        rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
 
-        self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
+        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
 
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
         groundtruth_csv = os.path.join(sequence_path, 'groundtruth.csv')
@@ -92,9 +117,3 @@ class NUIM_dataset(DatasetVSLAMLab):
                     
                     destination_txt_file.write(" ".join(values) + "\n")
                     csv_writer.writerow(values)
-
-    def remove_unused_files(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-
-        os.remove(os.path.join(sequence_path, 'associations.txt'))
-        shutil.rmtree(os.path.join(sequence_path, "depth"))

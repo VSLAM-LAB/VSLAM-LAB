@@ -1,8 +1,10 @@
 import os
 import re
+import csv
 import yaml
 import shutil
 import numpy as np
+from pathlib import Path
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
@@ -11,28 +13,25 @@ from utilities import downloadFile, decompressFile
 from Datasets.dataset_utilities import resize_rgb_images
 
 
-
 class UT_CODA_dataset(DatasetVSLAMLab):
-    def __init__(self, benchmark_path):
+    """UT_CODA dataset helper for VSLAMLab benchmark."""
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "ut_coda") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
 
-        # Initialize the dataset
-        super().__init__('ut_coda', benchmark_path)
-
-        # Load settings from .yaml file
-        with open(self.yaml_file, 'r') as file:
-            data = yaml.safe_load(file)
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.url_download_root = data['url_download_root']
+        self.url_download_root: str = cfg["url_download_root"]
 
-        # Create sequence_nicknames
+        # Sequence nicknames
         self.sequence_nicknames = [f"seq{s}" for s in self.sequence_names]
 
-
         # Get resolution size
-        self.resolution_size = data['resolution_size']
+        self.resolution_size = cfg['resolution_size']
         
-    def download_sequence_data(self, sequence_name):
+    def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
 
         # Variables
@@ -53,9 +52,9 @@ class UT_CODA_dataset(DatasetVSLAMLab):
         if not os.path.exists(decompressed_folder):
             decompressFile(compressed_file, sequence_path)
 
-    def create_rgb_folder(self, sequence_name):
+    def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
         if not os.path.exists(rgb_path):
             os.makedirs(rgb_path)
 
@@ -69,10 +68,10 @@ class UT_CODA_dataset(DatasetVSLAMLab):
 
         shutil.rmtree(rgb_path_0)
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
 
         times_txt = os.path.join(sequence_path, 'timestamps', sequence_name + '.txt')
         times = []
@@ -88,14 +87,17 @@ class UT_CODA_dataset(DatasetVSLAMLab):
 
         rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
         rgb_files.sort(key=extract_frame_id)
-        with open(rgb_txt, 'w') as file:
-            for idx, time in enumerate(times, start=0):
-                file.write(f"{time} rgb/{rgb_files[idx]}\n")
-    
-    def create_calibration_yaml(self, sequence_name):
+
+        with open(rgb_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['ts_rgb0 (s)', 'path_rgb0'])  
+            for t, fname in zip(times, rgb_files):
+                writer.writerow([t, f"rgb_0/{fname}"])
+
+    def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         calibration_file_yaml = os.path.join(sequence_path, 'calibrations', sequence_name, 'calib_cam0_intrinsics.yaml')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
 
         # Load calibration from .yaml file
         with open(calibration_file_yaml, 'r') as file:
@@ -106,19 +108,22 @@ class UT_CODA_dataset(DatasetVSLAMLab):
         
         camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
         
-        fx, fy, cx, cy = resize_rgb_images(rgb_txt, sequence_path, self.resolution_size[0], self.resolution_size[1], camera_matrix)
+        fx, fy, cx, cy = resize_rgb_images(rgb_csv, sequence_path, self.resolution_size[0], self.resolution_size[1], camera_matrix)
 
-        self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name)
+        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
+        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0)
 
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
+        groundtruth_csv = os.path.join(sequence_path, 'groundtruth.csv')
 
         CAM2ENU = np.array([[0., 0., 1., 0.], [-1., 0., 0., 0.], [0., -1., 0., 0.], [0., 0., 0., 1.]])
         ENU2CAM = np.array([[0., -1., 0., 0.], [0., 0., -1., 0.], [1., 0., 0., 0.], [0., 0., 0., 1.]])
 
         groundtruth_txt_0 = os.path.join(sequence_path, 'poses', 'dense_global', sequence_name + '.txt')
-        with open(groundtruth_txt_0, 'r') as source_file, open(groundtruth_txt, 'w') as destination_file:
+        with open(groundtruth_txt_0, 'r') as source_file, open(groundtruth_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['ts', 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw'])  # header
             for idx, line in enumerate(source_file, start=0):
                 values = np.array([float(x) for x in line.strip().split()])
                 ts = values[0]
@@ -133,9 +138,7 @@ class UT_CODA_dataset(DatasetVSLAMLab):
                 quat = R.from_matrix(SE3_CAM[:3, :3]).as_quat()
                 qx, qy, qz, qw = quat[0], quat[1], quat[2], quat[3]
 
-                line2 = str(ts) + " " + str(tx) + " " + str(ty) + " " + str(tz) + " " + str(qx) + " " + str(
-                    qy) + " " + str(qz) + " " + str(qw) + "\n"
-                destination_file.write(line2)
+                writer.writerow([ts, tx, ty, tz, qx, qy, qz, qw])
 
     def remove_unused_files(self, sequence_name):
         sequence_path = os.path.join(self.dataset_path, sequence_name)

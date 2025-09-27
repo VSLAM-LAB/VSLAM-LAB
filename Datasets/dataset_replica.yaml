@@ -2,6 +2,7 @@ dataset_name: replica
 
 rgb_hz: 30.0
 url_download_root: "https://cvg-data.inf.ethz.ch/nice-slam/data/Replica.zip"
+modes: ['mono', 'rgbd']
 
 sequence_names:
   - office0

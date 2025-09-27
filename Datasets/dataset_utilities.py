@@ -68,14 +68,10 @@ def undistort_depth_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_co
     return fx, fy, cx, cy
 
 def undistort_fisheye(rgb_csv, sequence_path, camera_matrix, distortion_coeffs):
-    image_list = []
-    with open(rgb_csv, 'r') as file:
-        for line in file:
-            timestamp, path, *extra = line.strip().split(' ')
-            image_list.append(path)
 
+    rgb_paths, *_ = load_rgb_csv(rgb_csv)
     first = True
-    for image_name in tqdm(image_list):
+    for image_name in tqdm(rgb_paths):
         image_path = os.path.join(sequence_path, image_name)
         image = cv2.imread(image_path)
         if first:

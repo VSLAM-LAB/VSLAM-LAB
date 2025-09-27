@@ -3,6 +3,7 @@ dataset_name: ut_coda
 rgb_hz: 10.0
 url_download_root: "https://web.corral.tacc.utexas.edu/texasrobotics/web_CODa/CODa_vslam/"
 resolution_size: [640, 480]
+modes: ['mono']
 
 sequence_names:
   - '0'

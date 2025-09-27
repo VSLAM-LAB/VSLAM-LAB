@@ -4,6 +4,8 @@ import yaml
 import shutil
 import numpy as np
 import subprocess
+from pathlib import Path
+import pandas as pd
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile
@@ -20,25 +22,25 @@ from utilities import ws
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 class VITUM_dataset(DatasetVSLAMLab):
+    """VITUM dataset helper for VSLAMLab benchmark."""
 
-    def __init__(self, benchmark_path):
-        # Initialize the dataset
-        super().__init__('vitum', benchmark_path)
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "vitum") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
 
-        # Load settings from .yaml file
-        with open(self.yaml_file, 'r') as file:
-            data = yaml.safe_load(file)
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.url_download_root = data['url_download_root']
+        self.url_download_root: str = cfg["url_download_root"]
 
-        # Create sequence_nicknames
+        # Sequence nicknames
         self.sequence_nicknames = []
         for sequence_name in self.sequence_names:
             sequence_nickname = sequence_name.replace('sequence_', 'seq ')
             self.sequence_nicknames.append(sequence_nickname)
 
-    def download_sequence_data(self, sequence_name):
+    def download_sequence_data(self, sequence_name: str) -> None:
         # Variables
         sequence_filename = 'dataset-' + sequence_name + '_512_16'
         compressed_name = sequence_filename + '.tar' 
@@ -57,16 +59,11 @@ class VITUM_dataset(DatasetVSLAMLab):
             shutil.rmtree(decompressed_folder)
         decompressFile(compressed_file, self.dataset_path)
         
-        # Delete the compressed file
-        if os.path.exists(compressed_file):
-           os.remove(compressed_file)
-        
-
-    def create_rgb_folder(self, sequence_name):
+    def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
         images_path = os.path.join(source_path, 'mav0', 'cam0', 'data')
-        rgb_path = os.path.join(sequence_path, 'rgb')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
 
         os.makedirs(rgb_path, exist_ok=True)
         #copy images to rgb folder
@@ -76,51 +73,92 @@ class VITUM_dataset(DatasetVSLAMLab):
                 destination_file = os.path.join(rgb_path, filename)
                 shutil.copy(source_file, destination_file) 
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        source_path = os.path.join(self.dataset_path, f'dataset-{sequence_name}_512_16')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
 
-        # Create filename -> timestamp mapping
+        # Build filename -> timestamp mapping from times.txt
         filename_to_timestamp = {}
         times_txt = os.path.join(source_path, 'dso', 'cam0', 'times.txt')
-        with open(times_txt, 'r') as file:
-            for line in file:
-                if line.startswith('#'):  # Skip header
+        with open(times_txt, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
                     continue
-                columns = line.split()
-                if len(columns) >= 2:
-                    filename = columns[0]  # e.g., "1520621175986840704"
-                    timestamp = columns[1]  # e.g., "1520621175.986840704"
-                    filename_to_timestamp[filename] = float(timestamp)
+                cols = line.split()
+                if len(cols) >= 2:
+                    fname, ts_str = cols[0], cols[1]  # fname like "1520621175986840704"
+                    try:
+                        filename_to_timestamp[fname] = float(ts_str)
+                    except ValueError:
+                        continue  # skip malformed rows
 
-        # Write rgb.txt using the mapping
-        rgb_files = sorted([f for f in os.listdir(rgb_path) if f.endswith('.png')])
-        with open(rgb_txt, 'w') as file:
+        # Collect pngs and write CSV
+        rgb_files = sorted([f for f in os.listdir(rgb_path) if f.lower().endswith('.png')])
+
+        with open(rgb_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile) 	
+            writer.writerow(['ts_rgb0 (s)', 'path_rgb0'])  # header
             for filename in rgb_files:
-                base_name = filename.replace('.png', '')  # Remove extension
-                if base_name in filename_to_timestamp:
-                    timestamp = filename_to_timestamp[base_name]
-                    file.write(f'{timestamp:.6f} rgb/{filename}\n')
+                base_name, _ = os.path.splitext(filename)
+                ts = filename_to_timestamp.get(base_name)
+                if ts is None:
+                    continue  # skip files without a timestamp mapping
+                writer.writerow([f'{ts:.6f}', f'rgb_0/{filename}'])
 
-    def create_imu_csv(self, sequence_name):        
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
+    def create_imu_csv(self, sequence_name: str) -> None:
+        """
+        Build imu.csv with timestamps in seconds.
+        Input:  <seq>/mav0/imu0/data.csv  (EUROC format, #timestamp [ns] ... header)
+        Output: <seq>/imu.csv  with columns: ts (s), wx, wy, wz, ax, ay, az
+        """
+        seq = self.dataset_path / sequence_name
+        source_path = self.dataset_path / ('dataset-' + sequence_name + '_512_16')
+        src = source_path / 'mav0'/ 'imu0'/ 'data.csv'
+        dst = seq / "imu.csv"
 
-        # Find the IMU CSV file
-        imu_csv_path = os.path.join(source_path, 'mav0', 'imu0', 'data.csv')
-    
-        # Destination path for the renamed file
-        imu_destination = os.path.join(sequence_path, 'imu.csv')
-    
-        # Copy and rename the file
-        if os.path.exists(imu_csv_path):
-            shutil.copy(imu_csv_path, imu_destination)
-        else:
-            print(f"Warning: IMU data file not found at {imu_csv_path}")
+        if not src.exists():
+            return
 
-    def create_calibration_yaml(self, sequence_name):
+        # Skip if already up-to-date
+        if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime:
+            return
+
+        # Read rows, skipping the header line(s) that start with '#'
+        # Handle both comma- or whitespace-separated variants.
+
+        cols = ["timestamp [ns]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]
+        df = pd.read_csv(
+            src,
+            comment="#",
+            header=None,
+            names=cols,
+            sep=r"[\s,]+",
+            engine="python",
+        )
+
+        if df.empty:
+            return
+
+        # ns → s (float). Keep high precision, then format to 9 decimals for output.
+        df["timestamp [s]"] = df["timestamp [ns]"].astype(np.float64) / 1e9
+        df["timestamp [s]"] = df["timestamp [s]"].map(lambda x: f"{x:.9f}")
+
+        out = df[["timestamp [s]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]]
+
+        tmp = dst.with_suffix(".csv.tmp")
+        try:
+            out.to_csv(tmp, index=False)
+            tmp.replace(dst)
+        finally:
+            try:
+                tmp.unlink()
+            except FileNotFoundError:
+                pass
+        
+    def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')
         calibration_file_cam0 = os.path.join(source_path, 'dso', 'camchain.yaml')
@@ -134,8 +172,8 @@ class VITUM_dataset(DatasetVSLAMLab):
         with open(calibration_file_imu0, 'r') as imu_file:
             imu_data = yaml.safe_load(imu_file)
 
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
         calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
 
         if os.path.exists(calibration_yaml):
@@ -153,44 +191,37 @@ class VITUM_dataset(DatasetVSLAMLab):
         print(f"{SCRIPT_LABEL}Undistorting images with fisheye model: {rgb_path}")
         camera_matrix = np.array([[intrinsics[0], 0, intrinsics[2]], [0, intrinsics[1], intrinsics[3]], [0, 0, 1]])
         distortion_coeffs = np.array([distortion[0], distortion[1], distortion[2], distortion[3]]) #fisheye model so k1, k2, k3, k4
-        fx, fy, cx, cy = undistort_fisheye(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
-        camera_model = 'PINHOLE' # manually specifcy pinhole model after undistortion
-        k1 = 0.0
-        k2 = 0.0 
-        p1 = 0.0 
-        p2 = 0.0 
-
-        camera0 = {'model': camera_model,
-                'fx': fx, 'fy': fy, 'cx': cx, 'cy': cy,
-                'k1': k1, 'k2': k2, 'p1': p1, 'p2': p2,
-                }
-
+        fx, fy, cx, cy = undistort_fisheye(rgb_csv, sequence_path, camera_matrix, distortion_coeffs)
+        camera_model = 'Pinhole' # manually specifcy pinhole model after undistortion
+    
+        camera0 = {'model': camera_model, 'fx': fx, 'fy': fy, 'cx': cx, 'cy': cy}
         imu = {
                 'transform': cam_data['T_cam_imu'],  # 4x4 transformation matrix from camera to IMU
                 'gyro_noise': gyro_noise,
                 'gyro_bias': gyro_bias,
                 'accel_noise': accel_noise,
                 'accel_bias': accel_bias,
-                'frequency': imu_data['update_rate'],
-            }
+                'frequency': imu_data['update_rate']
+                }
         self.write_calibration_yaml(sequence_name, camera0=camera0, imu=imu)
 
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = os.path.join(self.dataset_path, sequence_name)
-        groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
-        source_path = os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16', 'dso', 'gt_imu.csv')
+        out_csv = os.path.join(sequence_path, 'groundtruth.csv')
+        source_path = os.path.join(self.dataset_path, f'dataset-{sequence_name}_512_16', 'dso', 'gt_imu.csv')
 
-        with open(source_path) as source_file:
-            with open(groundtruth_txt, 'w') as destination_file:
-                csv_reader = csv.reader(source_file)
-                header = next(csv_reader, None) # Skip header row if it exists
+        with open(source_path, 'r', newline='') as src, open(out_csv, 'w', newline='') as dst:
+            reader = csv.reader(src)
+            writer = csv.writer(dst)
 
-                for row in csv_reader:
-                    line_to_write = " ".join(row) # Join row elements for NaN check and writing
-                    if 'NaN' not in line_to_write:
-                        destination_file.write(line_to_write + '\n')
+            header = next(reader, None)  # skip/read header
+            if header:
+                writer.writerow(header)   # write header to output
 
-    def remove_unused_files(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-
-        shutil.rmtree((os.path.join(self.dataset_path, 'dataset-' + sequence_name + '_512_16')))
+            for row in reader:
+                if not row:
+                    continue
+                # Match original behavior: skip any row where any field contains the literal 'NaN'
+                if any('NaN' in field for field in row):
+                    continue
+                writer.writerow(row)

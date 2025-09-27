@@ -2,6 +2,7 @@ dataset_name: nuim
 
 rgb_hz: 30.0
 url_download_root: "https://www.doc.ic.ac.uk/~ahanda"
+modes: ['mono', 'rgbd']
 
 sequence_names:
   - living_room_traj0_frei_png
