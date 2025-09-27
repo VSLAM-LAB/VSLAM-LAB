@@ -387,12 +387,23 @@ install = {cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV"}
 execute_mono = {cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
 execute-rgbd = {cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
 execute-stereo = {cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
+#train = {cmd = 'python train.py --iters 1 --steps 50000 --lr 0.000025 --datapath /home/fontan/VSLAM-LAB-Benchmark/TartanAir --ckpt "droid.pth"',  cwd = 'Baselines/DROID-SLAM-DEV'}
+
+train.cmd =  'python train.py --iters {{ iters }} --steps {{ steps }} --lr {{ lr }} --datapath {{ datapath }} --ckpt {{ ckpt }}'
+train.cwd =  'Baselines/DROID-SLAM-DEV'
+train.args = [
+  { "arg" = "iters", "default" = "1" },
+  { "arg" = "steps", "default" = "50000" },
+  { "arg" = "lr", "default" = "0.000025" },
+  { "arg" = "datapath", "default" = "/home/fontan/VSLAM-LAB-Benchmark/TartanAir" },
+  { "arg" = "ckpt", "default" = "droid.pth" },
+]
 
 [feature.droidslam-dev.dependencies]
 # Build Tools
-compilers="*"
+compilers = "*"
 cmake = "*"
-make="*"
+make = "*"
 
 # Specialized Libraries
 lietorch = {version = "*", channel = "fontan"}  
@@ -410,9 +421,9 @@ scipy = ">=1.14.1,<2"
 suitesparse = ">=7.8.2,<8"
 matplotlib = ">=3.9.2,<4"
 pyyaml = ">=6.0.2,<7"
-huggingface_hub="*"
+huggingface_hub = "*"
 tqdm = "*"
-pandas="*"
+pandas = "*"
 # droidslam-dev end
 
 # ########################################################################################################################
@@ -432,10 +443,10 @@ execute_mono = {cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MA
 
 [feature.mast3rslam-dev.dependencies]
 # Build Tools
-compilers="*"
+compilers = "*"
 pkg-config = "*"
 cmake = "*"
-make="*"
+make = "*"
 
 # Torch libraries
 pytorch-gpu = "*"
