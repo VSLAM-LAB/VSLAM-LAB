@@ -20,7 +20,7 @@ print_datasets = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities
 print_baselines = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_baselines"}
 get-benchmark-path = {cmd = "VSLAMLAB_BENCHMARK=$(python3 -c 'from path_constants import VSLAMLAB_BENCHMARK; print(VSLAMLAB_BENCHMARK)')"}
 clean_swap = {cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a"}
-kill_all = {cmd = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
+kill_all = {cmd = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
 
 # environments begin
 [environments]
@@ -41,6 +41,7 @@ glomap = {features = ["glomap", "colmap"], no-default-feature = true, solve-grou
 
 orbslam3 = {features = ["orbslam3"], no-default-feature = true}
 okvis2 = {features = ["okvis2"], no-default-feature = true}
+pycuvslam = {features = ["pycuvslam","cuda126", "py10"], no-default-feature = true}
 
 droidslam-dev = {features = ["droidslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
 mast3rslam-dev = {features = ["mast3rslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
@@ -274,6 +275,32 @@ okvis2 = {channel="fontan"}
 
 ########################################################################################################################
 ########################################################################################################################
+# pycuvslam begin
+[feature.pycuvslam]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.pycuvslam.system-requirements]
+cuda = "12.0"
+
+[feature.pycuvslam.tasks]
+git-clone = {cmd = "git-clone.sh VSLAM-LAB PyCuVSLAM PyCuVSLAM"}
+install = {cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM"}
+execute-rgbd = {cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM'}
+
+[feature.pycuvslam.dependencies]
+libstdcxx-ng = "*"
+numpy = "=2.2.4"
+pillow = "=11.1.0"
+pyyaml = "=6.0.2"
+rerun-sdk = "=0.22.1"
+scipy = "=1.14.1"
+pandas = "*"
+opencv = "*"
+# pycuvslam end
+
+########################################################################################################################
+########################################################################################################################
 ################################################ DEVELOPMENT PACKAGES ##################################################
 ########################################################################################################################
 ########################################################################################################################
@@ -322,7 +349,7 @@ platforms = ["linux-64"]
 channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.py10.dependencies]
-python="3.10.*"
+python = "3.10.*"
 setuptools = "*"
 pip = "*"
 # py10 end
@@ -334,7 +361,7 @@ platforms = ["linux-64"]
 channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.py11.dependencies]
-python="3.11.*"
+python = "3.11.*"
 setuptools = "*"
 pip = "*"
 # py11 end

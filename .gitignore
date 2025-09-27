@@ -30,9 +30,7 @@ Baselines/ORB_SLAM3
 Baselines/ORB_SLAM3-DEV
 Baselines/OKVIS2
 Baselines/OKVIS2-DEV
-Baselines/PyCuVSLAM-DEV/
-
-Baselines/PYSLAM-DEV/
+Baselines/PyCuVSLAM/
 
 Baselines/AnyFeature-VSLAM
 Baselines/dso
