@@ -1,8 +1,8 @@
 demo:
   Config: /home/vmehta/hack-space/VSLAM-LAB/configs/config_demo.yaml
-  Module: okvis2
+  Module: okvis2-dev
   NumRuns: 1
   Parameters:
     mode: stereo-vi
     verbose: 1
-    vocabulary: /home/vmehta/hack-space/VSLAM-LAB/Baselines/OKVIS2/resources/small_voc.yml.gz
+    vocabulary: /home/vmehta/hack-space/VSLAM-LAB/Baselines/OKVIS2-DEV/resources/small_voc.yml.gz
