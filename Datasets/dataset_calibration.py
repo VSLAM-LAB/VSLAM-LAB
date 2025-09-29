@@ -17,41 +17,56 @@ def _opencv_matrix_yaml(name, M, dtype='f'):
     ]
 
 def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz, prefix="Camera"):
-    """Generate YAML lines for camera parameters."""
-    # Get image dimensions
-    sequence_path = os.path.join(dataset_path, sequence_name)
-    rgb_path = os.path.join(sequence_path, 'rgb_0')
-    
-    # Ensure rgb_path exists and has images before trying to read
-    if not os.path.exists(rgb_path) or not any(f.lower().endswith(('.png', '.jpg', '.jpeg')) for f in os.listdir(rgb_path)):
-        print(f"{SCRIPT_LABEL}Warning: RGB path {rgb_path} not found or no images present. Cannot determine image dimensions.")
-        h, w = 0, 0 # Default or raise error
+    """Generate YAML lines for camera parameters.
+
+    If camera_params contains explicit 'w' and 'h', use them. Otherwise, fall back
+    to inferring from images located at '<sequence>/rgb_0'.
+    """
+    # Determine image dimensions
+    if 'w' in camera_params and 'h' in camera_params:
+        w = int(camera_params['w'])
+        h = int(camera_params['h'])
     else:
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-        if not rgb_files:
-            print(f"{SCRIPT_LABEL}Warning: No image files found in {rgb_path}. Cannot determine image dimensions.")
-            h, w = 0,0 # Default or raise error
+        sequence_path = os.path.join(dataset_path, sequence_name)
+        rgb_path = os.path.join(sequence_path, 'rgb_0')
+        
+        # Ensure rgb_path exists and has images before trying to read
+        if not os.path.exists(rgb_path) or not any(f.lower().endswith(('.png', '.jpg', '.jpeg')) for f in os.listdir(rgb_path)):
+            print(f"{SCRIPT_LABEL}Warning: RGB path {rgb_path} not found or no images present. Cannot determine image dimensions.")
+            h, w = 0, 0 # Default or raise error
         else:
-            image_0_path = os.path.join(rgb_path, rgb_files[0])
-            image_0 = cv2.imread(image_0_path)
-            if image_0 is None:
-                print(f"{SCRIPT_LABEL}Warning: Could not read image {image_0_path}. Cannot determine image dimensions.")
-                h,w = 0,0 # Default or raise error
+            rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+            if not rgb_files:
+                print(f"{SCRIPT_LABEL}Warning: No image files found in {rgb_path}. Cannot determine image dimensions.")
+                h, w = 0,0 # Default or raise error
             else:
-                h, w, channels = image_0.shape
+                image_0_path = os.path.join(rgb_path, rgb_files[0])
+                image_0 = cv2.imread(image_0_path)
+                if image_0 is None:
+                    print(f"{SCRIPT_LABEL}Warning: Could not read image {image_0_path}. Cannot determine image dimensions.")
+                    h,w = 0,0 # Default or raise error
+                else:
+                    h, w, channels = image_0.shape
 
     lines = []
     
-    # Camera model (Required)
+    # Camera model (Required) - normalize for OKVIS2 expectations
     if 'model' in camera_params:
-        lines.append(f"{prefix}.model: {camera_params['model']}")
+        model_str = str(camera_params['model'])
+        mlow = model_str.lower()
+        if mlow == 'pinhole':
+            model_str = 'Pinhole'
+        elif mlow == 'opencv':
+            model_str = 'OPENCV'
+        lines.append(f"{prefix}.model: {model_str}")
         lines.append("") # Add a blank line for readability
     
     # Intrinsic parameters (fx, fy, cx, cy - usually all present)
-    lines.append(f"{prefix}.fx: {camera_params['fx']}")
-    lines.append(f"{prefix}.fy: {camera_params['fy']}")
-    lines.append(f"{prefix}.cx: {camera_params['cx']}")
-    lines.append(f"{prefix}.cy: {camera_params['cy']}")
+    fx, fy, cx, cy = camera_params['fx'], camera_params['fy'], camera_params['cx'], camera_params['cy']
+    lines.append(f"{prefix}.fx: {fx}")
+    lines.append(f"{prefix}.fy: {fy}")
+    lines.append(f"{prefix}.cx: {cx}")
+    lines.append(f"{prefix}.cy: {cy}")
     lines.append("")
 
     # Distortion parameters (conditionally added)
@@ -68,6 +83,22 @@ def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz,
             added_distortion_param = True
     
     if added_distortion_param:
+        # Add compact arrays that some consumers expect
+        coeffs = [camera_params.get('k1', 0.0), camera_params.get('k2', 0.0), camera_params.get('p1', 0.0), camera_params.get('p2', 0.0)]
+        lines.append(f"{prefix}.distortion_coefficients: [{coeffs[0]}, {coeffs[1]}, {coeffs[2]}, {coeffs[3]}]")
+        lines.append(f"{prefix}.intrinsics: [{fx}, {fy}, {cx}, {cy}]")
+        # Add distortion key (OKVIS2 expects a string)
+        distortion = camera_params.get('distortion', None)
+        if distortion is None:
+            model = str(camera_params.get('distortion_model', '')).lower()
+            if model in ('plumb_bob', 'radtan', 'radial-tangential', 'opencv', 'pinhole'):
+                distortion = 'radtan'
+            elif model in ('equidistant', 'fisheye'):
+                distortion = 'equidistant'
+            else:
+                distortion = 'radtan'
+        lines.append(f"{prefix}.distortion: {distortion}")
+        lines.append(f"{prefix}.distortion_type: {distortion}")
         lines.append("") # Add a blank line after distortion parameters
 
     # Image dimensions (w, h)
@@ -82,11 +113,38 @@ def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz,
     return lines
 
 def _get_imu_yaml_section(imu_params):
-    """Generate YAML lines for IMU parameters."""
+    """Generate YAML lines for IMU parameters.
+
+    Supports either a single 'transform' (legacy) or multiple transforms via
+    'transforms': {'T_b_c0': [...16...], 'T_b_c1': [...16...], ...}.
+    """
     lines = []
     
-    # IMU transform
-    if 'transform' in imu_params:
+    # IMU transforms
+    if 'transforms' in imu_params and isinstance(imu_params['transforms'], dict):
+        for key, transform in imu_params['transforms'].items():
+            # Normalize key to produce IMU.<key>
+            label = key if key.startswith('T_b_c') else f"T_b_c{key}"
+
+            # Flatten the transform if it's a nested list
+            if isinstance(transform, list) and len(transform) > 0 and isinstance(transform[0], list):
+                flat_transform = [item for row in transform for item in row]
+            else:
+                flat_transform = transform
+
+            lines.extend([
+                "# Transformation from camera to IMU",
+                f"IMU.{label}: !!opencv-matrix",
+                "  rows: 4",
+                "  cols: 4",
+                "  dt: f",
+                "  data: [" + ", ".join(map(str, flat_transform[:4])) + ",",
+                "         " + ", ".join(map(str, flat_transform[4:8])) + ",",
+                "         " + ", ".join(map(str, flat_transform[8:12])) + ",",
+                "         " + ", ".join(map(str, flat_transform[12:16])) + "]",
+                ""
+            ])
+    elif 'transform' in imu_params:
         transform = imu_params['transform']
         
         # Flatten the transform if it's a nested list

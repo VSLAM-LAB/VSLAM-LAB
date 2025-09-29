@@ -1,0 +1,12 @@
+dataset_name: hmnd
+
+rgb_hz: 20.0
+imu_hz: 200.0
+modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi', 'multi-vi']
+
+sequence_names:
+  - HMND
+
+
+
+

@@ -268,6 +268,9 @@ platforms = ["linux-64"]
 [feature.okvis2.tasks]
 git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/okvis2 Baselines/OKVIS2'}
 execute-mono_vi = {cmd = "vslamlab_okvis2_mono_vi"}
+execute-stereo_vi = {cmd = "vslamlab_okvis2_mono_vi"}
+execute-multi_vi = {cmd = "vslamlab_okvis2_mono_vi"}
+execute-rig_vi = {cmd = "vslamlab_okvis2_mono_vi"}
 
 [feature.okvis2.dependencies]
 okvis2 = {channel="fontan"}
@@ -801,6 +804,9 @@ git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
 # install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j12", cwd = "Baselines/OKVIS2-DEV"}
 install = {cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV"}
 execute-mono_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
+execute-stereo_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
+execute-multi_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
+execute-rig_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
 
 [feature.okvis2-dev.dependencies]
 cmake = "<4"

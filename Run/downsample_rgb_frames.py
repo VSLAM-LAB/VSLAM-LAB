@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import pandas as pd
 import argparse
 import os
@@ -39,9 +40,24 @@ def get_rows(rows_idx, rgb_csv):
 def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
 
     csv_path = Path(rgb_csv)  
-    df = pd.read_csv(csv_path)     
-    rgb_paths = df['path_rgb0'].to_list()
-    rgb_timestamps = df['ts_rgb0 (s)'].to_list()
+    df = pd.read_csv(csv_path)    
+    # Reference camera: smallest index present (supports multi-camera CSV)
+    path_cols = [c for c in df.columns if c.startswith('path_rgb') and c[len('path_rgb'):len('path_rgb')+1].isdigit()]
+    # pick smallest camera index present
+    ref_cam = 0
+    if len(path_cols) > 0:
+        cam_ids = []
+        for c in path_cols:
+            m = re.match(r'^path_rgb(\d+)$', c)
+            if m:
+                cam_ids.append(int(m.group(1)))
+        if cam_ids:
+            ref_cam = min(cam_ids)
+    path_col = f'path_rgb{ref_cam}'
+    ts_col = f'ts_rgb{ref_cam} (s)'
+
+    rgb_paths = df[path_col].to_list()
+    rgb_timestamps = df[ts_col].to_list()
     rows = df.to_dict(orient="records")
 
     # Determine downsampling parameters

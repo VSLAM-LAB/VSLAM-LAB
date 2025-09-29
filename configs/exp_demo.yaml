@@ -1,8 +1,8 @@
 demo:
-  Config: /home/alejandro/VSLAM-LAB/configs/config_demo.yaml
-  Module: orbslam3
+  Config: /home/vmehta/hack-space/VSLAM-LAB/configs/config_demo.yaml
+  Module: okvis2
   NumRuns: 1
   Parameters:
-    mode: mono-vi
+    mode: stereo-vi
     verbose: 1
-    vocabulary: /home/alejandro/VSLAM-LAB/Baselines/ORB_SLAM3/Vocabulary/ORBvoc.txt
+    vocabulary: /home/vmehta/hack-space/VSLAM-LAB/Baselines/OKVIS2/resources/small_voc.yml.gz

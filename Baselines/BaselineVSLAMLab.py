@@ -170,6 +170,11 @@ class BaselineVSLAMLab:
                 comments = f"Process took too long > {timeout_seconds} seconds. Process killed."
                 success_flag[0] = False
                 self.kill_process(process)
+            except KeyboardInterrupt:
+                print_msg(SCRIPT_LABEL, "Interrupted by user (Ctrl+C). Terminating process...", 'error')
+                comments = "Interrupted by user (Ctrl+C). Process killed."
+                success_flag[0] = False
+                self.kill_process(process)
             
             memory_thread.join()
             while not comment_queue.empty():
@@ -215,6 +220,13 @@ class BaselineVSLAMLab:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-stereo " + ' '.join(vslamlab_command)
 
         if "mode:mono-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono_vi " + ' '.join(vslamlab_command)
+
+        # Map stereo-vi and multi-vi to the same entrypoint unless specific tasks exist
+        if "mode:stereo-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono_vi " + ' '.join(vslamlab_command)
+
+        if "mode:multi-vi" in vslamlab_command:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono_vi " + ' '.join(vslamlab_command)
 
         return vslamlab_command

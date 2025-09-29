@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
+from typing import Dict, List, Tuple, Any
+import yaml
 
 def load_rgb_csv(rgb_csv):
 
@@ -18,6 +20,91 @@ def load_rgb_csv(rgb_csv):
         return rgb_paths, rgb_timestamps, depth_paths, depth_timestamps
     
     return rgb_paths, rgb_timestamps
+
+
+def parse_filename_timestamp(name: str) -> float:
+    """Parse a numeric timestamp from filename (without extension), ns→s if large."""
+    stem = Path(name).stem
+    try:
+        ts = float(stem)
+        # Heuristic: if it's likely in ns, convert to seconds
+        if ts > 1e12:
+            ts = ts / 1e9
+        return ts
+    except Exception:
+        return None
+
+
+def load_rig_yaml(rig_yaml_path: str) -> Dict[str, Any]:
+    with open(rig_yaml_path, 'r', encoding='utf-8') as f:
+        rig = yaml.safe_load(f) or {}
+    # minimal validation
+    assert 'cameras' in rig and isinstance(rig['cameras'], list) and len(rig['cameras']) >= 1, "rig.yaml requires a non-empty 'cameras' list"
+    assert 'imu' in rig and 'csv' in rig['imu'], "rig.yaml requires 'imu.csv' path"
+    return rig
+
+
+def build_multicam_rgb_csv_rows(dataset_root: Path, rig: Dict[str, Any], selected_cameras: List[int]) -> List[Dict[str, Any]]:
+    """Create synchronized rows for the selected cameras using rig pairing.
+
+    Returns a list of dictionaries with columns 'ts_rgbi (s)', 'path_rgbi' per camera id.
+    """
+    cams = {c['id']: c for c in rig['cameras'] if c['id'] in selected_cameras}
+    assert len(cams) == len(selected_cameras), "Selected camera id not found in rig"
+
+    pairing = rig.get('pairing', {})
+    ref_cam_id = pairing.get('reference_camera', selected_cameras[0])
+    max_dt = float(pairing.get('max_time_offset', 0.01))
+    require_all = bool(pairing.get('require_all', True))
+
+    # Load per-camera file lists and timestamps
+    cam_files: Dict[int, List[Tuple[float, str]]] = {}
+    for cam_id, cam in cams.items():
+        data_dir = dataset_root / cam['data_dir']
+        glob_pat = cam.get('file_glob', '*.png')
+        files = sorted([p.name for p in data_dir.glob(glob_pat)])
+        pairs: List[Tuple[float, str]] = []
+        for fname in files:
+            ts = parse_filename_timestamp(fname)
+            if ts is not None:
+                pairs.append((ts, f"{cam['data_dir'].rstrip('/')}/{fname}"))
+        cam_files[cam_id] = pairs
+
+    # Index other cams for nearest lookup
+    import bisect
+    indexed_times: Dict[int, List[float]] = {cid: [t for t, _ in pairs] for cid, pairs in cam_files.items()}
+
+    rows: List[Dict[str, Any]] = []
+    for t_ref, path_ref in cam_files[ref_cam_id]:
+        row: Dict[str, Any] = {}
+        ok = True
+        for cam_id in selected_cameras:
+            times = indexed_times[cam_id]
+            pairs = cam_files[cam_id]
+            if not times:
+                ok = False
+                break
+            idx = bisect.bisect_left(times, t_ref)
+            candidates = []
+            if idx < len(times):
+                candidates.append((abs(times[idx] - t_ref), idx))
+            if idx > 0:
+                candidates.append((abs(times[idx-1] - t_ref), idx-1))
+            if not candidates:
+                ok = False
+                break
+            _, j = min(candidates)
+            t_j, path_j = pairs[j]
+            if abs(t_j - t_ref) > max_dt:
+                ok = False if require_all else ok
+                if require_all:
+                    break
+            row[f"ts_rgb{cam_id} (s)"] = t_j
+            row[f"path_rgb{cam_id}"] = path_j
+        if ok:
+            rows.append(row)
+
+    return rows
 
 def undistort_rgb_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_coeffs):
 

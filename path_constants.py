@@ -4,10 +4,10 @@ import sys
 VSLAM_LAB_DIR = os.path.dirname(os.path.abspath(__file__))
 VSLAM_LAB_PATH = os.path.dirname(VSLAM_LAB_DIR)
 
-VSLAMLAB_BENCHMARK = os.path.join(VSLAM_LAB_PATH, 'VSLAM-LAB-Benchmark')
-VSLAMLAB_EVALUATION = os.path.join(VSLAM_LAB_PATH, 'VSLAM-LAB-Evaluation')
+VSLAMLAB_BENCHMARK = "/home/vmehta/datasets/vislam-lab/VSLAM-LAB-Benchmark"
+VSLAMLAB_EVALUATION = "/home/vmehta/datasets/vislam-lab/VSLAM-LAB-Evaluation"
 VSLAMLAB_BASELINES = os.path.join(VSLAM_LAB_DIR, 'Baselines')
-VSLAMLAB_VIDEOS = os.path.join(VSLAMLAB_BENCHMARK, 'VIDEOS')
+VSLAMLAB_VIDEOS = "/home/vmehta/datasets/vislam-lab/VSLAM-LAB-Benchmark/VIDEOS"
 
 COMPARISONS_YAML_DEFAULT = os.path.join(VSLAM_LAB_DIR, 'configs', 'comp_complete.yaml')
 EXP_YAML_DEFAULT = 'exp_debug.yaml'

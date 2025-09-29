@@ -14,7 +14,7 @@ class OKVIS2_baseline(BaselineVSLAMLab):
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = 'green'
-        self.modes = ['mono-vi']
+        self.modes = ['mono-vi', 'stereo-vi', 'multi-vi']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
