@@ -800,7 +800,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.okvis2-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
+git-clone = {cmd = "git clone https://github.com/HumanoidTeam/okvis2.git Baselines/OKVIS2-DEV && cd Baselines/OKVIS2-DEV && git submodule update --init --recursive"}
 # install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j12", cwd = "Baselines/OKVIS2-DEV"}
 install = {cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV"}
 execute-mono_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
