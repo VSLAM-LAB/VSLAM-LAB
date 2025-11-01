@@ -13,7 +13,8 @@ class ANYFEATURE_baseline(BaselineVSLAMLab):
         
         default_parameters = {'verbose': 1, 'mode': 'mono', 
                               'vocabulary_folder': os.path.join(VSLAMLAB_BASELINES, baseline_folder, 'anyfeature_vocabulary'),
-                              'feature': 'akaze61'}
+                              'feature': 'surf64',
+                              'feature_yaml': os.path.join(VSLAMLAB_BASELINES, baseline_folder, 'settings', 'feature_name_to_fill_settings.yaml')}
         
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
@@ -21,7 +22,15 @@ class ANYFEATURE_baseline(BaselineVSLAMLab):
         self.modes = ['mono']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+        command = super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+
+        # If feature_yaml has not been provided it has to match the feature selected
+        import re
+        match = re.search(r'feature:(\S+)', command)
+        feature_name = match.group(1)
+        command = command.replace('feature_name_to_fill', feature_name)
+
+        return command
 
     def git_clone(self):
         super().git_clone()

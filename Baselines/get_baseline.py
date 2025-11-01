@@ -9,6 +9,7 @@ from Baselines.baseline_monogs import MONOGS_baseline
 from Baselines.baseline_monogs import MONOGS_baseline_dev
 from Baselines.baseline_orbslam2 import ORBSLAM2_baseline
 from Baselines.baseline_orbslam2 import ORBSLAM2_baseline_dev
+from Baselines.baseline_anyfeature import ANYFEATURE_baseline
 from Baselines.baseline_anyfeature import ANYFEATURE_baseline_dev
 from Baselines.baseline_colmap import COLMAP_baseline
 from Baselines.baseline_glomap import GLOMAP_baseline
@@ -35,6 +36,7 @@ def get_baseline_switcher():
         "monogs-dev": lambda: MONOGS_baseline_dev(),
         "orbslam2": lambda: ORBSLAM2_baseline(),
         "orbslam2-dev": lambda: ORBSLAM2_baseline_dev(),  
+        "anyfeature": lambda: ANYFEATURE_baseline(),  
         "anyfeature-dev": lambda: ANYFEATURE_baseline_dev(),  
         "colmap": lambda: COLMAP_baseline(),
         "glomap": lambda: GLOMAP_baseline(),
