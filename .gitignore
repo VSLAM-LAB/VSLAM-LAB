@@ -18,6 +18,8 @@ Baselines/MASt3R-SLAM
 Baselines/MASt3R-SLAM-DEV
 Baselines/ORB_SLAM2
 Baselines/ORB_SLAM2-DEV
+Baselines/AnyFeature-VSLAM
+Baselines/AnyFeature-VSLAM-DEV
 Baselines/DPVO
 Baselines/DPVO-DEV
 Baselines/MonoGS

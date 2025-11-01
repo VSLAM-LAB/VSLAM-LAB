@@ -48,6 +48,7 @@ mast3rslam-dev = {features = ["mast3rslam-dev", "cuda126", "py11"], no-default-f
 dpvo-dev = {features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py11"}
 monogs-dev = {features = ["monogs-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
 orbslam2-dev = {features = ["orbslam2-dev", "x11", "opengl"], no-default-feature = true}
+anyfeature-dev = {features = ["anyfeature-dev", "x11", "opengl"], no-default-feature = true}
 gensfm-dev = {features = ["gensfm-dev", "cuda126", "py10", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py10"}
 mast3r-dev = {features = ["mast3r-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
 vggt-dev = {features = ["vggt-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
@@ -640,6 +641,36 @@ eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
 pangolin = {channel="fontan"}
 # orbslam2-dev end
+
+########################################################################################################################
+########################################################################################################################
+# anyfeature-dev begin
+[feature.anyfeature-dev]
+channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.anyfeature-dev.tasks]
+git-clone = "git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
+install = {cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV"}
+execute-mono = {cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV"}
+
+[feature.anyfeature-dev.dependencies]
+compilers = "*"
+ninja = ">=1.12.1 ,<1.13"
+cmake = ">=3.31.1 ,<3.32"
+pkg-config = ">=0.29.2 ,<0.30"
+opencv = "==4.9.0"
+eigen = ">=3.4.0 ,<3.5.0"
+yaml-cpp = ">=0.8.0,<0.9"
+pangolin = {channel="fontan"}
+brisk = {channel="fontan"}
+akaze = {channel="fontan"}
+siftgpu = {channel="fontan"}
+g2o = {channel="fontan"}
+
+huggingface_hub = "*"
+pandas = "*"
+# anyfeature-dev end
 
 ########################################################################################################################
 ########################################################################################################################
