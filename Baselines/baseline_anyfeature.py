@@ -13,7 +13,7 @@ class ANYFEATURE_baseline(BaselineVSLAMLab):
         
         default_parameters = {'verbose': 1, 'mode': 'mono', 
                               'vocabulary_folder': os.path.join(VSLAMLAB_BASELINES, baseline_folder, 'anyfeature_vocabulary'),
-                              'feature': 'surf64',
+                              'feature': 'akaze61',
                               'feature_yaml': os.path.join(VSLAMLAB_BASELINES, baseline_folder, 'settings', 'feature_name_to_fill_settings.yaml')}
         
         # Initialize the baseline
