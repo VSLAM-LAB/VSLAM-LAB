@@ -211,11 +211,11 @@ We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6
 | [**ORB-SLAM2**](https://github.com/alejandrofontan/ORB_SLAM2)               | VSLAM  |`mono` `rgbd` `stereo`|    [NVIDIA](https://github.com/VSLAM-LAB/PyCuVSLAM/blob/main/LICENSE)    |  `pycuvslam`  | ✅ | `Pinhole` |
 | [**PyCuVSLAM**](https://github.com/VSLAM-LAB/PyCuVSLAM/tree/main) | VSLAM  |`rgbd`|    [GPLv3](https://github.com/raulmur/ORB_SLAM2/blob/master/LICENSE.txt)    |  `orbslam2`  | ✅ | `Pinhole` |
 | [**MonoGS**](https://github.com/muskie82/MonoGS)                            | VSLAM  | ⛔ |     [License](https://github.com/muskie82/MonoGS?tab=License-1-ov-file)     |   `monogs`   | ⛔ | `Pinhole` |
-| [**AnyFeature-VSLAM**](https://github.com/alejandrofontan/AnyFeature-VSLAM) | VSLAM  | ⛔ | [GPLv3](https://github.com/alejandrofontan/VSLAM-LAB/blob/main/LICENSE.txt) | `anyfeature` | ⛔ | `Pinhole` |
+| [**AnyFeature-VSLAM**](https://github.com/alejandrofontan/AnyFeature-VSLAM) | VSLAM  | `mono` | [GPLv3](https://github.com/alejandrofontan/VSLAM-LAB/blob/main/LICENSE.txt) | `anyfeature` | ✅ | `Pinhole` |
 | [**DSO**](https://github.com/alejandrofontan/dso)                           |   VO   | ⛔ |        [GPLv3](https://github.com/JakobEngel/dso/blob/master/LICENSE)        |    `dso`     | ⛔ | `Pinhole` | 
 | [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | `mono-vi` |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ | `Pinhole` |
 | [**OKVIS2**](https://github.com/ethz-mrl/okvis2)               | VSLAM  | `mono-vi` |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ | `Pinhole` |
-| [**PyCuVSLAM**](https://github.com/NVlabs/PyCuVSLAM)               | VSLAM  | ⛔ |    [NPSL](https://github.com/NVlabs/PyCuVSLAM/blob/main/LICENSE)    |  `pycuvslam`  | ⛔ | `Pinhole` |
+| [**PyCuVSLAM**](https://github.com/NVlabs/PyCuVSLAM)               | VSLAM  | `rgbd` |    [NPSL](https://github.com/NVlabs/PyCuVSLAM/blob/main/LICENSE)    |  `pycuvslam`  | ⛔ | `Pinhole` |
 | [**GLOMAP**](https://lpanaf.github.io/eccv24_glomap/)                       |  SfM   |       `mono`       |         [BSD-3](https://github.com/colmap/glomap/blob/main/LICENSE)         |   `glomap`   | ✅ | `Pinhole` |
 | [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `Pinhole` |
 | [**GenSfM**](https://github.com/Ivonne320/GenSfM)                                     |  SfM   |       ⛔       |                [BSD](https://github.com/Ivonne320/GenSfM/blob/main/COPYING.txt)                 |   `gensfm`   | ⛔ | `Pinhole` | 
