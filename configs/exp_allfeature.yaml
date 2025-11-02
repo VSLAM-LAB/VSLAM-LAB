@@ -1,0 +1,11 @@
+exp_orbslam2_mono_vslamlabbench:
+  Config: config_vslamlabbench.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0}
+  Module: orbslam2-dev
+
+exp_anyfeature_mono_vslamlabbench:
+  Config: config_vslamlabbench.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0}
+  Module: anyfeature-dev

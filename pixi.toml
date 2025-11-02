@@ -10,6 +10,7 @@ vslamlab = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRI
 vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = "-overwrite"}}
 #vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
 evaluate = {cmd = "pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = "-overwrite"}}
+vslamlab-allfeature = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_allfeature.yaml", OVEWRITE = "-overwrite"}}
 
 set-benchmark-path  = {cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_BENCHMARK_path"}
 set-evaluation-path = {cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_EVALUATION_path"}
