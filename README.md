@@ -1,14 +1,11 @@
 <p align="center">
 
-<br/>
-
 <div align="center">
     <img src="docs/vslamlab_header.png" width="600"/>
 </div>
-<br/>
 
 <h3 align="center"> A Comprehensive Framework for Visual SLAM Baselines and Datasets</h3> 
-</h1>
+
 <p align="center">
     <a href="https://scholar.google.com/citations?user=SDtnGogAAAAJ&hl=en"><strong>Alejandro Fontan</strong></a>
     ·
