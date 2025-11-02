@@ -29,7 +29,7 @@
 
 <div align="left">
 
-[![Lint](https://github.com/openxrlab/xrdslam/actions/workflows/lint.yml/badge.svg)](https://github.com/openxrlab/xrdslam/actions/workflows/lint.yml) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/openxrlab/xrdslam/blob/master/LICENSE) [![arXiv](http://img.shields.io/badge/arXiv-2410.23690-B31B1B.svg)](https://arxiv.org/abs/2504.04457)
+[![Lint](https://github.com/openxrlab/xrdslam/actions/workflows/lint.yml/badge.svg)](https://github.com/openxrlab/xrdslam/actions/workflows/lint.yml) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/VSLAM-LAB/VSLAM-LAB/blob/main/LICENSE.txt) [![arXiv](http://img.shields.io/badge/arXiv-2410.23690-B31B1B.svg)](https://arxiv.org/abs/2504.04457)
 
 </div>
 
