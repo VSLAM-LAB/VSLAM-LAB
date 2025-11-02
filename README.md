@@ -1,34 +1,23 @@
 <p align="center">
 
-<h1 align="center">
-  <img src="docs/logo.ico" alt="VSLAM-LAB Logo" width="30" 
-       style="vertical-align: middle; position: relative; top: -10px; margin-right: 10px;">
-  <span style="font-size: 2em; font-weight: bold;">VSLAM-LAB</span>
+<br/>
+
+<div align="center">
+    <img src="docs/vslamlab_header.png" width="600"/>
+</div>
+<br/>
+
+<h3 align="center"> A Comprehensive Framework for Visual SLAM Baselines and Datasets</h3> 
 </h1>
-
-<!-- <h1 align="center">
-  <span style="font-size: 2em; font-weight: bold;">VSLAM-LAB</span>
-  <img src="docs/logo.png" alt="VSLAM-LAB Logo" width="30" 
-       style="vertical-align: middle; position: relative; top: -10px; margin-left: 10px;">
-</h1> -->
-
-<!-- <h1 align="center">
-  <img src="docs/logo.png" alt="VSLAM-LAB Logo" width="42" 
-       style="vertical-align: middle; position: relative; top: -10px; margin-right: 10px;">
-  <span style="font-size: 2em; font-weight: bold;">VSLAM-LAB</span>
-</p> -->
-
-  <h3 align="center"> A Comprehensive Framework for Visual SLAM Baselines and Datasets</h3> 
-  </h1>
-  <p align="center">
+<p align="center">
     <a href="https://scholar.google.com/citations?user=SDtnGogAAAAJ&hl=en"><strong>Alejandro Fontan</strong></a>
     ·
     <a href="https://scholar.google.com/citations?user=eq46ylAAAAAJ&hl=en"><strong>Tobias Fischer</strong></a>
     ·
     <a href="https://nmarticorena.github.io/"><strong>Nicolas Marticorena</strong></a>
-  </p>
+</p>
 
-  <p align="center">
+ <p align="center">
      <a href="https://www.linkedin.com/in/somayeh-hussaini/?originalSubdomain=au"><strong>Somayeh Hussaini</strong></a>
     ·
      <a href="https://github.com/TedVanderfeen"><strong>Ted Vanderfeen </strong></a>
@@ -36,7 +25,15 @@
     <a href="https://scholar.google.com/citations?user=j_sMzokAAAAJ&hl=en"><strong>Javier Civera</strong></a>
     ·
     <a href="https://scholar.google.com/citations?user=TDSmCKgAAAAJ&hl=en"><strong>Michael Milford</strong></a>
-  </p>
+</p>
+
+<div align="left">
+
+[![Lint](https://github.com/openxrlab/xrdslam/actions/workflows/lint.yml/badge.svg)](https://github.com/openxrlab/xrdslam/actions/workflows/lint.yml) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/openxrlab/xrdslam/blob/master/LICENSE) [![arXiv](http://img.shields.io/badge/arXiv-2410.23690-B31B1B.svg)](https://arxiv.org/abs/2504.04457)
+
+</div>
+
+## Introduction
 
 **VSLAM-LAB** is designed to simplify the development, evaluation, and application of Visual SLAM (VSLAM) systems. 
 This framework enables users to compile and configure VSLAM systems, download and process datasets, and design, run, and
