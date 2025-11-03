@@ -43,6 +43,10 @@ evaluate experiments — **all from a single command line**!
 - **Broad Compatibility:** Supports a wide range of VSLAM systems and datasets.
 - **Reproducible Results:** Standardized methods for evaluating and analyzing results.
 
+<div align="center">
+    <img src="docs/diagram.png" width="1000"/>
+</div>
+
 ## Getting Started
 
 To ensure all dependencies are installed in a reproducible manner, we use the package management tool [**pixi**](https://pixi.sh/latest/). If you haven't installed [**pixi**](https://pixi.sh/latest/) yet, please run the following command in your terminal:
