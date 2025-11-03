@@ -44,7 +44,7 @@ evaluate experiments — **all from a single command line**!
 - **Reproducible Results:** Standardized methods for evaluating and analyzing results.
 
 <div align="center">
-    <img src="docs/diagram.png" width="1000"/>
+    <img src="docs/diagram.png" width="960"/>
 </div>
 
 ## Getting Started
