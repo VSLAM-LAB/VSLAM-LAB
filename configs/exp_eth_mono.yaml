@@ -1,0 +1,5 @@
+exp_eth_mono_droidslam:
+  Config: config_eth.yaml
+  NumRuns: 5
+  Parameters: {verbose: 0, mode: mono}
+  Module: droidslam-dev

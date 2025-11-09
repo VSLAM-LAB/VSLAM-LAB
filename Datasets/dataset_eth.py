@@ -1,18 +1,21 @@
 from __future__ import annotations
-from typing import Iterable, Tuple, Final
-from urllib.parse import urljoin
+
 from pathlib import Path
-import yaml
+from typing import Final, Iterable
+from urllib.parse import urljoin
 import csv
+
+import yaml
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
+from path_constants import Retention, BENCHMARK_RETENTION
 
 MAX_NICKNAME_LEN: Final = 15
-DEFAULT_DEPTH_FACTOR: Final = 5000.0
+
 
 class ETH_dataset(DatasetVSLAMLab):
-    """ETH dataset helper for VSLAMLab benchmark."""
+    """ETH dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "eth") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
@@ -25,7 +28,15 @@ class ETH_dataset(DatasetVSLAMLab):
         self.url_download_root: str = cfg["url_download_root"]
 
         # Sequence nicknames
-        self.sequence_nicknames = [s.replace("_", " ")[:MAX_NICKNAME_LEN] for s in self.sequence_names]
+        self.sequence_nicknames = [s.replace("mannequin", "mann.")
+                                   .replace("einstein_global_light_changes_", "eins.gl.l.ch._")
+                                   .replace("desk_global_light_changes","desk.gl.l.ch.")
+                                   .replace("einstein", "eins.").replace("global", "gl.")
+                                   .replace("camera", "cam.")
+                                   .replace("_", " ")[:MAX_NICKNAME_LEN] for s in self.sequence_names]
+        
+        # Depth factor
+        self.depth_factor = cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         for mode in self.modes:
@@ -40,12 +51,13 @@ class ETH_dataset(DatasetVSLAMLab):
             
             # Decompress only if needed
             needs_depth = not (decompressed_folder / "depth").exists() and not (decompressed_folder / "depth_0").exists()
-            needs_mono  = not decompressed_folder.exists()
+            needs_mono = not decompressed_folder.exists()
 
             if (mode == "mono" and needs_mono) or (mode == "rgbd" and needs_depth):
                 decompressFile(str(compressed_file), str(self.dataset_path))
-
+     
     def create_rgb_folder(self, sequence_name: str) -> None:
+        # Rename folders to standard names
         sequence_path = self.dataset_path / sequence_name
         for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
             src = sequence_path / raw
@@ -55,7 +67,7 @@ class ETH_dataset(DatasetVSLAMLab):
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
-        rgb_entries   = list(self._iter_entries(sequence_path / "rgb.txt",   "rgb/",   "rgb_0/"))
+        rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt",   "rgb/",   "rgb_0/"))
         depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", "depth_0/"))
 
         out = sequence_path / "rgb.csv"
@@ -64,24 +76,21 @@ class ETH_dataset(DatasetVSLAMLab):
         with open(tmp, "w", newline="", encoding="utf-8") as fout:
             w = csv.writer(fout)
             w.writerow(["ts_rgb0 (s)", "path_rgb0", "ts_depth0 (s)", "path_depth0"])
-            for (ts_r, path_r), (ts_d, path_d) in zip(rgb_entries, depth_entries):
-                w.writerow([ts_r, path_r, ts_d, path_d])
+            for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries):
+                w.writerow([ts_r0, path_r0, ts_d, path_d])
         tmp.replace(out)
-
+        
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
-        calib_txt = sequence_path / "calibration.txt"
 
-        with open(calib_txt, "r", encoding="utf-8") as f:
+        with open(sequence_path / "calibration.txt", "r", encoding="utf-8") as f:
             first = f.readline().split()
-        
-        fx, fy, cx, cy = map(float, first[:4])
+            fx, fy, cx, cy = map(float, first[:4])
+            camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
 
-        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
-        rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
-
+        rgbd = {"depth0_factor": float(self.depth_factor)}
         self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
-
+        
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
         groundtruth_txt = sequence_path / "groundtruth.txt"
@@ -102,12 +111,18 @@ class ETH_dataset(DatasetVSLAMLab):
         tmp.replace(groundtruth_csv)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = Path(self.dataset_path) / sequence_name
-        for name in ("calibration.txt","groundtruth.txt","rgb.txt","depth.txt","associated.txt"):
-            (sequence_path / name).unlink(missing_ok=True)
+        sequence_path = self.dataset_path / sequence_name
+
+        if BENCHMARK_RETENTION != Retention.FULL:
+            for name in ("calibration.txt", "groundtruth.txt", "rgb.txt", "depth.txt", "associated.txt"):
+                (sequence_path / name).unlink(missing_ok=True)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            for mode in self.modes:
+                (self.dataset_path / f"{sequence_name}_{mode}.zip").unlink(missing_ok=True)
 
     @staticmethod
-    def _iter_entries(txt_path: Path, old_prefix: str, new_prefix: str) -> Iterable[Tuple[str, str]]:
+    def _iter_entries(txt_path: Path, old_prefix: str, new_prefix: str) -> Iterable[tuple[str, str]]:
         if not txt_path.exists():
             raise FileNotFoundError(f"Missing file: {txt_path}")
         with open(txt_path, encoding="utf-8") as f:

@@ -1,5 +1,6 @@
 import os
 import sys
+from enum import Enum
 
 VSLAM_LAB_DIR = os.path.dirname(os.path.abspath(__file__))
 VSLAM_LAB_PATH = os.path.dirname(VSLAM_LAB_DIR)
@@ -22,7 +23,10 @@ ABLATION_PARAMETERS_CSV = 'log_ablation_parameters.csv'
 TRAJECTORY_FILE_NAME = 'KeyFrameTrajectory'
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
-VSLAMLAB_BENCHMARK_WEIGHT = 'light'
+class Retention(str, Enum):
+    MINIMAL="minimal"; STANDARD="standard"; FULL="full"
+BENCHMARK_RETENTION = Retention.STANDARD
+
 VSLAMLAB_VERBOSITY = 'LOW'
 
 VerbosityManager = {

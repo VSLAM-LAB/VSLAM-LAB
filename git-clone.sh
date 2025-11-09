@@ -4,6 +4,7 @@ get_git_url() {
   local git_profile=$1
   local git_repo=$2
   echo "https://github.com/$git_profile/$git_repo.git"
+  #echo "git@github.com:$git_profile/$git_repo.git"
 }
 
 git_profile=$1
