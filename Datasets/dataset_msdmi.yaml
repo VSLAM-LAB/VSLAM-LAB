@@ -1,10 +1,12 @@
-dataset_name: euroc
+dataset_name: msdmi
 
 rgb_hz: 54.0
 imu_hz: 1000.0
-modes: ['mono', 'stereo', 'mono-vi']
-url_download_root: "https://huggingface.co/datasets/collabora/monado-slam-datasets"
-url_calibration: https://huggingface.co/datasets/collabora/monado-slam-datasets/resolve/main/M_monado_datasets/MI_valve_index/extras/calibration.rt8.json
+modes: ['mono', 'mono-vi']
+
+huggingface_repo_id: "collabora/monado-slam-datasets"
+huggingface_subfolder: "M_monado_datasets/MI_valve_index"
+calibration_file: "calibration.json"
 
 sequence_names:
   - MIO01_hand_puncher_1

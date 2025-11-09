@@ -11,6 +11,7 @@ from Datasets.dataset_replica import REPLICA_dataset
 from Datasets.dataset_tartanair import TARTANAIR_dataset
 from Datasets.dataset_nuim import NUIM_dataset
 from Datasets.dataset_vitum import VITUM_dataset
+from Datasets.dataset_msdmi import MSDMI_dataset
 
 # Development
 from Datasets.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
@@ -50,6 +51,7 @@ def get_dataset(dataset_name, benchmark_path):
         "tartanair": lambda: TARTANAIR_dataset(benchmark_path),
         "nuim": lambda: NUIM_dataset(benchmark_path),
         "vitum": lambda: VITUM_dataset(benchmark_path),
+        "msdmi": lambda: MSDMI_dataset(benchmark_path),
 
         # Development
         "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
