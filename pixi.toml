@@ -270,15 +270,19 @@ opencv = { channel="fontan" }
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
+[feature.colmap.system-requirements]
+cuda = "12.6"
+
 [feature.colmap.tasks]
 git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap', cwd = 'Baselines' }
 execute-mono = './Baselines/colmap/colmap_reconstruction.sh'
 
 [feature.colmap.dependencies]
-colmap = { build="*cuda*" }
+colmap = { build="*cuda*", version = "==3.11.1" }
 yq = "*"
 numpy = "*"
 scipy = "*"
+pandas = "*"
 
 ########################################################################################################################
 ########################################################################################################################
@@ -287,12 +291,15 @@ scipy = "*"
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
+[feature.glomap.system-requirements]
+cuda = "12.6"
+
 [feature.glomap.tasks]
 git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/glomap', cwd = 'Baselines' }
 execute-mono = { cmd = './Baselines/glomap/glomap_reconstruction.sh' }
 
 [feature.glomap.dependencies]
-glomap = { build="*cuda*" }
+glomap = { build="*cuda*"}
 
 ########################################################################################################################
 ########################################################################################################################

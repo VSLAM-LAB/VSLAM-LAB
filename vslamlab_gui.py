@@ -114,6 +114,7 @@ if __name__ == "__main__":
             evaluate_exp(exp_yaml, overwrite)     
             compare_exp(exp_yaml) 
 
+        # VSLAM-LAB demo  
         if function_name == "demo":
             baseline_name = sys.argv[2]
             dataset_name = sys.argv[3]
