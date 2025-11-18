@@ -142,10 +142,10 @@ class DatasetVSLAMLab:
             for line in yaml_content_lines:
                 file.write(f"{line}\n")
 
-    def check_sequence_availability(self, sequence_name):
+    def check_sequence_availability(self, sequence_name, verbose = True):
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         if os.path.exists(sequence_path):
-            sequence_complete = self.check_sequence_integrity(sequence_name, verbose=True)
+            sequence_complete = self.check_sequence_integrity(sequence_name, verbose=verbose)
             if sequence_complete:
                 return "available"
             else:

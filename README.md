@@ -77,6 +77,37 @@ pixi run demo orbslam2 rgbdtum rgbd_dataset_freiburg1_xyz
 pixi run set-benchmark-path /media/${USER}/data
 pixi run set-evaluation-path /media/${USER}/data
 ```
+## VSLAM-LAB Info Functions
+```bash
+pixi run baseline-info <baseline>
+pixi run print-baselines
+pixi run print-datasets
+```
+
+## VSLAM-LAB Pipeline Functions
+```bash
+pixi run validate-experiment-yaml <exp_yaml> #  pixi run validate-experiment-yaml configs/exp_vslamlab.yaml
+pixi run overwrite-exp <exp_yaml> #  pixi run overwrite-exp configs/exp_vslamlab.yaml
+pixi run update-experiment-csv-logs <exp_yaml> #  pixi run update-experiment-csv-logs configs/exp_vslamlab.yaml
+
+pixi run check-experiment-resources <exp_yaml> #  pixi run check-experiment-resources configs/exp_vslamlab.yaml
+pixi run get-experiment-resources <exp_yaml> #  pixi run get-experiment-resources configs/exp_vslamlab.yaml
+
+pixi run check-experiment-state <exp_yaml> #  pixi run check-experiment-state configs/exp_vslamlab.yaml
+
+pixi run install-baseline <baseline> #  pixi run install-baseline droidslam
+pixi run install-baselines <baseline 1> <baseline 2> ... #  pixi run install-baseline droidslam orbsblam2
+
+pixi run download-sequence <dataset> <sequence> #  pixi run download-sequence eth table3
+pixi run download-sequences <dataset 1> <sequence 1> <dataset 2> <sequence 2> ... #  pixi run download-sequence eth table_3 rgbdtum rgbd_dataset_freiburg1_xyz
+pixi run download-dataset <dataset> #  pixi run download-dataset eth
+pixi run download-datasets <dataset 1>  <dataset 2> #  pixi run download-datasets eth rgbdtum
+
+pixi run run-exp <exp_yaml> #  pixi run run-exp configs/exp_vslamlab.yaml
+pixi run evaluate-exp <exp_yaml> #  pixi run evaluate-exp configs/exp_vslamlab.yaml
+pixi run compare-exp <exp_yaml> #  pixi run compare-exp configs/exp_vslamlab.yaml
+```
+
 ## Configure your own experiments
 With **VSLAM-LAB**, you can easily design and configure experiments using a YAML file and run them with a single command.
 To **run** the experiment demo, execute the following command:

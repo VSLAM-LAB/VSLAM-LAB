@@ -8,6 +8,7 @@ from PIL import Image
 from colorama import Fore, Style
 import pandas as pd
 from pathlib import Path
+from typing import Any
 
 from path_constants import VSLAM_LAB_DIR, VSLAMLAB_VERBOSITY, VerbosityManager
 
@@ -43,20 +44,34 @@ def find_files_with_string(folder_path, matching_string):
     return matching_files
 
 
-def check_yaml_file_integrity(yaml_file):
-    if not os.path.exists(yaml_file):  # Check if file exists
-        print(f"Error: The file '{yaml_file}' does not exist.")
+def load_yaml_file(yaml_file: str | Path) -> Any:
+    yaml_path = Path(yaml_file)
+
+    # Existence + type
+    if not yaml_path.exists():
+        print_msg(SCRIPT_LABEL, f"Error: The file '{yaml_file}' does not exist.", flag="error", verb='NONE')
         sys.exit(1)
-    if not yaml_file.lower().endswith(('.yaml', '.yml')):  # Check if the file is a yaml file
-        print(f"Error: The file '{yaml_file}' is not a yaml file.")
+    if not yaml_path.is_file():
+        print_msg(SCRIPT_LABEL, f"Error: The file '{yaml_file}' is not a yaml file.", flag="error", verb='NONE')
         sys.exit(1)
-    try:  # Check the integrity of the yaml file
-        with open(yaml_file, 'r') as file:
-            yaml.safe_load(file)
-    except Exception as e:
-        print(f"Error reading the file '{yaml_file}': {e}")
+    
+    # Extension check
+    if yaml_path.suffix.lower() not in {".yaml", ".yml"}:
+        print_msg(SCRIPT_LABEL, f"The file '{yaml_path}' is not a YAML file.", flag="error", verb='NONE')
         sys.exit(1)
 
+    # Parse YAML
+    try:
+        with yaml_path.open("r", encoding="utf-8") as f:
+            yaml_data = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        # Re-raise with filename context
+        raise yaml.YAMLError(f"Invalid YAML in '{yaml_path}': {e}") from e
+    except OSError as e:
+        # File I/O issues (permissions, etc.)
+        raise OSError(f"Error reading '{yaml_path}': {e}") from e
+    
+    return yaml_data
 
 def find_common_sequences(experiments):
     num_experiments = len(experiments)

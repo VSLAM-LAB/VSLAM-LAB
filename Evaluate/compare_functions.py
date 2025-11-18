@@ -7,7 +7,7 @@ import yaml
 from Evaluate import plot_functions
 from Datasets.get_dataset import get_dataset
 from path_constants import VSLAM_LAB_EVALUATION_FOLDER
-from utilities import check_yaml_file_integrity, find_common_sequences, read_csv
+from utilities import find_common_sequences, read_csv
 
 SCRIPT_LABEL = "[compare_functions.py] "
 VSLAM_LAB_ACCURACY_CSV = 'ate.csv'
@@ -16,7 +16,7 @@ VSLAM_LAB_ACCURACY_CSV = 'ate.csv'
 def full_comparison(experiments, VSLAMLAB_BENCHMARK, COMPARISONS_YAML_DEFAULT, comparison_path):
     figures_path = os.path.join(comparison_path, "figures")
 
-    check_yaml_file_integrity(COMPARISONS_YAML_DEFAULT)
+    #check_yaml_file_integrity(COMPARISONS_YAML_DEFAULT)
     with open(COMPARISONS_YAML_DEFAULT, 'r') as file:
         comparisons = yaml.safe_load(file)
 

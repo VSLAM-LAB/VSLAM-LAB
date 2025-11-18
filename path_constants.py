@@ -1,16 +1,17 @@
 import os
 import sys
 from enum import Enum
+from pathlib import Path
 
-VSLAM_LAB_DIR = os.path.dirname(os.path.abspath(__file__))
-VSLAM_LAB_PATH = os.path.dirname(VSLAM_LAB_DIR)
+VSLAM_LAB_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+VSLAM_LAB_PATH = Path(os.path.dirname(VSLAM_LAB_DIR))
 
-VSLAMLAB_BENCHMARK = os.path.join(VSLAM_LAB_PATH, 'VSLAM-LAB-Benchmark')
-VSLAMLAB_EVALUATION = os.path.join(VSLAM_LAB_PATH, 'VSLAM-LAB-Evaluation')
-VSLAMLAB_BASELINES = os.path.join(VSLAM_LAB_DIR, 'Baselines')
-VSLAMLAB_VIDEOS = os.path.join(VSLAMLAB_BENCHMARK, 'VIDEOS')
+VSLAMLAB_BENCHMARK = VSLAM_LAB_PATH / "VSLAM-LAB-Benchmark"
+VSLAMLAB_EVALUATION = VSLAM_LAB_PATH / 'VSLAM-LAB-Evaluation'
+VSLAMLAB_BASELINES = VSLAM_LAB_DIR / 'Baselines'
+VSLAMLAB_VIDEOS = "/media/alejandro/data/VSLAM-LAB-Benchmark/VIDEOS"
 
-COMPARISONS_YAML_DEFAULT = os.path.join(VSLAM_LAB_DIR, 'configs', 'comp_complete.yaml')
+COMPARISONS_YAML_DEFAULT = VSLAM_LAB_DIR / 'configs' / 'comp_complete.yaml'
 EXP_YAML_DEFAULT = 'exp_debug.yaml'
 CONFIG_DEFAULT = 'config_debug.yaml'
 

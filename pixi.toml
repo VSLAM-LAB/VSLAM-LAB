@@ -2,183 +2,217 @@
 name = "VSLAM-LAB"
 version = "0.1.0"
 description = "VSLAM-LAB"
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [tasks]
-vslamlab = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_mono.yaml", OVEWRITE = "-overwrite"}}
-vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = "-overwrite"}}
-#vslamlab-debug = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = " "}}
-evaluate = {cmd = "pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_debug.yaml", OVEWRITE = "-overwrite"}}
-vslamlab-allfeature = {cmd = "pixi run -e vslamlab python vslamlab_run.py $ARGUMENT $OVEWRITE && pixi run -e vslamlab python vslamlab_eval.py $ARGUMENT $OVEWRITE", env = {ARGUMENT = "--exp_yaml exp_allfeature.yaml", OVEWRITE = "-overwrite"}}
+clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+kill-all = { cmd = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" } 
 
-set-benchmark-path  = {cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_BENCHMARK_path"}
-set-evaluation-path = {cmd = "pixi run -e vslamlab python path_constants.py set_VSLAMLAB_EVALUATION_path"}
-demo = {cmd = "pixi run --frozen -e vslamlab python vslamlab_demo.py"}
-baseline-info = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py baseline_info"}
-sequence-info = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py sequence_info"}
-print-datasets = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_datasets"}
-print-baselines = {cmd = "pixi run --frozen -e vslamlab python vslamlab_utilities.py print_baselines"}
-get-benchmark-path = {cmd = "VSLAMLAB_BENCHMARK=$(python3 -c 'from path_constants import VSLAMLAB_BENCHMARK; print(VSLAMLAB_BENCHMARK)')"}
-clean-swap = {cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a"}
-kill-all = {cmd = "pkill -f -e 'droidslam|mast3rslam|dpvo|monogs|orbslam2|colmap|glomap|gensfm|mast3r|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a"} 
-
-# environments begin
 [environments]
-vslamlab = {features = ["vslamlab"], no-default-feature = true}
-cuda126 = {features = ["cuda126"], no-default-feature = true, solve-group = "cuda126"}
-py10 = {features = ["py10"], no-default-feature = true, solve-group = "py10"}
-py11 = {features = ["py11"], no-default-feature = true, solve-group = "py11"}
-x11 = {features = ["x11"], no-default-feature = true, solve-group = "x11"}
-opengl = {features = ["opengl"], no-default-feature = true, solve-group = "opengl"}
+vslamlab = { features = ["vslamlab"]}
+cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
+py10 = { features = ["py10"], solve-group = "py10" }
+py11 = { features = ["py11"], solve-group = "py11" }
+x11 = { features = ["x11"], solve-group = "x11" }
+opengl = { features = ["opengl"], solve-group = "opengl" }
 
-droidslam = {features = ["droidslam"], no-default-feature = true}
-mast3rslam = {features = ["mast3rslam"], no-default-feature = true}
-dpvo = {features = ["dpvo"], no-default-feature = true}
-monogs = {features = ["monogs"], no-default-feature = true}
-orbslam2 = {features = ["orbslam2"], no-default-feature = true}
-anyfeature = {features = ["anyfeature"], no-default-feature = true}
-colmap = {features = ["colmap"], no-default-feature = true, solve-group = "colmap"}
-glomap = {features = ["glomap", "colmap"], no-default-feature = true, solve-group = "colmap"}
+droidslam = { features = ["droidslam"] }
+mast3rslam = { features = ["mast3rslam"] }
+dpvo = { features = ["dpvo"] }
+monogs = { features = ["monogs"] }
+orbslam2 = { features = ["orbslam2"] }
+anyfeature = { features = ["anyfeature"] }
+colmap = { features = ["colmap"], solve-group = "colmap" }
+glomap = { features = ["glomap", "colmap"], solve-group = "colmap" }
 
-orbslam3 = {features = ["orbslam3"], no-default-feature = true}
-okvis2 = {features = ["okvis2"], no-default-feature = true}
-pycuvslam = {features = ["pycuvslam","cuda126", "py10"], no-default-feature = true}
+orbslam3 = { features = ["orbslam3"] }
+okvis2 = { features = ["okvis2"] }
+pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 
-droidslam-dev = {features = ["droidslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
-mast3rslam-dev = {features = ["mast3rslam-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
-dpvo-dev = {features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py11"}
-monogs-dev = {features = ["monogs-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
-orbslam2-dev = {features = ["orbslam2-dev", "x11", "opengl"], no-default-feature = true}
-anyfeature-dev = {features = ["anyfeature-dev", "x11", "opengl"], no-default-feature = true}
-gensfm-dev = {features = ["gensfm-dev", "cuda126", "py10", "x11", "opengl"], no-default-feature = true, solve-group = "cuda126py10"}
-mast3r-dev = {features = ["mast3r-dev", "cuda126", "py10"], no-default-feature = true, solve-group = "cuda126py10"}
-vggt-dev = {features = ["vggt-dev", "cuda126", "py11"], no-default-feature = true, solve-group = "cuda126py11"}
+droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
+mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
+dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "cuda126py11" }
+monogs-dev = { features = ["monogs-dev", "cuda126", "py10"], solve-group = "cuda126py10" }
+orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"] }
+anyfeature-dev = { features = ["anyfeature-dev", "x11", "opengl"] }
+gensfm-dev = { features = ["gensfm-dev", "cuda126", "py10", "x11", "opengl"], solve-group = "cuda126py10" }
+mast3r-dev = { features = ["mast3r-dev", "cuda126", "py10"], solve-group = "cuda126py10" }
+vggt-dev = { features = ["vggt-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
 
-orbslam3-dev = {features = ["orbslam3-dev", "x11", "opengl"], no-default-feature = true}
-okvis2-dev = {features = ["okvis2-dev", "cuda126", "py11"], no-default-feature = true}
+orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"] }
+okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"] }
 
-# environments end
-
-# VSLAM-LAB
+# VSLAM-LAB main pipeline    
 [feature.vslamlab]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
+[feature.vslamlab.tasks]
+vslamlab.cmd = "python vslamlab_gui.py vslamlab {{ exp_yaml }} {{ overwrite }}"
+vslamlab.args = [
+  { "arg" = "exp_yaml", "default" = "configs/exp_debug.yaml" },
+  { "arg" = "overwrite", "default" = " " },
+]
+
+evaluate.cmd = "python vslamlab_gui.py evaluate_exp {{ exp_yaml }} {{ overwrite }}"
+evaluate.args = [
+  { "arg" = "exp_yaml", "default" = "configs/exp_debug.yaml" },
+  { "arg" = "overwrite", "default" = " " },
+]
+
+compare.cmd = "python vslamlab_gui.py compare_exp {{ exp_yaml }}"
+compare.args = [
+  { "arg" = "exp_yaml", "default" = "configs/exp_debug.yaml" }
+]
+
+vslamlab-debug.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_debug.yaml", "--overwrite"] }]
+vslamlab-allfeature = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
+demo = "python vslamlab_gui.py demo"
+
+evaluate-debug.depends-on = [{ "task" = "evaluate", "args" = ["configs/exp_debug.yaml", "--overwrite"] }]
+evaluate-allfeature = [{ "task" = "evaluate", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
+compare-debug.depends-on = [{ "task" = "compare", "args" = ["configs/exp_debug.yaml"] }]
+compare-allfeature = [{ "task" = "compare", "args" = ["configs/exp_allfeature.yaml"] }]
+
+# VSLAM-LAB info functions   
+baseline-info = "python vslamlab_gui.py baseline_info"
+print-baselines = "python vslamlab_gui.py print_baselines"
+print-datasets = "python vslamlab_gui.py print_datasets"
+set-benchmark-path  = "python path_constants.py set_VSLAMLAB_BENCHMARK_path"
+set-evaluation-path = "python path_constants.py set_VSLAMLAB_EVALUATION_path"
+
+# VSLAM-LAB pipeline functions
+validate-experiment-yaml = "python vslamlab_gui.py validate_experiment_yaml"
+overwrite-exp = "python vslamlab_gui.py overwrite_exp"
+update-experiment-csv-logs = "python vslamlab_gui.py update_experiment_csv_logs"
+
+check-experiment-resources = "python vslamlab_gui.py check_experiment_resources"
+get-experiment-resources = "python vslamlab_gui.py get_experiment_resources"
+
+check-experiment-state = "python vslamlab_gui.py check_experiment_state"
+
+install-baseline = "python vslamlab_gui.py install_baseline"
+install-baselines = "python vslamlab_gui.py install_baselines"
+
+download-sequence = "python vslamlab_gui.py download_sequence"
+download-sequences = "python vslamlab_gui.py download_sequences"
+download-dataset = "python vslamlab_gui.py download_dataset"
+
+run-exp = "python vslamlab_gui.py run_exp"
+evaluate-exp = "python vslamlab_gui.py evaluate_exp"
+compare-exp = "python vslamlab_gui.py compare_exp"
+
 [feature.vslamlab.dependencies]
-python="*"
-pyyaml="*"
-matplotlib="*"
-pandas="*"
-py-opencv="*"
-scipy="*"
-requests="*"
-inputimeout="*"
-scikit-learn="*"
-tqdm="*"
-google-api-python-client="*"
-google-auth-oauthlib="*"
-huggingface_hub="*"
-py7zr="*"
-exifread="*"
-pyproj="*"
-nvidia-ml-py="*"
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+scipy = "*"
+requests = "*"
+inputimeout = "*"
+scikit-learn = "*"
+tqdm = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+huggingface_hub = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
 evo = "*"
 git-lfs = "*"
 piexif = "*"
-#git = "*"
+psutil = "*"
 
 ########################################################################################################################
 ########################################################################################################################
-# droidslam begin
+# droidslam 
 [feature.droidslam]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.droidslam.system-requirements]
 cuda = "12.0"
 
 [feature.droidslam.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/droidslam Baselines/DROID-SLAM'}
-execute-mono = {cmd = 'vslamlab_droidslam_mono'}
-execute-rgbd = {cmd = 'vslamlab_droidslam_rgbd'}
-execute-stereo = {cmd = 'vslamlab_droidslam_stereo'}
+git-clone = 'git clone https://huggingface.co/vslamlab/droidslam Baselines/DROID-SLAM'
+execute-mono = 'vslamlab_droidslam_mono'
+execute-rgbd = 'vslamlab_droidslam_rgbd'
+execute-stereo = 'vslamlab_droidslam_stereo'
 
 [feature.droidslam.dependencies]
-droidslam="*"
-lietorch = {version = "*", channel = "fontan"}  
+droidslam = "*"
+lietorch = { version = "*", channel = "fontan" }  
 open3d = ">=0.18.0,<0.19"
-# droidslam end
 
 # ########################################################################################################################
 # ########################################################################################################################
-# mast3rslam begin
+# mast3rslam 
 [feature.mast3rslam]
-channels = ["https://fast.prefix.dev/conda-forge","fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.mast3rslam.system-requirements]
 cuda = "12.0"
 
 [feature.mast3rslam.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/mast3rslam Baselines/MASt3R-SLAM'}
-execute-mono = {cmd = 'vslamlab_mast3rslam_mono'}
+git-clone = 'git clone https://huggingface.co/vslamlab/mast3rslam Baselines/MASt3R-SLAM'
+execute-mono = 'vslamlab_mast3rslam_mono'
 
 [feature.mast3rslam.dependencies]
-mast3rslam = {channel = "fontan"}
-lietorch = {channel = "fontan"}
-moderngl-window = {channel = "fontan"}
-roma = {channel = "fontan"}
-# mast3rslam end
+mast3rslam = { channel = "fontan" }
+lietorch = { channel = "fontan" }
+moderngl-window = { channel = "fontan" }
+roma = { channel = "fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
-# dpvo begin
+# dpvo
 [feature.dpvo]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
-
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.dpvo.system-requirements]
 cuda = "12.0"
 
 [feature.dpvo.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/dpvo Baselines/DPVO'}
-execute-mono = {cmd = 'vslamlab_dpvo_mono'}
+git-clone = 'git clone https://huggingface.co/vslamlab/dpvo Baselines/DPVO'
+execute-mono = 'vslamlab_dpvo_mono'
 
 [feature.dpvo.dependencies]
-dpvo = {channel="fontan"}
-pangolin = {channel="fontan"}
-pypose = {channel="fontan"}
+dpvo = { channel="fontan" }
+pangolin = { channel="fontan" }
+pypose = { channel="fontan" }
 opencv = "*"
 evo = "*"
 yacs = "*"
 pytorch_scatter = "*"
 einops = "*"   
 numba = "*"
-## dpvo end
 
 ########################################################################################################################
 ########################################################################################################################
-# monogs begin
+# monogs
 [feature.monogs]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.monogs.system-requirements]
 cuda = "12.0"
 
 [feature.monogs.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/monogs Baselines/MonoGS'}
-execute-mono = {cmd = 'vslamlab_monogs_mono'}
+git-clone = 'git clone https://huggingface.co/vslamlab/monogs Baselines/MonoGS'
+execute-mono = 'vslamlab_monogs_mono'
 
 [feature.monogs.dependencies]
-monogs = {channel="fontan"}
-pytorch-gpu="*"
-munch="*"
-wandb="*"
-plyfile="*"
-opencv="*"
+monogs = { channel="fontan" }
+pytorch-gpu = "*"
+munch = "*"
+wandb = "*"
+plyfile = "*"
+opencv = "*"
 pyglfw = "*"
 imgviz = "*"
 pyopengl = "*"
@@ -189,117 +223,110 @@ evo = "*"
 torchmetrics = "*"
 
 [feature.monogs.pypi-dependencies]
-open3d="==0.17.0"
-# monogs end
+open3d = "==0.17.0"
 
 ########################################################################################################################
 ########################################################################################################################
-# orbslam2 begin
+# orbslam2
 [feature.orbslam2]
 channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/orbslam2 Baselines/ORB_SLAM2'}
-execute-mono = {cmd = "vslamlab_orbslam2_mono"}
-execute-rgbd = {cmd = "vslamlab_orbslam2_rgbd"}
-execute-stereo = {cmd = "vslamlab_orbslam2_stereo"}
+git-clone = 'git clone https://huggingface.co/vslamlab/orbslam2 Baselines/ORB_SLAM2'
+execute-mono = 'vslamlab_orbslam2_mono'
+execute-rgbd = 'vslamlab_orbslam2_rgbd'
+execute-stereo = 'vslamlab_orbslam2_stereo'
 
 [feature.orbslam2.dependencies]
-orbslam2 = {channel="fontan"}
-pangolin = {channel="fontan"}
+orbslam2 = { channel="fontan" }
+pangolin = { channel="fontan" }
 opencv = ">=4.10.0 ,<5"
-# orbslam2 end
 
 ########################################################################################################################
 ########################################################################################################################
-# anyfeature begin
+# anyfeature
 [feature.anyfeature]
-channels = [ "fontan", "https://fast.prefix.dev/conda-forge"]
+channels = ["fontan", "https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.anyfeature.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/anyfeature Baselines/AnyFeature-VSLAM'}
-execute-mono = {cmd = "vslamlab_anyfeature_mono"}
+git-clone = 'git clone https://huggingface.co/vslamlab/anyfeature Baselines/AnyFeature-VSLAM'
+execute-mono = 'vslamlab_anyfeature_mono'
 
 [feature.anyfeature.dependencies]
-anyfeature = {channel="fontan"}
-pangolin = {channel="fontan"}
-brisk = {channel="fontan"}
-akaze = {channel="fontan"}
-siftgpu = {channel="fontan"}
-g2o = {channel="fontan"}
-opencv = {channel="fontan"}
-# orbslam2 end
+anyfeature = { channel="fontan" }
+pangolin = { channel="fontan" }
+brisk = { channel="fontan" }
+akaze = { channel="fontan" }
+siftgpu = { channel="fontan" }
+g2o = { channel="fontan" }
+opencv = { channel="fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
-# colmap begin
+# colmap
 [feature.colmap]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.colmap.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/colmap', cwd = 'Baselines'}
-execute-mono = {cmd = './Baselines/colmap/colmap_reconstruction.sh'}
+git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap', cwd = 'Baselines' }
+execute-mono = './Baselines/colmap/colmap_reconstruction.sh'
 
 [feature.colmap.dependencies]
-colmap={build="*cuda*"}
+colmap = { build="*cuda*" }
 yq = "*"
 numpy = "*"
 scipy = "*"
-# colmap end
 
 ########################################################################################################################
 ########################################################################################################################
-# glomap begin
+# glomap
 [feature.glomap]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.glomap.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/glomap', cwd = 'Baselines'}
-execute-mono = {cmd = './Baselines/glomap/glomap_reconstruction.sh'}
+git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/glomap', cwd = 'Baselines' }
+execute-mono = { cmd = './Baselines/glomap/glomap_reconstruction.sh' }
 
 [feature.glomap.dependencies]
-glomap={build="*cuda*"}
-# glomap end
+glomap = { build="*cuda*" }
 
 ########################################################################################################################
 ########################################################################################################################
-# orbslam3 begin
+# orbslam3
 [feature.orbslam3]
 channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/orbslam3 Baselines/ORB_SLAM3'}
-execute-mono_vi = {cmd = "vslamlab_orbslam3_mono_vi"}
+git-clone = 'git clone https://huggingface.co/vslamlab/orbslam3 Baselines/ORB_SLAM3'
+execute-mono_vi = 'vslamlab_orbslam3_mono_vi'
 
 [feature.orbslam3.dependencies]
-orbslam3 = {channel="fontan"}
-pangolin = {channel="fontan"}
+orbslam3 = { channel="fontan" }
+pangolin = { channel="fontan" }
 opencv = ">=4.10.0 ,<5"
-# orbslam3 end
 
 ########################################################################################################################
 ########################################################################################################################
-# okvis2 begin
+# okvis2
 [feature.okvis2]
 channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
-git-clone = {cmd = 'git clone https://huggingface.co/vslamlab/okvis2 Baselines/OKVIS2'}
-execute-mono_vi = {cmd = "vslamlab_okvis2_mono_vi"}
+git-clone = 'git clone https://huggingface.co/vslamlab/okvis2 Baselines/OKVIS2'
+execute-mono_vi = 'vslamlab_okvis2_mono_vi'
 
 [feature.okvis2.dependencies]
-okvis2 = {channel="fontan"}
-# okvis2 end
+okvis2 = { channel="fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
-# pycuvslam begin
+# pycuvslam
 [feature.pycuvslam]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
@@ -308,9 +335,9 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.pycuvslam.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB PyCuVSLAM PyCuVSLAM"}
-install = {cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM"}
-execute-rgbd = {cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM'}
+git-clone = 'git-clone.sh VSLAM-LAB PyCuVSLAM PyCuVSLAM'
+install = { cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM" }
+execute-rgbd = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM' }
 
 [feature.pycuvslam.dependencies]
 libstdcxx-ng = "*"
@@ -321,7 +348,6 @@ rerun-sdk = "=0.22.1"
 scipy = "=1.14.1"
 pandas = "*"
 opencv = "*"
-# pycuvslam end
 
 ########################################################################################################################
 ########################################################################################################################
@@ -331,10 +357,10 @@ opencv = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
-# cuda126 begin
+# cuda126 
 [feature.cuda126]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.cuda126.system-requirements]
 cuda = "12.0"
@@ -364,37 +390,34 @@ libcurand-dev = "*"
 libcusolver-dev = "*"
 cusparselt = "*"
 libnvjitlink = "*"
-# cuda126 end
 
 # ########################################################################################################################
-# py10 begin
+# py10
 [feature.py10]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.py10.dependencies]
 python = "3.10.*"
 setuptools = "*"
 pip = "*"
-# py10 end
 
 # ########################################################################################################################
-# py11 begin
+# py11
 [feature.py11]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.py11.dependencies]
 python = "3.11.*"
 setuptools = "*"
 pip = "*"
-# py11 end
 
 # ########################################################################################################################
-# x11 begin
+# x11
 [feature.x11]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.x11.dependencies]
 xorg-libxext = "*"
@@ -407,37 +430,35 @@ xorg-libxdmcp = "*"
 xorg-libxau = "*"
 xorg-xorgproto = "*"
 libxkbcommon = "*"
-# x11 end
 
 # ########################################################################################################################
-# opengl begin
+# opengl
 [feature.opengl]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.opengl.dependencies]
 libgl-devel = "*"
 libegl-devel = "*"
 libglvnd-devel = "*"
 libopengl-devel = "*"
-# opengl end
 
 ########################################################################################################################
 ########################################################################################################################
-# droidslam-dev begin
+# droidslam-dev
 [feature.droidslam-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.droidslam-dev.system-requirements]
 cuda = "12.0"
 
 [feature.droidslam-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB DROID-SLAM DROID-SLAM-DEV"}
-install = {cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV"}
-execute-mono = {cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
-execute-rgbd = {cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
-execute-stereo = {cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV'}
+git-clone = "git-clone.sh VSLAM-LAB DROID-SLAM DROID-SLAM-DEV"
+install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
+execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
+execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
+execute-stereo = { cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 #train = {cmd = 'python train.py --iters 1 --steps 50000 --lr 0.000025 --datapath /home/fontan/VSLAM-LAB-Benchmark/TartanAir --ckpt "droid.pth"',  cwd = 'Baselines/DROID-SLAM-DEV'}
 
 train.cmd =  'python train.py --iters {{ iters }} --steps {{ steps }} --lr {{ lr }} --datapath {{ datapath }} --ckpt {{ ckpt }}'
@@ -457,12 +478,12 @@ cmake = "*"
 make = "*"
 
 # Specialized Libraries
-lietorch = {version = "*", channel = "fontan"}  
+lietorch = { version = "*", channel = "fontan" }  
 
 # Core Libraries
 pytorch-gpu = "*"
 opencv = "*"
-torch-scatter ="*"
+torch-scatter = "*"
 torchvision = "*"
 tensorboard = "*"
 
@@ -475,22 +496,21 @@ pyyaml = ">=6.0.2,<7"
 huggingface_hub = "*"
 tqdm = "*"
 pandas = "*"
-# droidslam-dev end
 
 # ########################################################################################################################
 # ########################################################################################################################
-# mast3rslam-dev begin
+# mast3rslam-dev
 [feature.mast3rslam-dev]
-channels = ["https://fast.prefix.dev/conda-forge","fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.mast3rslam-dev.system-requirements]
 cuda = "12.0"
 
 [feature.mast3rslam-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB MASt3R-SLAM MASt3R-SLAM-DEV"}
-install = {cmd = "pip install -e thirdparty/mast3r && pip install -e thirdparty/in3d && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV"}
-execute-mono = {cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV'}
+git-clone = 'git-clone.sh VSLAM-LAB MASt3R-SLAM MASt3R-SLAM-DEV'
+install = { cmd = "pip install -e thirdparty/mast3r && pip install -e thirdparty/in3d && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
+execute-mono = { cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV' }
 
 [feature.mast3rslam-dev.dependencies]
 # Build Tools
@@ -535,30 +555,29 @@ tensorboard = "*"
 tqdm = "*"
 trimesh = "*"
 pyrealsense2 = "*"
-# mast3rslam-dev end
 
 ########################################################################################################################
 ########################################################################################################################
-# dpvo-dev begin
+# dpvo-dev
 [feature.dpvo-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.dpvo-dev.system-requirements]
 cuda = "12.0"
 
 [feature.dpvo-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB DPVO DPVO-DEV"}
-install_DPViewer = {cmd = "pip install .", cwd = "Baselines/DPVO-DEV/DPViewer"}
-install = {cmd = "pip install .", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"]}
-execute-mono = {cmd = 'python vslamlab_dpvo_mono.py' ,cwd = 'Baselines/DPVO-DEV'}
+git-clone = 'git-clone.sh VSLAM-LAB DPVO DPVO-DEV'
+install_DPViewer = { cmd = "pip install .", cwd = "Baselines/DPVO-DEV/DPViewer" }
+install = { cmd = "pip install .", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"] }
+execute-mono = { cmd = 'python vslamlab_dpvo_mono.py' ,cwd = 'Baselines/DPVO-DEV' }
 
 [feature.dpvo-dev.dependencies]
 # Build Tools
-compilers="*"
+compilers = "*"
 pkg-config = "*"
 cmake = "*"
-make="*"
+make = "*"
 
 # Python & Build Tools
 pybind11 = "*"
@@ -578,23 +597,22 @@ opencv = "*"
 eigen = "*"
 
 # Specialized Libraries
-pypose = {channel="fontan"}
+pypose = { channel="fontan" }
 plyfile = "*"
 
 # Logging, Evaluation & Visualization
-pangolin = {channel="fontan"}
+pangolin = { channel="fontan" }
 tensorboard = "*"
 evo = "*"
 numba = "*"
 kornia  = "*"   
 yacs = "*"
-# dpvo-dev end
 
 ########################################################################################################################
 ########################################################################################################################
-# monogs-dev begin
+# monogs-dev
 [feature.monogs-dev]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.monogs-dev.system-requirements]
@@ -602,15 +620,15 @@ cuda = "12.0"
 
 [feature.monogs-dev.tasks]
 git-clone = "git-clone.sh VSLAM-LAB MonoGS MonoGS-DEV"
-install = {cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization", cwd = "Baselines/MonoGS-DEV"}
-execute-mono = {cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV"}
+install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization", cwd = "Baselines/MonoGS-DEV" }
+execute-mono = { cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV" }
 
 [feature.monogs-dev.dependencies]
 # Build Tools
-compilers="*"
+compilers = "*"
 pkg-config = "*"
 cmake = "*"
-make="*"
+make = "*"
 
 # Core Libraries
 pytorch-gpu = "*"
@@ -637,22 +655,21 @@ nbformat = "==5.7.0"
 pyglfw = "*"
 
 [feature.monogs-dev.pypi-dependencies]
-open3d="==0.17.0"
-# monogs-dev end
+open3d = "==0.17.0"
 
 ########################################################################################################################
 ########################################################################################################################
-# orbslam2-dev begin
+# orbslam2-dev
 [feature.orbslam2-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2-dev.tasks]
 git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
-install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV"}
-execute-mono = {cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV"}
-execute-rgbd = {cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV"}
-execute-stereo = {cmd = "./bin/vslamlab_orbslam2_stereo",  cwd = "Baselines/ORB_SLAM2-DEV"}
+install = { cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV" }
+execute-mono = { cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV" }
+execute-rgbd = { cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV" }
+execute-stereo = { cmd = "./bin/vslamlab_orbslam2_stereo",  cwd = "Baselines/ORB_SLAM2-DEV" }
 
 [feature.orbslam2-dev.dependencies]
 compilers = "*"
@@ -662,20 +679,19 @@ pkg-config = ">=0.29.2 ,<0.30"
 opencv = ">=4.10.0 ,<5"
 eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
-pangolin = {channel="fontan"}
-# orbslam2-dev end
+pangolin = { channel="fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
-# anyfeature-dev begin
+# anyfeature-dev
 [feature.anyfeature-dev]
-channels = ["fontan", "https://fast.prefix.dev/conda-forge"]
+channels = ["fontan", "https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.anyfeature-dev.tasks]
 git-clone = "git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
-install = {cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV"}
-execute-mono = {cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV"}
+install = { cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV" }
+execute-mono = { cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 
 [feature.anyfeature-dev.dependencies]
 compilers = "*"
@@ -684,22 +700,21 @@ cmake = ">=3.29.4 ,<3.32"
 pkg-config = ">=0.29.2 ,<0.30"
 eigen  = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
-opencv = {channel="fontan"}
-pangolin = {channel="fontan"}
-brisk = {channel="fontan"}
-akaze = {channel="fontan"}
-siftgpu = {channel="fontan"}
-g2o = {channel="fontan"}
+opencv = { channel="fontan" }
+pangolin = { channel="fontan" }
+brisk = { channel="fontan" }
+akaze = { channel="fontan" }
+siftgpu = { channel="fontan" }
+g2o = { channel="fontan" }
 
 huggingface_hub = "*"
 pandas = "*"
-# anyfeature-dev end
 
 ########################################################################################################################
 ########################################################################################################################
-# gensfm-dev begin
+# gensfm-dev
 [feature.gensfm-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.gensfm-dev.system-requirements]
@@ -707,8 +722,8 @@ cuda = "12.0"
 
 [feature.gensfm-dev.tasks]
 git-clone = "git-clone.sh VSLAM-LAB GenSfM GenSfM-DEV"
-install = {cmd = "./vslamlab_gensfm-dev_build.sh -v && sudo /sbin/swapoff -a && sudo /sbin/swapon -a", cwd = "Baselines/GenSfM-DEV"}
-execute-mono = {cmd = "./vslamlab_gensfm-dev_reconstruction.sh", cwd = "Baselines/GenSfM-DEV"}
+install = { cmd = "./vslamlab_gensfm-dev_build.sh -v && sudo /sbin/swapoff -a && sudo /sbin/swapon -a", cwd = "Baselines/GenSfM-DEV" }
+execute-mono = { cmd = "./vslamlab_gensfm-dev_reconstruction.sh", cwd = "Baselines/GenSfM-DEV" }
 
 [feature.gensfm-dev.dependencies]
 compilers = "*"
@@ -728,30 +743,29 @@ pybind11 = "*"
 yq = "*"
 numpy = "*"
 scipy = "*"
-# gensfm-dev end
 
 # ########################################################################################################################
 # ########################################################################################################################
-# mast3r-dev begin
+# mast3r-dev
 [feature.mast3r-dev]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-channels = ["https://fast.prefix.dev/conda-forge"]
 
 [feature.mast3r-dev.system-requirements]
 cuda = "12.0"
 
 [feature.mast3r-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB MASt3R MASt3R-DEV"}
-install = {cmd = "cd asmk && pip install . && cd .. && cd dust3r/croco/models/curope/ && python setup.py build_ext --inplace", cwd = "Baselines/MASt3R-DEV"}
-execute-mono = {cmd = 'python3 vslamlab_mast3r_demo.py',  cwd = 'Baselines/MASt3R-DEV'}
-execute-online-demo = {cmd = 'python3 demo.py --model_name MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric',  cwd = 'Baselines/MASt3R-DEV'}
+git-clone = "git-clone.sh VSLAM-LAB MASt3R MASt3R-DEV"
+install = { cmd = "cd asmk && pip install . && cd .. && cd dust3r/croco/models/curope/ && python setup.py build_ext --inplace", cwd = "Baselines/MASt3R-DEV" }
+execute-mono = { cmd = 'python3 vslamlab_mast3r_demo.py',  cwd = 'Baselines/MASt3R-DEV'}
+execute-online-demo = { cmd = 'python3 demo.py --model_name MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric',  cwd = 'Baselines/MASt3R-DEV' }
 
 [feature.mast3r-dev.dependencies]
 # Build Tools
-compilers="*"
+compilers = "*"
 pkg-config = "*"
 cmake = "*"
-make="*"
+make = "*"
 
 # Torch libraries
 pytorch-gpu = "*"
@@ -778,13 +792,12 @@ scikit-learn = "*"
 [feature.mast3r-dev.pypi-dependencies]
 roma = "*"
 gradio = "*"
-# mast3rslam-dev end
 
 ########################################################################################################################
 ########################################################################################################################
-# vggt-dev begin
+# vggt-dev
 [feature.vggt-dev]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.vggt-dev.dependencies]
@@ -793,39 +806,38 @@ platforms = ["linux-64"]
 pytorch-gpu = "*"
 torchvision = "*"
 
-numpy="<2"
-Pillow="*"
-huggingface_hub="*"
-einops="*"
-safetensors="*"
-opencv="*"
-tqdm="*"
-hydra-core="*"
-omegaconf="*"
-scipy="*"
-onnxruntime="*"
-requests="*"
-trimesh="*"
-matplotlib="*"
-gradio="*"
-viser="*"
+numpy = "<2"
+Pillow = "*"
+huggingface_hub = "*"
+einops = "*"
+safetensors = "*"
+opencv = "*"
+tqdm = "*"
+hydra-core = "*"
+omegaconf = "*"
+scipy = "*"
+onnxruntime = "*"
+requests = "*"
+trimesh = "*"
+matplotlib = "*"
+gradio = "*"
+viser = "*"
 
 [feature.vggt-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB vggt VGGT-DEV"}
-execute-mono = {cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT-DEV"}
-# vggt end
+git-clone = "git-clone.sh VSLAM-LAB vggt VGGT-DEV"
+execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT-DEV" }
 
 # ########################################################################################################################
 # ########################################################################################################################
-# orbslam3-dev begin
+# orbslam3-dev
 [feature.orbslam3-dev]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB ORB_SLAM3 ORB_SLAM3-DEV"}
-install = {cmd = "./build.sh", cwd = "Baselines/ORB_SLAM3-DEV"}
-execute-mono_vi = {cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB_SLAM3-DEV"}
+git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM3 ORB_SLAM3-DEV"
+install = { cmd = "./build.sh", cwd = "Baselines/ORB_SLAM3-DEV" }
+execute-mono_vi = { cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB_SLAM3-DEV" }
 
 [feature.orbslam3-dev.dependencies]
 compilers = "*"
@@ -835,26 +847,23 @@ pkg-config = ">=0.29.2 ,<0.30"
 opencv = ">=4.10.0 ,<5"
 eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
-pangolin = {channel="fontan"}
+pangolin = { channel="fontan" }
 boost = "*"
-# orbslam3-dev end
 
 # ########################################################################################################################
 # ########################################################################################################################
-# okvis2-dev begin
+# okvis2-dev
 [feature.okvis2-dev]
-channels = ["https://fast.prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
-
 
 [feature.okvis2-dev.system-requirements]
 cuda = "12.0"
 
 [feature.okvis2-dev.tasks]
-git-clone = {cmd = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"}
-# install = {cmd = "mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j12", cwd = "Baselines/OKVIS2-DEV"}
-install = {cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV"}
-execute-mono_vi = {cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV"}
+git-clone = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"
+install = { cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV" }
+execute-mono_vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
 
 [feature.okvis2-dev.dependencies]
 cmake = "<4"
@@ -869,4 +878,3 @@ libtorch = "*"
 librealsense = "*"
 openmp = "*"
 libgfortran = "3.*"
-# okvis2-dev end

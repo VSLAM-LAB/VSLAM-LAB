@@ -431,7 +431,11 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
         #new_yticks = current_yticks[:-1]  # Exclude the last tick
         #ax.set_yticks(new_yticks)
         #ax.set_yticklabels([str(tick) for tick in new_yticks], fontsize=12)
-        ax.set_yticklabels(['', '', '', '',  '', ''], fontsize=24)   
+        #ax.set_yticklabels(['', '', '', '',  '', ''], fontsize=24)   
+        yticks = [0, 1, 2, 3, 4, 5]   # choose whatever is appropriate
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(['', '', '', '', '', ''], fontsize=24)
+        
         ax.tick_params(labelsize=30) 
         ax.set_xticklabels(all_sequence_names, fontsize=30, fontweight="bold")
         iExp = iExp + 1

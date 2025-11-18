@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from path_constants import VSLAM_LAB_DIR
 
 # ADD your imports here
 from Datasets.dataset_eth import ETH_dataset
@@ -33,6 +35,7 @@ from Datasets.dataset_videos import VIDEOS_dataset
 from Datasets.dataset_sweetcorals import SWEETCORALS_dataset
 from Datasets.dataset_ntnu_arl_uw import NTNU_ARL_UW_dataset
 from Datasets.dataset_reefslam import REEFSLAM_dataset
+from Datasets.dataset_s3li import S3LI_dataset
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
@@ -50,6 +53,7 @@ def get_dataset(dataset_name, benchmark_path):
         "tartanair": lambda: TARTANAIR_dataset(benchmark_path),
         "nuim": lambda: NUIM_dataset(benchmark_path),
         "vitum": lambda: VITUM_dataset(benchmark_path),
+        "s3li": lambda: S3LI_dataset(benchmark_path),
 
         # Development
         "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
@@ -75,3 +79,14 @@ def get_dataset(dataset_name, benchmark_path):
     }
 
     return switcher.get(dataset_name, lambda: "Invalid case")()
+
+def list_available_datasets() -> list[str]:
+    dataset_scripts_path = Path(VSLAM_LAB_DIR) /  'Datasets'
+    dataset_scripts = []
+    for filename in os.listdir(dataset_scripts_path):
+        if 'dataset_' in filename and filename.endswith('.yaml') and 'utilities' not in filename:
+            dataset_scripts.append(filename)
+
+    dataset_scripts = [item.replace('dataset_', '').replace('.yaml', '') for item in dataset_scripts]
+
+    return dataset_scripts
