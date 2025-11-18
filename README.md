@@ -43,17 +43,21 @@ evaluate experiments — **all from a single command line**!
 - **Broad Compatibility:** Supports a wide range of VSLAM systems and datasets.
 - **Reproducible Results:** Standardized methods for evaluating and analyzing results.
 
+<!--
 <div align="center">
     <img src="docs/diagram.svg" width="960"/>
 </div>
+-->
 
 ## Getting Started
 
 To ensure all dependencies are installed in a reproducible manner, we use the package management tool [**pixi**](https://pixi.sh/latest/). If you haven't installed [**pixi**](https://pixi.sh/latest/) yet, please run the following command in your terminal:
 ```bash
-curl -fsSL https://pixi.sh/install.sh | bash
+curl -fsSL https://pixi.sh/install.sh | bash 
 ```
 *After installation, restart your terminal or source your shell for the changes to take effect*. For more details, refer to the [**pixi documentation**](https://pixi.sh/latest/).
+
+*If you already have pixi remember to update:* `pixi self-update`
 
 Clone the repository and navigate to the project directory:
 ```bash
@@ -84,46 +88,22 @@ pixi run print-baselines
 pixi run print-datasets
 ```
 
-## VSLAM-LAB Pipeline Functions
-```bash
-pixi run validate-experiment-yaml <exp_yaml> #  pixi run validate-experiment-yaml configs/exp_vslamlab.yaml
-pixi run overwrite-exp <exp_yaml> #  pixi run overwrite-exp configs/exp_vslamlab.yaml
-pixi run update-experiment-csv-logs <exp_yaml> #  pixi run update-experiment-csv-logs configs/exp_vslamlab.yaml
-
-pixi run check-experiment-resources <exp_yaml> #  pixi run check-experiment-resources configs/exp_vslamlab.yaml
-pixi run get-experiment-resources <exp_yaml> #  pixi run get-experiment-resources configs/exp_vslamlab.yaml
-
-pixi run check-experiment-state <exp_yaml> #  pixi run check-experiment-state configs/exp_vslamlab.yaml
-
-pixi run install-baseline <baseline> #  pixi run install-baseline droidslam
-pixi run install-baselines <baseline 1> <baseline 2> ... #  pixi run install-baseline droidslam orbsblam2
-
-pixi run download-sequence <dataset> <sequence> #  pixi run download-sequence eth table3
-pixi run download-sequences <dataset 1> <sequence 1> <dataset 2> <sequence 2> ... #  pixi run download-sequence eth table_3 rgbdtum rgbd_dataset_freiburg1_xyz
-pixi run download-dataset <dataset> #  pixi run download-dataset eth
-pixi run download-datasets <dataset 1>  <dataset 2> #  pixi run download-datasets eth rgbdtum
-
-pixi run run-exp <exp_yaml> #  pixi run run-exp configs/exp_vslamlab.yaml
-pixi run evaluate-exp <exp_yaml> #  pixi run evaluate-exp configs/exp_vslamlab.yaml
-pixi run compare-exp <exp_yaml> #  pixi run compare-exp configs/exp_vslamlab.yaml
-```
-
 ## Configure your own experiments
 With **VSLAM-LAB**, you can easily design and configure experiments using a YAML file and run them with a single command.
 To **run** the experiment demo, execute the following command:
 ```
-ARGUMENT="--exp_yaml exp_mono.yaml" pixi run vslamlab
+pixi run vslamlab configs/exp_vslamlab.yaml (--overwrite)
 ```
 
-Experiments in **VSLAM-LAB** are sequences of entries in a YAML file (see example **~/VSLAM-LAB/configs/exp_mono.yaml**):
+Experiments in **VSLAM-LAB** are sequences of entries in a YAML file (see example **~/VSLAM-LAB/configs/exp_vslamlab.yaml**):
 ```
 exp_vslamlab:
-  Config: config_mono.yaml     # YAML file containing the sequences to be run 
-  NumRuns: 1                   # Maximum number of executions per sequence
-  Parameters: {verbose: 1}     # Vector with parameters that will be input to the baseline executable 
-  Module: droidslam            # droidslam/monogs/orbslam2/mast3rslam/dpvo/...                    
+  Config: config_vslamlab.yaml  # YAML file containing the sequences to be run 
+  NumRuns: 1                    # Maximum number of executions per sequence
+  Parameters: {verbose: 1}      # Vector with parameters that will be input to the baseline executable 
+  Module: droidslam             # droidslam/monogs/orbslam2/mast3rslam/dpvo/...                    
 ```
-**Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_mono.yaml**):
+**Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_vslamlab.yaml**):
 ```
 rgbdtum:
   - 'rgbd_dataset_freiburg1_xyz'
@@ -140,22 +120,50 @@ monotum:
 ```
 For a full list of available VSLAM systems and datasets, refer to the section [VSLAM-LAB Supported Baselines and Datasets](#vslam-lab-supported-baselines-and-datasets).
 
+## VSLAM-LAB Pipeline Functions
+Instead of running the full VSLAM-LAB pipeline, you can interact with datasets and baselines using the commands below:
+
+```bash
+pixi run validate-experiment-yaml <exp_yaml>             # Example: pixi run validate-experiment-yaml configs/exp_vslamlab.yaml
+pixi run overwrite-exp <exp_yaml>                        # Example: pixi run overwrite-exp configs/exp_vslamlab.yaml
+pixi run update-experiment-csv-logs <exp_yaml>           # Example: pixi run update-experiment-csv-logs configs/exp_vslamlab.yaml
+
+pixi run check-experiment-resources <exp_yaml>           # Example: pixi run check-experiment-resources configs/exp_vslamlab.yaml
+pixi run get-experiment-resources <exp_yaml>             # Example: pixi run get-experiment-resources configs/exp_vslamlab.yaml
+
+pixi run check-experiment-state <exp_yaml>               # Example: pixi run check-experiment-state configs/exp_vslamlab.yaml
+
+pixi run install-baseline <baseline>                     # Example: pixi run install-baseline droidslam
+pixi run install-baselines <baseline1> <baseline2> ...   # Example: pixi run install-baselines droidslam orbslam2
+
+pixi run download-sequence <dataset> <sequence>          # Example: pixi run download-sequence eth table_3
+pixi run download-sequences <dataset1> <sequence1> <dataset2> <sequence2> ... \
+                                                         # Example: pixi run download-sequences eth table_3 rgbdtum rgbd_dataset_freiburg1_xyz
+pixi run download-dataset <dataset>                      # Example: pixi run download-dataset eth
+pixi run download-datasets <dataset1> <dataset2>         # Example: pixi run download-datasets eth rgbdtum
+
+pixi run run-exp <exp_yaml>                              # Example: pixi run run-exp configs/exp_vslamlab.yaml
+pixi run evaluate-exp <exp_yaml>                         # Example: pixi run evaluate-exp configs/exp_vslamlab.yaml
+pixi run compare-exp <exp_yaml>                          # Example: pixi run compare-exp configs/exp_vslamlab.yaml
+
+```
+
 ## Add a new dataset
 
-Datasets in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, which is created by default in the same parent directory as **VSLAM-LAB**. If you want to modify the location of your datasets, change the variable **VSLAMLAB_BENCHMARK** in **~/VSLAM-LAB/utilities.py**.
+Datasets in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, which is created by default in the same parent directory as **VSLAM-LAB**.
 
 1. To add a new dataset, structure your dataset as follows:
 ```
 ~/VSLAM-LAB-Benchmark
 └── YOUR_DATASET
     └── sequence_01
-        ├── rgb
+        ├── rgb_0
             └── img_01
             └── img_02
             └── ...
         ├── calibration.yaml
-        ├── rgb.txt
-        └── groundtruth.txt
+        ├── rgb.csv
+        └── groundtruth.csv
     └── sequence_02
         ├── ...
     └── ...   
@@ -176,41 +184,6 @@ Datasets in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, 
     }
 ```
 
-## Add a new Baseline
-pixi.toml
-```
-kill_all 
-
-header
-
-dependencies
-
-tasks
-
-  git-clone
-
-  execute
-```
-
-Baselines/get_baseline.py
-```
-# ADD your imports here
-from Baselines.baseline_droidslam import DROIDSLAM_baseline
-from Baselines.baseline_droidslam import DROIDSLAM_baseline_dev
-...
-
-def get_baseline(baseline_name):
-    baseline_name = baseline_name.lower()
-    switcher = {
-        # ADD your baselines here
-        "droidslam": lambda: DROIDSLAM_baseline(),
-        "droidslam-dev": lambda: DROIDSLAM_baseline_dev(),
-        ...
-    }
-
-    return switcher.get(baseline_name, lambda: "Invalid case")()
-```
-
 ## License
 **VSLAM-LAB** is released under a **LICENSE.txt**. For a list of code dependencies which are not property of the authors of **VSLAM-LAB**, please check **docs/Dependencies.md**.
 
@@ -226,9 +199,9 @@ If you're using **VSLAM-LAB** in your research, please cite. If you're specifica
 }
 ```
 
-## Acknowledgements
+<!-- ## Acknowledgements
 
-To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
+To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets) -->
 
 # VSLAM-LAB Supported Baselines and Datasets
 We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6x_TXkgLsw9zWszHU9M-0mGgDT92TEs/edit?usp=drive_link) with more detailed information for each baseline and dataset.
@@ -270,6 +243,7 @@ We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6
 | [**HILTI-OXFORD 2022**](http://hilti-challenge.com/dataset-2022.html)   |   real    | handheld |  `hilti2022`  | ⛔  | `Pinhole` |
 | [**Monado SLAM Dataset - Valve Index**](https://huggingface.co/datasets/collabora/monado-slam-datasets)                         |   real    | headmounted | `msdmi` | `mono`, `mono-vi` | `Pinhole` |
 
+<!--
 ## VSLAM-LAB v1.0 Roadmap
 
 ### Core
@@ -329,3 +303,4 @@ We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6
 ### Project Management
 - [ ] Define statuses: Backlog → In Progress → Review → Done
 - [ ] Convert key items above to sub-issues
+-->
