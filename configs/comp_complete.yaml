@@ -5,6 +5,6 @@ image_canvas: 1
 accuracy_radar: 1
 trajectories: 1
 cumulated_error: 0
-running_time: 1
+running_time: 0
 memory: 0
 

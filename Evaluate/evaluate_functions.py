@@ -2,6 +2,7 @@ import subprocess
 import os, shutil
 import pandas as pd
 from tqdm import tqdm
+from pathlib import Path
 
 from Evaluate.evo_functions import evo_metric, evo_get_accuracy
 from path_constants import VSLAM_LAB_EVALUATION_FOLDER, TRAJECTORY_FILE_NAME, GROUNTRUTH_FILE
@@ -16,8 +17,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     METRIC = 'ate'
     
     trajectories_path = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
-    sequence_path = os.path.join(dataset.dataset_path, sequence_name)
-    groundtruth_csv = os.path.join(sequence_path, GROUNTRUTH_FILE)
+    groundtruth_csv = Path(exp.folder) / dataset.dataset_folder / sequence_name /  GROUNTRUTH_FILE
     evaluation_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name, VSLAM_LAB_EVALUATION_FOLDER)
     accuracy_csv = os.path.join(evaluation_folder, f'{METRIC}.csv')
 

@@ -1,7 +1,6 @@
 import os
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import yaml
 
 from Evaluate import plot_functions

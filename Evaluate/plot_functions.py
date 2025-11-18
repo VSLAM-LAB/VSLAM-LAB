@@ -32,8 +32,7 @@ from PIL import Image
 from matplotlib.patches import Patch
 from sklearn.decomposition import PCA
 
-from path_constants import VSLAM_LAB_EVALUATION_FOLDER, VSLAMLAB_BENCHMARK
-from utilities import list_image_files_in_folder
+from path_constants import VSLAM_LAB_EVALUATION_FOLDER, VSLAMLAB_EVALUATION
 from Baselines.get_baseline import get_baseline
 from Datasets.get_dataset import get_dataset
 
@@ -202,7 +201,7 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
     num_sequences = 0
     splts = {}
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name, " ")
         for sequence_name in sequence_names:
             splts[sequence_name]= {}
             splts[sequence_name]['id']= num_sequences
@@ -559,10 +558,10 @@ def create_and_show_canvas(dataset_sequences, VSLAMLAB_BENCHMARK, comparison_pat
 
     for dataset_name, sequence_names in dataset_sequences.items():
         for sequence_name in sequence_names:
-            image_files = list_image_files_in_folder(
-                os.path.join(VSLAMLAB_BENCHMARK, dataset_name.upper(), sequence_name, 'rgb_0'))
-            image_paths.append(
-                os.path.join(VSLAMLAB_BENCHMARK, dataset_name.upper(), sequence_name, 'rgb_0', image_files[0]))
+            thumbnail_path = VSLAMLAB_EVALUATION / 'thumbnails'
+            thumnail_rgb = f"rgb_thumbnail_{dataset_name}_{sequence_name}.*"
+            matches = list(thumbnail_path.glob(thumnail_rgb))
+            image_paths.append(matches[0])
 
     m = 5  # Number of columns
     n = math.ceil(len(image_paths) / m)  # Number of rows
@@ -604,7 +603,7 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
     num_sequences = 0
     splts = {}
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name, " ")
         for sequence_name in sequence_names:
             splts[sequence_name] = {}
             splts[sequence_name]['id'] = num_sequences

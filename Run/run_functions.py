@@ -4,9 +4,11 @@ import time
 import os
 import csv
 import shutil
+from typing import Any
+from pathlib import Path
 
 from Baselines.baseline_utilities import log_run_sequence_time
-from path_constants import RGB_BASE_FOLDER
+from path_constants import RGB_BASE_FOLDER, VSLAMLAB_EVALUATION
 from Run import ablations
 from Run.downsample_rgb_frames import downsample_rgb_frames, get_rows
 
@@ -26,6 +28,9 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
 
     # Select images
     create_rgb_exp_csv(exp, dataset, sequence_name, baseline.default_parameters)
+
+    # Sava data for evaluation
+    get_sequence_data_for_evaluation(exp, dataset, sequence_name)
 
     # Build execution command
     exec_command = baseline.build_execute_command(exp_it, exp, dataset, sequence_name)
@@ -48,7 +53,6 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
 
     results['duration_time'] = duration_time
     return results
-
 
 def create_rgb_exp_csv(exp, dataset, sequence_name, default_parameters = ""):
     sequence_path = os.path.join(dataset.dataset_path, sequence_name)
@@ -82,3 +86,19 @@ def create_rgb_exp_csv(exp, dataset, sequence_name, default_parameters = ""):
             writer = csv.DictWriter(f, fieldnames=list(downsampled_rows[0].keys()))
             writer.writeheader()
             writer.writerows(downsampled_rows)
+
+def get_sequence_data_for_evaluation(exp: Any, dataset: Any, sequence_name: str) -> None:
+    sequence_path = dataset.dataset_path /  sequence_name
+    exp_folder = Path(exp.folder) / Path(dataset.dataset_folder) / sequence_name
+    groundtruth_csv = sequence_path / 'groundtruth.csv'
+    groundtruth_csv_dst = exp_folder / 'groundtruth.csv' 
+    if not groundtruth_csv_dst.exists():
+        shutil.copy(groundtruth_csv, groundtruth_csv_dst)
+
+    rgb_folder = sequence_path / "rgb_0"
+    first_image = next(rgb_folder.iterdir())
+    thumbnails_folder =  VSLAMLAB_EVALUATION / "thumbnails"
+    rgb_thumbnail = thumbnails_folder/ f"rgb_thumbnail_{dataset.dataset_name}_{sequence_name}{first_image.suffix}"
+    thumbnails_folder.mkdir(parents=True, exist_ok=True)
+    if not rgb_thumbnail.exists():
+        shutil.copy(first_image, rgb_thumbnail)
