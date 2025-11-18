@@ -51,7 +51,7 @@ platforms = ["linux-64"]
 [feature.vslamlab.tasks]
 vslamlab.cmd = "python vslamlab_gui.py vslamlab {{ exp_yaml }} {{ overwrite }}"
 vslamlab.args = [
-  { "arg" = "exp_yaml", "default" = "configs/exp_debug.yaml" },
+  { "arg" = "exp_yaml", "default" = "configs/exp_vslamlab.yaml" },
   { "arg" = "overwrite", "default" = " " },
 ]
 
