@@ -278,7 +278,7 @@ git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap', cwd = 'B
 execute-mono = './Baselines/colmap/colmap_reconstruction.sh'
 
 [feature.colmap.dependencies]
-colmap = { build="*cuda*", version = "==3.11.1" }
+colmap = { build="*cuda*" }
 yq = "*"
 numpy = "*"
 scipy = "*"
