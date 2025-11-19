@@ -1,8 +1,8 @@
 <p align="center">
 <div align="center">
-    <img src="docs/vslamlab_header.png" width="350"/>
+    <img src="docs/vslamlab_header.png" width="450"/>
 </div>
-<h1>
+
 <h3 align="center"> A Comprehensive Framework for Visual SLAM Baselines and Datasets</h3> 
 
 <p align="center">
