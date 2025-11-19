@@ -1,0 +1,41 @@
+exp_s3li_dpvo_mono:
+  Config: config_s3li.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: 'mono', rgb_idx: [0,500]}
+  Module: dpvo
+
+exp_s3li_droidslam_mono:
+  Config: config_s3li.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: 'mono', rgb_idx: [0,500]}
+  Module: droidslam
+
+exp_s3li_glomap_mono:
+  Config: config_s3li.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: 'mono', rgb_idx: [0,500]}
+  Module: glomap
+
+# exp_s3li_orbslam2_stereo:
+#   Config: config_s3li.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: 'stereo', rgb_idx: [0,500]}
+#   Module: orbslam2
+
+# exp_s3li_droidslam_stereo:
+#   Config: config_s3li.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: 'stereo', rgb_idx: [0,500]}
+#   Module: droidslam
+
+# exp_s3li_okvis2_mono-vi:
+#   Config: config_s3li.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: 'mono-vi', rgb_idx: [0,5000]}
+#   Module: okvis2
+
+# exp_s3li_orbslam3_mono-vi:
+#   Config: config_s3li.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: 'mono-vi', rgb_idx: [0,500]}
+#   Module: orbslam3

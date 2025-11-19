@@ -1,0 +1,54 @@
+dataset_name: s3li
+
+rgb_hz: 10.0
+imu_hz: 200.0
+modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
+url_download_sequences: 
+  # S3LI Vulcano sequences
+  vegetation: "https://my.hidrive.com/api/sharelink/download?id=I9ygsv4d9"
+  waterfront: "https://my.hidrive.com/api/sharelink/download?id=QsjbHlubU"
+  straight_path: "https://my.hidrive.com/api/sharelink/download?id=RLai8Tpvm"
+  moon_lake: "https://my.hidrive.com/api/sharelink/download?id=JYCpmNlbK"
+  lava_tunnel: "https://my.hidrive.com/api/sharelink/download?id=Yj7rAd8Er"
+  capo_grillo: "https://my.hidrive.com/api/sharelink/download?id=BXdsXjkut"
+  capo_grillo_2: "https://my.hidrive.com/api/sharelink/download?id=dIKEicHGb"
+  # S3LI Etna sequences
+  crater_inout: "https://my.hidrive.com/api/sharelink/download?id=MUlyFZK8q"
+  crater: "https://my.hidrive.com/api/sharelink/download?id=NhRilEiK1"
+  landmarks: "https://my.hidrive.com/api/sharelink/download?id=e0Kl4Sbfs"
+  loops: "https://my.hidrive.com/api/sharelink/download?id=V8lhZLoiw"
+  mapping: "https://my.hidrive.com/api/sharelink/download?id=UtRMarPWr"
+  traverse_1: "https://my.hidrive.com/api/sharelink/download?id=XZEKZLP13"
+  traverse_2: "https://my.hidrive.com/api/sharelink/download?id=eUSnTThmA"
+
+sequence_names:
+  - vegetation
+  - waterfront
+  - straight_path
+  - moon_lake
+  - lava_tunnel
+  - capo_grillo
+  - capo_grillo_2
+  - crater_inout
+  - crater
+  - landmarks
+  - loops
+  - mapping
+  - traverse_1
+  - traverse_2
+
+sequence_nicknames:
+  - vegetation
+  - waterfront
+  - straight_path
+  - moon_lake
+  - lava_tunnel
+  - capo_grillo
+  - capo_grillo_2
+  - crater_inout
+  - crater
+  - landmarks
+  - loops
+  - mapping
+  - traverse_1
+  - traverse_2
