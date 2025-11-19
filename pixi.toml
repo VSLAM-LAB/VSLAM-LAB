@@ -229,7 +229,7 @@ open3d = "==0.17.0"
 ########################################################################################################################
 # orbslam2
 [feature.orbslam2]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2.tasks]
@@ -305,7 +305,7 @@ glomap = { build="*cuda*"}
 ########################################################################################################################
 # orbslam3
 [feature.orbslam3]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3.tasks]
@@ -321,7 +321,7 @@ opencv = ">=4.10.0 ,<5"
 ########################################################################################################################
 # okvis2
 [feature.okvis2]
-channels = ["https://fast.prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
