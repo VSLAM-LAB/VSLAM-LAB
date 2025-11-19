@@ -342,7 +342,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.pycuvslam.tasks]
-git-clone = 'git-clone.sh VSLAM-LAB PyCuVSLAM PyCuVSLAM'
+git-clone = './git-clone.sh VSLAM-LAB PyCuVSLAM PyCuVSLAM'
 install = { cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM" }
 execute-rgbd = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM' }
 
@@ -461,7 +461,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.droidslam-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB DROID-SLAM DROID-SLAM-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB DROID-SLAM DROID-SLAM-DEV"
 install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
@@ -515,7 +515,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.mast3rslam-dev.tasks]
-git-clone = 'git-clone.sh VSLAM-LAB MASt3R-SLAM MASt3R-SLAM-DEV'
+git-clone = './git-clone.sh VSLAM-LAB MASt3R-SLAM MASt3R-SLAM-DEV'
 install = { cmd = "pip install -e thirdparty/mast3r && pip install -e thirdparty/in3d && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
 execute-mono = { cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV' }
 
@@ -574,9 +574,9 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.dpvo-dev.tasks]
-git-clone = 'git-clone.sh VSLAM-LAB DPVO DPVO-DEV'
-install_DPViewer = { cmd = "pip install .", cwd = "Baselines/DPVO-DEV/DPViewer" }
-install = { cmd = "pip install .", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"] }
+git-clone = './git-clone.sh VSLAM-LAB DPVO DPVO-DEV'
+install_DPViewer = { cmd = "pip install . --no-deps --no-build-isolation --use-pep517", cwd = "Baselines/DPVO-DEV/DPViewer" }
+install = { cmd = "pip install . --no-deps --no-build-isolation", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"] }
 execute-mono = { cmd = 'python vslamlab_dpvo_mono.py' ,cwd = 'Baselines/DPVO-DEV' }
 
 [feature.dpvo-dev.dependencies]
@@ -626,7 +626,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.monogs-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB MonoGS MonoGS-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB MonoGS MonoGS-DEV"
 install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization", cwd = "Baselines/MonoGS-DEV" }
 execute-mono = { cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV" }
 
@@ -672,7 +672,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV" }
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV" }
@@ -696,7 +696,7 @@ channels = ["fontan", "https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.anyfeature-dev.tasks]
-git-clone = "git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
+git-clone = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 
@@ -728,7 +728,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.gensfm-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB GenSfM GenSfM-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB GenSfM GenSfM-DEV"
 install = { cmd = "./vslamlab_gensfm-dev_build.sh -v && sudo /sbin/swapoff -a && sudo /sbin/swapon -a", cwd = "Baselines/GenSfM-DEV" }
 execute-mono = { cmd = "./vslamlab_gensfm-dev_reconstruction.sh", cwd = "Baselines/GenSfM-DEV" }
 
@@ -762,7 +762,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.mast3r-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB MASt3R MASt3R-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB MASt3R MASt3R-DEV"
 install = { cmd = "cd asmk && pip install . && cd .. && cd dust3r/croco/models/curope/ && python setup.py build_ext --inplace", cwd = "Baselines/MASt3R-DEV" }
 execute-mono = { cmd = 'python3 vslamlab_mast3r_demo.py',  cwd = 'Baselines/MASt3R-DEV'}
 execute-online-demo = { cmd = 'python3 demo.py --model_name MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric',  cwd = 'Baselines/MASt3R-DEV' }
@@ -831,7 +831,7 @@ gradio = "*"
 viser = "*"
 
 [feature.vggt-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB vggt VGGT-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB vggt VGGT-DEV"
 execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT-DEV" }
 
 # ########################################################################################################################
@@ -842,7 +842,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB ORB_SLAM3 ORB_SLAM3-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB ORB_SLAM3 ORB_SLAM3-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB_SLAM3-DEV" }
 execute-mono_vi = { cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB_SLAM3-DEV" }
 
@@ -868,7 +868,7 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.okvis2-dev.tasks]
-git-clone = "git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV" }
 execute-mono_vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
 
