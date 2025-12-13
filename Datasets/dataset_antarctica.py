@@ -1,3 +1,7 @@
+
+from pathlib import Path
+import csv
+
 import piexif
 import numpy as np
 from PIL import Image
@@ -13,26 +17,28 @@ from Datasets.dataset_utilities import undistort_rgb_rad_tan, resize_rgb_images
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
 class ANTARCTICA_dataset(DatasetVSLAMLab):
-    def __init__(self, benchmark_path, dataset_name = 'antarctica'):
-        # Initialize the dataset
-        super().__init__(dataset_name, benchmark_path)
+    """ANTARCTICA dataset helper for VSLAM-LAB benchmark."""
 
-        # Load settings from .yaml file
-        with open(self.yaml_file, 'r') as file:
-            data = yaml.safe_load(file)
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "antarctica") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
+
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
 
         # Path to the raw dataset folder
-        self.raw_data_folder = data["folder_with_raw_data"]
+        self.raw_data_folder = cfg["folder_with_raw_data"]
 
-        # Create sequence_nicknames
+        # Sequence nicknames
         self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_names]
 
         # Get resolution size
-        self.resolution_size = data['resolution_size']
+        self.resolution_size = cfg['resolution_size']
 
-    def download_sequence_data(self, sequence_name):
+    def download_sequence_data(self, sequence_name: str) -> None:
         source_rgb_path = self.get_source_rgb_path(sequence_name)
 
+        # Fix known issues with filenames
         if sequence_name == 'Q3_DJI_202401111932_002':
             if os.path.exists(os.path.join(source_rgb_path,'DJI_20240111193348_0001.JPG')):
                 os.rename(os.path.join(source_rgb_path,'DJI_20240111193348_0001.JPG'), os.path.join(source_rgb_path,'DJI_20240111193348_0001.JPG.GENERAL_VIEW'))
@@ -45,52 +51,50 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
                 if not os.path.exists(modified_name):
                     os.rename(original_name, modified_name)
 
-    def create_rgb_folder(self, sequence_name):
-        
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb')
-        if os.path.isdir(rgb_path) and bool(os.listdir(rgb_path)):
+    def create_rgb_folder(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        rgb_path = sequence_path / 'rgb_0'
+        if rgb_path.exists() and any(rgb_path.iterdir()):
             return
-        
+
         os.makedirs(rgb_path, exist_ok=True)  
 
         source_rgb_path = self.get_source_rgb_path(sequence_name)
        
         for file in tqdm(sorted(os.listdir(source_rgb_path)), desc='Copying images'):
             if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff')):
-                shutil.copy2(os.path.join(source_rgb_path, file), os.path.join(rgb_path, file))
-                    
-    def create_rgb_txt(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+                shutil.copy2(source_rgb_path / file, rgb_path / file)
+               
+    def create_rgb_csv(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        rgb_csv = sequence_path / "rgb.csv"
         source_rgb_path = self.get_source_rgb_path(sequence_name)
+        tmp = rgb_csv.with_suffix(".csv.tmp")
 
-        timestamps = []
-        image_names = []
-        for file in sorted(os.listdir(source_rgb_path)):
-            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff')):
-                timestamp_seconds = self.extract_timestamp_from_filename(os.path.join(source_rgb_path, file))
-                formatted_timestamp = f"{timestamp_seconds:.3f}"         
-                timestamps.append(formatted_timestamp)
-                image_names.append(file)
-         
-        with open(rgb_txt, 'w') as f:
-            for idx, ts in enumerate(timestamps):
-                f.write(f"{ts} rgb/{image_names[idx]}\n")
+        with open(tmp, "w", newline="", encoding="utf-8") as fout:
+            w = csv.writer(fout)
+            w.writerow(["ts_rgb0 (s)", "path_rgb0"])
+            for file in sorted(os.listdir(source_rgb_path)):
+                if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff')):
+                    timestamp_seconds = self.extract_timestamp_from_filename(source_rgb_path / file)
+                    formatted_timestamp = f"{timestamp_seconds:.3f}"         
+                    w.writerow([formatted_timestamp, f"rgb_0/{file}"])
+        tmp.replace(rgb_csv)
      
-    def create_calibration_yaml(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_txt = os.path.join(sequence_path, 'rgb.txt')
+    def create_calibration_yaml(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        rgb_csv = sequence_path / "rgb.csv"
         fx, fy, cx, cy, k1, k2, p1, p2, k3 = self.get_calibration(sequence_name)
         
         camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
         distortion_coeffs = np.array([k1, k2, p1, p2, k3])
         
-        fx, fy, cx, cy = resize_rgb_images(rgb_txt, sequence_path, self.resolution_size[0], self.resolution_size[1], camera_matrix)
+        fx, fy, cx, cy = resize_rgb_images(rgb_csv, sequence_path, self.resolution_size[0], self.resolution_size[1], camera_matrix)
         camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
-        fx, fy, cx, cy = undistort_rgb_rad_tan(rgb_txt, sequence_path, camera_matrix, distortion_coeffs)
+        fx, fy, cx, cy = undistort_rgb_rad_tan(rgb_csv, sequence_path, camera_matrix, distortion_coeffs)
 
-        self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name)
+        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
+        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0)
 
     def get_utm_transformer(self, lat, lon):
         utm_zone = int((lon + 180) / 6) + 1
@@ -99,7 +103,7 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
         utm_crs = CRS.from_proj4(proj_str)
         return Transformer.from_crs("epsg:4326", utm_crs, always_xy=True)
 
-    def extract_timestamp_from_filename(self,filename):
+    def extract_timestamp_from_filename(self, filename: str | Path) -> int:
         with Image.open(filename) as img:
             exif_data = img.info.get("exif")
             exif_dict = piexif.load(exif_data)
@@ -109,12 +113,15 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
             timestamp_seconds = int(dt.timestamp())
         return timestamp_seconds
 
-    def create_groundtruth_txt(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        groundtruth_csv = sequence_path / "groundtruth.csv"
         source_rgb_path = self.get_source_rgb_path(sequence_name)
-        
-        with open(groundtruth_txt, 'w') as out_file:
+        tmp = groundtruth_csv.with_suffix(".csv.tmp")
+
+        with open(tmp, "w", newline="", encoding="utf-8") as fout:
+            w = csv.writer(fout)
+            w.writerow(["ts","tx","ty","tz","qx","qy","qz","qw"])
             for fname in sorted(os.listdir(source_rgb_path)):
                 if not fname.lower().endswith(".jpg"):
                     continue
@@ -130,27 +137,9 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
                 z = alt
                 qx = qy = qz = 0.0
                 qw = 1.0
-
-                out_file.write(f"{ts:.3f} {x:.3f} {y:.3f} {z:.3f} {qx} {qy} {qz} {qw}\n")
-
-
-        # Plot 2D trajectory (XY)
-        data = np.loadtxt(groundtruth_txt)
-        if data.ndim != 2 or data.shape[1] < 3 or data.shape[0] == 0:
-            return
-        xs = data[:, 1]
-        ys = data[:, 2]
-        plt.figure(figsize=(8, 6))
-        plt.plot(xs, ys, marker='o', linestyle='-', markersize=2, label='Trajectory')
-        plt.xlabel("X [m]")
-        plt.ylabel("Y [m]")
-        plt.title("2D Trajectory")
-        plt.axis('equal')
-        plt.grid(True)
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(os.path.join(sequence_path, "groundtruth.png"), dpi=300)
-        
+                w.writerow([f"{ts:.3f}" , f"{x:.3f}", f"{y:.3f}", f"{z:.3f}", f"{qx:.3f}", f"{qy:.3f}", f"{qz:.3f}", f"{qw:.3f}"])
+        tmp.replace(groundtruth_csv)
+     
     def dms_to_decimal(self, dms, ref):
         degrees = dms[0][0] / dms[0][1]
         minutes = dms[1][0] / dms[1][1]
@@ -160,7 +149,7 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
             decimal = -decimal
         return decimal
 
-    def get_gps_from_exif(self,image_path):
+    def get_gps_from_exif(self, image_path: str | Path) -> tuple | None:
         img = Image.open(image_path)
         exif_data = img.info.get("exif")
         if not exif_data:
@@ -181,7 +170,7 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
 
         return latitude, longitude, altitude
     
-    def get_source_rgb_path(self, sequence_name):
+    def get_source_rgb_path(self, sequence_name: str) -> Path:
         if sequence_name == 'ASPA135':
             source_rgb_path = os.path.join(self.raw_data_folder, 'Sites', sequence_name, '2023-02-01_ASPA135_UAS-mapping', 'raw')
         if sequence_name == 'ASPA136':
@@ -196,9 +185,9 @@ class ANTARCTICA_dataset(DatasetVSLAMLab):
         if 'Q2_DJI_' in sequence_name:
             source_rgb_path = os.path.join(self.raw_data_folder, 'Sites', 'Bunger-Hills_ROI_01', 'Q2_2024-01-12_P1', 
                                            sequence_name.replace('Q2_DJI_', 'DJI_'))    
-        return source_rgb_path
+        return Path(source_rgb_path)
     
-    def get_calibration(self, sequence_name):
+    def get_calibration(self, sequence_name: str) -> tuple:
         if sequence_name == 'ASPA135':
             fx, fy, cx, cy, k1, k2, p1, p2, k3 = (
                 3596.02, 3596.02, (4032/2) + 24.5481, (3024/2) -37.3991 , 0.19876, -0.578379, 0.000520889, -0.000552955, 0.678218)
