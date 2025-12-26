@@ -136,20 +136,26 @@ class EUROC_dataset(DatasetVSLAMLab):
         # Read rows, skipping the header line(s) that start with '#'
         # Handle both comma- or whitespace-separated variants.
 
-        cols = ["timestamp [ns]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]
+        raw_cols = ["timestamp [ns]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]
         df = pd.read_csv(
             src,
             comment="#",
             header=None,
-            names=cols,
+            names=raw_cols,
             sep=r"[\s,]+",
             engine="python",
         )
 
         if df.empty:
             return
-    
-        out = df[["timestamp [ns]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]]
+
+        new_cols = [
+            "ts (ns)", 
+            "wx (rad s^-1)", "wy (rad s^-1)", "wz (rad s^-1)", 
+            "ax (m s^-2)", "ay (m s^-2)", "az (m s^-2)"
+        ]
+        df.columns = new_cols
+        out = df[new_cols]
 
         tmp = dst.with_suffix(".csv.tmp")
         try:
