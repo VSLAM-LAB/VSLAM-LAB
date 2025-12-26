@@ -3,6 +3,8 @@ dataset_name: rgbdtum
 rgb_hz: 30.0
 url_download_root: "https://cvg.cit.tum.de/rgbd/dataset"
 modes: ['mono', 'rgbd']
+cam_models: ['pinhole', 'radtan5']
+depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
   - rgbd_dataset_freiburg1_xyz

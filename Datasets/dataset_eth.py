@@ -3,9 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final, Iterable
 from urllib.parse import urljoin
-import csv
 
+import csv
 import yaml
+
+import numpy as np
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
@@ -70,26 +72,29 @@ class ETH_dataset(DatasetVSLAMLab):
         rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt",   "rgb/",   "rgb_0/"))
         depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", "depth_0/"))
 
-        out = sequence_path / "rgb.csv"
-        tmp = out.with_suffix(".csv.tmp")
+        rgb_csv = sequence_path / "rgb.csv"
+        tmp = rgb_csv.with_suffix(".csv.tmp")
 
         with open(tmp, "w", newline="", encoding="utf-8") as fout:
             w = csv.writer(fout)
-            w.writerow(["ts_rgb0 (s)", "path_rgb0", "ts_depth0 (s)", "path_depth0"])
+            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"])
             for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries):
-                w.writerow([ts_r0, path_r0, ts_d, path_d])
-        tmp.replace(out)
+                ts_r0_ns = int(float(ts_r0) * 1e9)
+                ts_d_ns = int(float(ts_d) * 1e9)
+                w.writerow([ts_r0_ns, path_r0, ts_d_ns, path_d])
+        tmp.replace(rgb_csv)
         
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
-
         with open(sequence_path / "calibration.txt", "r", encoding="utf-8") as f:
             first = f.readline().split()
             fx, fy, cx, cy = map(float, first[:4])
-            camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
-
-        rgbd = {"depth0_factor": float(self.depth_factor)}
-        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
+            rgbd0 = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
+                    "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
+                    "depth_factor": float(self.depth_factor),
+                    "fps": float(self.rgb_hz),
+                    "T_SC": np.eye(4)}
+        self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
         
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
@@ -102,12 +107,16 @@ class ETH_dataset(DatasetVSLAMLab):
 
         with open(groundtruth_txt, "r", encoding="utf-8") as fin, open(tmp, "w", newline="", encoding="utf-8") as fout:
             w = csv.writer(fout)
-            w.writerow(["ts","tx","ty","tz","qx","qy","qz","qw"])
+            w.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
             for line in fin:
                 s = line.strip()
                 if not s or s.startswith("#"):
                     continue
-                w.writerow(s.split())
+
+                parts = s.split()
+                ts_ns = int(float(parts[0]) * 1e9)
+                w.writerow([ts_ns] + parts[1:])
+
         tmp.replace(groundtruth_csv)
 
     def remove_unused_files(self, sequence_name: str) -> None:

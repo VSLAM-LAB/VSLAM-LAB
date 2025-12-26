@@ -1,24 +1,23 @@
 from __future__ import annotations
-from typing import Final
-from urllib.parse import urljoin
-from contextlib import suppress
+
 from pathlib import Path
-from tqdm import tqdm
-import pandas as pd
-import numpy as np
+from contextlib import suppress
 import shutil
+
 import csv
 import yaml
-import cv2
-import os
+from decimal import Decimal
+
+import numpy as np
+import pandas as pd
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
+from path_constants import Retention, BENCHMARK_RETENTION
 
-STEREO_BASELINE: Final = 0.11
 
 class EUROC_dataset(DatasetVSLAMLab):
-    """EUROC MAV dataset helper for VSLAMLab benchmark."""
+    """EUROC MAV dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, benchmark_path: str | Path) -> None:
         super().__init__("euroc", Path(benchmark_path))
@@ -72,7 +71,7 @@ class EUROC_dataset(DatasetVSLAMLab):
             if not src_dir.is_dir():
                 continue
             for png in sorted(src_dir.glob("*.png")):
-                shutil.copy(png, target / png.name)
+                shutil.move(png , target / png.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         """
@@ -99,14 +98,14 @@ class EUROC_dataset(DatasetVSLAMLab):
         df0, df1 = df0.iloc[:n], df1.iloc[:n]
 
         # Convert ns -> seconds
-        ts0 = (df0["ts_ns"].astype(np.int64) * 1e-9).astype(float)
-        ts1 = (df1["ts_ns"].astype(np.int64) * 1e-9).astype(float)
+        ts0 = df0["ts_ns"].astype(np.int64)
+        ts1 = df1["ts_ns"].astype(np.int64)
 
         out = pd.DataFrame({
-            "ts_rgb0 (s)": ts0.map(lambda x: f"{x:.6f}"),
-            "path_rgb0": "rgb_0/" + df0["name0"].astype(str),
-            "ts_rgb1 (s)": ts1.map(lambda x: f"{x:.6f}"),
-            "path_rgb1": "rgb_1/" + df1["name1"].astype(str),
+            "ts_rgb_0 (ns)": ts0,
+            "path_rgb_0": "rgb_0/" + df0["name0"].astype(str),
+            "ts_rgb_1 (ns)": ts1,
+            "path_rgb_1": "rgb_1/" + df1["name1"].astype(str),
         })
 
         tmp = rgb_csv.with_suffix(".csv.tmp")
@@ -125,7 +124,7 @@ class EUROC_dataset(DatasetVSLAMLab):
         """
         seq = self.dataset_path / sequence_name
         src = seq / "mav0" / "imu0" / "data.csv"
-        dst = seq / "imu.csv"
+        dst = seq / "imu_0.csv"
 
         if not src.exists():
             return
@@ -149,12 +148,8 @@ class EUROC_dataset(DatasetVSLAMLab):
 
         if df.empty:
             return
-
-        # ns → s (float). Keep high precision, then format to 9 decimals for output.
-        df["timestamp [s]"] = df["timestamp [ns]"].astype(np.float64) / 1e9
-        df["timestamp [s]"] = df["timestamp [s]"].map(lambda x: f"{x:.9f}")
-
-        out = df[["timestamp [s]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]]
+    
+        out = df[["timestamp [ns]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]]
 
         tmp = dst.with_suffix(".csv.tmp")
         try:
@@ -167,96 +162,36 @@ class EUROC_dataset(DatasetVSLAMLab):
                 pass
         
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        """
-        Build calibration.yaml using cam0/1 YAMLs. Also computes stereo rectification
-        to produce R_l, R_r, P_l, P_r.
-        """
-        seq = self.dataset_path / sequence_name
-        cam0_yaml = seq / "mav0" / "cam0" / "sensor.yaml"
-        cam1_yaml = seq / "mav0" / "cam1" / "sensor.yaml"
-        imu_yaml  = seq / "mav0" / "imu0" / "sensor.yaml"
-
+        sequence_path = self.dataset_path / sequence_name
+        cam0_yaml = sequence_path / "mav0" / "cam0" / "sensor.yaml"
+        cam1_yaml = sequence_path / "mav0" / "cam1" / "sensor.yaml"
+        imu_yaml  = sequence_path / "mav0" / "imu0" / "sensor.yaml"
         with open(cam0_yaml, "r", encoding="utf-8") as f: cam0 = yaml.safe_load(f)
         with open(cam1_yaml, "r", encoding="utf-8") as f: cam1 = yaml.safe_load(f)
         with open(imu_yaml,  "r", encoding="utf-8") as f: imu  = yaml.safe_load(f)
 
-        # Camera dicts (include basic distortion for record-keeping)
-        i0, d0 = cam0["intrinsics"], cam0["distortion_coefficients"]
-        i1, d1 = cam1["intrinsics"], cam1["distortion_coefficients"]
+        rgb0 = {"cam_name": "rgb_0", "cam_type": "gray",
+                "cam_model": "pinhole", "focal_length": cam0["intrinsics"][0:2], "principal_point": cam0["intrinsics"][2:4],
+                "distortion_type": "radtan4", "distortion_coefficients": cam0["distortion_coefficients"],
+                "fps": cam0["rate_hz"],
+                "T_SC": np.array(cam0["T_BS"]['data']).reshape((4, 4))}
+        rgb1 = {"cam_name": "rgb_1", "cam_type": "gray",
+                "cam_model": "pinhole", "focal_length": cam1["intrinsics"][0:2], "principal_point": cam1["intrinsics"][2:4],
+                "distortion_type": "radtan4", "distortion_coefficients": cam1["distortion_coefficients"],
+                "fps": cam1["rate_hz"],
+                "T_SC": np.array(cam1["T_BS"]['data']).reshape((4, 4))}
         
-        # Extrinsics T_BS (body->sensor). Build relative cam0->cam1 in body frame.
-        T_BS0 = np.array(cam0["T_BS"]["data"], dtype=float).reshape(cam0["T_BS"]["rows"], cam0["T_BS"]["cols"])
-        T_BS1 = np.array(cam1["T_BS"]["data"], dtype=float).reshape(cam1["T_BS"]["rows"], cam1["T_BS"]["cols"])
-        R_SB0, t_SB0 = T_BS0[:3, :3], T_BS0[:3, 3]
-        R_SB1, t_SB1 = T_BS1[:3, :3], T_BS1[:3, 3]
-        R_01_B = R_SB1.T @ R_SB0
-        t_01_B = R_SB1.T @ (t_SB0 - t_SB1)
-
-        # Stereo rectification inputs
-        K_l = np.array([[i0[0], 0.,     i0[2]],
-                       [0.,     i0[1], i0[3]],
-                       [0.,     0.,     1. ]], dtype=np.float64)
-        K_r = np.array([[i1[0], 0.,     i1[2]],
-                       [0.,     i1[1], i1[3]],
-                       [0.,     0.,     1. ]], dtype=np.float64)
-        D_l = np.array([d0[0], d0[1], d0[2], d0[3], 0.0], dtype=np.float64)
-        D_r = np.array([d1[0], d1[1], d1[2], d1[3], 0.0], dtype=np.float64)
-
-        w, h = cam0["resolution"]
-        size = (int(w), int(h))
-
-        R_l, R_r, P_l, P_r, Q, _, _ = cv2.stereoRectify(
-            K_l, D_l, K_r, D_r, size, R_01_B.astype(np.float64), t_01_B.astype(np.float64),
-            flags=cv2.CALIB_ZERO_DISPARITY, alpha=0, newImageSize=size
-        )
-
-        ##########################
-        map_l = cv2.initUndistortRectifyMap(K_l, D_l, R_l, P_l[:3,:3], (752, 480), cv2.CV_32F)
-        map_r = cv2.initUndistortRectifyMap(K_r, D_r, R_r, P_r[:3,:3], (752, 480), cv2.CV_32F)
-
-        # Load rgb images
-        df = pd.read_csv(seq / "rgb.csv")       
-        images_left = df['path_rgb0'].to_list()
-        images_right = df['path_rgb1'].to_list()
-
-        for relL, relR in tqdm(zip(images_left, images_right), desc="Rectifying stereo pairs", 
-                               total=min(len(images_left), len(images_right))):
-            pL = seq / relL
-            pR = seq / relR
-
-            imgL_src = cv2.imread(str(pL), cv2.IMREAD_UNCHANGED)
-            imgR_src = cv2.imread(str(pR), cv2.IMREAD_UNCHANGED)
-
-            image_l = cv2.remap(imgL_src, map_l[0], map_l[1], interpolation=cv2.INTER_LINEAR)
-            image_r = cv2.remap(imgR_src, map_r[0], map_r[1], interpolation=cv2.INTER_LINEAR)
-        
-            cv2.imwrite(str(pL), image_l)
-            cv2.imwrite(str(pR), image_r)
-
-        stereo = {"bf": STEREO_BASELINE}
-        
-        ##########################
-        camera0 = {
-            "model": "Pinhole",
-            "fx": P_l[0,0], "fy": P_l[1,1], "cx": P_l[0,2], "cy": P_l[1,2]
-        }
-        camera1 = {
-            "model": "Pinhole",
-            "fx": P_r[0,0], "fy": P_r[1,1], "cx": P_r[0,2], "cy": P_r[1,2]
-        }
-        ##########################
-
-        imu_out = {
-            "transform": cam0["T_BS"]["data"],  # camera->IMU extrinsic as provided
-            "gyro_noise": imu["gyroscope_noise_density"],
-            "gyro_bias": imu["gyroscope_random_walk"],
-            "accel_noise": imu["accelerometer_noise_density"],
-            "accel_bias": imu["accelerometer_random_walk"],
-            "frequency": imu["rate_hz"],
-        }
-
-        self.write_calibration_yaml(sequence_name, camera0=camera0, camera1=camera1, imu=imu_out, stereo=stereo)
-
+        imu = {"imu_name": "imu_0",
+            "a_max":  176.0, "g_max": 7.8,
+            "sigma_g_c":  20.0e-4, "sigma_a_c": 20.0e-3,
+            "sigma_bg":  0.01, "sigma_ba":  0.1,
+            "sigma_gw_c":  20.0e-5, "sigma_aw_c": 20.0e-3,
+            "g":  9.81007, "g0": [ 0.0, 0.0, 0.0 ], "a0": [ -0.05, 0.09, 0.01 ],
+            "s_a":  [ 1.0,  1.0, 1.0 ],
+            "fps": 200.0,
+            "T_SC": np.array(np.eye(4)).reshape((4, 4))}
+        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=imu)
+    
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         """
         Write groundtruth.csv from TUM 'supp_v2/gtFiles/mav_<sequence>.txt'.
@@ -274,7 +209,7 @@ class EUROC_dataset(DatasetVSLAMLab):
         tmp = dst.with_suffix(".csv.tmp")
         with open(src, "r", encoding="utf-8") as fin, open(tmp, "w", encoding="utf-8", newline="") as fout:
             w = csv.writer(fout)
-            w.writerow(["ts", "tx", "ty", "tz", "qx", "qy", "qz", "qw"])
+            w.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
 
             for line in fin:
                 s = line.strip()
@@ -284,21 +219,20 @@ class EUROC_dataset(DatasetVSLAMLab):
                 if len(parts) < 8:
                     continue
                 ts_s, tx, ty, tz, qx, qy, qz, qw = parts[:8]
-                w.writerow([ts_s, tx, ty, tz, qx, qy, qz, qw])
+                ts_ns = int(Decimal(ts_s) * Decimal(10**9))
+                w.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
 
         tmp.replace(dst)
         with suppress(FileNotFoundError):
             tmp.unlink()
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        """
-        Remove bulky raw folders after we’ve produced benchmark-ready files.
-        Comment out if you want to keep raw data for debugging.
-        """
         seq = self.dataset_path / sequence_name
         for rel in ("mav0", "__MACOSX"):
             with suppress(FileNotFoundError):
                 shutil.rmtree(seq / rel)
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            (self.dataset_path / f"{sequence_name}.zip").unlink(missing_ok=True)
 
     def _download_url_for(self, sequence_name: str) -> str:
         """
@@ -318,4 +252,5 @@ class EUROC_dataset(DatasetVSLAMLab):
 
         # ensure trailing slash in root before urljoin
         root = self.url_download_root.rstrip("/") + "/"
-        return urljoin(root, f"{sub}/{sequence_name}/{sequence_name}.zip")
+        import os
+        return os.path.join(root, f"{sub}/{sequence_name}/{sequence_name}.zip")
