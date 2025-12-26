@@ -1,6 +1,5 @@
 import os.path
 import tarfile
-from pathlib import Path
 from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
@@ -34,7 +33,7 @@ class ORBSLAM2_baseline(BaselineVSLAMLab):
     def is_installed(self) -> tuple[bool, str]: 
         return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
 
-    def orbslam2_download_vocabulary(self)-> None: # Download ORBvoc.txt
+    def orbslam2_download_vocabulary(self) -> None: # Download ORBvoc.txt
         vocabulary_folder = self.baseline_path / 'Vocabulary'
         vocabulary_txt = vocabulary_folder / 'ORBvoc.txt'
         if not vocabulary_txt.is_file():
