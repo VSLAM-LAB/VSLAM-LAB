@@ -3,6 +3,8 @@ dataset_name: nuim
 rgb_hz: 30.0
 url_download_root: "https://www.doc.ic.ac.uk/~ahanda"
 modes: ['mono', 'rgbd']
+cam_models: ['pinhole']
+depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
   - living_room_traj0_frei_png

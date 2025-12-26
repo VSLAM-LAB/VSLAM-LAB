@@ -4,6 +4,7 @@ rgb_hz: 30.0
 url_download_root: "https://drive.usercontent.google.com/download?id=1N9BkpQuibIyIBkLxVPUuoB-eDOMFqY8D&export=download&authuser=0&confirm=t&uuid=c93c9d2a-b03b-48b5-bd51-001aa888659f&at=APZUnTXTTMsg_q-Ak73e-LkVBgGb%3A1722478436077"
 url_download_gt_root: "https://cmu.box.com/shared/static/3p1sf0eljfwrz4qgbpc6g95xtn2alyfk.zip"
 modes: ['mono']
+cam_models: ['pinhole']
 
 sequence_names:
   - ME000

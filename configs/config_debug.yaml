@@ -1,18 +1,17 @@
-eth:
-  - 'table_3'
+# eth:
+#   - 'table_3'
 rgbdtum:
   - 'rgbd_dataset_freiburg1_xyz'
-euroc:
-  - MH_01_easy
-
-# kitti:
-#  - '04'
-
-tartanair:
- - 'ME000'
-
+# tartanair:
+#  - 'ME000'
 # replica:
 #  - 'office0'
+# nuim:
+# - 'traj0_frei_png'
+# euroc:
+#   - MH_01_easy
+# kitti:
+#  - '04'
 
   # - MH_02_easy
   # - MH_03_medium

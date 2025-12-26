@@ -188,6 +188,7 @@ def run_exp(exp_yaml: str | Path) -> None:
 
             if num_executed_runs == 0:
                 print(f"\n{SCRIPT_LABEL}Running experiments (in {exp_yaml}) ...")
+
             results = run_sequence(row['exp_it'], exp, baseline, dataset, row['sequence_name'])
 
             duration_time = results['duration_time']

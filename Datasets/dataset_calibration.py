@@ -1,5 +1,7 @@
 import os, cv2
 import numpy as np
+from pathlib import Path
+from typing import List
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
@@ -16,8 +18,8 @@ def _opencv_matrix_yaml(name, M, dtype='f'):
         ""
     ]
 
-def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz, prefix="Camera"):
-    """Generate YAML lines for camera parameters."""
+def _get_rgb_yaml_section(camera_params, sequence_name: str, dataset_path: Path) -> List[str]:
+    """Generate YAML lines for rgb parameters."""
     # Get image dimensions
     sequence_path = os.path.join(dataset_path, sequence_name)
     rgb_path = os.path.join(sequence_path, 'rgb_0')
@@ -41,98 +43,58 @@ def _get_camera_yaml_section(dataset_path, camera_params, sequence_name, rgb_hz,
                 h, w, channels = image_0.shape
 
     lines = []
-    
-    # Camera model (Required)
-    if 'model' in camera_params:
-        lines.append(f"{prefix}.model: {camera_params['model']}")
-        lines.append("") # Add a blank line for readability
-    
-    # Intrinsic parameters (fx, fy, cx, cy - usually all present)
-    lines.append(f"{prefix}.fx: {camera_params['fx']}")
-    lines.append(f"{prefix}.fy: {camera_params['fy']}")
-    lines.append(f"{prefix}.cx: {camera_params['cx']}")
-    lines.append(f"{prefix}.cy: {camera_params['cy']}")
-    lines.append("")
+    lines.append(f"  - {{cam_name: {camera_params['cam_name']},")
+    lines.append(f"     cam_type: {camera_params['cam_type']},")
+    lines.append(f"     cam_model: {camera_params['cam_model']},")
+    if 'distortion_type' in camera_params:
+        lines.append(f"     distortion_type: {camera_params['distortion_type']},")
+    lines.append(f"     focal_length: {camera_params['focal_length']},")
+    lines.append(f"     principal_point: {camera_params['principal_point']},")
+    if 'distortion_coefficients' in camera_params:
+        lines.append(f"     distortion_coefficients: {camera_params['distortion_coefficients']}, ")
 
-    # Distortion parameters (conditionally added)
-    # Plumb-bob / Rational polynomial / Fisheye parameters
-    # Order for ORB_SLAM typically k1, k2, p1, p2, k3 (for plumb-bob)
-    # For Fisheye: k1, k2, k3, k4
-    # For Rational: k1, k2, p1, p2, k3, k4, k5, k6
-    
-    distortion_keys_ordered = ['k1', 'k2', 'p1', 'p2', 'k3', 'k4', 'k5', 'k6']
-    added_distortion_param = False
-    for key in distortion_keys_ordered:
-        if key in camera_params:
-            lines.append(f"{prefix}.{key}: {camera_params[key]}")
-            added_distortion_param = True
-    
-    if added_distortion_param:
-        lines.append("") # Add a blank line after distortion parameters
+    lines.append(f"     image_dimension: [{w}, {h}],")
+    lines.append(f"     fps: {camera_params['fps']},")
 
-    # Image dimensions (w, h)
-    lines.append(f"{prefix}.w: {w}")
-    lines.append(f"{prefix}.h: {h}")
-    lines.append("")
-    
-    # Camera frames per second
-    lines.append("# Camera frames per second")
-    lines.append(f"{prefix}.fps: {rgb_hz}")
-    
+    T_SC_data = camera_params['T_SC']
+    flat_list_str = [f"{x:.13f}" for x in T_SC_data.flatten()]
+    lines.append("     T_SC: [" + ', '.join(flat_list_str) + "]")
+
+    lines.append(f"    }}\n")
     return lines
 
-def _get_imu_yaml_section(imu_params):
+def _get_rgbd_yaml_section(camera_params, sequence_name: str, dataset_path: Path) -> List[str]:
+    """Generate YAML lines for rgb parameters."""
+    # """Generate YAML lines for RGBD parameters."""
+    lines = _get_rgb_yaml_section(camera_params, sequence_name, dataset_path);
+    lines.insert(2, f"     depth_name: {camera_params['depth_name']},")
+    lines.insert(8, f"     depth_factor: {camera_params['depth_factor']},")
+    return lines
+
+def _get_imu_yaml_section(imu_params) -> List[str]:
     """Generate YAML lines for IMU parameters."""
     lines = []
-    
-    # IMU transform
-    if 'transform' in imu_params:
-        transform = imu_params['transform']
-        
-        # Flatten the transform if it's a nested list
-        if isinstance(transform[0], list):  # nested list format [[...], [...], ...]
-            flat_transform = [item for row in transform for item in row]
-        else:  # already flat list [...]
-            flat_transform = transform
-        
-        lines.extend([
-            "# Transformation from camera to IMU",
-            "IMU.T_b_c1: !!opencv-matrix",
-            "  rows: 4",
-            "  cols: 4",
-            "  dt: f",
-            "  data: [" + ", ".join(map(str, flat_transform[:4])) + ",",
-            "         " + ", ".join(map(str, flat_transform[4:8])) + ",",
-            "         " + ", ".join(map(str, flat_transform[8:12])) + ",",
-            "         " + ", ".join(map(str, flat_transform[12:16])) + "]",
-            ""
-        ])
-    lines.append("# IMU noise")
-    # Noise parameters
-    if 'gyro_noise' in imu_params:
-        lines.append(f"IMU.NoiseGyro: {imu_params['gyro_noise']:e}")
-    if 'accel_noise' in imu_params:
-        lines.append(f"IMU.NoiseAcc: {imu_params['accel_noise']:e}")
-    if 'gyro_bias' in imu_params:
-        lines.append(f"IMU.GyroWalk: {imu_params['gyro_bias']:e}")
-    if 'accel_bias' in imu_params:
-        lines.append(f"IMU.AccWalk: {imu_params['accel_bias']:e}")
-    if 'frequency' in imu_params:
-        lines.append(f"IMU.Frequency: {imu_params['frequency']:e}")
-    
-    return lines
+    lines.append(f"  - {{imu_name: {imu_params['imu_name']},")
+    lines.append(f"     a_max: {imu_params['a_max']}, # acceleration saturation [m/s^2]")
+    lines.append(f"     g_max: {imu_params['g_max']},  # gyro saturation [rad/s]")
+    lines.append(f"     sigma_g_c: {imu_params['sigma_g_c']}, # gyro noise density [rad/s/sqrt(Hz)]")
+    lines.append(f"     sigma_bg: {imu_params['sigma_bg']}, # accelerometer noise density [m/s^2/sqrt(Hz)]")
+    lines.append(f"     sigma_a_c: {imu_params['sigma_a_c']}, # gyro bias prior [rad/s]")
+    lines.append(f"     sigma_ba: {imu_params['sigma_ba']}, # accelerometer bias prior [m/s^2]")
+    lines.append(f"     sigma_gw_c: {imu_params['sigma_gw_c']}, # gyro drift noise density [rad/s^s/sqrt(Hz)]")
+    lines.append(f"     sigma_aw_c: {imu_params['sigma_aw_c']}, # accelerometer drift noise density [m/s^2/sqrt(Hz)]")
+    lines.append(f"     a0: {imu_params['a0']}, # initial accelerometer bias [m/s^2]")
+    lines.append(f"     g0: {imu_params['g0']}, # initial gyro bias [rad/s]")
+    lines.append(f"     g: {imu_params['g']}, # Earth's acceleration due to gravity [m/s^2]")
+    lines.append(f"     s_a: {imu_params['s_a']}, # scale factor for accelerometer measurements: a_true = s_a * a_meas + b_a")
+    lines.append(f"     fps: {imu_params['fps']},")
 
+    T_SC_data = imu_params['T_SC']
+    flat_list_str = [f"{x:.13f}" for x in T_SC_data.flatten()]
+    lines.append("     T_SC: [" + ', '.join(flat_list_str) + "]")
 
-def _get_rgbd_yaml_section(rgbd_params, prefix="Depth"):
-    """Generate YAML lines for RGBD parameters."""
-    lines = []
-    
-    if 'depth0_factor' in rgbd_params:
-        lines.append(f"{prefix}.factor: {rgbd_params['depth0_factor']:e}")
-    
-    if 'depth0_scale' in rgbd_params:
-        lines.append(f"{prefix}.scale: {rgbd_params['depth0_scale']:e}")
-    
+    lines.append(f"    }}\n")
+
     return lines
 
 def _get_stereo_yaml_section(stereo_params):

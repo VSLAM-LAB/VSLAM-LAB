@@ -1,19 +1,23 @@
-import os, yaml, shutil 
-import numpy as np
-import csv
-from typing import Final
+from __future__ import annotations
 
+from pathlib import Path
+import os, shutil 
+
+import csv
+import yaml
+
+import numpy as np
 from scipy.spatial.transform import Rotation as R
+
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
-from path_constants import VSLAMLAB_BENCHMARK
-from pathlib import Path
+from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 from Datasets.DatasetIssues import _get_dataset_issue
 
-DEFAULT_DEPTH_FACTOR: Final = 6553.5
+CAMERA_PARAMS = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy, cx, cy)
 
 class REPLICA_dataset(DatasetVSLAMLab):
-    """REPLICA dataset helper for VSLAMLab benchmark."""
+    """REPLICA dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "replica") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
@@ -28,6 +32,9 @@ class REPLICA_dataset(DatasetVSLAMLab):
         # Sequence nicknames
         self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_names]
 
+        # Depth factor
+        self.depth_factor = cfg["depth_factor"]
+
     def download_sequence_data(self, sequence_name: str) -> None:
 
         # Variables
@@ -37,8 +44,8 @@ class REPLICA_dataset(DatasetVSLAMLab):
         download_url = self.url_download_root
 
         # Constants
-        compressed_file = os.path.join(VSLAMLAB_BENCHMARK, compressed_name_ext)
-        decompressed_folder = os.path.join(VSLAMLAB_BENCHMARK, decompressed_name)
+        compressed_file = VSLAMLAB_BENCHMARK / compressed_name_ext
+        decompressed_folder = VSLAMLAB_BENCHMARK / decompressed_name
 
         # Download the compressed file
         if not os.path.exists(compressed_file):
@@ -46,35 +53,35 @@ class REPLICA_dataset(DatasetVSLAMLab):
 
         if (not os.path.isdir(decompressed_folder)) or (next(os.scandir(decompressed_folder), None) is None):
             decompressFile(compressed_file, VSLAMLAB_BENCHMARK)
-            os.rename(os.path.join(VSLAMLAB_BENCHMARK, 'Replica'), decompressed_folder)
+            os.rename(VSLAMLAB_BENCHMARK / 'Replica', decompressed_folder)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        results_path = os.path.join(sequence_path, 'results')
-        rgb_path = os.path.join(sequence_path, 'rgb_0')
-        depth_path = os.path.join(sequence_path, 'depth_0')
+        sequence_path = self.dataset_path / sequence_name
+        results_path = sequence_path / 'results'
+        rgb_path = sequence_path / 'rgb_0'
+        depth_path = sequence_path / 'depth_0'
 
         if not os.path.exists(rgb_path):
             os.rename(results_path, rgb_path)
             os.makedirs(depth_path, exist_ok=True)
             for filename in os.listdir(rgb_path):
                 if 'depth' in filename:
-                    old_file = os.path.join(rgb_path, filename)
-                    new_file = os.path.join(depth_path, filename.replace('depth', ''))
+                    old_file = rgb_path / filename
+                    new_file = depth_path / filename.replace('depth', '')
                     shutil.move(old_file, new_file)
 
                 if 'frame' in filename:
-                    old_file = os.path.join(rgb_path, filename)
-                    new_file = os.path.join(rgb_path, filename.replace('frame', ''))
+                    old_file = rgb_path / filename
+                    new_file = rgb_path / filename.replace('frame', '')
                     os.rename(old_file, new_file)
 
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb_0')
-        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
+        sequence_path = self.dataset_path / sequence_name
+        rgb_path = sequence_path / 'rgb_0'
+        rgb_csv = sequence_path / 'rgb.csv'
 
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
+        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
         rgb_files.sort()
 
         with open(rgb_csv, 'w', newline='') as csvfile:
@@ -88,18 +95,19 @@ class REPLICA_dataset(DatasetVSLAMLab):
                 writer.writerow([f"{ts:.5f}", f"rgb_0/{filename}", f"{ts:.5f}", f"depth_0/{depth_name}"])
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-
-        fx, fy, cx, cy = 600.0, 600.0, 599.5, 339.5
-        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
-        rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
-
-        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
+        fx, fy, cx, cy = CAMERA_PARAMS
+        rgbd0 = {"cam_name": "rgb0", "cam_type": "rgb+depth", "depth_name": "depth0",
+                "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
+                "depth_factor": float(self.depth_factor),
+                "fps": float(self.rgb_hz),
+                "T_SC": np.eye(4)}        
+        self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
-        traj_txt = os.path.join(sequence_path, 'traj.txt')
-        out_csv = os.path.join(sequence_path, 'groundtruth.csv')
+        sequence_path = self.dataset_path / sequence_name
+        rgb_csv = sequence_path / 'rgb.csv'
+        traj_txt = sequence_path / 'traj.txt'
+        groundtruth_csv = sequence_path /'groundtruth.csv'
 
         # Read RGB timestamps from CSV (skip header)
         rgb_timestamps = []
@@ -112,7 +120,7 @@ class REPLICA_dataset(DatasetVSLAMLab):
                 rgb_timestamps.append(float(row[0]))
 
         # Write groundtruth.csv with header
-        with open(traj_txt, 'r') as src, open(out_csv, 'w', newline='') as dst:
+        with open(traj_txt, 'r') as src, open(groundtruth_csv, 'w', newline='') as dst:
             writer = csv.writer(dst)
             writer.writerow(['ts', 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw'])
 
@@ -131,9 +139,20 @@ class REPLICA_dataset(DatasetVSLAMLab):
 
                 writer.writerow([f"{ts:.5f}", tx, ty, tz, qx, qy, qz, qw])
 
+    def remove_unused_files(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        if BENCHMARK_RETENTION != Retention.FULL:
+            (sequence_path / "traj.txt").unlink(missing_ok=True)
+            (self.dataset_path / "cam_params.json").unlink(missing_ok=True)
+            for ply_file in self.dataset_path.glob("*.ply"):
+                ply_file.unlink(missing_ok=True)
+
     def get_download_issues(self, _):
         return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=12.4)]
 
     def download_process(self, _):
         for sequence_name in self.sequence_names:
             super().download_process(sequence_name)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            (VSLAMLAB_BENCHMARK / f"Replica.zip").unlink(missing_ok=True)

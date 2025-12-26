@@ -6,54 +6,61 @@ import threading
 import time
 import queue
 import pynvml
+from pathlib import Path
 from huggingface_hub import hf_hub_download
 from pynvml import nvmlInit, nvmlShutdown, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo
 
 from utilities import ws, print_msg
 from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME
 
-
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
-class BaselineVSLAMLab:
 
-    def __init__(self, baseline_name, baseline_folder, default_parameters=''):
-        self.baseline_name = baseline_name
-        self.baseline_folder = baseline_folder
-        self.baseline_path = os.path.join(VSLAMLAB_BASELINES, baseline_folder)
-        self.label = f"\033[96m{baseline_name}\033[0m"
-        self.settings_yaml = os.path.join(self.baseline_path, f'vslamlab_{baseline_name}_settings.yaml')
+class BaselineVSLAMLab:
+    """Base baseline class for VSLAM-LAB."""
+    def __init__(self, baseline_name: str, baseline_folder: str, default_parameters='') -> None:  
+        # Basic fields
+        self.baseline_name: str = baseline_name
+        self.baseline_folder: str = baseline_folder
+        self.label: str = f"\033[96m{baseline_name}\033[0m"
+        self.color: str = 'black'
+        self.name_label: str = baseline_folder
+
+        # Paths
+        self.baseline_path: Path = VSLAMLAB_BASELINES / baseline_folder
+        self.settings_yaml: Path = self.baseline_path / f'vslamlab_{baseline_name}_settings.yaml'
+
+        # Defaults parameters
         self.default_parameters = default_parameters
-        self.color = 'black'
-        self.name_label = baseline_folder
+        
 
     def get_default_parameters(self):
         return self.default_parameters
 
-    def is_cloned(self):
-        if os.path.isdir(os.path.join(self.baseline_path, '.git')):
+    def is_cloned(self) -> bool:
+        if os.path.isdir(self.baseline_path / '.git'):
             return True
         return False
     
-    def git_clone(self):
+    def git_clone(self) -> None:
         if self.is_cloned():
             return
 
-        log_file_path = os.path.join(VSLAMLAB_BASELINES, f'git_clone_{self.baseline_name}.txt')
+        log_file_path = VSLAMLAB_BASELINES / f'git_clone_{self.baseline_name}.txt'
         git_clone_command = f"pixi run --frozen -e {self.baseline_name} git-clone"
         with open(log_file_path, 'w') as log_file:
             print(f"\n{SCRIPT_LABEL}git clone {self.label}\033[0m : {self.baseline_path}")
             print(f"{ws(6)} log file: {log_file_path}")
             subprocess.run(git_clone_command, shell=True, stdout=log_file, stderr=log_file)
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         return False
 
-    def install(self):
+    def install(self) -> None:
         if self.is_installed()[0]:
             return
 
-        log_file_path = os.path.join(self.baseline_path, f'install_{self.baseline_name}.txt')
+        log_file_path = self.baseline_path / f'install_{self.baseline_name}.txt'
         install_command = f"pixi run --frozen -e {self.baseline_name} install -v"
         with open(log_file_path, 'w') as log_file:
             print(f"\n{SCRIPT_LABEL}Installing {self.label}\033[0m : {self.baseline_path}")
@@ -125,7 +132,9 @@ class BaselineVSLAMLab:
                 swap_inc_max = max(swap_inc_max, swap_inc)
                 gpu_inc_max = max(gpu_inc_max, gpu_inc)
 
-                swap_perc, ram_perc = swap_used / swap_max, ram_used / ram_max
+                swap_perc = swap_used / swap_max if swap_max > 0 else 0.0    
+                ram_perc = ram_used / ram_max if ram_max > 0 else 0.0
+
                 if ram_perc > MAX_RAM_PERC:
                     print_msg(SCRIPT_LABEL, f"Memory threshold exceeded  {ram_used:0.1f} GB / {ram_max:0.1f} GB > {100 * MAX_RAM_PERC:0.2f} %",'error')
                     success_flag[0] = False
@@ -187,9 +196,9 @@ class BaselineVSLAMLab:
         }
 
     def build_execute_command_cpp(self, exp_it, exp, dataset, sequence_name):
-        sequence_path = os.path.join(dataset.dataset_path, sequence_name)
+        sequence_path = dataset.dataset_path / sequence_name
         exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
-        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+        calibration_yaml = sequence_path / 'calibration.yaml'
         rgb_exp_csv = os.path.join(exp_folder, 'rgb_exp.csv')
 
         vslamlab_command = [f"sequence_path:{sequence_path}",
@@ -215,14 +224,20 @@ class BaselineVSLAMLab:
             vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-stereo " + ' '.join(vslamlab_command)
 
         if "mode:mono-vi" in vslamlab_command:
-            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono_vi " + ' '.join(vslamlab_command)
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-mono-vi " + ' '.join(vslamlab_command)
+
+        if "mode:rgbd-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-rgbd-vi " + ' '.join(vslamlab_command)
+
+        if "mode:stereo-vi" in vslamlab_command:
+            vslamlab_command = f"pixi run --frozen -e {self.baseline_name} execute-stereo-vi " + ' '.join(vslamlab_command)
 
         return vslamlab_command
 
     def build_execute_command_python(self, exp_it, exp, dataset, sequence_name):
-        sequence_path = os.path.join(dataset.dataset_path, sequence_name)
+        sequence_path = dataset.dataset_path / sequence_name
         exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
-        calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
+        calibration_yaml = sequence_path / 'calibration.yaml'
         rgb_exp_csv = os.path.join(exp_folder, 'rgb_exp.csv')
 
         vslamlab_command = [f"--sequence_path {sequence_path}",

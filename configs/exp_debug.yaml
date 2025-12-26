@@ -1,35 +1,11 @@
-exp_mast3r_mono:
+exp_droidslam_dev_mono:
   Config: config_debug.yaml
   NumRuns: 3
-  Parameters: {verbose: 0, rgb_idx: [0,1000]}
-  Module: mast3rslam-dev
-
-exp_droidslam_mono:
-  Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0, rgb_idx: [0,1000]}
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: rgbd}
   Module: droidslam-dev
 
-exp_dpvo_mono:
-  Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0, rgb_idx: [0,1000]}
-  Module: dpvo-dev
-
-exp_orbslam2_mono:
-  Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0, rgb_idx: [0,1000]}
-  Module: orbslam2-dev
-
-exp_colmap_mono:
-  Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0, rgb_idx: [0,1000]}
-  Module: colmap
-
-exp_glomap_mono:
-  Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0, rgb_idx: [0,1000]}
-  Module: glomap
+# exp_okivs2_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono-vi}
+#   Module: okvis2

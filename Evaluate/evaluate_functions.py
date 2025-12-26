@@ -46,7 +46,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     zip_files = []
     for exp_it in tqdm(runs_to_evaluate):
         trajectory_file = os.path.join(trajectories_path, f"{exp_it}_{TRAJECTORY_FILE_NAME}.csv")
-        success = evo_metric('ate', groundtruth_csv, trajectory_file, evaluation_folder, 1.0 / dataset.rgb_hz)
+        success = evo_metric('ate', groundtruth_csv, trajectory_file, evaluation_folder, 10e9 / dataset.rgb_hz)
         if success[0]:
             zip_files.append(os.path.join(evaluation_folder, f"{exp_it}_{TRAJECTORY_FILE_NAME}.zip"))
         else:

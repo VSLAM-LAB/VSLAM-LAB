@@ -3,7 +3,8 @@ dataset_name: kitti
 rgb_hz: 10.0
 url_download_root: "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_odometry_gray.zip"
 url_download_root_gt: "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_odometry_poses.zip"
-modes: ['mono']
+modes: ['mono', 'stereo']
+cam_models: ['pinhole']
 
 sequence_names:
   - '00'

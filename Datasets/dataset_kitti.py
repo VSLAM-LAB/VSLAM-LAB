@@ -1,19 +1,24 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Final, Iterable
+from urllib.parse import urljoin
 import os
-import yaml
 import shutil
+
 import csv
+import yaml
+
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from pathlib import Path
-
-
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
+from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 from Datasets.DatasetIssues import _get_dataset_issue
 
 class KITTI_dataset(DatasetVSLAMLab):
-    """KITTI dataset helper for VSLAMLab benchmark."""
+    """KITTI dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "kitti") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
@@ -38,8 +43,8 @@ class KITTI_dataset(DatasetVSLAMLab):
         download_url = self.url_download_root
 
         # Constants
-        compressed_file = os.path.join(self.dataset_path, compressed_name_ext)
-        decompressed_folder = os.path.join(self.dataset_path, decompressed_name)
+        compressed_file = self.dataset_path / compressed_name_ext
+        decompressed_folder = self.dataset_path / decompressed_name
 
         # Download the compressed file
         if not os.path.exists(compressed_file):
@@ -49,30 +54,30 @@ class KITTI_dataset(DatasetVSLAMLab):
         # Decompress the file
         if not os.path.exists(decompressed_folder):
             decompressFile(compressed_file, self.dataset_path)
-            decompressFile(os.path.join(self.dataset_path, 'data_odometry_poses.zip'), self.dataset_path)
+            decompressFile(self.dataset_path / 'data_odometry_poses.zip', self.dataset_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb_0')
-        if not os.path.exists(rgb_path):
-            os.makedirs(rgb_path)
+        sequence_path = self.dataset_path / sequence_name
+        for rgb_i, image in zip(['rgb_0', 'rgb_1'], ['image_0', 'image_1']):    
+            rgb_path = sequence_path / rgb_i
+            if not os.path.exists(rgb_path):
+                os.makedirs(rgb_path)
 
-        rgb_path_0 = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'image_0')
-        if not os.path.exists(rgb_path_0):
-            return
+            rgb_path_raw = self.dataset_path / 'dataset' / 'sequences' / sequence_name / image
+            if not os.path.exists(rgb_path_raw):
+                return
 
-        for png_file in os.listdir(rgb_path_0):
-            if png_file.endswith(".png"):
-                shutil.move(os.path.join(rgb_path_0, png_file), os.path.join(rgb_path, png_file))
+            for png_file in os.listdir(rgb_path_raw):
+                if png_file.endswith(".png"):
+                    shutil.move(rgb_path_raw / png_file, rgb_path / png_file)
 
-        shutil.rmtree(rgb_path_0)
+            shutil.rmtree(rgb_path_raw)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb_0')
-        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
+        sequence_path = self.dataset_path / sequence_name
+        rgb_csv = sequence_path / 'rgb.csv'
 
-        times_txt = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'times.txt')
+        times_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'times.txt'
 
         # Read timestamps
         times = []
@@ -83,33 +88,42 @@ class KITTI_dataset(DatasetVSLAMLab):
                     times.append(float(line))
 
         # Collect and sort image filenames
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
+        rgb_path = sequence_path / 'rgb_0'
+        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
         rgb_files.sort()
 
         # Write CSV with header
         with open(rgb_csv, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['ts_rgb0 (s)', 'path_rgb0']) 	
+            writer.writerow(['ts_rgb0 (s)', 'path_rgb0', 'ts_rgb1 (s)', 'path_rgb1']) 	
             for t, fname in zip(times, rgb_files):  # pairs safely to the shorter list
-                writer.writerow([f"{t:.6f}", f"rgb_0/{fname}"])
+                writer.writerow([f"{t:.6f}", f"rgb_0/{fname}", f"{t:.6f}", f"rgb_1/{fname}"])
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-
-        calibration_txt = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'calib.txt')
-        if not os.path.exists(calibration_txt):
-            return
+        calibration_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'calib.txt'
 
         with open(calibration_txt, 'r') as file:
-            calibration = [value for value in file.readline().split()]
+            calibration_0 = [value for value in file.readline().split()]
+            fx_0, fy_0, cx_0, cy_0 = calibration_0[1], calibration_0[6], calibration_0[3], calibration_0[7]
+            calibration_1 = [value for value in file.readline().split()]
+            fx_1, fy_1, cx_1, cy_1 = calibration_1[1], calibration_1[6], calibration_1[3], calibration_1[7]
 
-        fx, fy, cx, cy = calibration[1], calibration[6], calibration[3], calibration[7]
-
-        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
-        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0)
-
+        rgb0 = {"cam_name": "rgb0", "cam_type": "rgb",
+                "cam_model": "pinhole", "focal_length": [fx_0, fy_0], "principal_point": [cx_0, cy_0],
+                "fps": self.rgb_hz,
+                "T_SC": np.eye(4)}
+        
+        T_SC_1 = np.eye(4)
+        T_SC_1[0, 3] = float(calibration_1[4]) / float(fx_0)
+        rgb1 = {"cam_name": "rgb1", "cam_type": "rgb",
+                "cam_model": "pinhole", "focal_length": [fx_1, fy_1], "principal_point": [cx_1, cy_1],
+                "fps": self.rgb_hz,
+                "T_SC": T_SC_1}
+        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1])
+    
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        out_csv = os.path.join(sequence_path, 'groundtruth.csv')
+        sequence_path = self.dataset_path / sequence_name
+        out_csv = sequence_path / 'groundtruth.csv'
 
         # Keep your original guard
         sequence_name_int = int(sequence_name)
@@ -117,7 +131,7 @@ class KITTI_dataset(DatasetVSLAMLab):
             return
 
         # Read timestamps
-        times_txt = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name, 'times.txt')
+        times_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'times.txt'
         times = []
         with open(times_txt, 'r') as f:
             for line in f:
@@ -126,7 +140,7 @@ class KITTI_dataset(DatasetVSLAMLab):
                     times.append(float(line))
 
         # Read trajectory and write CSV
-        poses_txt = os.path.join(self.dataset_path, 'dataset', 'poses', sequence_name + '.txt')
+        poses_txt = self.dataset_path / 'dataset' / 'poses' / (sequence_name + '.txt')
         with open(poses_txt, 'r') as src, open(out_csv, 'w', newline='') as dst:
             writer = csv.writer(dst)
             writer.writerow(['ts', 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw'])  # header
@@ -145,35 +159,16 @@ class KITTI_dataset(DatasetVSLAMLab):
 
                 writer.writerow([f"{ts:.6f}", tx, ty, tz, qx, qy, qz, qw])
 
-    # def remove_unused_files(self, sequence_name: str) -> None:
-    #     sequence_folder = os.path.join(self.dataset_path, 'dataset', 'sequences', sequence_name)
-    #     if os.path.exists(sequence_folder):
-    #         shutil.rmtree(sequence_folder)
-
-    #     sequences_folder = os.path.join(self.dataset_path, 'dataset', 'sequences')
-    #     if os.path.exists(sequences_folder):
-    #         if not os.listdir(sequences_folder):
-    #             shutil.rmtree(sequences_folder)
-
-    #     sequence_name_int = int(sequence_name)
-    #     if sequence_name_int < 11:
-    #         groundtruth_txt_0 = os.path.join(self.dataset_path, 'dataset', 'poses', sequence_name + '.txt')
-    #         if os.path.exists(groundtruth_txt_0):
-    #             os.remove(groundtruth_txt_0)
-
-    #     poses_folder = os.path.join(self.dataset_path, 'dataset', 'poses')
-    #     if os.path.exists(poses_folder):
-    #         if not os.listdir(poses_folder):
-    #             shutil.rmtree(poses_folder)
-
-    #     dataset_folder = os.path.join(self.dataset_path, 'dataset')
-    #     if os.path.exists(dataset_folder):
-    #         if not os.listdir(dataset_folder):
-    #             shutil.rmtree(dataset_folder)
-
     def get_download_issues(self, _):
         return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=23.2)]
 
     def download_process(self, _):
         for sequence_name in self.sequence_names:
             super().download_process(sequence_name)
+
+        if BENCHMARK_RETENTION != Retention.FULL:
+            (VSLAMLAB_BENCHMARK / f"dataset").unlink(missing_ok=True)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            (VSLAMLAB_BENCHMARK / f"data_odometry_gray.zip").unlink(missing_ok=True)
+            (VSLAMLAB_BENCHMARK / f"data_odometry_poses.zip").unlink(missing_ok=True)

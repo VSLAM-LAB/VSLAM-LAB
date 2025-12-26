@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 from pathlib import Path
-import os, yaml, shutil
+import os
+
 import csv
-from typing import Final
+import yaml
+
+import numpy as np
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
+from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 
-DEFAULT_DEPTH_FACTOR: Final = 5000.0
+CAMERA_PARAMS = [481.20, -480.00, 319.50, 239.50] # Camera intrinsics (fx, fy, cx, cy)
 
 class NUIM_dataset(DatasetVSLAMLab):
-    """NUIM dataset helper for VSLAMLab benchmark."""
+    """NUIM dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "nuim") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
@@ -25,8 +31,11 @@ class NUIM_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [s.replace('_frei_png', '') for s in self.sequence_names]
         self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_nicknames]
 
+        # Depth factor
+        self.depth_factor = cfg["depth_factor"]
+
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.dataset_path / sequence_name
 
         # Variables
         compressed_name_ext = sequence_name + '.tar.gz'
@@ -35,8 +44,8 @@ class NUIM_dataset(DatasetVSLAMLab):
         download_url = os.path.join(self.url_download_root, compressed_name_ext)
 
         # Constants
-        compressed_file = os.path.join(self.dataset_path, compressed_name_ext)
-        decompressed_folder = os.path.join(self.dataset_path, decompressed_name)
+        compressed_file = self.dataset_path / compressed_name_ext
+        decompressed_folder = self.dataset_path / decompressed_name
 
         # Download the compressed file
         if not os.path.exists(compressed_file):
@@ -62,24 +71,24 @@ class NUIM_dataset(DatasetVSLAMLab):
             if png_file.endswith(".png"):
                 name, ext = os.path.splitext(png_file)
                 new_name = f"{int(name):05}{ext}"
-                old_file = os.path.join(rgb_path, png_file)
-                new_file = os.path.join(rgb_path, new_name)
+                old_file = rgb_path / png_file
+                new_file = rgb_path / new_name
                 os.rename(old_file, new_file)
 
         for png_file in os.listdir(depth_path):
             if png_file.endswith(".png"):
                 name, ext = os.path.splitext(png_file)
                 new_name = f"{int(name):05}{ext}"
-                old_file = os.path.join(depth_path, png_file)
-                new_file = os.path.join(depth_path, new_name)
+                old_file = depth_path / png_file
+                new_file = depth_path / new_name
                 os.rename(old_file, new_file)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        rgb_path = os.path.join(sequence_path, 'rgb_0')
-        rgb_csv = os.path.join(sequence_path, 'rgb.csv')
+        sequence_path = self.dataset_path / sequence_name
+        rgb_path = sequence_path / 'rgb_0'
+        rgb_csv = sequence_path / 'rgb.csv'
 
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(os.path.join(rgb_path, f))]
+        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
         rgb_files.sort()
 
         with open(rgb_csv, 'w', newline='') as csvfile:
@@ -92,19 +101,21 @@ class NUIM_dataset(DatasetVSLAMLab):
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
 
-        fx, fy, cx, cy = 481.20, -480.00, 319.50, 239.50
-        camera0 = {"model": "Pinhole", "fx": fx, "fy": fy, "cx": cx, "cy": cy}
-        rgbd = {"depth0_factor": float(DEFAULT_DEPTH_FACTOR)}
-
-        self.write_calibration_yaml(sequence_name=sequence_name, camera0=camera0, rgbd=rgbd)
+        fx, fy, cx, cy = CAMERA_PARAMS
+        rgbd0 = {"cam_name": "rgb0", "cam_type": "rgb+depth", "depth_name": "depth0",
+                "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
+                "depth_factor": float(self.depth_factor),
+                "fps": float(self.rgb_hz),
+                "T_SC": np.eye(4)}        
+        self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-        groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
-        groundtruth_csv = os.path.join(sequence_path, 'groundtruth.csv')
+        sequence_path = self.dataset_path / sequence_name
+        groundtruth_txt = sequence_path / 'groundtruth.txt'
+        groundtruth_csv = sequence_path / 'groundtruth.csv'
 
         freiburg_txt = [file for file in os.listdir(sequence_path) if 'freiburg' in file.lower()]
-        with open(os.path.join(sequence_path, freiburg_txt[0]), 'r') as source_file:
+        with open(sequence_path / freiburg_txt[0], 'r') as source_file:
             with open(groundtruth_txt, 'w') as destination_txt_file, \
                 open(groundtruth_csv, 'w', newline='') as destination_csv_file:
 
@@ -117,3 +128,13 @@ class NUIM_dataset(DatasetVSLAMLab):
                     
                     destination_txt_file.write(" ".join(values) + "\n")
                     csv_writer.writerow(values)
+
+    def remove_unused_files(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+
+        if BENCHMARK_RETENTION != Retention.FULL:
+            for name in ("associations.txt", "groundtruth.txt", "traj0.gt.freiburg"):
+                (sequence_path / name).unlink(missing_ok=True)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            (VSLAMLAB_BENCHMARK / f"{sequence_name}.tar.gz").unlink(missing_ok=True)

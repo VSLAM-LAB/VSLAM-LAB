@@ -17,12 +17,13 @@ from abc import ABC, abstractmethod
 
 from utilities import ws
 from path_constants import VSLAM_LAB_DIR
-from Datasets.dataset_calibration import _get_camera_yaml_section
+from Datasets.dataset_calibration import _get_rgb_yaml_section
 from Datasets.dataset_calibration import _get_imu_yaml_section
 from Datasets.dataset_calibration import _get_rgbd_yaml_section
 from Datasets.dataset_calibration import _get_stereo_yaml_section
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+
 
 class DatasetVSLAMLab:
     """Base dataset class for VSLAM-LAB."""
@@ -56,11 +57,11 @@ class DatasetVSLAMLab:
         if sequence_availability == "available":
             #print(f"{SCRIPT_LABEL}Sequence {self.dataset_color}{sequence_name}:\033[92m downloaded\033[0m")
             return
-        if sequence_availability == "corrupted":
-            print(f"{ws(8)}Some files in sequence {sequence_name} are corrupted.")
-            print(f"{ws(8)}Removing and downloading again sequence {sequence_name} ")
-            print(f"{ws(8)}THIS PART OF THE CODE IS NOT YET IMPLEMENTED. REMOVE THE FILES MANUALLY")
-            sys.exit(1)
+        # if sequence_availability == "corrupted":
+        #     print(f"{ws(8)}Some files in sequence {sequence_name} are corrupted.")
+        #     print(f"{ws(8)}Removing and downloading again sequence {sequence_name} ")
+        #     print(f"{ws(8)}THIS PART OF THE CODE IS NOT YET IMPLEMENTED. REMOVE THE FILES MANUALLY")
+        #     sys.exit(1)
 
         # Download process
         if not os.path.exists(self.dataset_path):
@@ -95,48 +96,36 @@ class DatasetVSLAMLab:
     @abstractmethod
     def remove_unused_files(self, sequence_name: str) -> None: ...
 
-
     def get_download_issues(self, sequence_names):
         return {}
 
-    def write_calibration_yaml(self, sequence_name, camera0=None, camera1=None, imu=None, rgbd=None, stereo=None):
+    def write_calibration_yaml(self, sequence_name, rgb=None, rgbd=None, stereo=None, imu=None):
     #Write calibration YAML file with flexible sensor configuration.
-    #Args:
-    #    sequence_name: Name of the sequence
-    #    camera0: Dict with keys: model, fx, fy, cx, cy, k1, k2, p1, p2, k3
-    #    camera1: Dict with keys: model, fx, fy, cx, cy, k1, k2, p1, p2, k3 (for stereo)
-    #    imu: Dict with keys: transform, accel_noise, gyro_noise, accel_bias, gyro_bias, frequency
-    #    rgbd: Dict with keys: depth_factor, depth_scale (optional)       
 
         sequence_path = os.path.join(self.dataset_path, sequence_name)
         calibration_yaml = os.path.join(sequence_path, 'calibration.yaml')
         
-        yaml_content_lines = ["%YAML:1.0", ""]
+        yaml_content_lines = ["%YAML 1.2", "---",]
 
-        # Camera0 parameters (required)
-        if camera0:
-            yaml_content_lines.extend(["", "# Camera0 calibration and distortion parameters"])
-            yaml_content_lines.extend(_get_camera_yaml_section(self.dataset_path, camera0, sequence_name, self.rgb_hz, "Camera0"))
+        if rgb or rgbd:    
+            yaml_content_lines.extend(["cameras:"])
+            if rgb:
+                for rgb_i in rgb:
+                    yaml_content_lines.extend(_get_rgb_yaml_section(rgb_i, sequence_name, self.dataset_path))
+            if rgbd:
+                for rgbd_i in rgbd:
+                    yaml_content_lines.extend(_get_rgbd_yaml_section(rgbd_i, sequence_name, self.dataset_path))
 
-        # Camera1 parameters (for stereo)
-        if camera1:
-            yaml_content_lines.extend(["", "# Camera1 calibration and distortion parameters"])
-            yaml_content_lines.extend(_get_camera_yaml_section(self.dataset_path, camera1, sequence_name, self.rgb_hz, "Camera1"))
-
-        # IMU parameters
         if imu:
-            yaml_content_lines.extend(["", "# IMU parameters"])
+            yaml_content_lines.extend(["\nimus:"])
             yaml_content_lines.extend(_get_imu_yaml_section(imu))
 
-        # RGBD parameters
-        if rgbd:
-            yaml_content_lines.extend(["", "# Depth0 map parameters"])
-            yaml_content_lines.extend(_get_rgbd_yaml_section(rgbd, "Depth0"))
+ 
         
         # STEREO parameters
-        if stereo:
-            yaml_content_lines.extend(["", "# Stereo map parameters"])
-            yaml_content_lines.extend(_get_stereo_yaml_section(stereo))
+        # if stereo:
+        #     yaml_content_lines.extend(["", "# Stereo map parameters"])
+        #     yaml_content_lines.extend(_get_stereo_yaml_section(stereo))
         
         with open(calibration_yaml, 'w') as file:
             for line in yaml_content_lines:
@@ -181,7 +170,7 @@ class DatasetVSLAMLab:
             complete_sequence = False
 
         if 'mono-vi' in self.modes:
-            imu_csv = os.path.join(sequence_path, 'imu.csv')
+            imu_csv = os.path.join(sequence_path, 'imu_0.csv')
             if not os.path.exists(imu_csv):
                 if verbose:
                     print(f"        The file {imu_csv} doesn't exist !!!!!")

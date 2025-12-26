@@ -30,7 +30,8 @@ orbslam3 = { features = ["orbslam3"] }
 okvis2 = { features = ["okvis2"] }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 
-droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
+#droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
+droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"] }
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
 dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "cuda126py11" }
 monogs-dev = { features = ["monogs-dev", "cuda126", "py10"], solve-group = "cuda126py10" }
@@ -239,7 +240,7 @@ execute-rgbd = 'vslamlab_orbslam2_rgbd'
 execute-stereo = 'vslamlab_orbslam2_stereo'
 
 [feature.orbslam2.dependencies]
-orbslam2 = { channel="fontan" }
+orbslam2-vslamlab = { channel="fontan" }
 pangolin = { channel="fontan" }
 opencv = ">=4.10.0 ,<5"
 
@@ -310,10 +311,14 @@ platforms = ["linux-64"]
 
 [feature.orbslam3.tasks]
 git-clone = 'git clone https://huggingface.co/vslamlab/orbslam3 Baselines/ORB_SLAM3'
-execute-mono_vi = 'vslamlab_orbslam3_mono_vi'
+execute-mono = 'vslamlab_orbslam3_mono'
+execute-rgbd = 'vslamlab_orbslam3_rgbd'
+execute-stereo = 'vslamlab_orbslam3_stereo'
+execute-mono-vi = 'vslamlab_orbslam3_mono_vi'
+execute-stereo-vi = 'vslamlab_orbslam3_stereo_vi'
 
 [feature.orbslam3.dependencies]
-orbslam3 = { channel="fontan" }
+orbslam3-vslamlab = { channel="fontan" }
 pangolin = { channel="fontan" }
 opencv = ">=4.10.0 ,<5"
 
@@ -326,10 +331,10 @@ platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
 git-clone = 'git clone https://huggingface.co/vslamlab/okvis2 Baselines/OKVIS2'
-execute-mono_vi = 'vslamlab_okvis2_mono_vi'
+execute-mono-vi = 'vslamlab_okvis2_mono_vi'
 
 [feature.okvis2.dependencies]
-okvis2 = { channel="fontan" }
+okvis2-vslamlab = { channel="fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -495,14 +500,17 @@ torchvision = "*"
 tensorboard = "*"
 
 # Logging, Evaluation & Visualization
-open3d = ">=0.18.0,<0.19"
-scipy = ">=1.14.1,<2"
-suitesparse = ">=7.8.2,<8"
-matplotlib = ">=3.9.2,<4"
-pyyaml = ">=6.0.2,<7"
+open3d = "*"
+scipy = "*"
+suitesparse = "*"
+matplotlib = "*"
+pyyaml = "*"
 huggingface_hub = "*"
 tqdm = "*"
 pandas = "*"
+eigen = "*"
+moderngl = "*"
+moderngl-window = "=3.1.1" 
 
 # ########################################################################################################################
 # ########################################################################################################################
@@ -516,7 +524,13 @@ cuda = "12.0"
 
 [feature.mast3rslam-dev.tasks]
 git-clone = './git-clone.sh VSLAM-LAB MASt3R-SLAM MASt3R-SLAM-DEV'
-install = { cmd = "pip install -e thirdparty/mast3r && pip install -e thirdparty/in3d && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
+# install-asmk = { cmd = "pip install thirdparty/mast3r/asmk --no-deps --no-build-isolation", cwd = "Baselines/MASt3R-SLAM-DEV" }
+# install-mast3r = { cmd = "pip install -e thirdparty/mast3r --no-build-isolation", cwd = "Baselines/MASt3R-SLAM-DEV" }
+# install-pyimgui = { cmd = "pip install thirdparty/in3d/thirdparty/pyimgui --no-deps --no-build-isolation", cwd = "Baselines/MASt3R-SLAM-DEV" }
+# install-in3d = { cmd = "pip install -e thirdparty/in3d  --no-build-isolation", cwd = "Baselines/MASt3R-SLAM-DEV" }
+# install = { cmd = "pip install . --no-build-isolation", cwd = "Baselines/MASt3R-SLAM-DEV", depends-on = ["install-asmk", "install-mast3r", "install-pyimgui", "install-in3d"]}
+install = { cmd = "pip install -e thirdparty/mast3r --no-build-isolation && pip install -e thirdparty/in3d --no-build-isolation && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
+
 execute-mono = { cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV' }
 
 [feature.mast3rslam-dev.dependencies]
@@ -627,8 +641,9 @@ cuda = "12.0"
 
 [feature.monogs-dev.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB MonoGS MonoGS-DEV"
-install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization", cwd = "Baselines/MonoGS-DEV" }
+install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization --no-deps --no-build-isolation", cwd = "Baselines/MonoGS-DEV" }
 execute-mono = { cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV" }
+execute-rgbd = { cmd = 'python vslamlab_monogs_rgbd.py', cwd = "Baselines/MonoGS-DEV" }
 
 [feature.monogs-dev.dependencies]
 # Build Tools
@@ -672,7 +687,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB ORB_SLAM2 ORB_SLAM2-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB ORB_SLAM2_VSLAM_LAB ORB_SLAM2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB_SLAM2-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB_SLAM2-DEV" }
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB_SLAM2-DEV" }
@@ -686,7 +701,7 @@ pkg-config = ">=0.29.2 ,<0.30"
 opencv = ">=4.10.0 ,<5"
 eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
-pangolin = { channel="fontan" }
+pangolin = { channel = "fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -842,9 +857,13 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB ORB_SLAM3 ORB_SLAM3-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB ORB_SLAM3_VSLAM_LAB ORB_SLAM3-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB_SLAM3-DEV" }
-execute-mono_vi = { cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB_SLAM3-DEV" }
+execute-mono = { cmd = "./bin/vslamlab_orbslam3_mono",  cwd = "Baselines/ORB_SLAM3-DEV" }
+execute-rgbd = { cmd = "./bin/vslamlab_orbslam3_rgbd",  cwd = "Baselines/ORB_SLAM3-DEV" }
+execute-stereo = { cmd = "./bin/vslamlab_orbslam3_stereo",  cwd = "Baselines/ORB_SLAM3-DEV" }
+execute-mono-vi = { cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB_SLAM3-DEV" }
+execute-stereo-vi = { cmd = "./bin/vslamlab_orbslam3_stereo_vi",  cwd = "Baselines/ORB_SLAM3-DEV" }
 
 [feature.orbslam3-dev.dependencies]
 compilers = "*"
@@ -854,7 +873,7 @@ pkg-config = ">=0.29.2 ,<0.30"
 opencv = ">=4.10.0 ,<5"
 eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
-pangolin = { channel="fontan" }
+pangolin = { channel = "fontan" }
 boost = "*"
 
 # ########################################################################################################################
@@ -868,9 +887,9 @@ platforms = ["linux-64"]
 cuda = "12.0"
 
 [feature.okvis2-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"
+git-clone = "./git-clone.sh VSLAM-LAB okvis2_VSLAM_LAB OKVIS2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV" }
-execute-mono_vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
+execute-mono-vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
 
 [feature.okvis2-dev.dependencies]
 cmake = "<4"
@@ -885,3 +904,4 @@ libtorch = "*"
 librealsense = "*"
 openmp = "*"
 libgfortran = "3.*"
+yaml-cpp = "*"

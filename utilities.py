@@ -138,6 +138,8 @@ def decompressFile(filepath, extract_to=None):
     """
     Decompress a .zip, .tar.gz, .tar, or .7z file and return the extraction directory.
     """
+    filepath = str(filepath)
+    
     if not extract_to:
         extract_to = os.path.dirname(filepath)
 
@@ -324,7 +326,7 @@ def read_csv(csv_file):
     if not os.path.exists(csv_file):
         return pd.DataFrame()
     try:
-        csv_data = pd.read_csv(csv_file)
+        csv_data = pd.read_csv(csv_file,  dtype={'sequence_name': str})
         if csv_data.empty:
             return pd.DataFrame()
     except (pd.errors.EmptyDataError, FileNotFoundError):
