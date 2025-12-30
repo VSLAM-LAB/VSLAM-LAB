@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Final, Iterable
-from urllib.parse import urljoin
-
 import csv
 import yaml
-
 import numpy as np
+from pathlib import Path
+from urllib.parse import urljoin
+from typing import Final, Any
+from collections.abc import Iterable
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
@@ -43,8 +42,8 @@ class ETH_dataset(DatasetVSLAMLab):
     def download_sequence_data(self, sequence_name: str) -> None:
         for mode in self.modes:
             compressed_name = f"{sequence_name}_{mode}.zip"
-            download_url = urljoin(self.url_download_root.rstrip("/") + "/", f"datasets/{compressed_name}")
-            
+            download_url = urljoin(self.url_download_root, f"datasets/{compressed_name}")
+
             compressed_file = self.dataset_path / compressed_name
             decompressed_folder = self.dataset_path / sequence_name
 
@@ -59,7 +58,6 @@ class ETH_dataset(DatasetVSLAMLab):
                 decompressFile(str(compressed_file), str(self.dataset_path))
      
     def create_rgb_folder(self, sequence_name: str) -> None:
-        # Rename folders to standard names
         sequence_path = self.dataset_path / sequence_name
         for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
             src = sequence_path / raw
@@ -78,7 +76,7 @@ class ETH_dataset(DatasetVSLAMLab):
         with open(tmp, "w", newline="", encoding="utf-8") as fout:
             w = csv.writer(fout)
             w.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"])
-            for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries):
+            for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries, strict=True):
                 ts_r0_ns = int(float(ts_r0) * 1e9)
                 ts_d_ns = int(float(ts_d) * 1e9)
                 w.writerow([ts_r0_ns, path_r0, ts_d_ns, path_d])
@@ -89,11 +87,11 @@ class ETH_dataset(DatasetVSLAMLab):
         with open(sequence_path / "calibration.txt", "r", encoding="utf-8") as f:
             first = f.readline().split()
             fx, fy, cx, cy = map(float, first[:4])
-            rgbd0 = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
+            rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
                     "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
                     "depth_factor": float(self.depth_factor),
                     "fps": float(self.rgb_hz),
-                    "T_SC": np.eye(4)}
+                    "T_BS": np.eye(4)}
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
         
     def create_groundtruth_csv(self, sequence_name: str) -> None:
