@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from pathlib import Path
-import os, shutil 
-
 import csv
 import yaml
-
+import os, shutil 
 import numpy as np
+from pathlib import Path
+from typing import Final, Any
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
-from Datasets.DatasetIssues import _get_dataset_issue
+from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
 
-CAMERA_PARAMS = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy, cx, cy)
+CAMERA_PARAMS: Final = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy, cx, cy)
+
 
 class REPLICA_dataset(DatasetVSLAMLab):
     """REPLICA dataset helper for VSLAM-LAB benchmark."""
@@ -48,10 +48,10 @@ class REPLICA_dataset(DatasetVSLAMLab):
         decompressed_folder = VSLAMLAB_BENCHMARK / decompressed_name
 
         # Download the compressed file
-        if not os.path.exists(compressed_file):
+        if not compressed_file.exists():
             downloadFile(download_url, VSLAMLAB_BENCHMARK)
 
-        if (not os.path.isdir(decompressed_folder)) or (next(os.scandir(decompressed_folder), None) is None):
+        if (not decompressed_folder.is_dir()) or (next(decompressed_folder.iterdir(), None) is None):
             decompressFile(compressed_file, VSLAMLAB_BENCHMARK)
             os.rename(VSLAMLAB_BENCHMARK / 'Replica', decompressed_folder)
 
@@ -61,9 +61,9 @@ class REPLICA_dataset(DatasetVSLAMLab):
         rgb_path = sequence_path / 'rgb_0'
         depth_path = sequence_path / 'depth_0'
 
-        if not os.path.exists(rgb_path):
-            os.rename(results_path, rgb_path)
-            os.makedirs(depth_path, exist_ok=True)
+        if not rgb_path.exists():
+            results_path.rename(rgb_path)
+            depth_path.mkdir(exist_ok=True)
             for filename in os.listdir(rgb_path):
                 if 'depth' in filename:
                     old_file = rgb_path / filename
@@ -73,34 +73,34 @@ class REPLICA_dataset(DatasetVSLAMLab):
                 if 'frame' in filename:
                     old_file = rgb_path / filename
                     new_file = rgb_path / filename.replace('frame', '')
-                    os.rename(old_file, new_file)
-
+                    old_file.rename(new_file)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
         rgb_path = sequence_path / 'rgb_0'
         rgb_csv = sequence_path / 'rgb.csv'
 
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
+        rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
         with open(rgb_csv, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['ts_rgb0 (s)', 'path_rgb0', 'ts_depth0 (s)', 'path_depth0']) 
+            writer.writerow(['ts_rgb_0 (ns)', 'path_rgb_0', 'ts_depth_0 (ns)', 'path_depth_0']) 
 			
             for filename in rgb_files:
                 name, _ = os.path.splitext(filename)
                 ts = float(name) / self.rgb_hz
+                ts_ns = int(1e10 + ts * 1e9)
                 depth_name = name + '.png'
-                writer.writerow([f"{ts:.5f}", f"rgb_0/{filename}", f"{ts:.5f}", f"depth_0/{depth_name}"])
+                writer.writerow([ts_ns, f"rgb_0/{filename}", ts_ns, f"depth_0/{depth_name}"])
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         fx, fy, cx, cy = CAMERA_PARAMS
-        rgbd0 = {"cam_name": "rgb0", "cam_type": "rgb+depth", "depth_name": "depth0",
+        rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
                 "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
                 "depth_factor": float(self.depth_factor),
                 "fps": float(self.rgb_hz),
-                "T_SC": np.eye(4)}        
+                "T_BS": np.eye(4)}        
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
@@ -110,22 +110,22 @@ class REPLICA_dataset(DatasetVSLAMLab):
         groundtruth_csv = sequence_path /'groundtruth.csv'
 
         # Read RGB timestamps from CSV (skip header)
-        rgb_timestamps = []
+        rgb_timestamps_ns = []
         with open(rgb_csv, 'r', newline='') as f:
             reader = csv.reader(f)
-            header = next(reader, None)  # skip header if present
+            _ = next(reader, None)  # skip header if present
             for row in reader:
                 if not row:
                     continue
-                rgb_timestamps.append(float(row[0]))
+                rgb_timestamps_ns.append(float(row[0]))
 
         # Write groundtruth.csv with header
         with open(traj_txt, 'r') as src, open(groundtruth_csv, 'w', newline='') as dst:
             writer = csv.writer(dst)
-            writer.writerow(['ts', 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw'])
+            writer.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
 
             for idx, line in enumerate(src):
-                if idx >= len(rgb_timestamps):
+                if idx >= len(rgb_timestamps_ns):
                     break  # avoid index error if traj has extra lines
                 vals = list(map(float, line.strip().split()))
                 # traj.txt assumed row-major 3x4: r00 r01 r02 tx r10 r11 r12 ty r20 r21 r22 tz
@@ -135,9 +135,9 @@ class REPLICA_dataset(DatasetVSLAMLab):
                 tx, ty, tz = vals[3], vals[7], vals[11]
 
                 qx, qy, qz, qw = R.from_matrix(Rm).as_quat()  # [x, y, z, w]
-                ts = rgb_timestamps[idx]
+                ts_ns = rgb_timestamps_ns[idx]
 
-                writer.writerow([f"{ts:.5f}", tx, ty, tz, qx, qy, qz, qw])
+                writer.writerow([int(ts_ns), tx, ty, tz, qx, qy, qz, qw])
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
