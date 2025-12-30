@@ -1,22 +1,21 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from urllib.parse import urljoin
 import os
-import shutil
-
 import csv
 import yaml
-
+import shutil
 import numpy as np
+from pathlib import Path
+from urllib.parse import urljoin
+from typing import Final, Any
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
-from Datasets.DatasetIssues import _get_dataset_issue
+from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
 
-CAMERA_PARAMS = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
+CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
 
 
 class TARTANAIR_dataset(DatasetVSLAMLab):
@@ -49,15 +48,15 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
         decompressed_folder = self.dataset_path / decompressed_name
 
         # Download the compressed file
-        if not os.path.exists(compressed_file):
+        if not compressed_file.exists():
             downloadFile(download_url, self.dataset_path)
 
         # Decompress the file
-        if not os.path.exists(decompressed_folder):
+        if not decompressed_folder.exists():
             decompressFile(compressed_file, str(self.dataset_path / compressed_name))
 
         # Download the gt
-        if not os.path.exists(self.dataset_path / 'tartanair_cvpr_gt'):
+        if not (self.dataset_path / 'tartanair_cvpr_gt').exists():
             compressed_name = '3p1sf0eljfwrz4qgbpc6g95xtn2alyfk'
             compressed_name_ext = compressed_name + '.zip'
             decompressed_name = 'tartanair_cvpr_gt'
@@ -66,7 +65,7 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
             decompressed_folder = self.dataset_path / decompressed_name
 
             download_url = self.url_download_gt_root
-            if not os.path.exists(compressed_file):
+            if not compressed_file.exists():
                 downloadFile(download_url, self.dataset_path)
 
             decompressFile(compressed_file, self.dataset_path / decompressed_name)
@@ -74,11 +73,10 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
         rgb_path = sequence_path / 'rgb_0'
-        if not os.path.exists(rgb_path):
-            os.makedirs(rgb_path)
+        rgb_path.mkdir(parents=True, exist_ok=True)
 
         rgb_path_0 = self.dataset_path / 'tartanair-test-mono-release' / 'mono' / sequence_name
-        if not os.path.exists(rgb_path_0):
+        if not rgb_path_0.exists():
             return
 
         for png_file in os.listdir(rgb_path_0):
@@ -92,26 +90,27 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
         rgb_path = sequence_path / 'rgb_0'
         rgb_csv = sequence_path / 'rgb.csv'
 
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
+        rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
         tmp_path = sequence_path / "rgb.csv.tmp"
         with open(tmp_path, "w", newline="", encoding="utf-8") as fout:
             w = csv.writer(fout)
-            w.writerow(["ts_rgb0 (s)", "path_rgb0"])
+            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0"])
             for filename in rgb_files:
                 name, _ = os.path.splitext(filename)
                 ts = float(name) / self.rgb_hz
-                w.writerow([f"{ts:.5f}", f"rgb_0/{filename}"])
+                ts_ns = int(1e10 + ts * 1e9)
+                w.writerow([ts_ns, f"rgb_0/{filename}"])
 
         os.replace(tmp_path, rgb_csv)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         fx, fy, cx, cy = CAMERA_PARAMS
-        rgb0 = {"cam_name": "rgb0", "cam_type": "rgb",
+        rgb0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb",
                 "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
                 "fps": float(self.rgb_hz),
-                "T_SC": np.eye(4)}        
+                "T_BS": np.eye(4)}        
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
@@ -123,16 +122,17 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
         with open(groundtruth_txt, "r", encoding="utf-8") as fin, \
             open(tmp_path, "w", newline="", encoding="utf-8") as fout:
             w = csv.writer(fout)
-            w.writerow(["ts", "tx", "ty", "tz", "qx", "qy", "qz", "qw"])
+            w.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
 
             frame_idx = 0
             for line in fin:
                 line = line.strip()
                 parts = line.split()
                 ts = frame_idx / float(self.rgb_hz)
+                ts_ns = int(1e10 + ts * 1e9)
                 frame_idx += 1
                 tx, ty, tz, qx, qy, qz, qw = parts[:7]
-                w.writerow([f"{ts:.5f}", tx, ty, tz, qx, qy, qz, qw])
+                w.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
 
         os.replace(tmp_path, groundtruth_csv)
 
@@ -144,11 +144,11 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
             super().download_process(sequence_name)
         
         dataset_folder = self.dataset_path / 'tartanair-test-mono-release'
-        if os.path.exists(dataset_folder):
+        if dataset_folder.exists():
             shutil.rmtree(dataset_folder)
 
         gt_folder = self.dataset_path / 'tartanair_cvpr_gt'
-        if os.path.exists(gt_folder):
+        if gt_folder.exists():
             shutil.rmtree(gt_folder)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
