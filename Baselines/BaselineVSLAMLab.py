@@ -23,7 +23,6 @@ import queue
 import pynvml
 from abc import ABC, abstractmethod
 from huggingface_hub import hf_hub_download
-from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo
 
 from utilities import ws, print_msg
 from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME
