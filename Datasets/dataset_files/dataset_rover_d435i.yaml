@@ -1,0 +1,48 @@
+dataset_name: rover_d435i
+
+rgb_hz: 30.0
+url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
+modes: ['mono', 'rgbd', 'rgbd-vi']
+cam_models: ['radtan4']
+depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
+
+sequence_names:
+  - campus_small_autumn_d435i
+  - campus_small_winter_d435i
+  - campus_small_spring_d435i
+  - campus_small_summer_d435i
+  - campus_small_day_d435i
+  - campus_small_dusk_d435i
+  - campus_small_night_d435i
+  - campus_small_night-light_d435i
+  - campus_large_autumn_d435i
+  - campus_large_winter_d435i
+  - campus_large_spring_d435i
+  - campus_large_summer_d435i
+  - campus_large_day_d435i
+  - campus_large_dusk_d435i
+  - campus_large_night_d435i
+  - campus_large_night-light_d435i
+  - garden_small_autumn_d435i
+  - garden_small_winter_d435i
+  - garden_small_spring_d435i
+  - garden_small_summer_d435i
+  - garden_small_day_d435i
+  - garden_small_dusk_d435i
+  - garden_small_night_d435i
+  - garden_small_night-light_d435i
+  - garden_large_autumn_d435i
+  - garden_large_winter_d435i
+  - garden_large_spring_d435i
+  - garden_large_summer_d435i
+  - garden_large_day_d435i
+  - garden_large_dusk_d435i
+  - garden_large_night_d435i
+  - garden_large_night-light_d435i
+  - park_autumn_d435i
+  - park_spring_d435i
+  - park_summer_d435i
+  - park_day_d435i
+  - park_dusk_d435i
+  - park_night_d435i
+  - park_night-light_d435i

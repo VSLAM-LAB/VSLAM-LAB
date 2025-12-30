@@ -3,6 +3,8 @@ dataset_name: s3li
 rgb_hz: 10.0
 imu_hz: 200.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
+cam_models: ['pinhole']
+
 url_download_sequences: 
   # S3LI Vulcano sequences
   vegetation: "https://my.hidrive.com/api/sharelink/download?id=I9ygsv4d9"
