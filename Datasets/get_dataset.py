@@ -3,19 +3,30 @@ from pathlib import Path
 from path_constants import VSLAM_LAB_DIR
 
 # ADD your imports here
+
+# Monocular datasets
+from Datasets.dataset_files.dataset_tartanair import TARTANAIR_dataset
+
+# RGBD datasets
 from Datasets.dataset_files.dataset_eth import ETH_dataset
 from Datasets.dataset_files.dataset_rgbdtum import RGBDTUM_dataset
-from Datasets.dataset_kitti import KITTI_dataset
-from Datasets.dataset_euroc import EUROC_dataset
-from Datasets.dataset_rover import ROVER_dataset
-from Datasets.dataset_ut_coda import UT_CODA_dataset
-from Datasets.dataset_replica import REPLICA_dataset
-from Datasets.dataset_tartanair import TARTANAIR_dataset
-from Datasets.dataset_nuim import NUIM_dataset
-from Datasets.dataset_vitum import VITUM_dataset
-from Datasets.dataset_msd import MSD_dataset
+from Datasets.dataset_files.dataset_replica import REPLICA_dataset
+from Datasets.dataset_files.dataset_nuim import NUIM_dataset
+
+# Stereo datasets
+from Datasets.dataset_files.dataset_kitti import KITTI_dataset
+from Datasets.dataset_files.dataset_ut_coda import UT_CODA_dataset
+
+# Stereo-VI datasets
+from Datasets.dataset_files.dataset_euroc import EUROC_dataset
+from Datasets.dataset_files.dataset_rover import ROVER_t265_dataset
+from Datasets.dataset_files.dataset_rover import ROVER_d435i_dataset
+from Datasets.dataset_files.dataset_rover import ROVER_picam_dataset
+from Datasets.dataset_files.dataset_s3li import S3LI_dataset
+from Datasets.dataset_files.dataset_msd import MSD_dataset
 
 # Development
+from Datasets.dataset_vitum import VITUM_dataset
 from Datasets.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
 from Datasets.dataset_lizardisland import LIZARDISLAND_dataset
 from Datasets.dataset_ariel import ARIEL_dataset
@@ -36,28 +47,29 @@ from Datasets.dataset_videos import VIDEOS_dataset
 from Datasets.dataset_sweetcorals import SWEETCORALS_dataset
 from Datasets.dataset_ntnu_arl_uw import NTNU_ARL_UW_dataset
 from Datasets.dataset_reefslam import REEFSLAM_dataset
-from Datasets.dataset_s3li import S3LI_dataset
 
-SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 def get_dataset(dataset_name, benchmark_path):
     dataset_name = dataset_name.lower()
     switcher = {
         # ADD your datasets here
+        "tartanair": lambda: TARTANAIR_dataset(benchmark_path),
         "eth": lambda: ETH_dataset(benchmark_path),
         "rgbdtum": lambda: RGBDTUM_dataset(benchmark_path),
-        "kitti": lambda: KITTI_dataset(benchmark_path),
-        "euroc": lambda: EUROC_dataset(benchmark_path),
-        "rover": lambda: ROVER_dataset(benchmark_path),
-        "ut_coda": lambda: UT_CODA_dataset(benchmark_path),
         "replica": lambda: REPLICA_dataset(benchmark_path),
-        "tartanair": lambda: TARTANAIR_dataset(benchmark_path),
         "nuim": lambda: NUIM_dataset(benchmark_path),
-        "vitum": lambda: VITUM_dataset(benchmark_path),
+        "kitti": lambda: KITTI_dataset(benchmark_path),
+        "ut_coda": lambda: UT_CODA_dataset(benchmark_path),
+        "euroc": lambda: EUROC_dataset(benchmark_path),
+        "rover_t265": lambda: ROVER_t265_dataset(benchmark_path),
+        "rover_d435i": lambda: ROVER_d435i_dataset(benchmark_path),
+        "rover_picam": lambda: ROVER_picam_dataset(benchmark_path),
         "s3li": lambda: S3LI_dataset(benchmark_path),
         "msd": lambda: MSD_dataset(benchmark_path),
 
         # Development
+        "vitum": lambda: VITUM_dataset(benchmark_path),
         "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
         "lizardisland": lambda: LIZARDISLAND_dataset(benchmark_path),
         "hamlyn": lambda: HAMLYN_dataset(benchmark_path),
@@ -83,7 +95,7 @@ def get_dataset(dataset_name, benchmark_path):
     return switcher.get(dataset_name, lambda: "Invalid case")()
 
 def list_available_datasets() -> list[str]:
-    dataset_scripts_path = Path(VSLAM_LAB_DIR) /  'Datasets' / 'dataset_files'
+    dataset_scripts_path = VSLAM_LAB_DIR /  'Datasets' / 'dataset_files'
     dataset_scripts = []
     for filename in os.listdir(dataset_scripts_path):
         if 'dataset_' in filename and filename.endswith('.yaml') and 'utilities' not in filename:

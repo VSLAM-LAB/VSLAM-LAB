@@ -12,10 +12,20 @@ from path_constants import ABLATION_PARAMETERS_CSV
 
 from utilities import ws
 from Baselines.baseline_utilities import append_ablation_parameters_to_csv
-from Datasets.dataset_utilities import load_rgb_csv
+from Datasets.DatasetVSLAMLab_utilities import load_rgb_csv
 
 SCRIPT_LABEL = f"\033[35m[{os.path.basename(__file__)}]\033[0m "
 
+
+def modify_yaml_parameter(settings_ablation_yaml, section_name, parameter_name, new_value):
+    with open(settings_ablation_yaml, 'r') as file:
+        data = yaml.safe_load(file)
+    if section_name in data and parameter_name in data[section_name]:
+        data[section_name][parameter_name] = new_value
+    else:
+        print(f"    Parameter '{parameter_name}' or section '{section_name}' not found in the YAML file.")
+    with open(settings_ablation_yaml, 'w') as file:
+         yaml.safe_dump(data, file)
 
 def prepare_ablation(exp_it, exp, baseline, dataset, sequence_name, exec_command):
     print(f"\n{SCRIPT_LABEL}Sequence {dataset.dataset_color}{sequence_name}\033[0m preparing ablation: {exp.ablation_csv}")
@@ -42,7 +52,7 @@ def prepare_ablation(exp_it, exp, baseline, dataset, sequence_name, exec_command
             add_noise_to_images_start(exp_it, exp, dataset, sequence_name, value)
             continue
         section_name, parameter_name = parameter.split('.', 1)
-        baseline.modify_yaml_parameter(settings_ablation_yaml, section_name, parameter_name, value)
+        modify_yaml_parameter(settings_ablation_yaml, section_name, parameter_name, value)
         print(f"{ws(8)}{section_name}: {parameter_name}: {value}")
 
     return exec_command
