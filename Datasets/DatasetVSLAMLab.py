@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 
 from utilities import ws, print_msg
 from path_constants import VSLAM_LAB_DIR
-from Datasets.dataset_calibration import (
+from Datasets.DatasetVSLAMLab_calibration import (
     _get_rgb_yaml_section,
     _get_imu_yaml_section,
     _get_rgbd_yaml_section
@@ -30,6 +30,9 @@ SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 class DatasetVSLAMLab(ABC):
     """Base dataset class for VSLAM-LAB."""
+
+    # ---- Abstract hooks that concrete datasets must implement ----
+    @abstractmethod
     def __init__(self, dataset_name: str, benchmark_path: Union[str, Path]) -> None:  
         # Basic fields
         self.dataset_name: str = dataset_name
@@ -40,7 +43,7 @@ class DatasetVSLAMLab(ABC):
         # Paths
         self.benchmark_path: Path = Path(benchmark_path)
         self.dataset_path: Path = self.benchmark_path / self.dataset_folder
-        self.yaml_file: Path = VSLAM_LAB_DIR / "Datasets" / f"dataset_{self.dataset_name}.yaml"
+        self.yaml_file: Path = VSLAM_LAB_DIR / "Datasets" / "dataset_files" / f"dataset_{self.dataset_name}.yaml"
 
         # Load YAML config
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -50,7 +53,24 @@ class DatasetVSLAMLab(ABC):
         self.rgb_hz: float = float(cfg["rgb_hz"])
         self.modes: List[str] = cfg.get("modes", ["mono"])
         self.sequence_nicknames: List[str] = []
+    @abstractmethod
+    def download_sequence_data(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_rgb_folder(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_rgb_csv(self, sequence_name: str) -> None: ...
+    @abstractmethod
+    def create_calibration_yaml(self, sequence_name: str) -> None: ...
 
+    def create_imu_csv(self, sequence_name: str) -> None:
+        pass
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
+        pass
+    def remove_unused_files(self, sequence_name: str) -> None: 
+        pass
+    def get_download_issues(self, sequence_names: List[str]) -> dict:
+        return {}
+    
     ####################################################################################################################
     # Download methods
     def download_sequence(self, sequence_name: str) -> None:
@@ -78,26 +98,9 @@ class DatasetVSLAMLab(ABC):
         self.create_calibration_yaml(sequence_name)
         self.create_groundtruth_csv(sequence_name)
         self.remove_unused_files(sequence_name)
-        
-    # ---- Abstract hooks that concrete datasets must implement ----
-    @abstractmethod
-    def download_sequence_data(self, sequence_name: str) -> None: ...
-    @abstractmethod
-    def create_rgb_folder(self, sequence_name: str) -> None: ...
-    @abstractmethod
-    def create_rgb_csv(self, sequence_name: str) -> None: ...
-    @abstractmethod
-    def create_imu_csv(self, sequence_name: str) -> None: ...
-    @abstractmethod
-    def create_calibration_yaml(self, sequence_name: str) -> None: ...
-    @abstractmethod
-    def create_groundtruth_csv(self, sequence_name: str) -> None: ...
-    
-    def remove_unused_files(self, sequence_name: str) -> None: 
-        pass
-    def get_download_issues(self, sequence_names: List[str]) -> dict:
-        return {}
 
+    ####################################################################################################################
+    # Auxiliary methods
     def write_calibration_yaml(self, sequence_name: str, rgb=None, rgbd=None, imu=None) -> None:
         sequence_path = self.dataset_path / sequence_name
         calibration_yaml = sequence_path / 'calibration.yaml'

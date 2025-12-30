@@ -3,8 +3,8 @@ from pathlib import Path
 from path_constants import VSLAM_LAB_DIR
 
 # ADD your imports here
-from Datasets.dataset_eth import ETH_dataset
-from Datasets.dataset_rgbdtum import RGBDTUM_dataset
+from Datasets.dataset_files.dataset_eth import ETH_dataset
+from Datasets.dataset_files.dataset_rgbdtum import RGBDTUM_dataset
 from Datasets.dataset_kitti import KITTI_dataset
 from Datasets.dataset_euroc import EUROC_dataset
 from Datasets.dataset_rover import ROVER_dataset
@@ -13,6 +13,7 @@ from Datasets.dataset_replica import REPLICA_dataset
 from Datasets.dataset_tartanair import TARTANAIR_dataset
 from Datasets.dataset_nuim import NUIM_dataset
 from Datasets.dataset_vitum import VITUM_dataset
+from Datasets.dataset_msd import MSD_dataset
 
 # Development
 from Datasets.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
@@ -54,6 +55,7 @@ def get_dataset(dataset_name, benchmark_path):
         "nuim": lambda: NUIM_dataset(benchmark_path),
         "vitum": lambda: VITUM_dataset(benchmark_path),
         "s3li": lambda: S3LI_dataset(benchmark_path),
+        "msd": lambda: MSD_dataset(benchmark_path),
 
         # Development
         "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
@@ -81,7 +83,7 @@ def get_dataset(dataset_name, benchmark_path):
     return switcher.get(dataset_name, lambda: "Invalid case")()
 
 def list_available_datasets() -> list[str]:
-    dataset_scripts_path = Path(VSLAM_LAB_DIR) /  'Datasets'
+    dataset_scripts_path = Path(VSLAM_LAB_DIR) /  'Datasets' / 'dataset_files'
     dataset_scripts = []
     for filename in os.listdir(dataset_scripts_path):
         if 'dataset_' in filename and filename.endswith('.yaml') and 'utilities' not in filename:
