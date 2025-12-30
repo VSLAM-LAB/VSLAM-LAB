@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from pathlib import Path
-from contextlib import suppress
-import shutil
-
+import os
 import csv
 import yaml
-from decimal import Decimal
-
+import shutil
 import numpy as np
 import pandas as pd
+from typing import Any
+from pathlib import Path
+from decimal import Decimal
+from contextlib import suppress
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
@@ -19,8 +19,8 @@ from path_constants import Retention, BENCHMARK_RETENTION
 class EUROC_dataset(DatasetVSLAMLab):
     """EUROC MAV dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path) -> None:
-        super().__init__("euroc", Path(benchmark_path))
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "euroc") -> None:    
+        super().__init__(dataset_name, Path(benchmark_path))
     
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -74,11 +74,6 @@ class EUROC_dataset(DatasetVSLAMLab):
                 shutil.move(png , target / png.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        """
-        Build rgb.csv with two synchronized camera streams.
-        EUROC data.csv has nanoseconds in col 0 and filename in col 1.
-        Convert timestamps to seconds with 6-decimal formatting.
-        """
         sequence_path = self.dataset_path / sequence_name
         rgb_csv = sequence_path / "rgb.csv"
         if rgb_csv.exists():
@@ -117,11 +112,6 @@ class EUROC_dataset(DatasetVSLAMLab):
                 tmp.unlink()
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        """
-        Build imu.csv with timestamps in seconds.
-        Input:  <seq>/mav0/imu0/data.csv  (EUROC format, #timestamp [ns] ... header)
-        Output: <seq>/imu.csv  with columns: ts (s), wx, wy, wz, ax, ay, az
-        """
         seq = self.dataset_path / sequence_name
         src = seq / "mav0" / "imu0" / "data.csv"
         dst = seq / "imu_0.csv"
@@ -129,31 +119,16 @@ class EUROC_dataset(DatasetVSLAMLab):
         if not src.exists():
             return
 
-        # Skip if already up-to-date
         if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime:
             return
 
-        # Read rows, skipping the header line(s) that start with '#'
-        # Handle both comma- or whitespace-separated variants.
-
         raw_cols = ["timestamp [ns]", "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]", "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]"]
-        df = pd.read_csv(
-            src,
-            comment="#",
-            header=None,
-            names=raw_cols,
-            sep=r"[\s,]+",
-            engine="python",
-        )
+        df = pd.read_csv(src, comment="#", header=None, names=raw_cols, sep=r"[\s,]+", engine="python")
 
         if df.empty:
             return
 
-        new_cols = [
-            "ts (ns)", 
-            "wx (rad s^-1)", "wy (rad s^-1)", "wz (rad s^-1)", 
-            "ax (m s^-2)", "ay (m s^-2)", "az (m s^-2)"
-        ]
+        new_cols = ["ts (ns)", "wx (rad s^-1)", "wy (rad s^-1)", "wz (rad s^-1)", "ax (m s^-2)", "ay (m s^-2)", "az (m s^-2)"]
         df.columns = new_cols
         out = df[new_cols]
 
@@ -176,18 +151,18 @@ class EUROC_dataset(DatasetVSLAMLab):
         with open(cam1_yaml, "r", encoding="utf-8") as f: cam1 = yaml.safe_load(f)
         with open(imu_yaml,  "r", encoding="utf-8") as f: imu  = yaml.safe_load(f)
 
-        rgb0 = {"cam_name": "rgb_0", "cam_type": "gray",
+        rgb0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "gray",
                 "cam_model": "pinhole", "focal_length": cam0["intrinsics"][0:2], "principal_point": cam0["intrinsics"][2:4],
                 "distortion_type": "radtan4", "distortion_coefficients": cam0["distortion_coefficients"],
                 "fps": cam0["rate_hz"],
-                "T_SC": np.array(cam0["T_BS"]['data']).reshape((4, 4))}
-        rgb1 = {"cam_name": "rgb_1", "cam_type": "gray",
+                "T_BS": np.array(cam0["T_BS"]['data']).reshape((4, 4))}
+        rgb1: dict[str, Any] = {"cam_name": "rgb_1", "cam_type": "gray",
                 "cam_model": "pinhole", "focal_length": cam1["intrinsics"][0:2], "principal_point": cam1["intrinsics"][2:4],
                 "distortion_type": "radtan4", "distortion_coefficients": cam1["distortion_coefficients"],
                 "fps": cam1["rate_hz"],
-                "T_SC": np.array(cam1["T_BS"]['data']).reshape((4, 4))}
+                "T_BS": np.array(cam1["T_BS"]['data']).reshape((4, 4))}
         
-        imu = {"imu_name": "imu_0",
+        imu: dict[str, Any] = {"imu_name": "imu_0",
             "a_max":  176.0, "g_max": 7.8,
             "sigma_g_c":  20.0e-4, "sigma_a_c": 20.0e-3,
             "sigma_bg":  0.01, "sigma_ba":  0.1,
@@ -195,13 +170,12 @@ class EUROC_dataset(DatasetVSLAMLab):
             "g":  9.81007, "g0": [ 0.0, 0.0, 0.0 ], "a0": [ -0.05, 0.09, 0.01 ],
             "s_a":  [ 1.0,  1.0, 1.0 ],
             "fps": 200.0,
-            "T_SC": np.array(np.eye(4)).reshape((4, 4))}
-        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=imu)
+            "T_BS": np.array(np.eye(4)).reshape((4, 4))}
+        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         """
         Write groundtruth.csv from TUM 'supp_v2/gtFiles/mav_<sequence>.txt'.
-        Input is seconds; we output integer nanoseconds (ts) for consistency with EUROC.
         """
         seq = self.dataset_path / sequence_name
         src = self.dataset_path / "supp_v2" / "gtFiles" / f"mav_{sequence_name}.txt"
@@ -258,5 +232,4 @@ class EUROC_dataset(DatasetVSLAMLab):
 
         # ensure trailing slash in root before urljoin
         root = self.url_download_root.rstrip("/") + "/"
-        import os
         return os.path.join(root, f"{sub}/{sequence_name}/{sequence_name}.zip")
