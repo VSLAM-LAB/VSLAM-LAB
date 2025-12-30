@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Final
-from urllib.parse import urljoin
-
 import yaml
-
 import numpy as np
 import pandas as pd
+from pathlib import Path
+from urllib.parse import urljoin
+from typing import Final, Any
+from collections.abc import Iterable
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
@@ -64,7 +63,6 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
                 decompressed_folder.replace(sequence_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        # Rename folders to standard names
         sequence_path = self.dataset_path / sequence_name
         for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
             src, tgt = sequence_path / raw, sequence_path / dst
@@ -113,11 +111,11 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
 
         fx, fy, cx, cy, k1, k2, p1, p2, k3 = CAMERA_PARAMS[camera]
         
-        rgbd0 = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
+        rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
                 "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
                 "depth_factor": float(self.depth_factor),
                 "fps": float(self.rgb_hz),
-                "T_SC": np.eye(4)}
+                "T_BS": np.eye(4)}
         if camera == "freiburg1" or camera == "freiburg2":
                rgbd0["distortion_type"] = "radtan5"
                rgbd0["distortion_coefficients"] = [k1, k2, p1, p2, k3]
