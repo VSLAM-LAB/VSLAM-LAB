@@ -1,7 +1,7 @@
 dataset_name: eth
 
 rgb_hz: 30.0
-url_download_root: "https://www.eth3d.net/data/slam"
+url_download_root: "https://www.eth3d.net/data/slam/"
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
 depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor

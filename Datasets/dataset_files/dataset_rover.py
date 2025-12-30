@@ -107,7 +107,7 @@ class ROVER_dataset(DatasetVSLAMLab):
                 dst_item = sequence_group_path / src_item.name
                 shutil.move(src_item, dst_item)
             sequence_group_path_child.rmdir()
-            
+        
         self._ensure_data_exists(
             data_path = sequence_group_path,
             target=resource_name, target_path=sequence_group_path,
@@ -183,9 +183,11 @@ class ROVER_dataset(DatasetVSLAMLab):
         if not data_path.exists():
             archive_name = target + ".zip"
             download_url = f"{self.url_download_root}/{archive_name}"
+            rover_folder = VSLAMLAB_BENCHMARK / 'ROVER'
+            rover_folder.mkdir(parents=True, exist_ok=True)
             archive_path = VSLAMLAB_BENCHMARK / 'ROVER' / archive_name
             if not archive_path.exists():
-                downloadFile(download_url, self.dataset_path)
+                downloadFile(download_url, rover_folder)
             decompressFile(archive_path, target_path)
         if callback:
             callback()

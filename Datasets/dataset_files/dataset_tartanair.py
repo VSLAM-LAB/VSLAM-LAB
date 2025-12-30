@@ -41,7 +41,7 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
         compressed_name = 'tartanair-test-mono-release'
         compressed_name_ext = compressed_name + '.tar.gz'
         decompressed_name = compressed_name
-        download_url = urljoin(self.url_download_root, compressed_name_ext)
+        download_url = os.path.join(self.url_download_root, compressed_name_ext)
 
         # Constants
         compressed_file = self.dataset_path / compressed_name_ext
