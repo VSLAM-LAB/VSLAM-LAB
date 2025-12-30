@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from pathlib import Path
 import os
-
 import csv
 import yaml
-
 import numpy as np
+from pathlib import Path
+from typing import Final, Any
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 
-CAMERA_PARAMS = [481.20, -480.00, 319.50, 239.50] # Camera intrinsics (fx, fy, cx, cy)
+CAMERA_PARAMS: Final = [481.20, -480.00, 319.50, 239.50] # Camera intrinsics (fx, fy, cx, cy)
+
 
 class NUIM_dataset(DatasetVSLAMLab):
     """NUIM dataset helper for VSLAM-LAB benchmark."""
@@ -48,11 +48,11 @@ class NUIM_dataset(DatasetVSLAMLab):
         decompressed_folder = self.dataset_path / decompressed_name
 
         # Download the compressed file
-        if not os.path.exists(compressed_file):
+        if not compressed_file.exists():
             downloadFile(download_url, self.dataset_path)
 
         # Decompress the file
-        if not os.path.exists(decompressed_folder):
+        if not decompressed_folder.exists():
             decompressFile(compressed_file, sequence_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
@@ -63,9 +63,9 @@ class NUIM_dataset(DatasetVSLAMLab):
         depth_path_original = sequence_path / 'depth'
 
         if rgb_path_original.is_dir() and not rgb_path.is_dir():
-            os.rename(rgb_path_original, rgb_path) 
+            rgb_path_original.rename(rgb_path) 
         if depth_path_original.is_dir() and not depth_path.is_dir():    
-            os.rename(depth_path_original, depth_path) 
+            depth_path_original.rename(depth_path) 
 
         for png_file in os.listdir(rgb_path):
             if png_file.endswith(".png"):
@@ -73,7 +73,7 @@ class NUIM_dataset(DatasetVSLAMLab):
                 new_name = f"{int(name):05}{ext}"
                 old_file = rgb_path / png_file
                 new_file = rgb_path / new_name
-                os.rename(old_file, new_file)
+                old_file.rename(new_file)
 
         for png_file in os.listdir(depth_path):
             if png_file.endswith(".png"):
@@ -81,32 +81,33 @@ class NUIM_dataset(DatasetVSLAMLab):
                 new_name = f"{int(name):05}{ext}"
                 old_file = depth_path / png_file
                 new_file = depth_path / new_name
-                os.rename(old_file, new_file)
+                old_file.rename(new_file)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
         rgb_path = sequence_path / 'rgb_0'
         rgb_csv = sequence_path / 'rgb.csv'
 
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
+        rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
         with open(rgb_csv, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['ts_rgb0 (s)', 'path_rgb0', 'ts_depth0 (s)', 'path_depth0'])  # header
+            writer.writerow(['ts_rgb_0 (ns)', 'path_rgb_0', 'ts_depth_0 (ns)', 'path_depth_0'])  # header
             for filename in rgb_files:
                 name, _ = os.path.splitext(filename)
                 ts = float(name) / self.rgb_hz 
-                writer.writerow([f"{ts:.5f}", f"rgb_0/{filename}", f"{ts:.5f}", f"depth_0/{filename}"])
+                ts_ns = int(1e10 + ts * 1e9)
+                writer.writerow([ts_ns, f"rgb_0/{filename}", ts_ns, f"depth_0/{filename}"])
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
 
         fx, fy, cx, cy = CAMERA_PARAMS
-        rgbd0 = {"cam_name": "rgb0", "cam_type": "rgb+depth", "depth_name": "depth0",
+        rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
                 "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
                 "depth_factor": float(self.depth_factor),
                 "fps": float(self.rgb_hz),
-                "T_SC": np.eye(4)}        
+                "T_BS": np.eye(4)}        
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name):
@@ -120,11 +121,13 @@ class NUIM_dataset(DatasetVSLAMLab):
                 open(groundtruth_csv, 'w', newline='') as destination_csv_file:
 
                 csv_writer = csv.writer(destination_csv_file)
-                header = ["ts", "tx", "ty", "tz", "qx", "qy", "qz", "qw"]
+                header = ["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"]
                 csv_writer.writerow(header)
                 for line in source_file:
                     values = line.strip().split()
-                    values[0] = '{:.8f}'.format(float(values[0]) / self.rgb_hz)
+                    ts = float(values[0]) / self.rgb_hz 
+                    ts_ns = int(1e10 + ts * 1e9)
+                    values[0] = str(ts_ns)
                     
                     destination_txt_file.write(" ".join(values) + "\n")
                     csv_writer.writerow(values)
