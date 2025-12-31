@@ -114,6 +114,12 @@ if __name__ == "__main__":
             evaluate_exp(exp_yaml, overwrite)     
             compare_exp(exp_yaml) 
 
+        # VSLAM-LAB get experiment resources  
+        if function_name == "get-resources":
+            exp_yaml = sys.argv[2]
+            validate_experiment_yaml(exp_yaml)
+            get_experiment_resources(exp_yaml)
+ 
         # VSLAM-LAB demo  
         if function_name == "demo":
             baseline_name = sys.argv[2]

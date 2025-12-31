@@ -95,15 +95,15 @@ def add_video(video_path):
 ##################################################################################################################################################
 ##################################################################################################################################################
 class Experiment:
-    def __init__(self, name, settings):            
+    def __init__(self, name: str, settings):            
         self.name = name
-        self.folder = os.path.join(VSLAMLAB_EVALUATION, self.name)
+        self.folder = VSLAMLAB_EVALUATION / self.name
         self.num_runs = settings.get('NumRuns', 1)
         self.module = settings.get('Module', "default")
         self.parameters = settings['Parameters']
 
-        self.log_csv = os.path.join(self.folder, 'vslamlab_exp_log.csv')
-        self.config_yaml = os.path.join(VSLAM_LAB_DIR, 'configs', settings.get('Config', CONFIG_DEFAULT))
+        self.log_csv = self.folder / 'vslamlab_exp_log.csv'
+        self.config_yaml = VSLAM_LAB_DIR / 'configs' / settings.get('Config', CONFIG_DEFAULT)
         self.ablation_csv = settings.get('Ablation', None)
 
 def load_experiments(exp_yaml: str | Path)-> list[Any]:
@@ -348,7 +348,7 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
         dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
         if dataset_name not in sequences_to_download:
             sequences_to_download[dataset_name] = []
-        if dataset.check_sequence_availability(sequence_name, False) == "available":
+        if dataset.check_sequence_availability(sequence_name, verbose = False) == "available":
             print_msg(f"{ws(4)}", f"- {dataset.dataset_label} {dataset.dataset_color}{sequence_name}:\033[92m available\033[0m", verb='MEDIUM')
             num_available_sequences += 1
         else:
@@ -641,8 +641,8 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
                 f"[Error] Baseline '{baseline_name}' in '{exp_name}' doesn't handle "
                 f"mode '{mode}'. Available modes are: {baseline.modes}."
             )
-    if len(modes) > 1:
-        errors.append(f"[Error] Only one mode is allowed per config file. Conflicts: {modes}")
+    # if len(modes) > 1:
+    #     errors.append(f"[Error] Only one mode is allowed per config file. Conflicts: {modes}")
 
     if errors:
         print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment baseline conflicts (in '{exp_yaml}'):", "info")

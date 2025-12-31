@@ -16,8 +16,8 @@ Baselines/DROID-SLAM
 Baselines/DROID-SLAM-DEV
 Baselines/MASt3R-SLAM
 Baselines/MASt3R-SLAM-DEV
-Baselines/ORB_SLAM2
-Baselines/ORB_SLAM2-DEV
+Baselines/ORB-SLAM2
+Baselines/ORB-SLAM2-DEV
 Baselines/AnyFeature-VSLAM
 Baselines/AnyFeature-VSLAM-DEV
 Baselines/DPVO
@@ -28,8 +28,8 @@ Baselines/VGGT-DEV
 Baselines/GenSfM-DEV
 Baselines/MASt3R-DEV
 
-Baselines/ORB_SLAM3
-Baselines/ORB_SLAM3-DEV
+Baselines/ORB-SLAM3
+Baselines/ORB-SLAM3-DEV
 Baselines/OKVIS2
 Baselines/OKVIS2-DEV
 Baselines/PyCuVSLAM/
@@ -58,3 +58,5 @@ configs/exp_demo.yaml
 
 #VSCode
 .vscode/
+
+app.log

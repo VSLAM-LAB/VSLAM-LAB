@@ -1,7 +1,6 @@
 # Run methods
 
 import time
-import os
 import csv
 import shutil
 from typing import Any
@@ -12,7 +11,7 @@ from path_constants import RGB_BASE_FOLDER, VSLAMLAB_EVALUATION
 from Run import ablations
 from Run.downsample_rgb_frames import downsample_rgb_frames, get_rows
 
-SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 #@ray.remote(num_gpus=1)  
 def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
@@ -22,9 +21,8 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     run_time_start = time.time()
 
     # Create experiment folder
-    exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
-    if not os.path.exists(exp_folder):
-        os.makedirs(exp_folder, exist_ok=True)
+    exp_folder = exp.folder / dataset.dataset_folder / sequence_name
+    exp_folder.mkdir(parents=True, exist_ok=True)
 
     # Select images
     create_rgb_exp_csv(exp, dataset, sequence_name, baseline.default_parameters)
@@ -55,18 +53,18 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     return results
 
 def create_rgb_exp_csv(exp, dataset, sequence_name, default_parameters = ""):
-    sequence_path = os.path.join(dataset.dataset_path, sequence_name)
-    exp_folder = os.path.join(exp.folder, dataset.dataset_folder, sequence_name)
+    sequence_path = dataset.dataset_path / sequence_name
+    exp_folder = exp.folder / dataset.dataset_folder / sequence_name
 
     if 'rgb_csv' in exp.parameters:
-        rgb_csv = os.path.join(sequence_path, exp.parameters['rgb_csv'])
+        rgb_csv = sequence_path / exp.parameters['rgb_csv']
     else:
-        rgb_csv = os.path.join(sequence_path, f"{RGB_BASE_FOLDER}.csv")
+        rgb_csv = sequence_path / f"{RGB_BASE_FOLDER}.csv"
 
-    rgb_exp_csv = os.path.join(exp_folder, f"{RGB_BASE_FOLDER}_exp.csv")
+    rgb_exp_csv = exp_folder / f"{RGB_BASE_FOLDER}_exp.csv"
 
-    if os.path.exists(rgb_exp_csv):
-        os.remove(rgb_exp_csv)
+    if rgb_exp_csv.exists():
+        rgb_exp_csv.unlink()
     shutil.copy(rgb_csv, rgb_exp_csv)
 
     rgb_idx = 'rgb_idx' in exp.parameters
