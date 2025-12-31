@@ -6,7 +6,7 @@ import shutil
 from typing import Any
 from pathlib import Path
 
-from Baselines.baseline_utilities import log_run_sequence_time
+from Baselines.BaselineVSLAMLab_utilities import log_run_sequence_time
 from path_constants import RGB_BASE_FOLDER, VSLAMLAB_EVALUATION
 from Run import ablations
 from Run.downsample_rgb_frames import downsample_rgb_frames, get_rows
