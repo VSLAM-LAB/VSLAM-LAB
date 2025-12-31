@@ -1,7 +1,7 @@
 import os.path
 
 from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
-from Baselines.baseline_colmap import COLMAP_baseline
+from Baselines.baseline_files.baseline_colmap import COLMAP_baseline
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
