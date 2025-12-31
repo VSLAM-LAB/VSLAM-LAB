@@ -1,25 +1,25 @@
-import os.path
 import tarfile
+from pathlib import Path
 from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
 from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
 
-SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class ORBSLAM2_baseline(BaselineVSLAMLab):
-    """ORB_SLAM2 helper for VSLAM-LAB Baselines."""
+    """ORB-SLAM2 helper for VSLAM-LAB Baselines."""
 
-    def __init__(self, baseline_name: str = 'orbslam2', baseline_folder: str = 'ORB_SLAM2') -> None:
+    def __init__(self, baseline_name: str = 'orbslam2', baseline_folder: str = 'ORB-SLAM2') -> None:
         
         default_parameters = {'verbose': 1, 'mode': 'mono', 
-                              'vocabulary': VSLAMLAB_BASELINES / baseline_folder / 'Vocabulary' / 'ORBvoc.txt'}
+                              'vocabulary': str(VSLAMLAB_BASELINES / baseline_folder / 'Vocabulary' / 'ORBvoc.txt')}
         
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
-        self.color = 'blue'
+        self.color = (0.47, 0.628, 0.862) # 'blue'
         self.modes = ['mono', 'rgbd', 'stereo']
         self.camera_models = ['pinhole', 'radtan4', 'radtan5']
 
@@ -45,11 +45,12 @@ class ORBSLAM2_baseline(BaselineVSLAMLab):
 
 
 class ORBSLAM2_baseline_dev(ORBSLAM2_baseline):
-    """ORB_SLAM2-DEV helper for VSLAM-LAB Baselines."""
+    """ORB-SLAM2-DEV helper for VSLAM-LAB Baselines."""
 
     def __init__(self) -> None:
-        super().__init__(baseline_name = 'orbslam2-dev', baseline_folder = 'ORB_SLAM2-DEV')
-    
+        super().__init__(baseline_name = 'orbslam2-dev', baseline_folder = 'ORB-SLAM2-DEV')
+        self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
+
     def is_installed(self) -> tuple[bool, str]:
         is_installed = (self.baseline_path / 'bin' / 'vslamlab_orbslam2_mono' ).is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')

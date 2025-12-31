@@ -1,9 +1,11 @@
 import os.path
+from pathlib import Path
+
 
 from path_constants import VSLAMLAB_BASELINES
 from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
 
-SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class OKVIS2_baseline(BaselineVSLAMLab):
@@ -12,11 +14,11 @@ class OKVIS2_baseline(BaselineVSLAMLab):
     def __init__(self, baseline_name: str = 'okvis2', baseline_folder: str = 'OKVIS2') -> None:
 
         default_parameters = {'verbose': 1, 'mode': 'mono-vi', 
-                              'vocabulary': VSLAMLAB_BASELINES / baseline_folder / 'resources' / 'small_voc.yml.gz'}
+                              'vocabulary': str(VSLAMLAB_BASELINES / baseline_folder / 'resources' / 'small_voc.yml.gz')}
         
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
-        self.color = 'green'
+        self.color = (0.470, 0.862, 0.628) # 'green'
         self.modes = ['mono-vi']
         self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
 
@@ -32,6 +34,7 @@ class OKVIS2_baseline_dev(OKVIS2_baseline):
 
     def __init__(self) -> None:
         super().__init__(baseline_name = 'okvis2-dev', baseline_folder = 'OKVIS2-DEV')
+        self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
 
     def is_installed(self) -> tuple[bool, str]:
         is_installed = os.path.isfile(os.path.join(self.baseline_path, 'bin', 'vslamlab_okvis2_mono_vi'))

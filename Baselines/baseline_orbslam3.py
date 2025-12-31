@@ -1,25 +1,25 @@
-import os.path
 import tarfile
+from pathlib import Path
 from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
 from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
 
-SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class ORBSLAM3_baseline(BaselineVSLAMLab):
-    """ORB_SLAM3 helper for VSLAM-LAB Baselines."""
+    """ORB-SLAM3 helper for VSLAM-LAB Baselines."""
 
-    def __init__(self, baseline_name: str = 'orbslam3', baseline_folder: str = 'ORB_SLAM3') -> None:
+    def __init__(self, baseline_name: str = 'orbslam3', baseline_folder: str = 'ORB-SLAM3') -> None:
 
         default_parameters = {'verbose': 1, 'mode': 'mono-vi', 
-                              'vocabulary': VSLAMLAB_BASELINES / baseline_folder / 'Vocabulary' / 'ORBvoc.txt'}
+                              'vocabulary': str(VSLAMLAB_BASELINES / baseline_folder / 'Vocabulary' / 'ORBvoc.txt')}
         
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
-        self.color = 'blue'
+        self.color = (0.628, 0.47, 0.862) # 'violet'
         self.modes = ['mono', 'rgbd', 'stereo', 'mono-vi', 'stereo-vi']
         self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'equid4']
 
@@ -43,11 +43,13 @@ class ORBSLAM3_baseline(BaselineVSLAMLab):
             with tarfile.open(file_path, "r:gz") as tar:
                 tar.extractall(path=vocabulary_folder)
 
+
 class ORBSLAM3_baseline_dev(ORBSLAM3_baseline):
-    """ORB_SLAM3-DEV helper for VSLAM-LAB Baselines."""
+    """ORB-SLAM3-DEV helper for VSLAM-LAB Baselines."""
 
     def __init__(self) -> None:
-        super().__init__(baseline_name = 'orbslam3-dev', baseline_folder = 'ORB_SLAM3-DEV')
+        super().__init__(baseline_name = 'orbslam3-dev', baseline_folder = 'ORB-SLAM3-DEV')
+        self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
 
     def is_installed(self) -> tuple[bool, str]:
         is_installed = (self.baseline_path / 'bin' / 'vslamlab_orbslam3_mono_vi').is_file()
