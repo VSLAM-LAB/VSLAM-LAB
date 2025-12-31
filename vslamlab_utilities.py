@@ -655,9 +655,11 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
 def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, config_mode: str) -> None:
     errors: list[str] = []
     configs: set[str] = set()
+    baselines: set[str] = set()
     for _, settings in exp_data.items():
         config_yaml = Path(settings.get("Config"))
         configs.add(config_yaml)
+        baselines.add(settings.get("Module"))
 
     for config_yaml in configs:
         config_file = VSLAM_LAB_DIR / 'configs' / config_yaml
@@ -670,7 +672,18 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, co
                     f"[Error] Dataset '{dataset_name}' (in config '{config_file}') doesn't handle mode "
                     f"'{config_mode}'. Available modes are: {dataset.modes}."
                 )
-
+            dataset_cam_models = dataset.cam_models
+            for baseline_name in baselines:
+                baseline = get_baseline(baseline_name)
+                baseline_cam_models = baseline.camera_models
+                if not any(cam_model in baseline_cam_models for cam_model in dataset_cam_models):
+                    errors.append(
+                        f"[Error] Baseline '{baseline_name}' and dataset '{dataset_name}' "
+                        f"have no compatible cam models. "
+                        f"Baseline: {baseline_cam_models}. "
+                        f"Dataset: {dataset_cam_models}."
+                    )
+                
     if not errors:
         return
 
