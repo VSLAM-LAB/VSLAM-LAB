@@ -837,9 +837,9 @@ platforms = ["linux-64"]
 cuda = "12.6"
 
 [feature.lightglue.tasks]
-git-clone-lightglue.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
-git-clone-lightglue.cwd = 'Baselines'
-install-lightglue = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['git-clone-lightglue']}
+git-clone.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
+git-clone.cwd = 'Baselines'
+install = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['git-clone']}
 
 [feature.lightglue.dependencies]
 # Core Libraries
