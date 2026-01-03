@@ -28,7 +28,7 @@ from Baselines.baseline_files.baseline_pycuvslam import PYCUVSLAM_baseline
 # SfM baselines
 from Baselines.baseline_files.baseline_colmap import COLMAP_baseline
 from Baselines.baseline_files.baseline_glomap import GLOMAP_baseline
-from Baselines.baseline_files.baseline_vggt import VGGT_baseline_dev
+from Baselines.baseline_files.baseline_vggt import VGGT_baseline
 
 # Development
 from Baselines.baseline_gensfm import GENSFM_baseline_dev
@@ -56,7 +56,7 @@ def get_baseline_switcher():
         "okvis2": lambda: OKVIS2_baseline(),
         "okvis2-dev": lambda: OKVIS2_baseline_dev(),
         "pycuvslam": lambda: PYCUVSLAM_baseline(),
-        "vggt-dev": lambda: VGGT_baseline_dev(),
+        "vggt": lambda: VGGT_baseline(),
         
         # Development
         "gensfm-dev": lambda: GENSFM_baseline_dev(),
