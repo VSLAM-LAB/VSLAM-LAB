@@ -50,6 +50,7 @@ Baselines/DroidCalib
 Baselines/*.txt*
 Baselines/pyslam
 Baselines/MAGiC-SLAM
+Baselines/LightGlue/
 
 path_constants.py
 

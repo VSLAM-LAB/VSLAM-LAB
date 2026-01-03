@@ -46,6 +46,10 @@ monogs = {features = ["monogs"], no-default-feature = true}
 colmap = {features = ["colmap"], no-default-feature = true, solve-group = "colmap"}
 glomap = {features = ["glomap"], no-default-feature = true, solve-group = "colmap"}
 
+gensfm-dev = { features = ["gensfm-dev", "cuda126", "py10", "x11", "opengl"], solve-group = "cuda126py10" }
+mast3r-dev = { features = ["mast3r-dev", "cuda126", "py10"], solve-group = "cuda126py10" }
+vggt-dev = { features = ["vggt-dev", "cuda126", "py11"], solve-group = "cuda126py11" }
+
 #monodataset = {features = ["monodataset"], no-default-feature = true}
 #dust3r = {features = ["dust3r"], no-default-feature = true}
 #spann3r = {features = ["spann3r"], no-default-feature = true}
@@ -1405,3 +1409,120 @@ rep_error = {cmd = 'pixi run -e colmap ./reprojection_error.sh'}
 # matplotlib = ">=3.9.2,<3.10"
 # tbb-devel="*"
 # glomap-dev end
+
+########################################################################################################################
+########################################################################################################################
+# gensfm-dev
+[feature.gensfm-dev]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.gensfm-dev.system-requirements]
+cuda = "12.0"
+
+[feature.gensfm-dev.tasks]
+git-clone = "./git-clone.sh VSLAM-LAB GenSfM GenSfM-DEV"
+install = { cmd = "./vslamlab_gensfm-dev_build.sh -v && sudo /sbin/swapoff -a && sudo /sbin/swapon -a", cwd = "Baselines/GenSfM-DEV" }
+execute-mono = { cmd = "./vslamlab_gensfm-dev_reconstruction.sh", cwd = "Baselines/GenSfM-DEV" }
+
+[feature.gensfm-dev.dependencies]
+compilers = "*"
+ninja = "*"
+cmake = "<4"
+pkg-config = "*"
+openmp = "*"
+ceres-solver = "2.1.*"
+libboost-devel = "*"
+eigen = "*"
+freeimage = "*"
+glog = "*"
+glew = "*"
+git = "*"
+qt-main = "*"
+pybind11 = "*"
+yq = "*"
+numpy = "*"
+scipy = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# mast3r-dev
+[feature.mast3r-dev]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.mast3r-dev.system-requirements]
+cuda = "12.0"
+
+[feature.mast3r-dev.tasks]
+git-clone = "./git-clone.sh VSLAM-LAB MASt3R MASt3R-DEV"
+install = { cmd = "cd asmk && pip install . && cd .. && cd dust3r/croco/models/curope/ && python setup.py build_ext --inplace", cwd = "Baselines/MASt3R-DEV" }
+execute-mono = { cmd = 'python3 vslamlab_mast3r_demo.py',  cwd = 'Baselines/MASt3R-DEV'}
+execute-online-demo = { cmd = 'python3 demo.py --model_name MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric',  cwd = 'Baselines/MASt3R-DEV' }
+
+[feature.mast3r-dev.dependencies]
+# Build Tools
+compilers = "*"
+pkg-config = "*"
+cmake = "*"
+make = "*"
+
+# Torch libraries
+pytorch-gpu = "*"
+torchvision = "*"
+
+# Other
+einops = "*"
+faiss = "*"
+pydantic = "<2.11.0"
+huggingface_hub = "*"
+matplotlib = "*"
+numpy = "<2"
+opencv = "*"
+pyaml = "*"
+pyglet = "<2"
+safetensors = "*"
+scipy = "*"
+tensorboard = "*"
+tqdm = "*"
+trimesh = "*"
+cython = "*"
+scikit-learn = "*"
+
+[feature.mast3r-dev.pypi-dependencies]
+roma = "*"
+gradio = "*"
+
+########################################################################################################################
+########################################################################################################################
+# vggt-dev
+[feature.vggt-dev]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.vggt-dev.dependencies]
+
+# Core Libraries
+pytorch-gpu = "*"
+torchvision = "*"
+
+numpy = "<2"
+Pillow = "*"
+huggingface_hub = "*"
+einops = "*"
+safetensors = "*"
+opencv = "*"
+tqdm = "*"
+hydra-core = "*"
+omegaconf = "*"
+scipy = "*"
+onnxruntime = "*"
+requests = "*"
+trimesh = "*"
+matplotlib = "*"
+gradio = "*"
+viser = "*"
+
+[feature.vggt-dev.tasks]
+git-clone = "./git-clone.sh VSLAM-LAB vggt VGGT-DEV"
+execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT-DEV" }
