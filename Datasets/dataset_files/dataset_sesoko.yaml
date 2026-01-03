@@ -1,0 +1,27 @@
+dataset_name: sesoko
+
+rgb_hz: 30.0
+url_download_root: "https://squidle.org"
+api_token: ""
+modes: ['mono']
+cam_models: ['pinhole']
+target_resolution: [640, 480]
+
+sequence_names:
+  - ssk16
+  - ssk17
+  - ssk18
+  - ssk16-s01
+  - ssk17-s01
+  - ssk18-s01
+  - sskall-s01
+
+subsets:
+  # ssk16-s01: [ssk16, "rgb_0/8310516.jpg", 2.5] # parent sequence, target image path, radius in meters
+  # ssk17-s01: [ssk17, "rgb_0/8312848.jpg", 2.5]
+  # ssk18-s01: [ssk18, "rgb_0/8316204.jpg", 2.5]
+  ssk16-s01: [ssk16, "rgb_0/8312297.jpg", 1.0] # parent sequence, target image path, radius in meters
+  ssk17-s01: [ssk17, "rgb_0/8315088.jpg", 1.0]
+  ssk18-s01: [ssk18, "rgb_0/8318071.jpg", 1.0]
+combined:
+  sskall-s01: [ssk16-s01, ssk17-s01, ssk18-s01]
