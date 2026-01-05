@@ -149,7 +149,7 @@ pixi run compare-exp <exp_yaml>                          # Example: pixi run com
 
 ```
 
-## Add a new dataset
+## Add a new Dataset
 
 Datasets in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, which is created by default in the same parent directory as **VSLAM-LAB**.
 
@@ -184,6 +184,53 @@ Datasets in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, 
         "dataset_{your_dataset}": lambda: {YOUR_DATASET}_dataset(benchmark_path),
     }
 ```
+
+## Add a new Baseline
+
+Baselines  in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, which is created by default in the same parent directory as **VSLAM-LAB**
+
+1. Start modifying the pixi.toml (more information in ) (check ...):
+```
+[environments]
+vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11", "vggt"], solve-group = "vggt" }
+
+...
+
+# ########################################################################################################################
+# ########################################################################################################################
+# vggtslam-dev
+[feature.vggtslam-dev]
+channels = ["https://prefix.dev/conda-forge"]
+
+platforms = ["linux-64"]
+
+[feature.vggtslam-dev.tasks]
+git-clone = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
+install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['git-clone']}
+execute-mono = { cmd = 'python3 main.py --image_folder office_loop --max_loops 1 --vis_map', cwd = "Baselines/VGGT-SLAM-DEV" }
+
+[feature.vggtslam-dev.dependencies]
+compilers = "*"
+cmake = "*"
+make = "*"
+...
+```
+
+2. Derive a new class **baseline_{your_baseline}.py** from  **~/VSLAM-LAB/Baselines/BaselineVSLAMLab.py**. (check ...):
+
+3. Include the call for your baseline in function *def get_baseline(...)* in **~/VSLAM-LAB/Baselines/get_baseline.py** (check ...):
+```
+ from Baselines.baseline_files.baseline_{your_baseline} import {YOUR_BASELINE}_dataset
+    ...
+ def get_baseline_switcher():
+    ...
+    switcher = {
+        "droidslam": lambda: DROIDSLAM_baseline(),
+        ...
+        "{your_baseline}": lambda: {YOUR_BASELINE}_baseline()
+    }
+```
+
 
 ## License
 **VSLAM-LAB** is released under a **LICENSE.txt**. For a list of code dependencies which are not property of the authors of **VSLAM-LAB**, please check **docs/Dependencies.md**.
