@@ -7,6 +7,8 @@ from Baselines.baseline_files.baseline_dpvo import DPVO_baseline
 from Baselines.baseline_files.baseline_dpvo import DPVO_baseline_dev
 from Baselines.baseline_files.baseline_anyfeature import ANYFEATURE_baseline
 from Baselines.baseline_files.baseline_anyfeature import ANYFEATURE_baseline_dev
+from Baselines.baseline_files.baseline_vggtslam import VGGTSLAM_baseline
+from Baselines.baseline_files.baseline_vggtslam import VGGTSLAM_baseline_dev
 
 # RGBD baselines
 from Baselines.baseline_files.baseline_monogs import MONOGS_baseline
@@ -57,6 +59,8 @@ def get_baseline_switcher():
         "okvis2-dev": lambda: OKVIS2_baseline_dev(),
         "pycuvslam": lambda: PYCUVSLAM_baseline(),
         "vggt": lambda: VGGT_baseline(),
+        "vggtslam": lambda: VGGTSLAM_baseline(),
+        "vggtslam-dev": lambda: VGGTSLAM_baseline_dev(),
         
         # Development
         "gensfm-dev": lambda: GENSFM_baseline_dev(),

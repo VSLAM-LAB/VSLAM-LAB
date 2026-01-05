@@ -29,6 +29,7 @@ orbslam3 = { features = ["orbslam3"], solve-group = "orb" }
 okvis2 = { features = ["okvis2"], solve-group = "okvis" }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 vggt = { features = ["vggt", "cuda126", "py11"], solve-group = "vggt" }
+vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
 droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid" }
@@ -38,6 +39,7 @@ orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "or
 anyfeature-dev = { features = ["anyfeature-dev", "x11", "opengl"], solve-group = "anyfeature" }
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
 okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"], solve-group = "okvis" }
+vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11", "vggt"], solve-group = "vggt" }
 
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
 
@@ -404,6 +406,27 @@ viser = "*"
 [feature.vggt.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
 execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT" }
+
+########################################################################################################################
+########################################################################################################################
+# vggtslam
+[feature.vggtslam]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64"]
+
+[feature.vggtslam.dependencies]
+vggtslam-vslamlab = { channel = "fontan" }
+gtsam = { channel = "fontan" }
+tqdm = "*"
+viser = "*"
+termcolor = "*"
+pytorch-lightning = "*"
+huggingface_hub = "*"
+pytorch-metric-learning = "*"
+
+[feature.vggtslam.tasks]
+git-clone = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
+execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -827,6 +850,54 @@ librealsense = "*"
 openmp = "*"
 libgfortran = "3.*"
 yaml-cpp = "*"
+
+########################################################################################################################
+# ########################################################################################################################
+# vggtslam-dev
+[feature.vggtslam-dev]
+channels = ["https://prefix.dev/conda-forge" , "fontan"]
+platforms = ["linux-64"]
+
+[feature.vggtslam-dev.tasks]
+git-clone = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
+install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['git-clone']}
+execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV" }
+
+[feature.vggtslam-dev.dependencies]
+# Build Tools
+compilers = "*"
+cmake = "*"
+make = "*"
+
+boost = "*"
+unzip = "*"
+
+# Core Libraries
+pytorch-gpu = "*"
+torchvision = "*"
+numpy = "<2"
+Pillow = "*"
+huggingface_hub = "*"
+einops = "*"
+safetensors = "*"
+opencv = "*"
+tqdm = "*"
+hydra-core = "*"
+omegaconf = "*"
+scipy = "*"
+onnxruntime = "*"
+requests = "*"
+trimesh = "*"
+matplotlib = "*"
+gradio = "==6.2.0"
+viser = "*"
+open3d = "*"
+pytorch-metric-learning = "*"
+pytorch-lightning = "*"
+termcolor = "*"
+virtualenv = ">=20.10.0"
+lz4 = "*"
+gtsam = { channel = "fontan" }
 
 # ########################################################################################################################
 # ########################################################################################################################

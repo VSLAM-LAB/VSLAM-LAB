@@ -33,6 +33,8 @@ Baselines/PyCuVSLAM
 Baselines/colmap
 Baselines/glomap
 Baselines/LightGlue
+Baselines/VGGT-SLAM-DEV
+Baselines/VGGT-SLAM
 
 path_constants.py
 configs/config_demo.yaml
