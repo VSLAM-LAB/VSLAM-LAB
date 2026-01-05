@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation as R
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile
 from utilities import decompressFile
-from Datasets.dataset_utilities import undistort_fisheye
+from Datasets.DatasetVSLAMLab_utilities import undistort_fisheye
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 class HILTI2022_dataset(DatasetVSLAMLab):

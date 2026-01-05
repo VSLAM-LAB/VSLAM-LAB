@@ -1,11 +1,132 @@
-exp_droidslam_dev_mono:
+exp_vggtslam_dev:
   Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 1, rgb_idx: [0,100], mode: rgbd}
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: vggtslam-dev
+
+exp_vggtslam:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: vggtslam
+
+exp_mast3rslam_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: mast3rslam-dev
+
+exp_mast3rslam:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: mast3rslam
+
+exp_dpvo_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: dpvo-dev
+
+exp_dpvo:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: dpvo
+
+exp_droidslam_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
   Module: droidslam-dev
 
-# exp_okivs2_mono:
-#   Config: config_debug.yaml
-#   NumRuns: 3
-#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono-vi}
-#   Module: okvis2
+exp_droidslam:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: droidslam
+
+exp_orbslam2_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: orbslam2-dev
+
+exp_orbslam2:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: orbslam2
+
+exp_monogs_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: monogs-dev
+
+exp_monogs:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: monogs
+
+exp_anyfeature_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: anyfeature-dev
+
+exp_anyfeature:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: anyfeature
+
+exp_pycuvslam:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: stereo-vi}
+  Module: pycuvslam
+
+exp_orbslam3_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: orbslam3-dev
+
+exp_orbslam3:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: orbslam3
+
+exp_okvis2_dev:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono-vi}
+  Module: okvis2-dev
+
+exp_okvis2:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono-vi}
+  Module: okvis2
+
+exp_glomap:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: glomap
+
+exp_colmap:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: colmap
+
+exp_vggt:
+  Config: config_debug.yaml
+  NumRuns: 2
+  Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+  Module: vggt
+

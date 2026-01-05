@@ -5,7 +5,7 @@ from tqdm import tqdm
 import os, yaml, shutil
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from Datasets.dataset_utilities import undistort_fisheye
+from Datasets.DatasetVSLAMLab_utilities import undistort_fisheye
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 

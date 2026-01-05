@@ -10,7 +10,7 @@ import pandas as pd
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile
 from utilities import decompressFile
-from Datasets.dataset_utilities import undistort_fisheye
+from Datasets.DatasetVSLAMLab_utilities import undistort_fisheye
 
 from utilities import replace_string_in_files
 from path_constants import VSLAM_LAB_DIR

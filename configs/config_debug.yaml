@@ -1,28 +1,35 @@
-# eth:
-#   - 'table_3'
-rgbdtum:
-  - 'rgbd_dataset_freiburg1_xyz'
-# tartanair:
-#  - 'ME000'
+eth:
+  - 'table_3'
+# rgbdtum:
+#   - 'rgbd_dataset_freiburg1_xyz'
 # replica:
-#  - 'office0'
+#   - 'office0'
 # nuim:
-# - 'traj0_frei_png'
+#   - 'traj0_frei_png'
+# tartanair:
+#   - 'ME000'
 # euroc:
 #   - MH_01_easy
 # kitti:
 #  - '04'
+# ut_coda:
+#   - '0'
+# rover_t265:
+#   - 'campus_small_autumn_t265'
+# rover_d435i:
+#   - 'campus_small_autumn_d435i'
+# rover_picam:
+#   - 'campus_small_autumn_picam'
+# s3li:
+#   - 'vegetation'
+# msd:
+#   - 'MIO07_mapping_easy'
+# sesoko:
+#   - ssk16
+#   - ssk17
+#   - ssk18
 
-  # - MH_02_easy
-  # - MH_03_medium
-  # - MH_04_difficult
-  # - MH_05_difficult
-  # - V1_01_easy
-  # - V1_02_medium
-  # - V1_03_difficult
-  # - V2_01_easy
-  # - V2_02_medium
-  # - V2_03_difficult
+  
 # sweetcorals:
 # - '_indonesia_tabuhan_p1_20250210'
 
@@ -32,8 +39,6 @@ rgbdtum:
   #- market1-1
   # - market1-2
   # - market1-3
-# tartanair:
-#   - 'ME001'
 
 # madmax:
 #   - A-0
@@ -56,41 +61,9 @@ rgbdtum:
 #  - 'test4'
 #lizardisland:
 #  - 'LIRS_FEB1'
-#replica:
-#  - 'office0'
-#  - 'office1'
-#  - 'office2'
-#  - 'office3'
-#  - 'office4'
-#  - 'room0'
-#  - 'room1'
-#  - 'room2'
-# rgbdtum:
-#   # - 'rgbd_dataset_freiburg3_structure_texture_far'
-#   - 'rgbd_dataset_freiburg1_xyz'
-#   # - 'rgbd_dataset_freiburg3_long_office_household'
-  #  - 'rgbd_dataset_freiburg2_desk'
 
-# eth:
-#   - 'table_3'
-#kitti:
-#  - '04'
-#euroc:
-#  - 'MH_01_easy'
-#  - 'MH_02_easy'
-#  - 'MH_03_medium'
-#  - 'MH_04_difficult'
-#  - 'MH_05_difficult'
-#  - 'V1_01_easy'
-#  - 'V1_02_medium'
-#  - 'V1_03_difficult'
-#  - 'V2_01_easy'
-#  - 'V2_02_medium'
-#  - 'V2_03_difficult'
 #monotum:
 #  - 'sequence_01'
-#tartanair
-#  - 'ME001'
 #7scenes
 #  - 'redkitchen_seq-01'
 #  - 'heads_seq-01'

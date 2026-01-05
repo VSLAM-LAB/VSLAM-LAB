@@ -68,25 +68,20 @@ git clone https://github.com/alejandrofontan/VSLAM-LAB.git && cd VSLAM-LAB
 ## Quick Demo
 You can now execute any baseline on any sequence from any dataset within VSLAM-LAB using the following command:
 ```
-pixi run demo <baseline> <dataset> <sequence>
+pixi run demo <baseline> <dataset> <sequence> <mode>
 ```
 For a full list of available systems and datasets, see the [VSLAM-LAB Supported Baselines and Datasets](#vslam-lab-supported-baselines-and-datasets).
 Example commands:
 ```
-pixi run demo mast3rslam eth table_3
-pixi run demo droidslam euroc MH_01_easy
-pixi run demo orbslam2 rgbdtum rgbd_dataset_freiburg1_xyz
+pixi run demo mast3rslam eth table_3 mono
+pixi run demo droidslam rgbdtum rgbd_dataset_freiburg1_xyz rgbd
+pixi run demo orbslam2 kitti 04 stereo
+pixi run pycuvslam euroc MH_01_easy stereo-vi
 ```
 *To change the paths where VSLAM-LAB-Benchmark or/and VSLAM-LAB-Evaluation data are stored (for example, to /media/${USER}/data), use the following commands:*
 ```
 pixi run set-benchmark-path /media/${USER}/data
 pixi run set-evaluation-path /media/${USER}/data
-```
-## VSLAM-LAB Info Functions
-```bash
-pixi run baseline-info <baseline>
-pixi run print-baselines
-pixi run print-datasets
 ```
 
 ## Configure your own experiments
@@ -121,115 +116,26 @@ monotum:
 ```
 For a full list of available VSLAM systems and datasets, refer to the section [VSLAM-LAB Supported Baselines and Datasets](#vslam-lab-supported-baselines-and-datasets).
 
-## VSLAM-LAB Pipeline Functions
-Instead of running the full VSLAM-LAB pipeline, you can interact with datasets and baselines using the commands below:
+## VSLAM-LAB Pipeline Commands
+In addition to running the full automated pipeline, **VSLAM-LAB** provides modular commands to interact directly with datasets and baselines. For a comprehensive list of all available commands consult [Wiki: Comand‐line Interface](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Comand%E2%80%90line-Interface)
 
 ```bash
-pixi run validate-experiment-yaml <exp_yaml>             # Example: pixi run validate-experiment-yaml configs/exp_vslamlab.yaml
-pixi run overwrite-exp <exp_yaml>                        # Example: pixi run overwrite-exp configs/exp_vslamlab.yaml
-pixi run update-experiment-csv-logs <exp_yaml>           # Example: pixi run update-experiment-csv-logs configs/exp_vslamlab.yaml
-
-pixi run check-experiment-resources <exp_yaml>           # Example: pixi run check-experiment-resources configs/exp_vslamlab.yaml
-pixi run get-experiment-resources <exp_yaml>             # Example: pixi run get-experiment-resources configs/exp_vslamlab.yaml
-
-pixi run check-experiment-state <exp_yaml>               # Example: pixi run check-experiment-state configs/exp_vslamlab.yaml
-
 pixi run install-baseline <baseline>                     # Example: pixi run install-baseline droidslam
-pixi run install-baselines <baseline1> <baseline2> ...   # Example: pixi run install-baselines droidslam orbslam2
-
-pixi run download-sequence <dataset> <sequence>          # Example: pixi run download-sequence eth table_3
-pixi run download-sequences <dataset1> <sequence1> <dataset2> <sequence2> ... \
-                                                         # Example: pixi run download-sequences eth table_3 rgbdtum rgbd_dataset_freiburg1_xyz
-pixi run download-dataset <dataset>                      # Example: pixi run download-dataset eth
-pixi run download-datasets <dataset1> <dataset2>         # Example: pixi run download-datasets eth rgbdtum
-
+pixi run download-sequence <dataset> <sequence>          # Example: pixi run download-sequence eth table_3 
 pixi run run-exp <exp_yaml>                              # Example: pixi run run-exp configs/exp_vslamlab.yaml
 pixi run evaluate-exp <exp_yaml>                         # Example: pixi run evaluate-exp configs/exp_vslamlab.yaml
 pixi run compare-exp <exp_yaml>                          # Example: pixi run compare-exp configs/exp_vslamlab.yaml
-
 ```
 
-## Add a new Dataset
+## Add a new VSLAM Dataset
 
-Datasets in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, which is created by default in the same parent directory as **VSLAM-LAB**.
+Expand the evaluation suite by integrating custom datasets. Follow the instructions in [Wiki: Integrate a new VSLAM Dataset](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Integrate-a-new-VSLAM-Dataset).
 
-1. To add a new dataset, structure your dataset as follows:
-```
-~/VSLAM-LAB-Benchmark
-└── YOUR_DATASET
-    └── sequence_01
-        ├── rgb_0
-            └── img_01
-            └── img_02
-            └── ...
-        ├── calibration.yaml
-        ├── rgb.csv
-        └── groundtruth.csv
-    └── sequence_02
-        ├── ...
-    └── ...   
-```
+## Add a new VSLAM Baseline
 
-2. Derive a new class **dataset_{your_dataset}.py** for your dataset from  **~/VSLAM-LAB/Datasets/Dataset_vslamlab.py**, and create a corresponding YAML configuration file named **dataset_{your_dataset}.yaml**.
-	
-3. Include the call for your dataset in function *def get_dataset(...)* in **~/VSLAM-LAB/Datasets/get_dataset.py**
-```
- from Datasets.dataset_{your_dataset} import {YOUR_DATASET}_dataset
-    ...
- def get_dataset(dataset_name, benchmark_path)
-    ...
-    switcher = {
-        "rgbdtum": lambda: RGBDTUM_dataset(benchmark_path),
-        ...
-        "dataset_{your_dataset}": lambda: {YOUR_DATASET}_dataset(benchmark_path),
-    }
-```
+Incorporate new algorithms into the framework. Follow the guide in [Wiki: Integrate a new VSLAM Baseline](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Integrate-a-new-VSLAM-Baseline). Benchmark your method against state-of-the-art baselines across all supported datasets.
 
-## Add a new Baseline
-
-Baselines  in **VSLAM-LAB** are stored in a folder named **VSLAM-LAB-Benchmark**, which is created by default in the same parent directory as **VSLAM-LAB**
-
-1. Start modifying the pixi.toml (more information in ) (check ...):
-```
-[environments]
-vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11", "vggt"], solve-group = "vggt" }
-
-...
-
-# ########################################################################################################################
-# ########################################################################################################################
-# vggtslam-dev
-[feature.vggtslam-dev]
-channels = ["https://prefix.dev/conda-forge"]
-
-platforms = ["linux-64"]
-
-[feature.vggtslam-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
-install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['git-clone']}
-execute-mono = { cmd = 'python3 main.py --image_folder office_loop --max_loops 1 --vis_map', cwd = "Baselines/VGGT-SLAM-DEV" }
-
-[feature.vggtslam-dev.dependencies]
-compilers = "*"
-cmake = "*"
-make = "*"
-...
-```
-
-2. Derive a new class **baseline_{your_baseline}.py** from  **~/VSLAM-LAB/Baselines/BaselineVSLAMLab.py**. (check ...):
-
-3. Include the call for your baseline in function *def get_baseline(...)* in **~/VSLAM-LAB/Baselines/get_baseline.py** (check ...):
-```
- from Baselines.baseline_files.baseline_{your_baseline} import {YOUR_BASELINE}_dataset
-    ...
- def get_baseline_switcher():
-    ...
-    switcher = {
-        "droidslam": lambda: DROIDSLAM_baseline(),
-        ...
-        "{your_baseline}": lambda: {YOUR_BASELINE}_baseline()
-    }
-```
+For a reference implementation, see the VGGT-SLAM integration in commit [259f7ae](https://github.com/VSLAM-LAB/VSLAM-LAB/commit/259f7aec88d4576880f3cc98983660f508af13a9).
 
 
 ## License
@@ -237,7 +143,7 @@ make = "*"
 
 
 ## Citation
-If you're using **VSLAM-LAB** in your research, please cite. If you're specifically using VSLAM systems or datasets that have been included, please cite those as well. We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6x_TXkgLsw9zWszHU9M-0mGgDT92TEs/edit?usp=drive_link) with citation for each dataset and VSLAM system for your convenience.
+If you're using **VSLAM-LAB** in your research, please cite:
 ```bibtex
 @article{fontan2025vslam,
   title={VSLAM-LAB: A Comprehensive Framework for Visual SLAM Methods and Datasets},
@@ -252,8 +158,6 @@ If you're using **VSLAM-LAB** in your research, please cite. If you're specifica
 To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets) -->
 
 # VSLAM-LAB Supported Baselines and Datasets
-We provide a [spreadsheet](https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6x_TXkgLsw9zWszHU9M-0mGgDT92TEs/edit?usp=drive_link) with more detailed information for each baseline and dataset.
-
 | Baselines                                                                   | System |     Sensors      |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |  
 |:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|:------------:|
 | [**VGGT-SLAM**](https://github.com/MIT-SPARK/VGGT-SLAM) |  VSLAM   |  `mono`  |  [BSD-2](https://github.com/MIT-SPARK/VGGT-SLAM/blob/main/LICENSE)  |   `vggtslam`   | ✅ | `pinhole` |

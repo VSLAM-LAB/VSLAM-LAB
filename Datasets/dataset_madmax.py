@@ -4,7 +4,7 @@ import numpy as np
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
-from Datasets.dataset_utilities import undistort_rgb_rad_tan, undistort_depth_rad_tan
+from Datasets.DatasetVSLAMLab_utilities import undistort_rgb_rad_tan, undistort_depth_rad_tan
 
 class MADMAX_dataset(DatasetVSLAMLab):
     def __init__(self, benchmark_path):

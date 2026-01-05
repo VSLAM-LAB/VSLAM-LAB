@@ -51,7 +51,7 @@ def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
         print(f"  Maximum number of RGB images: {max_rgb_count}")
         print(f"  Minimum FPS: {min_fps:.1f} Hz")
 
-    sequence_duration = rgb_timestamps[-1] - rgb_timestamps[0]
+    sequence_duration = (rgb_timestamps[-1] - rgb_timestamps[0]) / 1e9
     actual_fps = len(rgb_paths) / sequence_duration
     max_interval = 1.0 / min_fps
     min_interval = sequence_duration / max_rgb_count
@@ -77,7 +77,7 @@ def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
         downsampled_paths, downsampled_timestamps, downsampled_rows = downsample_rgb(rgb_timestamps, rgb_paths, rows, step_size, max_rgb_count)
 
 
-    downsampled_duration = downsampled_timestamps[-1] - downsampled_timestamps[0]
+    downsampled_duration = (downsampled_timestamps[-1] - downsampled_timestamps[0]) / 1e9
     downsampled_fps = len(downsampled_paths) / downsampled_duration
 
     if verbose:

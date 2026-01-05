@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from pyproj import CRS, Transformer
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from Datasets.dataset_utilities import undistort_rgb_rad_tan, resize_rgb_images
+from Datasets.DatasetVSLAMLab_utilities import undistort_rgb_rad_tan, resize_rgb_images
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
