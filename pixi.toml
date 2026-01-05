@@ -188,7 +188,7 @@ execute-mono = 'vslamlab_dpvo_mono'
 [feature.dpvo.dependencies]
 dpvo-vslamlab = { channel = "fontan" }
 pangolin = { channel = "fontan" }
-pypose = { channel ="fontan" }
+pypose = { channel = "fontan" }
 opencv = "*"
 evo = "*"
 yacs = "*"
@@ -325,7 +325,7 @@ execute-mono-vi = 'vslamlab_orbslam3_mono_vi'
 execute-stereo-vi = 'vslamlab_orbslam3_stereo_vi'
 
 [feature.orbslam3.dependencies]
-orbslam3-vslamlab = { channel ="fontan" }
+orbslam3-vslamlab = { channel = "fontan" }
 pangolin = { channel = "fontan" }
 opencv = ">=4.10.0 ,<5"
 
