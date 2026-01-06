@@ -1,0 +1,86 @@
+# Ablation Study for Kinematic Constraints in Nasal Endoscopy SLAM
+#
+# This experiment compares SLAM performance with/without kinematic constraints
+# on the HAMLYN dataset (nasal endoscopy sequences)
+#
+# Experiment configurations:
+# 1. Baseline DROID-SLAM (no constraints)
+# 2. DROID-SLAM with relaxed constraints
+# 3. DROID-SLAM with default constraints
+# 4. DROID-SLAM with strict constraints
+
+# Baseline: DROID-SLAM without constraints
+exp_droidslam_baseline:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {verbose: 1}
+  Module: droidslam
+
+# Baseline: DPVO without constraints
+exp_dpvo_baseline:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {verbose: 1}
+  Module: dpvo
+
+# DROID-SLAM with no constraints (sanity check)
+exp_droidslam_no_constraints:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {
+    verbose: 1,
+    apply_constraints: false
+  }
+  Module: droidslam
+
+# DROID-SLAM with relaxed kinematic constraints
+exp_droidslam_relaxed:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {
+    verbose: 1,
+    constraint_config: relaxed,
+    apply_constraints: true,
+    save_raw_trajectory: true,
+    refine_iterations: 2
+  }
+  Module: droidslam
+
+# DROID-SLAM with default kinematic constraints (recommended)
+exp_droidslam_default:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {
+    verbose: 1,
+    constraint_config: default,
+    apply_constraints: true,
+    save_raw_trajectory: true,
+    refine_iterations: 2
+  }
+  Module: droidslam
+
+# DROID-SLAM with strict kinematic constraints
+exp_droidslam_strict:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {
+    verbose: 1,
+    constraint_config: strict,
+    apply_constraints: true,
+    save_raw_trajectory: true,
+    refine_iterations: 3
+  }
+  Module: droidslam
+
+# DPVO with default kinematic constraints
+exp_dpvo_constrained:
+  Config: config_hamlyn_endoscopy.yaml
+  NumRuns: 3
+  Parameters: {
+    verbose: 1,
+    constraint_config: default,
+    apply_constraints: true,
+    save_raw_trajectory: true,
+    refine_iterations: 2
+  }
+  Module: dpvo

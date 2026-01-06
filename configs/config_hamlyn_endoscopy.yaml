@@ -1,0 +1,6 @@
+# HAMLYN Dataset Configuration for Endoscopy SLAM Experiments
+# Testing kinematic constraints on nasal endoscopy sequences
+
+hamlyn:
+  - rectified01
+  - rectified04
