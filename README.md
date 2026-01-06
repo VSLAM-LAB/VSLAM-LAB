@@ -168,8 +168,8 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**MonoGS**](https://github.com/muskie82/MonoGS)                            | VSLAM  | `mono` `rgbd` |     [License](https://github.com/muskie82/MonoGS?tab=License-1-ov-file)     |   `monogs`   | ✅ | `radtan5` |
 | [**AnyFeature-VSLAM**](https://github.com/alejandrofontan/AnyFeature-VSLAM) | VSLAM  | `mono` | [GPLv3](https://github.com/alejandrofontan/VSLAM-LAB/blob/main/LICENSE.txt) | `anyfeature` | ✅ |  `radtan5` |
 | **----------** | **-------** | **-------** | **----------** | **--------** | **---** | **----------** |
-| [**PyCuVSLAM**](https://github.com/VSLAM-LAB/PyCuVSLAM/tree/main) | VSLAM  |`mono` `rgbd` `stereo` `stereo-vi`| [NVIDIA](https://github.com/VSLAM-LAB/PyCuVSLAM/blob/main/LICENSE) |  `pycuvslam`  | ➖ | `radtan5` `equid4` |
-| [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | `mono` `rgbd` `stereo` `mono-vi` `stereo-vi` |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ | `radtan5` `equid4`|
+| [**PyCuVSLAM**](https://github.com/VSLAM-LAB/PyCuVSLAM/tree/main) | VSLAM  |`mono` `rgbd` `stereo(-vi)` | [NVIDIA](https://github.com/VSLAM-LAB/PyCuVSLAM/blob/main/LICENSE) |  `pycuvslam`  | ➖ | `radtan5` `equid4` |
+| [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | `mono(-vi)` `rgbd` `stereo(-vi)` |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ | `radtan5` `equid4`|
 | [**OKVIS2**](https://github.com/ethz-mrl/okvis2)               | VSLAM  | `mono-vi` |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ | `radtan5` `equid4` |
 | **----------** | **-------** | **-------** | **----------** | **--------** | **---** | **----------** |
 | [**GLOMAP**](https://lpanaf.github.io/eccv24_glomap/)                       |  SfM   |       `mono`       |         [BSD-3](https://github.com/colmap/glomap/blob/main/LICENSE)         |   `glomap`   | ✅ | `radtan5` `equid4` `unknown` |
@@ -181,13 +181,14 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |  📸🏠🤳 |   `eth`    |`mono` `rgbd`| `pinhole` |
 | [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |  📸🏠🤳 |  `rgbdtum`  |`mono` `rgbd`| `radtan5` |
 | [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |  📸🏞️🚗 |   `kitti`   |`mono` `stereo` | `pinhole` |
-| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |  📸🏞️🚁 |   `euroc`   | `mono` `stereo`  `mono-vi` `stereo-vi` | `radtan4` |
+| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |  📸🏞️🚁 |   `euroc`   | `mono(-vi)` `stereo(-vi)` | `radtan4` |
 | [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) |  💻🏠🤳 |  `replica`  | `mono` `rgbd`  | `pinhole` |
 | [**TartanAir: A Dataset to Push the Limits of Visual SLAM**](https://theairlab.org/tartanair-dataset/)                          |  💻🏞️🤳 | `tartanair` | `mono`  | `pinhole` |
 | [**ICL-NUIM RGB-D Benchmark Dataset**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html)                                    |  💻🏠🤳 |   `nuim`    | `mono` `rgbd`  | `pinhole` | 
 | [**RGB-D Dataset 7-Scenes**](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)                          |  📸🏠🤳 |   `7scenes` | `mono` `rgbd`  | `pinhole` |
-| [**Monado SLAM Dataset - Valve Index**](https://huggingface.co/datasets/collabora/monado-slam-datasets)                         |  📸🏠🥽 | `msd` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |
-| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/)   | 📸🏞️🚗 | `rover_picam/d435i/t265` |`mono` `rgbd` `stereo` `mono-vi` `stereo-vi` | `radtan5` `equid4` |
+| [**OpenLORIS-Scene Dataset**](https://lifelong-robotic-vision.github.io/dataset/scene.html) |  📸🏠🤳 |   `openloris-d400/t265` | `mono(-vi)` `rgbd(-vi)` `stereo(-vi)`  | `pinhole` `equid4` |
+| [**Monado SLAM Dataset - Valve Index**](https://huggingface.co/datasets/collabora/monado-slam-datasets)                         |  📸🏠🥽 | `msd` | `mono(-vi)` `stereo(-vi)` | `equid4` |
+| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/)   | 📸🏞️🚗 | `rover_picam/d435i/t265` |`mono(-vi)` `rgbd` `stereo(-vi)` | `radtan5` `equid4` |
 | [**The UT Campus Object Dataset**](https://amrl.cs.utexas.edu/coda/) | 📸🏞️🤖 |  `ut_coda`  |`mono` `stereo`| `radtan5` |
 | [**Sesoko campaign**](https://www.southampton.ac.uk/smmi/news/2017/06/20-southampton-tokyo-collaboration.page) | 📸🏞️🌊 |    `sesoko`    |`mono` | `pinhole` |
 

@@ -1,3 +1,4 @@
+import shutil
 import os, sys, yaml, re
 import urllib.request
 import zipfile
@@ -99,11 +100,7 @@ def find_common_sequences(experiments):
 
 
 # Functions to download files
-
-# Downloads the given URL to a file in the given directory. Returns the
-# path to the downloaded file.
-# Taken from https://www.eth3d.net/slam_datasets/download_eth3d_slam_datasets.py.
-def downloadFile(url, dest_dir_path):
+def downloadFile(url, dest_dir_path, file_size=None):
     file_name = url.split('/')[-1]
     dest_file_path = os.path.join(dest_dir_path, file_name)
 
@@ -112,10 +109,18 @@ def downloadFile(url, dest_dir_path):
     with open(dest_file_path, 'wb') as outfile:
         meta = url_object.info()
         if sys.version_info[0] == 2:
-            file_size = int(meta.getheaders("Content-Length")[0])
+            header = meta.getheaders("Content-Length")
+            if header:
+                file_size = int(header[0])
         else:
-            file_size = int(meta["Content-Length"])
-        print("    Downloading: %s (size [bytes]: %s)" % (url, file_size))
+            length = meta.get("Content-Length")
+            if length:
+                file_size = int(length)
+
+        if file_size:
+            print("    Downloading: %s (size [bytes]: %s)" % (url, file_size))
+        else:
+            print("    Downloading: %s (size: unknown)" % url)
 
         file_size_downloaded = 0
         block_size = 8192
@@ -127,12 +132,15 @@ def downloadFile(url, dest_dir_path):
             file_size_downloaded += len(buffer)
             outfile.write(buffer)
 
-            sys.stdout.write("        %d / %d  (%3f%%)\r" % (
-                file_size_downloaded, file_size, file_size_downloaded * 100. / file_size))
+            if file_size:
+                sys.stdout.write("        %d / %d  (%3f%%)\r" % (
+                    file_size_downloaded, file_size, file_size_downloaded * 100. / file_size))
+            else:
+                sys.stdout.write("        %d bytes downloaded\r" % file_size_downloaded)
+            
             sys.stdout.flush()
 
     return dest_file_path
-
 
 def decompressFile(filepath, extract_to=None):
     """
@@ -155,8 +163,16 @@ def decompressFile(filepath, extract_to=None):
         with tarfile.open(filepath, mode) as tar_ref:
             tar_ref.extractall(extract_to)
     elif filepath.endswith('.7z'):
-        with py7zr.SevenZipFile(filepath, mode='r') as z:
-            z.extractall(path=extract_to)
+        seven_zip_cmd = shutil.which('7zz') or shutil.which('7z')
+        if seven_zip_cmd:
+            try:
+                subprocess.check_call([seven_zip_cmd, "x", filepath, f"-o{extract_to}", "-y"])
+            except subprocess.CalledProcessError as e:
+                with py7zr.SevenZipFile(filepath, mode='r') as z:
+                    z.extractall(path=extract_to)    
+        else:
+            with py7zr.SevenZipFile(filepath, mode='r') as z:
+                z.extractall(path=extract_to)
     else:
         print("Unsupported file format. Please provide a .zip, .tar.gz, .tar, or .7z file.")
         return None

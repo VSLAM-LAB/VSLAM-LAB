@@ -8,7 +8,7 @@ def _get_rgb_yaml_section(camera_params, sequence_name: str, dataset_path: Path)
     """Generate YAML lines for rgb parameters."""
     # Get image dimensions
     sequence_path = os.path.join(dataset_path, sequence_name)
-    rgb_path = os.path.join(sequence_path, 'rgb_0')
+    rgb_path = os.path.join(sequence_path, camera_params['cam_name'])
     
     # Ensure rgb_path exists and has images before trying to read
     if not os.path.exists(rgb_path) or not any(f.lower().endswith(('.png', '.jpg', '.jpeg')) for f in os.listdir(rgb_path)):

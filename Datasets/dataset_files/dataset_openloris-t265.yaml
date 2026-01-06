@@ -1,0 +1,30 @@
+dataset_name: openloris-t265
+
+rgb_hz: 30.0
+repo_id: "shixuesong/openloris-scene"
+modes: ['mono', 'stereo']
+cam_models: ['equid4']
+
+sequence_names:
+  - cafe1-1
+  - cafe1-2
+  - market1-1
+  - market1-2
+  - market1-3
+  - corridor1-1
+  - corridor1-2
+  - corridor1-3
+  - corridor1-4
+  - corridor1-5
+  - home1-1
+  - home1-2
+  - home1-3
+  - home1-4
+  - home1-5
+  - office1-1
+  - office1-2
+  - office1-3
+  - office1-4
+  - office1-5
+  - office1-6
+  - office1-7

@@ -45,7 +45,9 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
 
         # Get download url
         self.url_download_root: str = cfg["url_download_root"]
-        self.api_token: str = cfg.get("api_token", "not_set")
+        self.api_token: str = cfg.get("api_token", "not_set") 
+        if len(self.api_token.strip()) == 0:
+            self.api_token = "not_set"
         if self.api_token == "not_set":
             logger.error(f"No API token set for SQUIDLE dataset. Register at '{self.url_download_root}' to get an API TOKEN, then set it in '{self.yaml_file}'")
             exit(0)
