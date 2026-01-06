@@ -58,13 +58,14 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
     
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path: Path = self.dataset_path / sequence_name
+        raw_path: Path = sequence_path / "raw"
         rgb_path: Path = sequence_path / "rgb_0"
         rgb_csv: Path = sequence_path / "rgb.csv"
         gt_csv: Path = sequence_path / "groundtruth.csv"
-        test_csv: Path = sequence_path / "test.csv"
         if rgb_path.exists():
             return 
         rgb_path.mkdir(parents=True, exist_ok=True)
+        raw_path.mkdir(parents=True, exist_ok=True)
 
         # Setup initial params
         base_url = self.url_download_root
@@ -125,10 +126,10 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
         print()
 
         print_msg(SCRIPT_LABEL, f"Found {len(items)} TOTAL images. Starting download...")
-        with open(rgb_csv, mode='a', newline='') as f_rgb, open(gt_csv, mode='a', newline='') as f_gt, open(test_csv, mode='a', newline='') as f_test:
+        with open(rgb_csv, mode='a', newline='') as f_rgb, open(gt_csv, mode='a', newline='') as f_gt:
             writer_rgb = csv.writer(f_rgb, delimiter=',')
             writer_gt  = csv.writer(f_gt, delimiter=',')     
-            writer_rgb.writerow(["ts_rgb_0 (ns)", "path_rgb_0"])     
+            writer_rgb.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "sequence_name"])     
             writer_gt.writerow(['ts (ns)', 'tx (m)', 'ty (m)', 'tz (m)', 'qx', 'qy', 'qz', 'qw']) 
 
             estimated_new_resolution = False
@@ -156,43 +157,38 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
                     tqdm.write(f"   Skipping ID {media_id}: No 'path_best' found.")
                     continue
                 
-                writer_rgb.writerow([ts_ns, f"rgb_0/{media_id}.jpg"])
-                pose_row[0] = ts_ns 
-                writer_gt.writerow(pose_row)
-                
-                # filename = rgb_path / f"{media_id}.jpg"
-                # temp_filename = rgb_path / "temp_download.dat"
-                # try:
-                #     with requests.get(image_url, stream=True) as stream_r:
-                #         if stream_r.status_code == 200:                                
-                #             # with open(temp_filename, 'wb') as f:
-                #             #     stream_r.raw.decode_content = True
-                #             #     shutil.copyfileobj(stream_r.raw, f)                         
-                #             # with Image.open(temp_filename) as img:
-                #             #     width, height = img.size
-                #             #     left = 0
-                #             #     top = 0
-                #             #     right = width - IMAGE_CROP[sequence_name][0]
-                #             #     bottom = height - IMAGE_CROP[sequence_name][1]
-                #             #     img_cropped = img.crop((left, top, right, bottom))
-                #             #     if not estimated_new_resolution:
-                #             #         estimated_new_resolution = True
-                #             #         new_height = np.sqrt(self.image_resolution[0] * self.image_resolution[1] * img_cropped.size[1] / img_cropped.size[0])
-                #             #         new_width = self.image_resolution[0] * self.image_resolution[1] / new_height
-                #             #         new_height = int(new_height)
-                #             #         new_width = int(new_width)
-                #             #         estimated_new_resolution = True
-                #             #     img_resized = img_cropped.resize((new_width, new_height), Image.Resampling.LANCZOS)      
-                #             #     img_resized.save(filename)
+                filename = rgb_path / f"{media_id}.jpg"
+                raw_filename = raw_path / f"{media_id}.jpg"
+                try:
+                    with requests.get(image_url, stream=True) as stream_r:
+                        if stream_r.status_code == 200:                                
+                            with open(raw_filename, 'wb') as f:
+                                stream_r.raw.decode_content = True
+                                shutil.copyfileobj(stream_r.raw, f)                         
+                            with Image.open(raw_filename) as img:
+                                width, height = img.size
+                                left = 0
+                                top = 0
+                                right = width - IMAGE_CROP[sequence_name][0]
+                                bottom = height - IMAGE_CROP[sequence_name][1]
+                                img_cropped = img.crop((left, top, right, bottom))
+                                if not estimated_new_resolution:
+                                    estimated_new_resolution = True
+                                    new_height = np.sqrt(self.image_resolution[0] * self.image_resolution[1] * img_cropped.size[1] / img_cropped.size[0])
+                                    new_width = self.image_resolution[0] * self.image_resolution[1] / new_height
+                                    new_height = int(new_height)
+                                    new_width = int(new_width)
+                                    estimated_new_resolution = True
+                                img_resized = img_cropped.resize((new_width, new_height), Image.Resampling.LANCZOS)      
+                                img_resized.save(filename)
 
-                #             writer_rgb.writerow([ts_ns, f"rgb_0/{media_id}.jpg"])
-                #             writer_gt.writerow(pose)
-                #             writer_test.writerow([ts_ns, test])
-                #             os.remove(temp_filename)
-                #         else:
-                #             print(f"Failed (Status {stream_r.status_code})")
-                # except Exception as e:
-                #     print(f"Error: {e}")
+                            writer_rgb.writerow([ts_ns, f"rgb_0/{media_id}.jpg", sequence_name])
+                            pose_row[0] = ts_ns 
+                            writer_gt.writerow(pose_row)
+                        else:
+                            print(f"Failed (Status {stream_r.status_code})")
+                except Exception as e:
+                    print(f"Error: {e}")
      
     def create_rgb_folder(self, sequence_name: str) -> None:
         pass
