@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import csv
 import yaml
 import shutil
@@ -14,6 +13,7 @@ from contextlib import suppress
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
+from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
 
 
 class EUROC_dataset(DatasetVSLAMLab):
@@ -21,30 +21,31 @@ class EUROC_dataset(DatasetVSLAMLab):
 
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "euroc") -> None:    
         super().__init__(dataset_name, Path(benchmark_path))
-    
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-            
-        # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-        
+  
         # Sequence nicknames
         self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
-        zip_path = self.dataset_path / f"{sequence_name}.zip"
-
-        if not zip_path.exists():
-            url = self._download_url_for(sequence_name)
-            downloadFile(url, str(self.dataset_path))
-        
         if sequence_path.exists():
-            shutil.rmtree(sequence_path)
+            return
+        url, subfolder, file_size = self._download_url_for(sequence_name)
 
-        decompressFile(str(zip_path), str(sequence_path))
+        content_zip = self.dataset_path / "content"
+        subfolder_path = self.dataset_path / subfolder
+        subfolder_zip = self.dataset_path / f"{subfolder}.zip"
+        sequence_zip = self.dataset_path / subfolder / sequence_name / f"{sequence_name}.zip"
+        if not content_zip.exists() and not subfolder_zip.exists() and not sequence_zip.exists() and not subfolder_path.exists():
+            downloadFile(url, str(self.dataset_path), file_size=file_size)    
+            content_zip.rename(subfolder_zip)
 
+        print(f"Decompressing {sequence_zip} to {sequence_path}...")
+        if not subfolder_path.exists():
+            decompressFile(subfolder_zip, str(self.dataset_path))
+
+        if not sequence_path.exists():
+            decompressFile(str(sequence_zip), str(sequence_path))
+        
         # Download TUM supplemental ground-truth if needed
         supp_root = self.dataset_path / "supp_v2"
         if not supp_root.exists():
@@ -212,24 +213,22 @@ class EUROC_dataset(DatasetVSLAMLab):
             with suppress(FileNotFoundError):
                 shutil.rmtree(seq / rel)
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            (self.dataset_path / f"{sequence_name}.zip").unlink(missing_ok=True)
+            (self.dataset_path / "machine_hall.zip").unlink(missing_ok=True)
+            (self.dataset_path / "vicon_room1.zip").unlink(missing_ok=True)
+            (self.dataset_path / "vicon_room2.zip").unlink(missing_ok=True)
+            shutil.rmtree(self.dataset_path / "machine_hall", ignore_errors=True)
+            shutil.rmtree(self.dataset_path / "vicon_room1", ignore_errors=True)
+            shutil.rmtree(self.dataset_path / "vicon_room2", ignore_errors=True)
 
     def _download_url_for(self, sequence_name: str) -> str:
-        """
-        EUROC structure on server:
-        - machine_hall/MH_xx_xxx/<zip>
-        - vicon_room1/V1_xx_xxx/<zip>
-        - vicon_room2/V2_xx_xxx/<zip>
-        """
         if sequence_name.startswith("MH_"):
-            sub = "machine_hall"
+            return "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content", "machine_hall", 12683729426
         elif sequence_name.startswith("V1_"):
-            sub = "vicon_room1"
+            return "https://www.research-collection.ethz.ch/server/api/core/bitstreams/02ecda9a-298f-498b-970c-b7c44334d880/content", "vicon_room1", 6042263426
         elif sequence_name.startswith("V2_"):
-            sub = "vicon_room2"
+            return  "https://www.research-collection.ethz.ch/server/api/core/bitstreams/ea12bc01-3677-4b4c-853d-87c7870b8c44/content", "vicon_room2", None
         else:
             raise ValueError(f"Unknown EUROC sequence prefix: {sequence_name}")
-
-        # ensure trailing slash in root before urljoin
-        root = self.url_download_root.rstrip("/") + "/"
-        return os.path.join(root, f"{sub}/{sequence_name}/{sequence_name}.zip")
+        
+    def get_download_issues(self, _):
+        return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=18.7)]

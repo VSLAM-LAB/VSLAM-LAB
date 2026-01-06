@@ -4,7 +4,6 @@ rgb_hz: 20.0
 imu_hz: 200.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['radtan4']
-url_download_root: "http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset"
 
 sequence_names:
   - MH_01_easy
