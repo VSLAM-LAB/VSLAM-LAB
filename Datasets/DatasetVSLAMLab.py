@@ -53,6 +53,8 @@ class DatasetVSLAMLab(ABC):
         self.rgb_hz: float = float(cfg["rgb_hz"])
         self.modes: List[str] = cfg.get("modes", ["mono"])
         self.sequence_nicknames: List[str] = []
+        self.cam_models: List[str] = cfg.get("cam_models", ["pinhole"])
+        
     @abstractmethod
     def download_sequence_data(self, sequence_name: str) -> None: ...
     @abstractmethod
