@@ -20,7 +20,7 @@ class ORBSLAM3_baseline(BaselineVSLAMLab):
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.628, 0.47, 0.862) # 'violet'
-        self.modes = ['mono', 'rgbd', 'stereo', 'mono-vi', 'stereo-vi']
+        self.modes = ['mono', 'rgbd', 'stereo', 'mono-vi',  'rgbd-vi', 'stereo-vi']
         self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'equid4']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):

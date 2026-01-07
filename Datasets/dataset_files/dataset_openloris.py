@@ -52,7 +52,32 @@ class OPENLORIS_dataset(DatasetVSLAMLab):
 
     def create_calibration_yaml(self, sequence_name):
         pass
-        
+
+    def create_imu_csv(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        accel_txt = self.dataset_path_raw / sequence_name / f'{self.camera_name}_accelerometer.txt'
+        gyro_txt = self.dataset_path_raw / sequence_name / f'{self.camera_name}_gyroscope.txt'
+        imu_csv = sequence_path / "imu_0.csv"
+
+        df_accel = pd.read_csv(accel_txt, sep=r'\s+', comment='#', header=None, names=['Time', 'Ax', 'Ay', 'Az'])
+        df_gyro = pd.read_csv(gyro_txt, sep=r'\s+', comment='#', header=None, names=['Time', 'Gx', 'Gy', 'Gz'])
+
+        df_accel = df_accel.sort_values('Time')
+        df_gyro = df_gyro.sort_values('Time')
+
+        merged_df = pd.merge_asof(df_gyro, df_accel, on='Time', direction='nearest', tolerance=0.02 )
+        merged_df.dropna(inplace=True)
+        merged_df['Time'] = (merged_df['Time'] * 1e9).astype('int64')
+        merged_df = merged_df.rename(columns={
+            'Time': 'ts (ns)',
+            'Gx': 'wx (rad s^-1)', 'Gy': 'wy (rad s^-1)', 'Gz': 'wz (rad s^-1)',
+            'Ax': 'ax (m s^-2)', 'Ay': 'ay (m s^-2)', 'Az': 'az (m s^-2)'
+        })
+            
+        target_order = ["ts (ns)", "wx (rad s^-1)", "wy (rad s^-1)", "wz (rad s^-1)", "ax (m s^-2)", "ay (m s^-2)", "az (m s^-2)"]
+        merged_df = merged_df[target_order]
+        merged_df.to_csv(imu_csv, index=False)
+
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
         groundtruth_txt = self.dataset_path_raw / sequence_name / 'groundtruth.txt'
@@ -92,6 +117,8 @@ class OPENLORIS_d400_dataset(OPENLORIS_dataset):
 
         # Depth factor
         self.depth_factor = cfg["depth_factor"]
+
+        self.camera_name = "d400"
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         openloris_path = self.dataset_path_raw / sequence_name
@@ -136,14 +163,32 @@ class OPENLORIS_d400_dataset(OPENLORIS_dataset):
 
         node = fs_sensor.getNode("d400_color_optical_frame")
         fx, cx, fy, cy = node.getNode("intrinsics").mat().flatten().data
-        T_BS = trans_node.at(0).getNode("matrix").mat()
+
+        trans_id = _find_trans_id(trans_node, "base_link", "d400_color_optical_frame")
+        T_BS = trans_node.at(trans_id).getNode("matrix").mat()
+        
         rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
             "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
             "depth_factor": float(self.depth_factor),
             "fps": float(node.getNode("fps").real()),
             "T_BS": T_BS}
-              
-        self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
+
+        trans_id = _find_trans_id(trans_node, f"d400_color_optical_frame", "d400_accelerometer")
+        T_S_A = trans_node.at(trans_id).getNode("matrix").mat()
+        T_BA = T_BS @ T_S_A
+    
+        fps_gyro, _, _, _, _ = _get_imu_noise_parameters(fs_sensor, self.camera_name)
+        imu: dict[str, Any] = {"imu_name": "imu_0",
+            "a_max":  176.0, "g_max": 7.8,
+            "sigma_g_c": 1e-2, "sigma_a_c": 1e-1,
+            "sigma_gw_c":  1e-6 , "sigma_aw_c": 1e-4,
+            "sigma_bg":  0.0, "sigma_ba":  0.0,
+            "g":  9.81007, "g0": [ 0.0, 0.0, 0.0 ], "a0": [ 0.0, 0.0, 0.0 ],
+            "s_a":  [ 1.0,  1.0, 1.0 ],
+            "fps": fps_gyro,
+            "T_BS": T_BA}
+        
+        self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0], imu =[imu])
 
 
 class OPENLORIS_t265_dataset(OPENLORIS_dataset):
@@ -151,10 +196,7 @@ class OPENLORIS_t265_dataset(OPENLORIS_dataset):
 
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "openloris-t265") -> None:
         super().__init__(Path(benchmark_path), dataset_name)
-
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
+        self.camera_name = "t265"
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         openloris_path = self.dataset_path_raw / sequence_name
@@ -187,8 +229,9 @@ class OPENLORIS_t265_dataset(OPENLORIS_dataset):
             'path_rgb_1': df_fisheye2['path'].str.replace('fisheye2/', 'rgb_1/', regex=False)   
         })
         df.to_csv(rgb_csv, index=False)
-
+ 
     def create_calibration_yaml(self, sequence_name):
+        
         sensors_yaml = self.dataset_path_raw / sequence_name / 'sensors.yaml'
         trans_yaml = self.dataset_path_raw / sequence_name / 'trans_matrix.yaml'
 
@@ -196,20 +239,25 @@ class OPENLORIS_t265_dataset(OPENLORIS_dataset):
         fs_trans = cv2.FileStorage(trans_yaml, cv2.FILE_STORAGE_READ)
         trans_node = fs_trans.getNode("trans_matrix")
 
-        node = fs_sensor.getNode("t265_fisheye1_optical_frame")
+        node = fs_sensor.getNode(f"{self.camera_name}_fisheye1_optical_frame")
         fx, cx, fy, cy = node.getNode("intrinsics").mat().flatten().data
         k1, k2, k3, k4, _ = node.getNode("distortion_coefficients").mat().flatten().data
-        T_BS1 = trans_node.at(1).getNode("matrix").mat()
+
+        trans_id = _find_trans_id(trans_node, "base_link", "t265_fisheye1_optical_frame")
+        T_BS1 = trans_node.at(trans_id).getNode("matrix").mat()
+
         rgb0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "gray",
                 "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
                 "distortion_type": "equid4", "distortion_coefficients": [k1, k2, k3, k4],
                 "fps": float(node.getNode("fps").real()),
                 "T_BS": T_BS1}
         
-        node = fs_sensor.getNode("t265_fisheye2_optical_frame")
+        node = fs_sensor.getNode(f"{self.camera_name}_fisheye2_optical_frame")
         fx, cx, fy, cy = node.getNode("intrinsics").mat().flatten().data
         k1, k2, k3, k4, _ = node.getNode("distortion_coefficients").mat().flatten().data
-        T_S1S2 = trans_node.at(6).getNode("matrix").mat()
+
+        trans_id = _find_trans_id(trans_node, "t265_fisheye1_optical_frame", "t265_fisheye2_optical_frame")
+        T_S1S2 = trans_node.at(trans_id).getNode("matrix").mat()
         T_BS2 = T_BS1 @ T_S1S2
 
         rgb1: dict[str, Any] = {"cam_name": "rgb_1", "cam_type": "gray",
@@ -217,5 +265,46 @@ class OPENLORIS_t265_dataset(OPENLORIS_dataset):
                 "distortion_type": "equid4", "distortion_coefficients": [k1, k2, k3, k4],
                 "fps": float(node.getNode("fps").real()),
                 "T_BS": T_BS2}
-                
-        self.write_calibration_yaml(sequence_name=sequence_name,  rgb=[rgb0, rgb1])
+
+        trans_id = _find_trans_id(trans_node, f"t265_fisheye1_optical_frame", "t265_accelerometer")
+        T_S1_A = trans_node.at(trans_id).getNode("matrix").mat()
+        T_BA = T_BS1 @ T_S1_A
+ 
+        fps_gyro, sigma_a_c, sigma_aw_c, sigma_g_c, sigma_gw_c = _get_imu_noise_parameters(fs_sensor, self.camera_name)
+        
+        imu: dict[str, Any] = {"imu_name": "imu_0",
+            "a_max":  176.0, "g_max": 7.8,
+            "sigma_g_c": sigma_g_c, "sigma_a_c": sigma_a_c,
+            "sigma_gw_c":  sigma_gw_c, "sigma_aw_c": sigma_aw_c,
+            "sigma_bg":  0.0, "sigma_ba":  0.0,
+            "g":  9.81007, "g0": [ 0.0, 0.0, 0.0 ], "a0": [ 0.0, 0.0, 0.0 ],
+            "s_a":  [ 1.0,  1.0, 1.0 ],
+            "fps": fps_gyro,
+            "T_BS": T_BA}
+               
+        self.write_calibration_yaml(sequence_name=sequence_name,  rgb=[rgb0, rgb1], imu=[imu])
+
+
+def _get_imu_noise_parameters(fs_sensor, camera_name):
+
+    fps_accel = fs_sensor.getNode(f"{camera_name}_accelerometer").getNode("fps").real()
+    sigma2_accel = fs_sensor.getNode(f"{camera_name}_accelerometer").getNode("noise_variances").mat().flatten().data[0]
+    sigma2_bias_accel = fs_sensor.getNode(f"{camera_name}_accelerometer").getNode("bias_variances").mat().flatten().data[0]
+
+    fps_gyro = fs_sensor.getNode(f"{camera_name}_gyroscope").getNode("fps").real()
+    sigma2_gyro = fs_sensor.getNode(f"{camera_name}_gyroscope").getNode("noise_variances").mat().flatten().data[0]
+    sigma2_bias_gyro = fs_sensor.getNode(f"{camera_name}_gyroscope").getNode("bias_variances").mat().flatten().data[0]
+
+    sigma_a_c = (sigma2_accel  / fps_accel) ** 0.5
+    sigma_aw_c = (sigma2_bias_accel / fps_accel) ** 0.5
+    sigma_g_c = (sigma2_gyro  / fps_gyro) ** 0.5
+    sigma_gw_c = (sigma2_bias_gyro / fps_gyro) ** 0.5
+
+    return fps_gyro, sigma_a_c, sigma_aw_c, sigma_g_c, sigma_gw_c
+
+def _find_trans_id(trans_node, parent_frame, child_frame)-> Any:
+    for i in range(trans_node.size()):
+        node = trans_node.at(i)
+        if node.getNode("child_frame").string() == child_frame and node.getNode("parent_frame").string() == parent_frame:
+            return i
+    return None

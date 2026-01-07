@@ -325,6 +325,7 @@ execute-mono = 'vslamlab_orbslam3_mono'
 execute-rgbd = 'vslamlab_orbslam3_rgbd'
 execute-stereo = 'vslamlab_orbslam3_stereo'
 execute-mono-vi = 'vslamlab_orbslam3_mono_vi'
+execute-rgbd-vi = 'vslamlab_orbslam3_rgbd_vi'
 execute-stereo-vi = 'vslamlab_orbslam3_stereo_vi'
 
 [feature.orbslam3.dependencies]
@@ -809,6 +810,7 @@ execute-mono = { cmd = "./bin/vslamlab_orbslam3_mono",  cwd = "Baselines/ORB-SLA
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam3_rgbd",  cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-stereo = { cmd = "./bin/vslamlab_orbslam3_stereo",  cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-mono-vi = { cmd = "./bin/vslamlab_orbslam3_mono_vi",  cwd = "Baselines/ORB-SLAM3-DEV" }
+execute-rgbd-vi = { cmd = "./bin/vslamlab_orbslam3_rgbd_vi",  cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-stereo-vi = { cmd = "./bin/vslamlab_orbslam3_stereo_vi",  cwd = "Baselines/ORB-SLAM3-DEV" }
 
 [feature.orbslam3-dev.dependencies]

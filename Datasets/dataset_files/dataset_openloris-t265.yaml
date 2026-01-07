@@ -2,7 +2,7 @@ dataset_name: openloris-t265
 
 rgb_hz: 30.0
 repo_id: "shixuesong/openloris-scene"
-modes: ['mono', 'stereo']
+modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['equid4']
 
 sequence_names:

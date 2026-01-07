@@ -2,7 +2,7 @@ dataset_name: openloris-d400
 
 rgb_hz: 30.0
 repo_id: "shixuesong/openloris-scene"
-modes: ['mono', 'rgbd']
+modes: ['mono', 'rgbd', 'mono-vi', 'rgbd-vi']
 cam_models: ['pinhole']
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
 

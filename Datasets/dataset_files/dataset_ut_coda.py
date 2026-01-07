@@ -21,7 +21,7 @@ from path_constants import Retention, BENCHMARK_RETENTION
 class UT_CODA_dataset(DatasetVSLAMLab):
     """UT_CODA dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "ut_coda") -> None:
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "ut-coda") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
 
         # Load settings

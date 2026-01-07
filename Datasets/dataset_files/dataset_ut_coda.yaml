@@ -1,4 +1,4 @@
-dataset_name: ut_coda
+dataset_name: ut-coda
 
 rgb_hz: 10.0
 url_download_root: "https://web.corral.tacc.utexas.edu/texasrobotics/web_CODa/CODa_vslam/"

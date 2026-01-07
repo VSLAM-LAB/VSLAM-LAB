@@ -59,16 +59,17 @@ def _get_rgbd_yaml_section(camera_params, sequence_name: str, dataset_path: Path
 
 def _get_imu_yaml_section(imu_params) -> List[str]:
     """Generate YAML lines for IMU parameters."""
+    fmt = ".6e"
     lines = []
     lines.append(f"  - {{imu_name: {imu_params['imu_name']},")
     lines.append(f"     a_max: {imu_params['a_max']}, # acceleration saturation [m/s^2]")
     lines.append(f"     g_max: {imu_params['g_max']},  # gyro saturation [rad/s]")
-    lines.append(f"     sigma_g_c: {imu_params['sigma_g_c']}, # gyro noise density [rad/s/sqrt(Hz)]")
-    lines.append(f"     sigma_bg: {imu_params['sigma_bg']}, # gyro bias prior [rad/s]")
-    lines.append(f"     sigma_a_c: {imu_params['sigma_a_c']}, # accelerometer noise density [m/s^2/sqrt(Hz)]")
-    lines.append(f"     sigma_ba: {imu_params['sigma_ba']}, # accelerometer bias prior [m/s^2]")
-    lines.append(f"     sigma_gw_c: {imu_params['sigma_gw_c']}, # gyro drift noise density [rad/s^s/sqrt(Hz)]")
-    lines.append(f"     sigma_aw_c: {imu_params['sigma_aw_c']}, # accelerometer drift noise density [m/s^2/sqrt(Hz)]")
+    lines.append(f"     sigma_g_c: {imu_params['sigma_g_c']:{fmt}}, # gyro noise density ( gyro \"white noise\" ) [rad/s/sqrt(Hz)]")
+    lines.append(f"     sigma_gw_c: {imu_params['sigma_gw_c']:{fmt}}, # gyro drift noise density ( gyro bias diffusion ) [rad/s^2/sqrt(Hz)]")
+    lines.append(f"     sigma_a_c: {imu_params['sigma_a_c']:{fmt}}, # accelerometer noise density ( accel \"white noise\" ) [m/s^2/sqrt(Hz)]")
+    lines.append(f"     sigma_aw_c: {imu_params['sigma_aw_c']:{fmt}}, # accelerometer drift noise density ( accel bias diffusion ) [m/s^3/sqrt(Hz)]")
+    lines.append(f"     sigma_bg: {imu_params['sigma_bg']:{fmt}}, # gyro bias prior [rad/s]")
+    lines.append(f"     sigma_ba: {imu_params['sigma_ba']:{fmt}}, # accelerometer bias prior [m/s^2]")
     lines.append(f"     a0: {imu_params['a0']}, # initial accelerometer bias [m/s^2]")
     lines.append(f"     g0: {imu_params['g0']}, # initial gyro bias [rad/s]")
     lines.append(f"     g: {imu_params['g']}, # Earth's acceleration due to gravity [m/s^2]")

@@ -218,7 +218,7 @@ class ROVER_dataset(DatasetVSLAMLab):
 class ROVER_t265_dataset(ROVER_dataset):    
     """ROVER T265 dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover_t265") -> None:
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover-t265") -> None:
         super().__init__(Path(benchmark_path), dataset_name)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
@@ -282,7 +282,7 @@ class ROVER_t265_dataset(ROVER_dataset):
 class ROVER_d435i_dataset(ROVER_dataset):    
     """ROVER D435i dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover_d435i") -> None:
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover-d435i") -> None:
         super().__init__(Path(benchmark_path), dataset_name)
 
         # Load settings
@@ -361,7 +361,7 @@ class ROVER_d435i_dataset(ROVER_dataset):
 class ROVER_picam_dataset(ROVER_dataset):    
     """ROVER Picam dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover_picam") -> None:
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover-picam") -> None:
         super().__init__(Path(benchmark_path), dataset_name)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
