@@ -16,13 +16,13 @@ nuim:
   - 'chess_seq-01'
 msd:
   - 'MIO07_mapping_easy'
-rover_t265:
+rover-t265:
   - 'campus_small_autumn_t265'
-rover_d435i:
+rover-d435i:
   - 'campus_small_autumn_d435i'
-rover_picam:
+rover-picam:
   - 'campus_small_autumn_picam'
-ut_coda:
+ut-coda:
   - '0'
 s3li:
   - 'vegetation'
@@ -37,13 +37,6 @@ openloris-t265:
 
 # sweetcorals:
 # - '_indonesia_tabuhan_p1_20250210'
-
-#openloris:
-#   - cafe1-1
-  # - cafe1-2
-  #- market1-1
-  # - market1-2
-  # - market1-3
 
 # madmax:
 #   - A-0
@@ -69,6 +62,3 @@ openloris-t265:
 
 #monotum:
 #  - 'sequence_01'
-#7scenes
-#  - 'redkitchen_seq-01'
-#  - 'heads_seq-01'
