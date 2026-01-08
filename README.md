@@ -1,6 +1,6 @@
 <p align="center">
 <div align="center">
-    <img src="docs/Logo_1.png" width="500"/>
+    <img src="docs/header.png" width="500"/>
 </div>
 
 <h3 align="center"> A Comprehensive Framework for Visual SLAM Baselines and Datasets</h3> 
