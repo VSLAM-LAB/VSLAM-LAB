@@ -4,7 +4,6 @@ import os
 import csv
 import utm
 import math 
-import yaml
 import json
 import shutil
 import pandas as pd
@@ -39,13 +38,8 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "squidle") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-        self.api_token: str = cfg.get("api_token", "not_set") 
+        self.url_download_root: str = self.cfg_require("url_download_root")
+        self.api_token: str = self.cfg_get("api_token", "not_set")
         if len(self.api_token.strip()) == 0:
             self.api_token = "not_set"
         if self.api_token == "not_set":
@@ -56,7 +50,7 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = self.sequence_names
 
         # Target image resolution
-        self.image_resolution = cfg.get("target_resolution", [640, 480])
+        self.image_resolution = self.cfg_get("target_resolution", [640, 480])
     
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path: Path = self.dataset_path / sequence_name
@@ -224,12 +218,8 @@ class SESOKO_dataset(SQUIDLE_dataset):
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "sesoko") -> None:
         super().__init__(Path(benchmark_path), dataset_name) 
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        self.subsets = cfg.get("subsets", {})
-        self.combined = cfg.get("combined", {})
+        self.subsets = self.cfg_get("subsets", {})
+        self.combined = self.cfg_get("combined", {})
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path: Path = self.dataset_path / sequence_name
@@ -374,4 +364,3 @@ def _parse_pose_data(item, origin_utm, origin_zone):
     ty = northing - origin_utm[1]
     tz = item.get('dep')
     return [ts_ns, tx, ty, tz, qx, qy, qz, qw]
-

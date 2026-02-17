@@ -14,7 +14,7 @@ import sys
 import yaml
 from loguru import logger
 from pathlib import Path
-from typing import List, Union
+from typing import Any, List, Union
 from abc import ABC, abstractmethod
 
 from utilities import ws, print_msg
@@ -49,11 +49,14 @@ class DatasetVSLAMLab(ABC):
         with open(self.yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
-        self.sequence_names: List[str] = cfg["sequence_names"]
-        self.rgb_hz: float = float(cfg["rgb_hz"])
-        self.modes: List[str] = cfg.get("modes", ["mono"])
+        # Keep raw YAML config accessible to subclasses.
+        self.cfg: dict[str, Any] = cfg
+
+        self.sequence_names: List[str] = self.cfg["sequence_names"]
+        self.rgb_hz: float = float(self.cfg["rgb_hz"])
+        self.modes: List[str] = self.cfg.get("modes", ["mono"])
         self.sequence_nicknames: List[str] = []
-        self.cam_models: List[str] = cfg.get("cam_models", ["pinhole"])
+        self.cam_models: List[str] = self.cfg.get("cam_models", ["pinhole"])
         
     @abstractmethod
     def download_sequence_data(self, sequence_name: str) -> None: ...
@@ -165,6 +168,14 @@ class DatasetVSLAMLab(ABC):
 
     ####################################################################################################################
     # Utils
+
+    def cfg_get(self, key: str, default: Any = None) -> Any:
+        return self.cfg.get(key, default)
+
+    def cfg_require(self, key: str) -> Any:
+        if key not in self.cfg:
+            raise KeyError(f"Missing required key '{key}' in {self.yaml_file}")
+        return self.cfg[key]
 
     def contains_sequence(self, sequence_name_ref: str) -> bool:
         return sequence_name_ref in self.sequence_names

@@ -11,7 +11,6 @@ from zipfile import ZipFile
 from typing import Any
 
 import numpy as np
-import yaml
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from path_constants import BENCHMARK_RETENTION, Retention, VSLAM_LAB_DIR
@@ -24,10 +23,7 @@ class MONOTUM_dataset(DatasetVSLAMLab):
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "monotum") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
 
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root: str = self.cfg_require("url_download_root")
         self.sequence_nicknames = [s.replace("sequence_", "seq ") for s in self.sequence_names]
         self.mono_dataset_code_dir = VSLAM_LAB_DIR / "Baselines" / "mono_dataset_code"
 

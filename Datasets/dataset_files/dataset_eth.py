@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import yaml
 import numpy as np
 from pathlib import Path
 from urllib.parse import urljoin
@@ -21,12 +20,7 @@ class ETH_dataset(DatasetVSLAMLab):
     def __init__(self, benchmark_path: str | Path, dataset_name: str = "eth") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root: str = self.cfg_require("url_download_root")
 
         # Sequence nicknames
         self.sequence_nicknames = [s.replace("mannequin", "mann.")
@@ -37,7 +31,7 @@ class ETH_dataset(DatasetVSLAMLab):
                                    .replace("_", " ")[:MAX_NICKNAME_LEN] for s in self.sequence_names]
         
         # Depth factor
-        self.depth_factor = cfg["depth_factor"]
+        self.depth_factor = self.cfg_require("depth_factor")
 
     def download_sequence_data(self, sequence_name: str) -> None:
         for mode in self.modes:
