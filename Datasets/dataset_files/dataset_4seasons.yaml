@@ -1,0 +1,129 @@
+dataset_name: 4seasons
+
+rgb_hz: 20.0
+imu_hz: 200.0
+modes: ['stereo', 'stereo-vi', 'mono-vi']
+cam_models: ['pinhole', 'equid4']
+url_download_root: "https://vision.cs.tum.edu/webshare/g/4seasons-dataset/dataset"
+
+sequence_names:
+  - office_loop_1_train
+  - office_loop_2_train
+  - office_loop_3_train
+  - office_loop_4_train
+  - office_loop_5_train
+  - office_loop_6_train
+  - office_loop_2_test
+  - office_loop_3_test
+  - highway_1_test
+  - highway_2_test
+  - neighborhood_1_train
+  - neighborhood_2_train
+  - neighborhood_3_train
+  - neighborhood_4_train
+  - neighborhood_5_train
+  - neighborhood_6_train
+  - neighborhood_7_train
+  - neighborhood_2_test
+  - business_campus_1_train
+  - business_campus_2_train
+  - business_campus_3_train
+  - business_campus_1_test
+  - countryside_1_train
+  - countryside_2_train
+  - countryside_3_train
+  - countryside_4_train
+  - countryside_2_test
+  - city_loop_1_train
+  - city_loop_2_train
+  - city_loop_3_train
+  - city_loop_2_test
+  - old_town_1_train
+  - old_town_2_train
+  - old_town_3_train
+  - old_town_4_train
+  - old_town_2_test
+  - old_town_3_test
+  - maximilianeum_1_test
+  - maximilianeum_2_test
+  - parking_garage_1_train
+  - parking_garage_2_train
+  - parking_garage_3_train
+  - parking_garage_1_test
+
+with_reference_poses:
+  - office_loop_1_train
+  - office_loop_2_train
+  - office_loop_3_train
+  - office_loop_4_train
+  - office_loop_5_train
+  - office_loop_6_train
+  - neighborhood_1_train
+  - neighborhood_2_train
+  - neighborhood_3_train
+  - neighborhood_4_train
+  - neighborhood_5_train
+  - neighborhood_6_train
+  - neighborhood_7_train
+  - business_campus_1_train
+  - business_campus_2_train
+  - business_campus_3_train
+  - countryside_1_train
+  - countryside_2_train
+  - countryside_3_train
+  - countryside_4_train
+  - city_loop_1_train
+  - city_loop_2_train
+  - city_loop_3_train
+  - old_town_1_train
+  - old_town_2_train
+  - old_town_3_train
+  - old_town_4_train
+  - parking_garage_1_train
+  - parking_garage_2_train
+  - parking_garage_3_train
+
+recordings:
+  office_loop_1_train: recording_2020-03-24_17-36-22
+  office_loop_2_train: recording_2020-03-24_17-45-31
+  office_loop_3_train: recording_2020-04-07_10-20-32
+  office_loop_4_train: recording_2020-06-12_10-10-57
+  office_loop_5_train: recording_2021-01-07_12-04-03
+  office_loop_6_train: recording_2021-02-25_13-51-57
+  office_loop_2_test: recording_2020-03-26_15-03-02
+  office_loop_3_test: recording_2021-05-10_19-25-54
+  highway_1_test: recording_2020-10-08_10-19-46
+  highway_2_test: recording_2021-02-25_13-11-30
+  neighborhood_1_train: recording_2020-03-26_13-32-55
+  neighborhood_2_train: recording_2020-10-07_14-47-51
+  neighborhood_3_train: recording_2020-10-07_14-53-52
+  neighborhood_4_train: recording_2020-12-22_11-54-24
+  neighborhood_5_train: recording_2021-02-25_13-25-15
+  neighborhood_6_train: recording_2021-05-10_18-02-12
+  neighborhood_7_train: recording_2021-05-10_18-32-32
+  neighborhood_2_test: recording_2021-05-10_18-26-26
+  business_campus_1_train: recording_2020-10-08_09-30-57
+  business_campus_2_train: recording_2021-01-07_13-12-23
+  business_campus_3_train: recording_2021-02-25_14-16-43
+  business_campus_1_test: recording_2021-01-07_13-03-56
+  countryside_1_train: recording_2020-04-07_11-33-45
+  countryside_2_train: recording_2020-06-12_11-26-43
+  countryside_3_train: recording_2020-10-08_09-57-28
+  countryside_4_train: recording_2021-01-07_13-30-07
+  countryside_2_test: recording_2021-01-07_14-03-57
+  city_loop_1_train: recording_2020-12-22_11-33-15
+  city_loop_2_train: recording_2021-01-07_14-36-17
+  city_loop_3_train: recording_2021-02-25_11-09-49
+  city_loop_2_test: recording_2021-02-25_11-27-40
+  old_town_1_train: recording_2020-10-08_11-53-41
+  old_town_2_train: recording_2021-01-07_10-49-45
+  old_town_3_train: recording_2021-02-25_12-34-08
+  old_town_4_train: recording_2021-05-10_21-32-00
+  old_town_2_test: recording_2021-05-10_19-51-14
+  old_town_3_test: recording_2021-05-10_21-18-00
+  maximilianeum_1_test: recording_2021-02-25_12-16-32
+  maximilianeum_2_test: recording_2021-05-10_20-59-00
+  parking_garage_1_train: recording_2020-12-22_12-04-35
+  parking_garage_2_train: recording_2021-02-25_13-39-06
+  parking_garage_3_train: recording_2021-05-10_19-15-19
+  parking_garage_1_test: recording_2020-06-12_10-29-20

@@ -9,6 +9,7 @@ from Datasets.dataset_files.dataset_tartanair import TARTANAIR_dataset
 from Datasets.dataset_files.dataset_squidle import SESOKO_dataset   
 from Datasets.dataset_files.dataset_monotum import MONOTUM_dataset
 from Datasets.dataset_files.dataset_vitum import VITUM_dataset
+from Datasets.dataset_files.dataset_4seasons import FOURSEASONS_dataset
 
 # RGBD datasets
 from Datasets.dataset_files.dataset_eth import ETH_dataset
@@ -71,6 +72,7 @@ def get_dataset(dataset_name, benchmark_path):
         "sesoko": lambda: SESOKO_dataset(benchmark_path),
         "squidle": lambda: SESOKO_dataset(benchmark_path),
         "vitum": lambda: VITUM_dataset(benchmark_path),
+        "4seasons": lambda: FOURSEASONS_dataset(benchmark_path),
         "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
         "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
         "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
