@@ -8,6 +8,7 @@ from path_constants import VSLAM_LAB_DIR
 from Datasets.dataset_files.dataset_tartanair import TARTANAIR_dataset
 from Datasets.dataset_files.dataset_squidle import SESOKO_dataset   
 from Datasets.dataset_files.dataset_monotum import MONOTUM_dataset
+from Datasets.dataset_files.dataset_vitum import VITUM_dataset
 
 # RGBD datasets
 from Datasets.dataset_files.dataset_eth import ETH_dataset
@@ -31,7 +32,6 @@ from Datasets.dataset_files.dataset_openloris import OPENLORIS_d400_dataset
 from Datasets.dataset_files.dataset_openloris import OPENLORIS_t265_dataset
 
 # Development
-from Datasets.dataset_vitum import VITUM_dataset
 from Datasets.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
 from Datasets.dataset_lizardisland import LIZARDISLAND_dataset
 from Datasets.dataset_ariel import ARIEL_dataset
@@ -70,13 +70,13 @@ def get_dataset(dataset_name, benchmark_path):
         "msd": lambda: MSD_dataset(benchmark_path),
         "sesoko": lambda: SESOKO_dataset(benchmark_path),
         "squidle": lambda: SESOKO_dataset(benchmark_path),
+        "vitum": lambda: VITUM_dataset(benchmark_path),
         "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
         "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
         "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
         "monotum": lambda: MONOTUM_dataset(benchmark_path),
 
         # Development
-        "vitum": lambda: VITUM_dataset(benchmark_path),
         "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
         "lizardisland": lambda: LIZARDISLAND_dataset(benchmark_path),
         "hamlyn": lambda: HAMLYN_dataset(benchmark_path),
