@@ -69,6 +69,7 @@ def get_dataset(dataset_name, benchmark_path):
         "s3li": lambda: S3LI_dataset(benchmark_path),
         "msd": lambda: MSD_dataset(benchmark_path),
         "sesoko": lambda: SESOKO_dataset(benchmark_path),
+        "squidle": lambda: SESOKO_dataset(benchmark_path),
         "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
         "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
         "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
