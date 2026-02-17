@@ -7,6 +7,7 @@ from path_constants import VSLAM_LAB_DIR
 # Monocular datasets
 from Datasets.dataset_files.dataset_tartanair import TARTANAIR_dataset
 from Datasets.dataset_files.dataset_squidle import SESOKO_dataset   
+from Datasets.dataset_files.dataset_monotum import MONOTUM_dataset
 
 # RGBD datasets
 from Datasets.dataset_files.dataset_eth import ETH_dataset
@@ -34,7 +35,6 @@ from Datasets.dataset_vitum import VITUM_dataset
 from Datasets.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
 from Datasets.dataset_lizardisland import LIZARDISLAND_dataset
 from Datasets.dataset_ariel import ARIEL_dataset
-from Datasets.dataset_monotum import MONOTUM_dataset
 from Datasets.dataset_drunkards import DRUNKARDS_dataset
 from Datasets.dataset_hamlyn import HAMLYN_dataset
 from Datasets.dataset_caves import CAVES_dataset
@@ -72,6 +72,7 @@ def get_dataset(dataset_name, benchmark_path):
         "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
         "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
         "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
+        "monotum": lambda: MONOTUM_dataset(benchmark_path),
 
         # Development
         "vitum": lambda: VITUM_dataset(benchmark_path),
@@ -80,7 +81,6 @@ def get_dataset(dataset_name, benchmark_path):
         "hamlyn": lambda: HAMLYN_dataset(benchmark_path),
         "drunkards": lambda: DRUNKARDS_dataset(benchmark_path),
         "ariel": lambda: ARIEL_dataset(benchmark_path),
-        "monotum": lambda: MONOTUM_dataset(benchmark_path),
         "caves": lambda: CAVES_dataset(benchmark_path),
         "lamar": lambda: LAMAR_dataset(benchmark_path),
         "eth3d_mvs_dslr": lambda: ETH3D_MVS_DSLR_dataset(benchmark_path),

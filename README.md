@@ -180,6 +180,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
 | [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |  📸🏠🤳 |   `eth`    |`mono` `rgbd`| `pinhole` |
 | [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |  📸🏠🤳 |  `rgbdtum`  |`mono` `rgbd`| `radtan5` |
+| [**Monocular Visual Odometry Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset)                                      |  📸🏠🤳 |  `monotum`  |`mono`| `pinhole` |
 | [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |  📸🏞️🚗 |   `kitti`   |`mono` `stereo` | `pinhole` |
 | [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |  📸🏞️🚁 |   `euroc`   | `mono(-vi)` `stereo(-vi)` | `radtan4` |
 | [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) |  💻🏠🤳 |  `replica`  | `mono` `rgbd`  | `pinhole` |
@@ -212,7 +213,7 @@ Handheld / Headmounted / Vehicle / UAV  / Robot / AUV :🤳 / 🥽 / 🚗 / 🚁
 - [ ] Extend `okvis2` and `okvis2-dev` to `rgbd-vi` and `stereo-vi`
 
 ### Datasets
-- [ ] Implement `monotum`
+- [x] Implement `monotum`
 - [ ] Implement `drunkards`
 - [ ] Implement `hamlyn`
 - [ ] Implement `caves`
