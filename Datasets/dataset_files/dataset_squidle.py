@@ -35,7 +35,7 @@ IMAGE_CROP: Final = {"ssk16": [146,3], "ssk17": [6,13], "ssk18": [4,6]}
 class SQUIDLE_dataset(DatasetVSLAMLab):
     """SQUIDLE dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "sesoko") -> None:
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "squidle") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
 
         self.url_download_root: str = self.cfg_require("url_download_root")

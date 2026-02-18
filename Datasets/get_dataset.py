@@ -70,7 +70,6 @@ def get_dataset(dataset_name, benchmark_path):
         "s3li": lambda: S3LI_dataset(benchmark_path),
         "msd": lambda: MSD_dataset(benchmark_path),
         "sesoko": lambda: SESOKO_dataset(benchmark_path),
-        "squidle": lambda: SESOKO_dataset(benchmark_path),
         "vitum": lambda: VITUM_dataset(benchmark_path),
         "4seasons": lambda: FOURSEASONS_dataset(benchmark_path),
         "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
