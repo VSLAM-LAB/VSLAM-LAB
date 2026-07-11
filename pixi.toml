@@ -3,7 +3,12 @@ name = "VSLAM-LAB"
 version = "0.1.0"
 description = "VSLAM-LAB"
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
+platforms = [
+    "linux-64", "osx-arm64", "win-64",
+    { name = "linux-64-cuda", platform = "linux-64", cuda = "12.6" },
+    { name = "osx-arm64-cuda", platform = "osx-arm64", cuda = "12.6" },
+    { name = "win-64-cuda", platform = "win-64", cuda = "12.6" },
+]
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
@@ -33,7 +38,7 @@ vggt = { features = ["vggt", "cuda126", "py11"], solve-group = "vggt" }
 vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
-droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid" }
+droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid-dev" }
 dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "droid" }
 monogs-dev = { features = ["monogs-dev", "cuda126", "py10"], solve-group = "monogs" }
 orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
@@ -165,10 +170,7 @@ yt-dlp = "*"
 # droidslam
 [feature.droidslam]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.droidslam.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.droidslam.tasks]
 git-clone = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
@@ -186,10 +188,7 @@ setuptools = "=80.9.0"
 # mast3rslam
 [feature.mast3rslam]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.mast3rslam.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.mast3rslam.tasks]
 git-clone = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
@@ -206,10 +205,7 @@ roma = { channel = "fontan" }
 # dpvo
 [feature.dpvo]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.dpvo.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.dpvo.tasks]
 git-clone = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
@@ -231,10 +227,7 @@ numba = "*"
 # monogs
 [feature.monogs]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.monogs.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.monogs.tasks]
 git-clone = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
@@ -300,10 +293,7 @@ opencv = { channel = "fontan" }
 # colmap
 [feature.colmap]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
-
-[feature.colmap.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda", "osx-arm64-cuda", "win-64-cuda"]
 
 [feature.colmap.tasks]
 git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
@@ -332,10 +322,7 @@ colmap = "*"
 # glomap
 [feature.glomap]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.glomap.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda"]
 
 [feature.glomap.tasks]
 git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/glomap-vslamlab glomap', cwd = 'Baselines' }
@@ -386,10 +373,7 @@ okvis2-vslamlab = { channel = "fontan" }
 # pycuvslam
 [feature.pycuvslam]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.pycuvslam.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.pycuvslam.tasks]
 git-clone = './git-clone.sh VSLAM-LAB PyCuVSLAM-VSLAM-LAB PyCuVSLAM'
@@ -476,10 +460,7 @@ execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
 # cuda126
 [feature.cuda126]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.cuda126.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda"]
 
 [feature.cuda126.dependencies]
 # CUDA Build Tools
@@ -566,10 +547,7 @@ libopengl-devel = "*"
 # droidslam-dev
 [feature.droidslam-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.droidslam-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.droidslam-dev.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB DROID-SLAM-VSLAM-LAB DROID-SLAM-DEV"
@@ -596,7 +574,7 @@ cmake = "*"
 make = "*"
 
 # Specialized Libraries
-lietorch = { version = "*", channel = "fontan" }
+lietorch = { version = "=1.0.1", channel = "fontan" }
 
 # Core Libraries
 pytorch-gpu = "*"
@@ -617,16 +595,15 @@ pandas = "*"
 eigen = "*"
 moderngl = "*"
 moderngl-window = "=3.1.1"
+loguru = "*"
+setuptools = "<81"
 
 # ########################################################################################################################
 # ########################################################################################################################
 # mast3rslam-dev
 [feature.mast3rslam-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.mast3rslam-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.mast3rslam-dev.tasks]
 git-clone = './git-clone.sh VSLAM-LAB MASt3R-SLAM-VSLAM-LAB MASt3R-SLAM-DEV'
@@ -683,10 +660,7 @@ pyrealsense2 = "*"
 # dpvo-dev
 [feature.dpvo-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.dpvo-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.dpvo-dev.tasks]
 git-clone = './git-clone.sh VSLAM-LAB DPVO-VSLAM-LAB DPVO-DEV'
@@ -735,10 +709,7 @@ yacs = "*"
 # monogs-dev
 [feature.monogs-dev]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.monogs-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.monogs-dev.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
@@ -807,10 +778,7 @@ pangolin = { channel = "fontan" }
 # anyfeature-dev
 [feature.anyfeature-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.anyfeature-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.anyfeature-dev.tasks]
 git-clone = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
@@ -873,10 +841,7 @@ boost = ">=1.84.0 ,<1.85.0"
 # okvis2-dev
 [feature.okvis2-dev]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.okvis2-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.okvis2-dev.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB okvis2-VSLAM-LAB OKVIS2-DEV"
@@ -952,10 +917,7 @@ nodeenv = "*"
 # lightglue
 [feature.lightglue]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.lightglue.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda"]
 
 [feature.lightglue.tasks]
 git-clone.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
@@ -1000,10 +962,7 @@ timm = ">=1.0.15,<2"
 # allfeature-dev
 [feature.allfeature-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev/spqr-tests"]
-platforms = ["linux-64"]
-
-[feature.allfeature-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.allfeature-dev.tasks]
 git-clone = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV"
@@ -1019,10 +978,7 @@ pixi = "*"
 # depth-anything
 [feature.depth-anything]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.depth-anything.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda"]
 
 [feature.depth-anything.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
@@ -1138,8 +1094,6 @@ rerun-vis.args = [
 rerun-vis.cwd = "Utilities"
 
 [feature.rerun.dependencies]
-
-[dependencies]
 rerun-sdk = ">=0.22.1,<0.32"
 opencv = ">=4.11.0,<5"
 numpy = ">=1.26.4,<3"
