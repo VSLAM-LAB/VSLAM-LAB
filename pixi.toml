@@ -555,17 +555,7 @@ install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-stereo = { cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
-#train = {cmd = 'python train.py --iters 1 --steps 50000 --lr 0.000025 --datapath /home/fontan/VSLAM-LAB-Benchmark/TartanAir --ckpt "droid.pth"',  cwd = 'Baselines/DROID-SLAM-DEV'}
-
-train.cmd =  'python train.py --iters {{ iters }} --steps {{ steps }} --lr {{ lr }} --datapath {{ datapath }} --ckpt {{ ckpt }}'
-train.cwd =  'Baselines/DROID-SLAM-DEV'
-train.args = [
-  { "arg" = "iters", "default" = "1" },
-  { "arg" = "steps", "default" = "50000" },
-  { "arg" = "lr", "default" = "0.000025" },
-  { "arg" = "datapath", "default" = "/home/fontan/VSLAM-LAB-Benchmark/TartanAir" },
-  { "arg" = "ckpt", "default" = "droid.pth" },
-]
+train = {cmd = 'python train.py --steps 250000 --datasets vslamlab --datapath ../../../VSLAM-LAB-Benchmark',  cwd = 'Baselines/DROID-SLAM-DEV'}
 
 [feature.droidslam-dev.dependencies]
 # Build Tools
