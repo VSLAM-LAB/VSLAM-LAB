@@ -1,19 +1,19 @@
 exp_train_droid_droid_pth:
-  Config: /home/alejandro/VSLAM-LAB/configs/config_train_droid.yaml
+  Config: config_train_droid.yaml
   Module: droidslam-dev
   NumRuns: 3
   Parameters:
     mode: mono
     upsample: 0
     verbose: 0
-    weights: /home/alejandro/VSLAM-LAB/Baselines/DROID-SLAM-DEV/droid.pth
+    weights: droid.pth
 
 exp_train_droid_test_pth:
-  Config: /home/alejandro/VSLAM-LAB/configs/config_train_droid.yaml
+  Config: config_train_droid.yaml
   Module: droidslam-dev
   NumRuns: 3
   Parameters:
     mode: mono
     upsample: 0
     verbose: 0
-    weights: /home/alejandro/VSLAM-LAB/Baselines/DROID-SLAM-DEV/test.pth
+    weights: test.pth
