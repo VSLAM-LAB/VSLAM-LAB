@@ -1,6 +1,11 @@
 dataset_name: dataset_name_template
 
 rgb_hz: 30.0
+modes: ['mono', 'rgbd']
+cam_models: ['pinhole']
+
 url_download_root: ""
 
 sequence_names:
+  - sequence_01
+  - sequence_02
