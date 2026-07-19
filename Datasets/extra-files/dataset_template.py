@@ -28,13 +28,13 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
     def create_rgb_folder(self, sequence_name):
         return
 
-    def create_rgb_txt(self, sequence_name):
+    def create_rgb_csv(self, sequence_name):
         return
 
     def create_calibration_yaml(self, sequence_name):
         return
 
-    def create_groundtruth_txt(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name):
         return
 
     def remove_unused_files(self, sequence_name):
