@@ -555,7 +555,7 @@ install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-stereo = { cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
-train = {cmd = 'python train.py --steps 250000 --datasets vslamlab --datapath ../../../VSLAM-LAB-Benchmark',  cwd = 'Baselines/DROID-SLAM-DEV'}
+train = {cmd = 'python train.py --steps 250000 --datasets vslamlab --datapath ../../../VSLAM-LAB-Benchmark --ckpt droid.pth',  cwd = 'Baselines/DROID-SLAM-DEV'}
 
 [feature.droidslam-dev.dependencies]
 # Build Tools

@@ -1,4 +1,4 @@
-exp_train_droid_droid_pth:
+exp_train_droid_droid_pth: # Original droid-slam
   Config: config_train_droid.yaml
   Module: droidslam-dev
   NumRuns: 3
@@ -8,7 +8,7 @@ exp_train_droid_droid_pth:
     verbose: 0
     weights: droid.pth
 
-exp_train_droid_test_pth:
+exp_train_droid_scratch_replica_pth: # Weights trained from scratch on REPLICA
   Config: config_train_droid.yaml
   Module: droidslam-dev
   NumRuns: 3
@@ -16,4 +16,14 @@ exp_train_droid_test_pth:
     mode: mono
     upsample: 0
     verbose: 0
-    weights: test.pth
+    weights: scratch_replica.pth
+
+exp_train_droid_replica_pth: # Weights trained from droid.pth on REPLICA
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 3
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: replica.pth
