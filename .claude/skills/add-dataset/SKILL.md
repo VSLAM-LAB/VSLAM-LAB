@@ -9,6 +9,8 @@ Both `<name>` and `<source>` are required — parse them from `$ARGUMENTS` (or f
 
 Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAML, then registering it in `Datasets/get_dataset.py`.
 
+**Hard constraint — file scope.** The only files this skill may create or modify are: the new `Datasets/dataset_files/dataset_<name>.py` and `Datasets/dataset_files/dataset_<name>.yaml` it creates, and `Datasets/get_dataset.py` (step 5's two edits only). Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_calibration.py`, `Datasets/DatasetVSLAMLab_issues.py`, any other dataset's `.py`/`.yaml`, the templates in `Datasets/extra-files/`, `dataset_table.md`, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). Regenerating `dataset_table.md` via the script in step 0 is the one sanctioned exception, since that file is itself generated output. If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly.
+
 0. **Refresh the dataset table first.** Run `python3 Datasets/extra-files/generate_dataset_table.py` to regenerate `Datasets/extra-files/dataset_table.md` from the current `Datasets/dataset_files/*.yaml`/`.py` — steps 1 and 2 below both read from it, so it must reflect the repo's current state before anything else.
 
 @../../../Datasets/extra-files/dataset_table.md
@@ -22,6 +24,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
      - `stereo`/`rgbd` → `mono` (one image of the pair / drop depth) — `stereo` and `rgbd` don't reduce to each other.
      - `-vi` → non-`-vi` (drop the IMU stream) — one-way only, never invent IMU data that isn't in the source.
      - e.g. native `stereo-vi` → `{mono, mono-vi, stereo, stereo-vi}`; `rgbd-vi` → `{mono, mono-vi, rgbd, rgbd-vi}`; plain `stereo` → `{mono, stereo}`; plain `mono` → `{mono}`. Each derived mode still needs its own implementation (e.g. a `mono` path that reads only the LHS image).
+   - `resize` — true/false; true if this dataset's source images are bigger than 640×480 (by pixel area) and need downscaling, false if they're already at or below that. If true, `create_rgb_folder` scales images down to match 640×480's target area while preserving aspect ratio, and the YAML carries a `target_resolution: [640, 480]` field — see `dataset_sweetcorals.py`/`.yaml`. If false, `create_rgb_folder` copies/links the raw images unresized and `target_resolution` is omitted from the YAML.
    - `groundtruth_available` — true/false; if false, `create_groundtruth_csv` has nothing to write.
    - `calibration_type` — `global` (same values for every sequence, e.g. `dataset_7scenes.py`'s fixed `CAMERA_PARAMS`) or `per-sequence` (locate and parse each sequence's own calibration file, e.g. `dataset_eth.py`/`dataset_kitti.py`/`dataset_euroc.py`) — determines whether `create_calibration_yaml` reuses one value set or parses per sequence.
    - `download` — one of `website`/`hugging-face`/`google-drive`/`local`, resolved from `<source>` per step (b) below.
@@ -34,7 +37,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
    b. **From `<source>`** — inspect it to fill in whatever the prompt didn't. Visiting/browsing `<source>` also tells you which download pattern (`website`/`hugging-face`/`google-drive`/`local`) this dataset fits — see the `__init__`/`download_sequence_data` comments in `Datasets/extra-files/dataset_template.py` for the exact YAML field and model file to follow per pattern. A dataset can mix patterns per sequence. Always pin down one of these four real patterns; `other` isn't one to implement against.
    c. **Ask the user** — for any field still unresolved after (a) and (b), ask directly. Keep asking until every field has a value; don't fill gaps with a guess or a plausible-looking default.
 
-   **Before moving to step 2**, print a table of all eight fields with how each was resolved, then a notes line for anything worth flagging — most importantly any inconsistency between what the user said and what `<source>` actually shows (e.g. user said mono-only but the data also has depth frames; user gave 12 sequence names but the source lists 15). `download` and `download_issues` feed step 2's cross-check, so resolve them here even though they're not written to the YAML as single fields:
+   **Before moving to step 2**, print a table of all nine fields with how each was resolved, then a notes line for anything worth flagging — most importantly any inconsistency between what the user said and what `<source>` actually shows (e.g. user said mono-only but the data also has depth frames; user gave 12 sequence names but the source lists 15). `download` and `download_issues` feed step 2's cross-check, so resolve them here even though they're not written to the YAML as single fields:
 
    | Field | Value | Source | Notes |
    |---|---|---|---|
@@ -42,6 +45,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
    | sequence_names | ... | prompt / url / asked | |
    | cam_models | ... | prompt / url / asked | |
    | modes | ... | prompt / url / asked | |
+   | resize | ... | prompt / url / asked | |
    | groundtruth_available | ... | prompt / url / asked | |
    | calibration_type | ... | prompt / url / asked | |
    | download | ... | prompt / url / asked | |
@@ -71,6 +75,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
    - `rgb_hz` — the RGB capture rate in Hz; required by the base class (`cfg["rgb_hz"]`, no default) even though it isn't one of the step-1 fields — get it from `<source>` (spec sheet, README, or metadata file) or ask.
    - `cam_models`, `modes` (both as YAML lists, e.g. `['pinhole']`, `['mono', 'stereo']`).
    - The YAML field for the `download` pattern resolved in step 1: `url_download_root` for `website` or `google-drive` (a `drive.google.com` URL for the latter, see `dataset_hilti2026.yaml`), `repo_id` for `hugging-face`, `sequence_location: local` per affected sequence for `local` (see `dataset_strayscanner.yaml`).
+   - If `resize` (step 1) is true, add `target_resolution: [640, 480]` — see `dataset_sweetcorals.yaml`. Omit it entirely if `resize` is false.
    - Any mode-specific fields a sibling YAML of the same modes/source-pattern carries (e.g. `depth_factor` for `rgbd`, `url_download_root_gt` when groundtruth ships as a separate archive like `dataset_kitti.yaml`) — check the closest model file from step 1 for what it reads.
    - An `about:` block (license, summary, homepage, authors) and a `vslamlab_maintainer:` block, following the shape already used in every existing dataset YAML (see `dataset_hilti2026.yaml` for the full shape).
    `calibration_type` and `download_issues` aren't YAML fields themselves — they inform how `create_calibration_yaml` and `get_download_issues` get implemented in step 4.
@@ -86,7 +91,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
    Then implement each hook for real, in this order:
    a. **`__init__`**: call `super().__init__(...)`, load the YAML (`self.yaml_file`), pull out the source-specific field from step 3 (`self.url_download_root` / `self.repo_id`) and any mode-specific fields the YAML carries, and build `self.sequence_nicknames`. Follow a sibling of the same source pattern (e.g. `dataset_ariel.py` for Hugging Face) rather than inventing the shape.
    b. **`download_sequence_data(sequence_name)`** — fetch and decompress raw sequence data per the `download` pattern from step 1 (or, for `local` sequences, point the user at where to place it).
-   c. `create_rgb_folder`.
+   c. `create_rgb_folder` — if `resize` (step 1) is true, scale each image down to match `target_resolution`'s pixel area while preserving aspect ratio (see `_compute_scaled_size` in `dataset_sweetcorals.py`); otherwise copy/link the raw images unresized.
    d. `create_rgb_csv`.
    e. `create_calibration_yaml` (and `create_imu_csv` if applicable).
    f. `create_groundtruth_csv`, if `groundtruth_available`.

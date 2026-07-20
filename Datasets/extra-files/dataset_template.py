@@ -42,6 +42,13 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         # separate downloads, e.g. url_download_timestamps in dataset_caves.py).
         self.url_download_root: str = cfg["url_download_root"]
 
+        # Get resolution size
+        # Only needed if resize (step 1) is true — the (width, height) images are downscaled
+        # to before use, matching this target's pixel area while preserving aspect ratio.
+        # Delete this line entirely if resize is false (source images are already <= 640x480).
+        # Model: dataset_sweetcorals.py/.yaml (target_resolution: [640, 480]).
+        self.target_resolution: tuple[int, int] = tuple(cfg["target_resolution"])
+
         # Sequence nicknames
         # Short, human-friendly labels shown in CLI output, one per entry in self.sequence_names.
         # e.g. self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_names]
@@ -81,6 +88,12 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         # Normalize the raw downloaded images into rgb_0/ (plus rgb_1/ for stereo modes)
         # under self.dataset_path / sequence_name — renaming/moving files as needed so every
         # dataset exposes the same folder layout regardless of the source's original format.
+        # resize from step 1 decides what happens to each image on the way in:
+        #   true  -> source images are bigger than 640x480; scale each one down to match
+        #            self.target_resolution's pixel area while preserving aspect ratio before
+        #            writing it into rgb_0/. Model: dataset_sweetcorals.py (create_rgb_folder +
+        #            the _compute_scaled_size helper).
+        #   false -> source images are already <= 640x480; copy/link them into rgb_0/ unresized.
         return
 
     def create_rgb_csv(self, sequence_name: str) -> None:

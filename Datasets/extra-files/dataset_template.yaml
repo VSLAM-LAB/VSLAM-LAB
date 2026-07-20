@@ -6,6 +6,10 @@ cam_models: ['pinhole']
 
 url_download_root: ""
 
+# Only needed if resize (SKILL.md step 1) is true — delete this line if source images are
+# already <= 640x480. See dataset_sweetcorals.yaml.
+target_resolution: [640, 480]
+
 sequence_names:
   - sequence_01
   - sequence_02
