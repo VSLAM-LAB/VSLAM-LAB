@@ -12,7 +12,7 @@ Adding a baseline means creating a `BaselineVSLAMLab` subclass, registering a pi
 
 2. **Add a pixi feature** in `pixi.toml` for the baseline's dependencies (mirror `[feature.<name>]` blocks like `[feature.droidslam]`):
    - `[feature.<name>]` — channels/platforms (e.g. `platforms = ["linux-64-cuda"]` if it needs CUDA).
-   - `[feature.<name>.tasks]` — at minimum a `git-clone` task pointing at the baseline's source repo, plus `execute-mono`/`execute-rgbd`/`execute-stereo` tasks (whichever modalities the baseline supports) that invoke its executable/entrypoint.
+   - `[feature.<name>.tasks]` — at minimum a `git-clone` task pointing at the baseline's source repo, plus `execute-mono`/`execute-rgbd`/`execute-stereo` tasks (whichever modes the baseline supports) that invoke its executable/entrypoint.
    - `[feature.<name>.dependencies]` — conda/pip packages the baseline needs.
    - Register the environment in the top-level `[environments]` table: `<name> = { features = ["<name>", ...], solve-group = "<name>" }` (pin shared `cuda*`/`py*` features and a `solve-group` the way `droidslam` does, to reuse dependency solves across baselines).
 
