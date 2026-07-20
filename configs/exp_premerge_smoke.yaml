@@ -1,0 +1,17 @@
+exp_premerge_smoke_droidslam:
+  Config: config_premerge_smoke.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono}
+  Module: droidslam
+
+exp_premerge_smoke_droidslam_dev:
+  Config: config_premerge_smoke.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono}
+  Module: droidslam-dev
+
+exp_premerge_smoke_orbslam3:
+  Config: config_premerge_smoke.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono}
+  Module: orbslam3

@@ -1,0 +1,82 @@
+eth:
+  - 'table_3'
+rgbdtum:
+  - 'rgbd_dataset_freiburg1_xyz'
+replica:
+  - 'office0'
+tartanair:
+  - 'ME000'
+nuim:
+  - 'traj0_frei_png'
+7scenes:
+  - 'chess_seq-01'
+# kitti:
+#  - '04'
+# euroc:
+#   - MH_01_easy
+
+# openloris-d400:
+#   - cafe1-1
+# openloris-t265:
+#   - cafe1-1
+# msd:
+#   - 'MIO07_mapping_easy'
+# rover-t265:
+#   - 'campus_small_autumn_t265'
+# rover-d435i:
+#   - 'campus_small_autumn_d435i'
+# rover-picam:
+#   - 'campus_small_autumn_picam'
+# ut-coda:
+#   - '0'
+# s3li:
+#   - 'vegetation'
+# sesoko:
+#   - ssk16
+#   - ssk17
+#   - ssk18
+
+# # ariel:
+# # - 'mclab_1'
+# # sweetcorals:
+# # - 'indonesia_banyuwangi_farm'
+# # - 'indonesia_pemuteran_p1'
+# # - 'indonesia_pemuteran_p2'
+# # - 'indonesia_pemuteran_p3'
+# # - 'indonesia_tabuhan_p1'
+# # - 'indonesia_tabuhan_p2'
+# # - 'indonesia_tabuhan_p3'
+# # - 'indonesia_watudodol_p1'
+# # - 'indonesia_watudodol_p2'
+# # - 'indonesia_watudodol_p3'
+# # - 'indonesia_watudodol_p4'
+# # - 'indonesia_watudodol_p5'
+# # - 'indonesia_watudodol_p6'
+
+# hilti2#022:
+#   #- exp04_construction_upper_level
+#   - exp14_basemen#t_2
+# # madmax:
+# #   - A-0
+
+# #hilti2022:
+#   #- exp04_construction_upper_level
+#   #- exp05_construction_upper_level_2
+#   #- exp06_construction_upper_level_3
+# #  - exp14_basement_2
+#   #- exp16_attic_to_upper_gallery_2
+#   #- exp18_corridor_lower_gallery_2
+# # antarctica:
+#   # - 'DJI_202401111904_001'
+#   # - 'DJI_202401111932_002'
+# #  - 'DJI_202401111932_003'
+# #  - 'DJI_202401112014_004'
+
+# #yandiwanba:
+#   #- 'test1'
+# #  - 'test4'
+# #lizardisland:
+# #  - 'LIRS_FEB1'
+
+# #monotum:
+# #  - 'sequence_01'
