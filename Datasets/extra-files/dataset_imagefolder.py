@@ -3,6 +3,9 @@ import csv
 import yaml
 import shutil
 import subprocess
+from typing import Any
+
+import numpy as np
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from PIL import Image
@@ -72,12 +75,20 @@ class IMAGEFOLDER_dataset(DatasetVSLAMLab):
                 writer.writerow([ts_ns, f"rgb/{filename}"])
 
     def create_calibration_yaml(self, sequence_name):
-        # Create a calibration file with the UNKNOWN camera model
-        camera_model = "UNKNOWN"
+        # Create a calibration file with the unknown camera model
+        cam_model = "unknown"
         fx, fy, cx, cy = 0.0, 0.0, 0.0, 0.0
-        k1, k2, p1, p2, k3 = 0.0, 0.0, 0.0, 0.0, 0.0
 
-        self.write_calibration_yaml(camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
+        rgb0: dict[str, Any] = {
+            "cam_name": "rgb_0",
+            "cam_type": "rgb",
+            "cam_model": cam_model,
+            "focal_length": [fx, fy],
+            "principal_point": [cx, cy],
+            "fps": float(self.fps),
+            "T_BS": np.eye(4),
+        }
+        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
 
         # Run glomap to compute calibration parameters
         sequence_path = os.path.join(self.dataset_path, sequence_name)
@@ -106,15 +117,22 @@ class IMAGEFOLDER_dataset(DatasetVSLAMLab):
             lines = file.read().strip().splitlines()
 
         camera_params = lines[-1].split()
-        camera_model = "OPENCV"
+        cam_model = "pinhole"
         fx = float(camera_params[4])
         fy = float(camera_params[4])
         cx = float(camera_params[5])
         cy = float(camera_params[6])
-        
-        k1, k2, p1, p2, k3 = 0.0, 0.0, 0.0, 0.0, 0.0
 
-        self.write_calibration_yaml(camera_model, fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
+        rgb0 = {
+            "cam_name": "rgb_0",
+            "cam_type": "rgb",
+            "cam_model": cam_model,
+            "focal_length": [fx, fy],
+            "principal_point": [cx, cy],
+            "fps": float(self.fps),
+            "T_BS": np.eye(4),
+        }
+        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
 
     def create_groundtruth_csv(self, sequence_name):
         return

@@ -17,7 +17,7 @@ class MONOGS_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.500, 0.550, 0.600)
         self.modes = ['mono', 'rgbd']       
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)

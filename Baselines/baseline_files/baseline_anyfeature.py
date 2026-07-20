@@ -24,7 +24,7 @@ class ANYFEATURE_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.350, 0.300, 0.700)
         self.modes = ['mono']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         command = super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)

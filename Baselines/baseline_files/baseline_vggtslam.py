@@ -15,7 +15,7 @@ class VGGTSLAM_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (1.000, 0.050, 0.600)
         self.modes = ['mono']
-        self.camera_models = ['pinhole']
+        self.cam_models = ['pinhole']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)

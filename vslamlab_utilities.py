@@ -674,7 +674,7 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, co
             dataset_cam_models = dataset.cam_models
             for baseline_name in baselines:
                 baseline = get_baseline(baseline_name)
-                baseline_cam_models = baseline.camera_models
+                baseline_cam_models = baseline.cam_models
                 if not any(cam_model in baseline_cam_models for cam_model in dataset_cam_models):
                     errors.append(
                         f"[Error] Baseline '{baseline_name}' and dataset '{dataset_name}' "

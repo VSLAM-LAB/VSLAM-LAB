@@ -21,7 +21,7 @@ class ORBSLAM2_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.47, 0.628, 0.862) # 'blue'
         self.modes = ['mono', 'rgbd', 'stereo']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)

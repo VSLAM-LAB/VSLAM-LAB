@@ -18,7 +18,7 @@ class GLOMAP_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = tuple(max(c / 2.0, 0.0) for c in (0.800, 0.400, 0.750))
         self.modes = ['mono']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         if 'matcher_type' in exp.parameters and exp.parameters['matcher_type'] == 'sequential':
