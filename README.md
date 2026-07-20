@@ -163,7 +163,7 @@ If you're using **VSLAM-LAB** in your research, please cite:
 To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets) -->
 
 # VSLAM-LAB Supported Baselines and Datasets
-| Baselines                                                                   | System |     Sensors      |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |
+| Baselines                                                                   | System |      Modes       |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |
 |:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|:------------:|
 | [**VGGT-SLAM**](https://github.com/MIT-SPARK/VGGT-SLAM) |  VSLAM   |  `mono`  |  [BSD-2](https://github.com/MIT-SPARK/VGGT-SLAM/blob/main/LICENSE)  |   `vggtslam`   | ✅ | `pinhole` |
 | [**MASt3R-SLAM**](https://github.com/rmurai0610/MASt3R-SLAM)                | VSLAM  |       `mono`       |    [CC BY-NC-SA 4.0](https://github.com/rmurai0610/MASt3R-SLAM/blob/main/LICENSE.md)    | `mast3rslam`  | ✅ | `radtan5` `unknown` |
@@ -181,7 +181,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `radtan5` `equid4` `unknown` |
 | [**VGGT**](https://vgg-t.github.io/) |  SfM   |  `mono`  |  [VGGT](https://github.com/facebookresearch/vggt/blob/main/LICENSE.txt)  |   `vggt`   | ➖ | `pinhole` |
 
-| Datasets                                                                                                                        | Features |   Label    |     Sensors      |  Camera Models     |
+| Datasets                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
 | [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |  📸🏠🤳 |   `eth`    |`mono` `rgbd`| `pinhole` |
 | [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |  📸🏠🤳 |  `rgbdtum`  |`mono` `rgbd`| `radtan5` |
@@ -198,7 +198,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Sesoko campaign**](https://www.southampton.ac.uk/smmi/news/2017/06/20-southampton-tokyo-collaboration.page) | 📸🏞️🌊 |    `sesoko`    |`mono` | `pinhole` |
 | [**The MADMAX data set for visual-inertial rover navigation on Mars**](https://datasets.arches-projekt.de/morocco2018/) |  📸🏞️🤳 | `madmax` | `mono(-vi)` `stereo(-vi)`| `pinhole` |
 
-| Tools                                                                                                                        | Features |   Label    |     Sensors      |  Camera Models     |
+| Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
 | [**Stray Scanner App**](https://github.com/strayrobots/scanner) |  📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` |
 <!-- | [**Sweet Corals**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊 |    `sweetcorals`    |`mono` | `pinhole` | -->
@@ -268,7 +268,7 @@ Handheld / Headmounted / Vehicle / UAV  / Robot : 🤳 / 🥽 / 🚗 / 🚁 / �
 
 ### Metrics
 - [ ] Include RPE
-- [ ] Link metrics with modalities
+- [ ] Link metrics with modes
 
 ### Tooling
 - [ ] Ablation tools

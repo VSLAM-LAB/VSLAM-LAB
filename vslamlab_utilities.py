@@ -651,7 +651,7 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
 
     return modes[0]
 
-def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, config_mode: str) -> None:
+def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mode: str) -> None:
     errors: list[str] = []
     configs: set[str] = set()
     baselines: set[str] = set()
@@ -666,10 +666,10 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, co
     
         for dataset_name in config_file_data.keys():
             dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
-            if config_mode not in dataset.modes:
+            if mode not in dataset.modes:
                 errors.append(
                     f"[Error] Dataset '{dataset_name}' (in config '{config_file}') doesn't handle mode "
-                    f"'{config_mode}'. Available modes are: {dataset.modes}."
+                    f"'{mode}'. Available modes are: {dataset.modes}."
                 )
             dataset_cam_models = dataset.cam_models
             for baseline_name in baselines:
@@ -702,8 +702,8 @@ def validate_experiment_yaml(exp_yaml: str | Path) -> None:
     check_experiment_sequence_names(exp_data, exp_yaml)
 
     # Check conflicts
-    config_mode = check_experiment_baselines_conflicts(exp_data, exp_yaml)
-    check_experiment_sequence_conflicts(exp_data, exp_yaml, config_mode)
+    mode = check_experiment_baselines_conflicts(exp_data, exp_yaml)
+    check_experiment_sequence_conflicts(exp_data, exp_yaml, mode)
 
     # Print Summary
     print_msg(f"\n{SCRIPT_LABEL}", f"Experiment summary: {exp_yaml}", flag="info", verb='NONE')

@@ -52,6 +52,9 @@ class BaselineVSLAMLab(ABC):
         # Defaults parameters
         self.default_parameters = default_parameters
 
+        # Supported modes (set by each concrete baseline subclass)
+        self.modes: list[str] = []
+
     @abstractmethod
     def build_execute_command(self, exp_it, exp, dataset, sequence_name) -> str: ...
 
