@@ -5,9 +5,9 @@ modes: ['mono']
 cam_models: ['pinhole', 'radtan4']
 target_resolution: [640, 480]
 
-sequence_urls:
-  - "https://youtu.be/kcfs1-ryKWE"
-  - "https://youtu.be/kcfs1-ryKWE"
+url_download_sequences:
+  fpv-drone-iceland-00: "https://youtu.be/kcfs1-ryKWE"
+  fpv-drone-iceland-01: "https://youtu.be/kcfs1-ryKWE"
 
 sequence_names:
   - fpv-drone-iceland-00

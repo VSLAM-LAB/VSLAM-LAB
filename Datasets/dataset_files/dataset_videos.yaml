@@ -4,7 +4,7 @@ rgb_hz: 30.0
 modes: ['mono']
 cam_models: ['unknown', 'pinhole', 'radtan4']
 
-huggingface_repo_id: vslamlab/videos
+repo_id: vslamlab/videos
 target_resolution: [640, 480]
 
 sequence_names:

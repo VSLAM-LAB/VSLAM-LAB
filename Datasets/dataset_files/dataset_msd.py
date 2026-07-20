@@ -28,7 +28,7 @@ class MSD_dataset(DatasetVSLAMLab):
             cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.huggingface_repo_id: str = cfg["huggingface_repo_id"]
+        self.repo_id: str = cfg["repo_id"]
         self.huggingface_subfolder: str = cfg["huggingface_subfolder"]
         self.calibration_file: str = cfg["calibration_file"]
 
@@ -40,13 +40,13 @@ class MSD_dataset(DatasetVSLAMLab):
 
         if not sequence_path.exists():
             compressed_name_ext = sequence_name + '.zip'
-            file_path = hf_hub_download(repo_id=self.huggingface_repo_id, 
+            file_path = hf_hub_download(repo_id=self.repo_id, 
                                         subfolder=self.get_huggingface_subfolder(sequence_name, self.huggingface_subfolder),
                                         filename=compressed_name_ext, repo_type='dataset')
             with ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(self.dataset_path)
 
-            file_path = hf_hub_download(repo_id=self.huggingface_repo_id, subfolder=self.huggingface_subfolder + "/extras", 
+            file_path = hf_hub_download(repo_id=self.repo_id, subfolder=self.huggingface_subfolder + "/extras", 
                                         filename=self.calibration_file, repo_type='dataset')
 
             shutil.copy2(file_path, sequence_path / self.calibration_file)

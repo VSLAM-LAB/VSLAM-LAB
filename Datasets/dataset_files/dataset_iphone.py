@@ -30,7 +30,7 @@ class IPHONE_dataset(DatasetVSLAMLab):
         
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        pass
+        print(f"Sequence '{sequence_name}' is marked as 'local'. Please ensure the data is available at {self.dataset_path / sequence_name}.")
     def create_rgb_folder(self, sequence_name: str) -> None: 
         pass
     def create_rgb_csv(self, sequence_name: str) -> None:

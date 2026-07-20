@@ -4,5 +4,7 @@ rgb_hz: 60.0
 modes: ['mono']
 cam_models: ['radtan5']
 
+sequence_location: local
+
 sequence_names:
   - 56a0ec536c

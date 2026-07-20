@@ -31,7 +31,15 @@ def _get_dataset_issue(issue_id: str, *, dataset_name: str, size_gb: int = 0, we
             "solution": f"Register at '{website}' to get an API TOKEN, then set it in '{yaml_file}'.",
             "mode": f"{YELLOW}user action required{RESET}",
         },
-            
+        "huggingface_token": lambda: {
+            "name": "Hugging Face token required",
+            "description": (
+                f"Access to '{dataset_name}' requires use of a Hugging Face TOKEN."
+            ),
+            "solution": f"Register at '{website}' to get a Hugging Face, then set it in '{yaml_file}'.",
+            "mode": f"{YELLOW}user action required{RESET}",
+        },
+
     }
 
     try:

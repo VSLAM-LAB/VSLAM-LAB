@@ -19,9 +19,23 @@ from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
 class EUROC_dataset(DatasetVSLAMLab):
     """EUROC MAV dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "euroc") -> None:    
+    _GROUP_INFO = {
+        "MH_": ("machine_hall", 12683729426),
+        "V1_": ("vicon_room1", 6042263426),
+        "V2_": ("vicon_room2", None),
+    }
+
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "euroc") -> None:
         super().__init__(dataset_name, Path(benchmark_path))
-  
+
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+
+        # Get download urls
+        self.url_download_sequences: dict[str, str] = cfg["url_download_sequences"]
+        self.url_download_root_gt: str = cfg["url_download_root_gt"]
+
         # Sequence nicknames
         self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
         self.sequence_nicknames = [s.replace("easy", "") for s in self.sequence_nicknames]
@@ -32,7 +46,8 @@ class EUROC_dataset(DatasetVSLAMLab):
         sequence_path = self.dataset_path / sequence_name
         if sequence_path.exists():
             return
-        url, subfolder, file_size = self._download_url_for(sequence_name)
+        url = self.url_download_sequences[sequence_name]
+        subfolder, file_size = self._subfolder_for(sequence_name)
 
         content_zip = self.dataset_path / "content"
         subfolder_path = self.dataset_path / subfolder
@@ -53,9 +68,8 @@ class EUROC_dataset(DatasetVSLAMLab):
         supp_root = self.dataset_path / "supp_v2"
         if not supp_root.exists():
             supp_zip = self.dataset_path / "supp_v2.zip"
-            supp_url = "https://cvg.cit.tum.de/mono/supp_v2.zip"
             if not supp_zip.exists():
-                downloadFile(supp_url, str(self.dataset_path))
+                downloadFile(self.url_download_root_gt, str(self.dataset_path))
 
             if supp_root.exists():
                 shutil.rmtree(supp_root)
@@ -223,15 +237,11 @@ class EUROC_dataset(DatasetVSLAMLab):
             shutil.rmtree(self.dataset_path / "vicon_room1", ignore_errors=True)
             shutil.rmtree(self.dataset_path / "vicon_room2", ignore_errors=True)
 
-    def _download_url_for(self, sequence_name: str) -> str:
-        if sequence_name.startswith("MH_"):
-            return "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content", "machine_hall", 12683729426
-        elif sequence_name.startswith("V1_"):
-            return "https://www.research-collection.ethz.ch/server/api/core/bitstreams/02ecda9a-298f-498b-970c-b7c44334d880/content", "vicon_room1", 6042263426
-        elif sequence_name.startswith("V2_"):
-            return  "https://www.research-collection.ethz.ch/server/api/core/bitstreams/ea12bc01-3677-4b4c-853d-87c7870b8c44/content", "vicon_room2", None
-        else:
-            raise ValueError(f"Unknown EUROC sequence prefix: {sequence_name}")
+    def _subfolder_for(self, sequence_name: str) -> tuple[str, int | None]:
+        for prefix, (subfolder, file_size) in self._GROUP_INFO.items():
+            if sequence_name.startswith(prefix):
+                return subfolder, file_size
+        raise ValueError(f"Unknown EUROC sequence prefix: {sequence_name}")
         
     def get_download_issues(self, _):
         return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=18.7)]

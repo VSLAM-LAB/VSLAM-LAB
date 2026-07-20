@@ -20,7 +20,7 @@ class YOUTUBE_dataset(VIDEOS_dataset):
             cfg = yaml.safe_load(f) or {}
 
         # Get sequence download urls
-        self.sequence_urls: list[str] = cfg["sequence_urls"]
+        self.url_download_sequences: dict[str, str] = cfg["url_download_sequences"]
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
@@ -38,7 +38,7 @@ class YOUTUBE_dataset(VIDEOS_dataset):
             return
         sequence_path.mkdir(parents=True, exist_ok=True)
 
-        url = self.sequence_urls[self.sequence_names.index(sequence_name)]
+        url = self.url_download_sequences[sequence_name]
         ydl_opts = {
             "outtmpl": str(video_path),
             "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",

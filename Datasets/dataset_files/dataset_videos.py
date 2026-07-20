@@ -30,7 +30,7 @@ class VIDEOS_dataset(DatasetVSLAMLab):
         self.videos_path = VSLAMLAB_VIDEOS
 
         # Get download url
-        self.repo_id = cfg["huggingface_repo_id"]
+        self.repo_id = cfg["repo_id"]
 
         # Create sequence_nicknames
         self.sequence_nicknames = self.sequence_names

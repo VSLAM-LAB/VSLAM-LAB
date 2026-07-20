@@ -31,7 +31,7 @@ class StrayScanner_dataset(VIDEOS_dataset):
             cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.repo_id = cfg["huggingface_repo_id"]
+        self.repo_id = cfg["repo_id"]
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names

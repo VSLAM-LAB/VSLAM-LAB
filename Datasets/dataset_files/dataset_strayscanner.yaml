@@ -4,7 +4,7 @@ rgb_hz: 30.0
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
 
-huggingface_repo_id: vslamlab/strayscanner
+repo_id: vslamlab/strayscanner
 target_resolution: [640, 480]
 
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor

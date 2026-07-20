@@ -27,7 +27,7 @@ class CAVES_dataset(DatasetVSLAMLab):
         # Get download url
         self.url_download_root = cfg['url_download_root']
         self.url_download_timestamps = cfg['url_download_timestamps']
-        self.url_download_groundtruth = cfg['url_download_groundtruth']
+        self.url_download_root_gt = cfg['url_download_root_gt']
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
@@ -38,7 +38,7 @@ class CAVES_dataset(DatasetVSLAMLab):
         compressed_name_ext = compressed_name + '.zip'
         download_url = self.url_download_root
         timestamps_url = self.url_download_timestamps
-        groundtruth_url = self.url_download_groundtruth
+        groundtruth_url = self.url_download_root_gt
         sequence_path = self.dataset_path / sequence_name
 
         # Constants

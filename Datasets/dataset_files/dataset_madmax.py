@@ -33,7 +33,7 @@ class MADMAX_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = self.sequence_names
 
         # API token
-        self.api_token: str = cfg["api_token"]
+        self.api_token: str = cfg.get("api_token", "not_set")
 
         # Dataset homepage
         self.dataset_homepage: str = cfg["about"]["homepage"]
@@ -213,7 +213,7 @@ class MADMAX_dataset(DatasetVSLAMLab):
             shutil.rmtree(sequence_path / "groundtruth", ignore_errors=True)
 
     def get_download_issues(self, _):
-        if self.api_token == "None":
+        if self.api_token == "not_set":
             return [
                 _get_dataset_issue(
                     issue_id="api_token",

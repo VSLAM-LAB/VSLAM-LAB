@@ -66,9 +66,6 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
         self.api_token: str = cfg.get("api_token", "not_set")
         if len(self.api_token.strip()) == 0:
             self.api_token = "not_set"
-        if self.api_token == "not_set":
-            logger.error(f"No API token set for SQUIDLE dataset. Register at '{self.url_download_root}' to get an API TOKEN, then set it in '{self.yaml_file}'")
-            exit(0)
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
@@ -225,7 +222,7 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
 
     def get_download_issues(self, _):
         if self.api_token != "not_set":
-            return {}
+            return []
         return [_get_dataset_issue(issue_id="api_token", dataset_name=self.dataset_name, website=self.url_download_root, yaml_file=self.yaml_file)]
 
 

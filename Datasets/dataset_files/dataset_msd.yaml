@@ -3,7 +3,7 @@ dataset_name: msd
 rgb_hz: 54.0
 imu_hz: 1000.0
 
-huggingface_repo_id: "collabora/monado-slam-datasets"
+repo_id: "collabora/monado-slam-datasets"
 huggingface_subfolder: "M_monado_datasets/MI_valve_index"
 calibration_file: "calibration.json"
 

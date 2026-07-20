@@ -25,13 +25,11 @@ class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
         sequence_path = self.dataset_path / sequence_name
         if os.path.exists(sequence_path):
             return
-        
+
         data_path = os.path.join(self.dataset_path, 'data', sequence_name)
         if not os.path.exists(data_path):
-            SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
-            print(f"\n{SCRIPT_LABEL}\033[91m Data is not available: {data_path}\033[0m")
-            print(f"    \033[91m Download from: https://kaldir.vc.in.tum.de/scannetpp/documentation\033[0m")
-            exit(0)
+            print(f"Sequence '{sequence_name}' is marked as 'local'. Please ensure the data is available at {data_path}.")
+            print(f"    Register and download from: https://kaldir.vc.in.tum.de/scannetpp/documentation")
 
 
     def create_rgb_folder(self, sequence_name):

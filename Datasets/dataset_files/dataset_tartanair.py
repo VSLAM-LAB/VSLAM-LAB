@@ -30,7 +30,7 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
 
         # Get download url
         self.url_download_root: str = cfg["url_download_root"]
-        self.url_download_gt_root: str = cfg["url_download_gt_root"]
+        self.url_download_root_gt: str = cfg["url_download_root_gt"]
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
@@ -64,7 +64,7 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
             compressed_file = self.dataset_path / compressed_name_ext
             decompressed_folder = self.dataset_path / decompressed_name
 
-            download_url = self.url_download_gt_root
+            download_url = self.url_download_root_gt
             if not compressed_file.exists():
                 downloadFile(download_url, self.dataset_path)
 
