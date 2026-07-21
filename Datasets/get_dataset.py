@@ -8,6 +8,7 @@ from path_constants import VSLAM_LAB_DIR
 from Datasets.dataset_files.dataset_tartanair import TARTANAIR_dataset
 from Datasets.dataset_files.dataset_squidle import SESOKO_dataset
 from Datasets.dataset_files.dataset_sweetcorals import SWEETCORALS_dataset
+from Datasets.dataset_files.dataset_soneva import SONEVA_dataset
 from Datasets.dataset_files.dataset_monotum import MONOTUM_dataset
 from Datasets.dataset_files.dataset_hamlyn import HAMLYN_dataset
 from Datasets.dataset_files.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
@@ -70,6 +71,7 @@ def get_dataset(dataset_name, benchmark_path):
         "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
         "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
         "sweetcorals": lambda: SWEETCORALS_dataset(benchmark_path),
+        "soneva": lambda: SONEVA_dataset(benchmark_path),
         "monotum": lambda: MONOTUM_dataset(benchmark_path),
         "ariel": lambda: ARIEL_dataset(benchmark_path),
         "hilti2022": lambda: HILTI2022_dataset(benchmark_path),
