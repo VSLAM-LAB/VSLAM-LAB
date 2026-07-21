@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Edit(Datasets/dataset_files/dataset_*.py)",
+      "Edit(Datasets/dataset_files/dataset_*.yaml)",
+      "Edit(configs/test_config_*.yaml)",
+      "Edit(configs/test_exp_*.yaml)",
+      "Edit(Datasets/get_dataset.py)",
+      "Edit(README.md)"
+    ]
+  }
+}

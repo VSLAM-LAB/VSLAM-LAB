@@ -3,12 +3,12 @@
 Module: generate_dataset_table.py
 Description: Scans Datasets/dataset_files/*.yaml (and, via get_dataset.py, the
              matching *.py) and writes a Markdown table (dataset name | camera
-             models | modes | download source | download issues) in the same
-             style as the Datasets table in the project README.
+             models | modes | download source | download issues | AI-assisted)
+             in the same style as the Datasets table in the project README.
 Author: Alejandro Fontan Villacampa
-Version: 1.0
+Version: 1.1
 Created: 2026-07-19
-Updated: 2026-07-19
+Updated: 2026-07-21
 License: GPLv3
 List of Known Bugs: None
 """
@@ -136,6 +136,7 @@ def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path) -> list
         modes = cfg.get("modes", DEFAULT_MODES)
         download_labels = _download_labels(cfg)
         issue_ids = _download_issues_for_dataset(dataset_name, dataset_files_dir, name_to_class, class_blocks_cache)
+        assisted_by = str(cfg.get("vslamlab_maintainer", {}).get("assisted_by", "")).strip()
 
         entries.append(
             {
@@ -144,6 +145,7 @@ def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path) -> list
                 "modes": " ".join(f"`{m}`" for m in modes),
                 "download": " ".join(f"`{d}`" for d in download_labels),
                 "issues": " ".join(f"`{i}`" for i in issue_ids),
+                "assisted_by": assisted_by,
             }
         )
     return entries
@@ -151,13 +153,13 @@ def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path) -> list
 
 def _render_markdown_table(entries: list[dict[str, str]]) -> str:
     lines = [
-        "| Dataset | Camera Models | Modes | Download | Download Issues |",
-        "|:---|:---:|:---:|:---:|:---:|",
+        "| Dataset | Camera Models | Modes | Download | Download Issues | AI-Assisted |",
+        "|:---|:---:|:---:|:---:|:---:|:---:|",
     ]
     for entry in entries:
         lines.append(
             f"| `{entry['dataset_name']}` | {entry['cam_models']} | {entry['modes']} | "
-            f"{entry['download']} | {entry['issues']} |"
+            f"{entry['download']} | {entry['issues']} | {entry['assisted_by']} |"
         )
     return "\n".join(lines) + "\n"
 

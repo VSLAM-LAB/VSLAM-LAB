@@ -10,10 +10,12 @@ nuim:
   - 'traj0_frei_png'
 7scenes:
   - 'chess_seq-01'
+euroc:
+  - MH_01_easy
+soneva:
+  - hb_20250710
 # kitti:
 #  - '04'
-# euroc:
-#   - MH_01_easy
 
 # openloris-d400:
 #   - cafe1-1

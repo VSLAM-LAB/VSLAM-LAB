@@ -7,9 +7,19 @@ Usage: `/add-dataset <name> <source>` — e.g. `/add-dataset soneva https://exam
 
 Both `<name>` and `<source>` are required — parse them from `$ARGUMENTS` (or from however the user phrased the request, if invoked without the slash command). If either is missing or ambiguous, stop and ask the user rather than guessing a dataset name or searching for a source yourself.
 
-Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAML, then registering it in `Datasets/get_dataset.py`.
+Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAML, registering it in `Datasets/get_dataset.py`, and adding a smoke-test config/experiment pair under `configs/`.
 
-**Hard constraint — file scope.** The only files this skill may create or modify are: the new `Datasets/dataset_files/dataset_<name>.py` and `Datasets/dataset_files/dataset_<name>.yaml` it creates, and `Datasets/get_dataset.py` (step 5's two edits only). Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_calibration.py`, `Datasets/DatasetVSLAMLab_issues.py`, any other dataset's `.py`/`.yaml`, the templates in `Datasets/extra-files/`, `dataset_table.md`, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). Regenerating `dataset_table.md` via the script in step 0 is the one sanctioned exception, since that file is itself generated output. If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly.
+**Hard constraint — file scope.** The only files this skill may create or modify are:
+
+- `Datasets/dataset_files/dataset_<name>.py` — new dataset class, created in step 4.
+- `Datasets/dataset_files/dataset_<name>.yaml` — new dataset settings file, created in step 3.
+- `Datasets/get_dataset.py` — only step 5's two edits (the import line and the `switcher` dict entry), nothing else in the file.
+- `configs/test_config_<name>.yaml` — new smoke-test sequence list, created in step 6.
+- `configs/test_exp_<name>.yaml` — new smoke-test experiment config, created in step 6.
+- `README.md` — only the new row appended to the Datasets table in step 7, nothing else in the file.
+- `Datasets/extra-files/dataset_table.md` — regenerated (never hand-edited) via the script in step 0, since it's generated output.
+
+Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_calibration.py`, `Datasets/DatasetVSLAMLab_issues.py`, any other dataset's `.py`/`.yaml`, any other `configs/*.yaml` (including a non-`test_`-prefixed `config_<name>.yaml`/`exp_<name>.yaml`, which is a production config outside this skill's scope), the templates in `Datasets/extra-files/`, any part of `README.md` outside the single new table row, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly. This scope covers the repo only. Outside the repo, the one place this skill may touch is `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` (the downloaded benchmark data for this dataset, `<DATASET_FOLDER>` matching what this dataset's YAML/class designate) — freely creating, removing, or recreating files and folders anywhere inside it is expected and fine, that's exactly what steps 6/8's test runs are for. Nothing outside `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` may be touched — not other datasets' folders under `VSLAM-LAB-Benchmark/`, not `VSLAM-LAB-Evaluation/`, nothing else.
 
 0. **Refresh the dataset table first.** Run `python3 Datasets/extra-files/generate_dataset_table.py` to regenerate `Datasets/extra-files/dataset_table.md` from the current `Datasets/dataset_files/*.yaml`/`.py` — steps 1 and 2 below both read from it, so it must reflect the repo's current state before anything else.
 
@@ -18,7 +28,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
 1. **Gather the required fields, then report them before writing anything.**
 
    - `dataset_name` — lowercase slug reused everywhere: `dataset_<name>.py`/`.yaml`, the class prefix, the `get_dataset.py` switcher key.
-   - `sequence_names` — the list of sequence IDs this dataset ships.
+   - `sequence_names` — the list of sequence IDs this dataset ships. Keep each name descriptive but simple — drop redundant prefixes shared by every sequence (e.g. a repeated dataset/location prefix). For `soneva`, `hb_20250710` would have been simpler than `maldives_soneva_hb_20250710`.
    - `cam_models` — closed list; every value must already appear in the **Camera Models** column of `Datasets/extra-files/dataset_table.md` (currently `pinhole`, `radtan4`, `radtan5`, `equid4`, `unknown` — read live, the list can grow).
    - `modes` — closed list; every value must already appear in the **Modes** column of `Datasets/extra-files/dataset_table.md` (currently `mono`, `mono-vi`, `rgbd`, `rgbd-vi`, `stereo`, `stereo-vi`). Include the native mode(s) *and* every mode derivable by dropping a channel:
      - `stereo`/`rgbd` → `mono` (one image of the pair / drop depth) — `stereo` and `rgbd` don't reduce to each other.
@@ -101,5 +111,61 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
 5. **Register it** in `Datasets/get_dataset.py`:
    - Add `from Datasets.dataset_files.dataset_<name> import <NAME>_dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
    - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <NAME>_dataset(benchmark_path),`.
+
+6. **Create a smoke-test config + experiment pair** under `configs/`, following the shape of the closest sibling from step 2 (e.g. `test_config_sweetcorals.yaml`/`test_exp_sweetcorals.yaml`, `test_config_eth.yaml`/`test_exp_eth.yaml`, `test_config_videos.yaml`/`test_exp_videos.yaml`):
+   - `configs/test_config_<name>.yaml` — a single `<dataset_name>:` key with a YAML list of sequence names to smoke-test:
+     ```yaml
+     <dataset_name>:
+     - sequence_01
+     - sequence_02
+     ```
+     For a small dataset, list every sequence (see `test_config_sweetcorals.yaml`, 13/13). For a large one, a small representative handful is enough (see `test_config_videos.yaml`, 5 sequences; `test_config_strayscanner.yaml`, 1) — don't enumerate hundreds of sequences just to be thorough; pick ones that exercise different sizes/conditions if the dataset is heterogeneous.
+   - `configs/test_exp_<name>.yaml` — one `exp_<name>_<baseline>:` block (or a few, one per baseline worth smoke-testing):
+     ```yaml
+     exp_<name>_<baseline>:
+       Config: test_config_<name>.yaml
+       NumRuns: 1
+       Parameters: {verbose: 1, mode: <one of this dataset's modes>, rgb_idx: [0,2000]}
+       Module: <baseline>
+     ```
+     Pick `<baseline>` (the `Module`) matching what the closest sibling's `test_exp_*.yaml` uses where possible (`droidslam` and `dpvo` are common lightweight choices for `mono`/`rgbd`) — it must be a pixi environment name from `pixi.toml`'s `[environments]` table. `rgb_idx: [0,2000]` caps the run to the first ~2000 frames for a quick test; omit it if the matched sibling's convention doesn't use it (see `test_exp_videos.yaml`/`test_exp_strayscanner.yaml`).
+
+7. **Add the dataset to the README table.** In `README.md`, under the "VSLAM-LAB Supported Baselines and Datasets" section, add one new row to the **Datasets** table (the table headed `| Datasets | Features | Label | Modes | Camera Models |`) — append it as the last real row, immediately above the commented-out placeholder rows at the bottom of that table (the `<!-- | [**Sweet Corals**]... -->`-style rows for datasets not yet implemented). Match the exact shape of existing rows:
+   ```
+   | [**<Display Name>**](<homepage URL>) | <feature emoji(s)> | `<dataset_name>` | <modes> | <cam_models> |
+   ```
+   - `<Display Name>` and `<homepage URL>` — from the `about:` block written into the YAML in step 3.
+   - `<feature emoji(s)>` — pick from the legend printed just below the table (Real 📸 / Synthetic 💻; Indoor 🏠 / Outdoor 🏞️ / Underwater 🌊 / Intracorporeal 🫀; Handheld 🤳 / Headmounted 🥽 / Vehicle 🚗 / UAV 🚁 / Robot 🤖), based on what's known about the dataset from step 1/2. If it's unclear which apply, ask the user rather than guessing.
+   - `<modes>` — the confirmed step-1 `modes` list, formatted like existing rows: a mode and its `-vi` variant collapse to one entry with the suffix in parentheses (e.g. `mono` + `mono-vi` → `` `mono(-vi)` ``), each mode backticked and space-separated.
+   - `<cam_models>` — the confirmed step-1 `cam_models` list, backticked and space-separated, in the same style as existing rows.
+
+8. **Simulate `pixi run download-sequence <dataset_name> <sequence_name>` function-by-function**, using the **first sequence** in `sequence_names`. `download-sequence` (`vslamlab_gui.py download_sequence` → `dataset.download_sequence(sequence_name)`) ultimately just calls `download_process`, which runs these hooks in order:
+
+   1. `download_sequence_data`
+   2. `create_rgb_folder`
+   3. `create_rgb_csv`
+   4. `create_imu_csv`
+   5. `create_calibration_yaml`
+   6. `create_groundtruth_csv`
+   7. `remove_unused_files`
+
+   (Drop rows 4/6 if `create_imu_csv`/`create_groundtruth_csv` were deleted in step 4 because they don't apply to this dataset.) Instead of invoking the CLI as one opaque call, drive the same sequence yourself one hook at a time (e.g. `dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)` then call each method directly in the order above) so every stage's inputs and outputs can be inspected before moving to the next.
+
+   Keep the list above visible as a running checklist, updating each row's state as you go (`to be run` → `running` → `processed`), e.g.:
+
+   | # | Function | State |
+   |---|---|---|
+   | 1 | `download_sequence_data` | processed |
+   | 2 | `create_rgb_folder` | running |
+   | 3 | `create_rgb_csv` | to be run |
+   | 4 | `create_calibration_yaml` | to be run |
+   | 5 | `create_groundtruth_csv` | to be run |
+   | 6 | `remove_unused_files` | to be run |
+
+   After each function returns, report in detail — not just that it ran:
+   - **Inputs**: `sequence_name`, plus whatever state/files it consumed (`self.repo_id`/`self.url_download_root`, the folder(s) the previous hook produced).
+   - **Output generated**: exact paths created, file/image counts, folder sizes; for `create_rgb_csv`/`create_groundtruth_csv` the row count and first couple of rows; for `create_calibration_yaml` the actual `focal_length`/`principal_point`/`image_dimension` values written; for `remove_unused_files` which paths it actually deleted.
+
+   This is slower than letting the whole pipeline run silently, but it pinpoints exactly which stage produced bad output (wrong image count, zeroed calibration, empty groundtruth) instead of only learning after the fact that the sequence failed (or silently passed with wrong data).
 
 Full reference docs live on the project's GitHub Wiki if more detail is needed.

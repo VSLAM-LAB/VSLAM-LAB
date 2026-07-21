@@ -13,3 +13,13 @@ target_resolution: [640, 480]
 sequence_names:
   - sequence_01
   - sequence_02
+
+# about: license, summary, homepage, authors — see dataset_hilti2026.yaml for the full shape.
+
+vslamlab_maintainer:
+  name: Maintainer Name
+  # If an AI coding agent (Claude, Copilot, etc.) helped write this dataset's files, credit it
+  # here alongside the human maintainer — omit this line entirely if no agent was involved.
+  assisted_by: Claude (Sonnet 5)
+  email: maintainer@example.com
+  date: YYYY-MM-DD
