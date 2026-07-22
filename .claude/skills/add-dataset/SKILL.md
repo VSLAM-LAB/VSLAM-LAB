@@ -7,7 +7,7 @@ Usage: `/add-dataset <name> <source>` — e.g. `/add-dataset soneva https://exam
 
 Both `<name>` and `<source>` are required — parse them from `$ARGUMENTS` (or from however the user phrased the request, if invoked without the slash command). If either is missing or ambiguous, stop and ask the user rather than guessing a dataset name or searching for a source yourself.
 
-Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAML, registering it in `Datasets/get_dataset.py`, and adding a smoke-test config/experiment pair under `configs/`.
+Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAML, registering it in `Datasets/get_dataset.py`, adding a smoke-test config/experiment pair under `configs/`, actually running that smoke test end to end, and committing the result. **The skill is not complete until step 9 (the commit) has run.** Steps 1–7 produce files that look correct by inspection; step 8 is what actually proves the dataset works, and it has been skipped in past runs because step 7 (the README row) feels like a natural stopping point — it is not. Do not report the dataset as done, and do not stop, until you have executed step 8's simulation and step 9's commit, in order.
 
 **Hard constraint — file scope.** The only files this skill may create or modify are:
 
@@ -20,6 +20,8 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
 - `Datasets/extra-files/dataset_table.md` — regenerated (never hand-edited) via the script in step 0, since it's generated output.
 
 Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_calibration.py`, `Datasets/DatasetVSLAMLab_issues.py`, any other dataset's `.py`/`.yaml`, any other `configs/*.yaml` (including a non-`test_`-prefixed `config_<name>.yaml`/`exp_<name>.yaml`, which is a production config outside this skill's scope), the templates in `Datasets/extra-files/`, any part of `README.md` outside the single new table row, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly. This scope covers the repo only. Outside the repo, the one place this skill may touch is `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` (the downloaded benchmark data for this dataset, `<DATASET_FOLDER>` matching what this dataset's YAML/class designate) — freely creating, removing, or recreating files and folders anywhere inside it is expected and fine, that's exactly what steps 6/8's test runs are for. Nothing outside `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` may be touched — not other datasets' folders under `VSLAM-LAB-Benchmark/`, not `VSLAM-LAB-Evaluation/`, nothing else.
+
+The one exception to "create or modify" above is git itself: step 9 stages and commits the files in this list (nothing else) as a single local commit. That's the only git write this skill performs — never `git push`, never amend or rewrite an existing commit, never touch branches.
 
 0. **Refresh the dataset table first.** Run `python3 Datasets/extra-files/generate_dataset_table.py` to regenerate `Datasets/extra-files/dataset_table.md` from the current `Datasets/dataset_files/*.yaml`/`.py` — steps 1 and 2 below both read from it, so it must reflect the repo's current state before anything else.
 
@@ -139,7 +141,7 @@ Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_cal
    - `<modes>` — the confirmed step-1 `modes` list, formatted like existing rows: a mode and its `-vi` variant collapse to one entry with the suffix in parentheses (e.g. `mono` + `mono-vi` → `` `mono(-vi)` ``), each mode backticked and space-separated.
    - `<cam_models>` — the confirmed step-1 `cam_models` list, backticked and space-separated, in the same style as existing rows.
 
-8. **Simulate `pixi run download-sequence <dataset_name> <sequence_name>` function-by-function**, using the **first sequence** in `sequence_names`. `download-sequence` (`vslamlab_gui.py download_sequence` → `dataset.download_sequence(sequence_name)`) ultimately just calls `download_process`, which runs these hooks in order:
+8. **(Required — do not skip.) Simulate `pixi run download-sequence <dataset_name> <sequence_name>` function-by-function**, using the **first sequence** in `sequence_names`. This step is mandatory even when steps 1–7 already look correct on inspection — code that imports cleanly and reads right can still fail the first time it actually runs (wrong URL, a path typo, a malformed calibration field), and that's only caught by running it. `download-sequence` (`vslamlab_gui.py download_sequence` → `dataset.download_sequence(sequence_name)`) ultimately just calls `download_process`, which runs these hooks in order:
 
    1. `download_sequence_data`
    2. `create_rgb_folder`
@@ -167,5 +169,18 @@ Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_cal
    - **Output generated**: exact paths created, file/image counts, folder sizes; for `create_rgb_csv`/`create_groundtruth_csv` the row count and first couple of rows; for `create_calibration_yaml` the actual `focal_length`/`principal_point`/`image_dimension` values written; for `remove_unused_files` which paths it actually deleted.
 
    This is slower than letting the whole pipeline run silently, but it pinpoints exactly which stage produced bad output (wrong image count, zeroed calibration, empty groundtruth) instead of only learning after the fact that the sequence failed (or silently passed with wrong data).
+
+   Only move on to step 9 once every row in the checklist reads `processed`. If any hook fails, fix the underlying code in `dataset_<name>.py`/`.yaml` and re-run from that hook (or from the top, if the fix touches `download_sequence_data`/`__init__`) — don't proceed to commit a dataset that hasn't been proven to run.
+
+9. **Commit the new dataset.** Stage exactly the files this skill created or modified, by name — never `git add -A`/`git add .`, which could sweep in unrelated in-progress work elsewhere in the repo:
+   - `Datasets/dataset_files/dataset_<name>.py`
+   - `Datasets/dataset_files/dataset_<name>.yaml`
+   - `Datasets/get_dataset.py`
+   - `configs/test_config_<name>.yaml`
+   - `configs/test_exp_<name>.yaml`
+   - `README.md`
+   - `Datasets/extra-files/dataset_table.md` (regenerated in step 0 — include it so the repo isn't left with a stray uncommitted diff)
+
+   Run `git status` first and confirm the staged set matches this list exactly (nothing more, nothing less) before committing. Commit with a concise message such as `Add <name> dataset` (following the repo's existing commit-message style — check `git log --oneline -10` if unsure). This step only creates a local commit: never push, force-push, or amend an existing commit as part of this skill.
 
 Full reference docs live on the project's GitHub Wiki if more detail is needed.

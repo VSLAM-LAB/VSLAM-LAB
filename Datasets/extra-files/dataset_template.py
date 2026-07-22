@@ -124,11 +124,21 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         return
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        # Only implement this if groundtruth_available (from SKILL.md step 1) is true for this
-        # dataset — otherwise delete this method and let the base class's no-op default apply
-        # (create_groundtruth_csv will simply have nothing to write).
         # Write groundtruth.csv: ts (ns), tx (m), ty (m), tz (m), qx, qy, qz, qw — one row per pose.
-        return
+        # Always create this file, even when groundtruth_available (SKILL.md step 1) is false for
+        # this dataset — write just the header row with no data rows (an empty groundtruth.csv)
+        # rather than deleting the method / leaving no file at all. Model: dataset_videos.py.
+        sequence_path = self.dataset_path / sequence_name
+        groundtruth_csv = sequence_path / "groundtruth.csv"
+        tmp = groundtruth_csv.with_suffix(".csv.tmp")
+
+        with open(tmp, "w", newline="", encoding="utf-8") as fout:
+            w = csv.writer(fout)
+            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
+            # If groundtruth_available is true, write one row per pose here — parsed per
+            # calibration_type (global/per-sequence), same as create_calibration_yaml.
+
+        tmp.replace(groundtruth_csv)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         # Delete raw/intermediate files left over after create_rgb_folder / create_rgb_csv /
