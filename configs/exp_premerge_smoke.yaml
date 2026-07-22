@@ -1,17 +1,17 @@
 exp_premerge_smoke_droidslam:
   Config: config_premerge_smoke.yaml
   NumRuns: 3
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, max_rgb: 200, step_size: 3}
   Module: droidslam
 
 exp_premerge_smoke_droidslam_dev:
   Config: config_premerge_smoke.yaml
   NumRuns: 3
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, max_rgb: 200, step_size: 3}
   Module: droidslam-dev
 
-exp_premerge_smoke_orbslam3:
+exp_premerge_smoke_colmap:
   Config: config_premerge_smoke.yaml
   NumRuns: 3
-  Parameters: {verbose: 0, mode: mono}
-  Module: orbslam3
+  Parameters: {verbose: 0, mode: mono, max_rgb: 200, step_size: 3}
+  Module: colmap

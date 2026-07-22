@@ -29,7 +29,6 @@ from Baselines.baseline_files.baseline_pycuvslam import PYCUVSLAM_baseline
 
 # SfM baselines
 from Baselines.baseline_files.baseline_colmap import COLMAP_baseline
-from Baselines.baseline_files.baseline_glomap import GLOMAP_baseline
 from Baselines.baseline_files.baseline_vggt import VGGT_baseline
 
 # Development
@@ -52,7 +51,6 @@ def get_baseline_switcher():
         "anyfeature": lambda: ANYFEATURE_baseline(),  
         "anyfeature-dev": lambda: ANYFEATURE_baseline_dev(),  
         "colmap": lambda: COLMAP_baseline(),
-        "glomap": lambda: GLOMAP_baseline(),
         "orbslam3": lambda: ORBSLAM3_baseline(),
         "orbslam3-dev": lambda: ORBSLAM3_baseline_dev(),
         "okvis2": lambda: OKVIS2_baseline(),
