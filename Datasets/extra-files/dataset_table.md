@@ -27,7 +27,7 @@
 | `sesoko` | `pinhole` | `mono` | `website` | `api_token` |  |
 | `soneva` | `pinhole` | `mono` | `hugging-face` | `huggingface_token` | Claude (Sonnet 5) |
 | `strayscanner` | `pinhole` | `mono` `rgbd` | `hugging-face` `local` |  |  |
-| `sweetcorals` | `pinhole` | `mono` | `hugging-face` |  |  |
+| `sweetcorals` | `pinhole` `unknown` | `mono` | `hugging-face` | `huggingface_token` | Claude (Sonnet 5) |
 | `tartanair` | `pinhole` | `mono` | `google-drive` | `complete_dataset` |  |
 | `ut-coda` | `radtan5` | `mono` `stereo` | `website` |  |  |
 | `videos` | `unknown` `pinhole` `radtan4` | `mono` | `hugging-face` |  |  |
