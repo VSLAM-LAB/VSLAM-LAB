@@ -68,13 +68,18 @@ def create_rgb_exp_csv(exp, dataset, sequence_name, default_parameters = ""):
     shutil.copy(rgb_csv, rgb_exp_csv)
 
     rgb_idx = 'rgb_idx' in exp.parameters
-    max_rgb = 'max_rgb' in exp.parameters or 'max_rgb' in default_parameters and not rgb_idx
-       
+    step_size = exp.parameters.get("step_size", None)
+    has_max_rgb = 'max_rgb' in exp.parameters or (isinstance(default_parameters, dict) and 'max_rgb' in default_parameters)
+    max_rgb = (has_max_rgb or step_size is not None) and not rgb_idx
+
     if max_rgb or rgb_idx:
         if max_rgb:
-            max_rgb_num = exp.parameters['max_rgb'] if 'max_rgb' in exp.parameters else default_parameters['max_rgb']
+            if has_max_rgb:
+                max_rgb_num = exp.parameters['max_rgb'] if 'max_rgb' in exp.parameters else default_parameters['max_rgb']
+            else:
+                max_rgb_num = float('inf')  
             min_fps = dataset.rgb_hz / 10
-            _, _, downsampled_rows = downsample_rgb_frames(rgb_csv, max_rgb_num, min_fps, True)
+            _, _, downsampled_rows = downsample_rgb_frames(rgb_csv, max_rgb_num, min_fps, step_size, True)
 
         if rgb_idx:
             downsampled_rows = get_rows(

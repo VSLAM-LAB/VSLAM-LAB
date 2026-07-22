@@ -36,7 +36,7 @@ def get_rows(rows_idx, rgb_csv):
 
     return df.iloc[idx].to_dict(orient="records")
 
-def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
+def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, step_size=None, verbose=False):
 
     csv_path = Path(rgb_csv)  
     df = pd.read_csv(csv_path)     
@@ -56,29 +56,34 @@ def downsample_rgb_frames(rgb_csv, max_rgb_count, min_fps, verbose=False):
     max_interval = 1.0 / min_fps
     min_interval = sequence_duration / max_rgb_count
 
-    if min_interval < max_interval:
-        max_interval = min_interval
-        if verbose:
-            print(f"  Adjusted FPS to: {1.0 / max_interval:.2f} Hz")
+    if step_size is None:
+        mode = "adaptive"
+    else:
+        mode = "fixed"
 
-    step_size = max_interval * actual_fps
-    if step_size < 1:
-        step_size = 1
+    if mode == "adaptive":
+        if min_interval < max_interval:
+            max_interval = min_interval
+
+        step_size = max_interval * actual_fps
+
+        if step_size < 1:
+            step_size = 1
+    else:
+        step_size = float(step_size)
 
     if verbose:
+        print(f"  Mode: {mode}")
         print(f"  Step size: {step_size:.2f}")
 
     # Downsample RGB images
-    if max_rgb_count >= len(rgb_paths):
-        downsampled_paths = rgb_paths
-        downsampled_timestamps = rgb_timestamps
-        downsampled_rows = rows
-    else:
-        downsampled_paths, downsampled_timestamps, downsampled_rows = downsample_rgb(rgb_timestamps, rgb_paths, rows, step_size, max_rgb_count)
-
+    downsampled_paths, downsampled_timestamps, downsampled_rows = downsample_rgb(
+        rgb_timestamps, rgb_paths, rows, step_size, max_rgb_count if max_rgb_count else len(rgb_paths)
+    )
 
     downsampled_duration = (downsampled_timestamps[-1] - downsampled_timestamps[0]) / 1e9
     downsampled_fps = len(downsampled_paths) / downsampled_duration
+
 
     if verbose:
         print("\nDownsampling RGB images:")
