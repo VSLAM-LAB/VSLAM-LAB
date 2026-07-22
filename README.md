@@ -195,6 +195,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Monado SLAM Dataset - Valve Index**](https://huggingface.co/datasets/collabora/monado-slam-datasets)                         |  📸🏠🥽 | `msd` | `mono(-vi)` `stereo(-vi)` | `equid4` |
 | [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/)   | 📸🏞️🚗 | `rover-picam/d435i/t265` |`mono(-vi)` `rgbd` `stereo(-vi)` | `radtan5` `equid4` |
 | [**The UT Campus Object Dataset**](https://amrl.cs.utexas.edu/coda/) | 📸🏞️🤖 |  `ut-coda`  |`mono` `stereo`| `radtan5` |
+| [**BLT ktima vineyard rosbags**](https://lcas.lincoln.ac.uk/wp/research/data-sets-software/blt/) | 📸🏞️🤖 | `blt` | `mono` `rgbd` | `radtan5` |
 | [**Sesoko campaign**](https://www.southampton.ac.uk/smmi/news/2017/06/20-southampton-tokyo-collaboration.page) | 📸🏞️🌊 |    `sesoko`    |`mono` | `pinhole` |
 | [**The MADMAX data set for visual-inertial rover navigation on Mars**](https://datasets.arches-projekt.de/morocco2018/) |  📸🏞️🤳 | `madmax` | `mono(-vi)` `stereo(-vi)`| `pinhole` |
 | [**Soneva Corals**](https://huggingface.co/datasets/wildflow/soneva-corals) | 📸🏞️🌊 |    `soneva`    |`mono` | `pinhole` |

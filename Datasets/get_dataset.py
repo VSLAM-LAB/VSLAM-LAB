@@ -36,6 +36,7 @@ from Datasets.dataset_files.dataset_s3li import S3LI_dataset
 from Datasets.dataset_files.dataset_msd import MSD_dataset
 from Datasets.dataset_files.dataset_openloris import OPENLORIS_d400_dataset
 from Datasets.dataset_files.dataset_openloris import OPENLORIS_t265_dataset
+from Datasets.dataset_files.dataset_blt import BLT_dataset
 from Datasets.dataset_files.dataset_hilti2022 import HILTI2022_dataset
 from Datasets.dataset_files.dataset_madmax import MADMAX_dataset
 from Datasets.dataset_files.dataset_hilti2026 import HILTI2026_dataset
@@ -70,6 +71,7 @@ def get_dataset(dataset_name, benchmark_path):
         "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
         "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
         "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
+        "blt": lambda: BLT_dataset(benchmark_path),
         "sweetcorals": lambda: SWEETCORALS_dataset(benchmark_path),
         "soneva": lambda: SONEVA_dataset(benchmark_path),
         "monotum": lambda: MONOTUM_dataset(benchmark_path),
@@ -96,7 +98,12 @@ def list_available_datasets() -> list[str]:
     dataset_scripts_path = VSLAM_LAB_DIR /  'Datasets' / 'dataset_files'
     dataset_scripts = []
     for filename in os.listdir(dataset_scripts_path):
-        if 'dataset_' in filename and filename.endswith('.yaml') and 'utilities' not in filename:
+        if (
+            'dataset_' in filename
+            and filename.endswith('.yaml')
+            and 'utilities' not in filename
+            and '_calibration' not in filename
+        ):
             dataset_scripts.append(filename)
 
     dataset_scripts = [item.replace('dataset_', '').replace('.yaml', '') for item in dataset_scripts]

@@ -1,0 +1,78 @@
+dataset_name: blt
+dataset_folder: BLT_dataset
+
+rgb_hz: 10.0
+modes_env: BLT_MODES
+modes: ["mono", "rgbd"]
+cam_models: ["radtan5"]
+
+source_root_env: BLT_KTIMA_ROOT
+image_topic_env: BLT_IMAGE_TOPIC
+image_topic: /front/zed_node/rgb/image_rect_color/compressed
+camera_info_topic_env: BLT_CAMERA_INFO_TOPIC
+camera_info_topics:
+  - /front/zed_node/rgb/camera_info
+  - /front/zed_node/left/camera_info
+  - /front/zed_node/rgb/image_rect_color/camera_info
+depth_topic_env: BLT_DEPTH_TOPIC
+depth_topic: /depth_republish/compressedDepth
+depth_camera_info_topic_env: BLT_DEPTH_CAMERA_INFO_TOPIC
+depth_camera_info_topics:
+  - /front/zed_node/depth/camera_info
+depth_factor_env: BLT_DEPTH_FACTOR
+depth_factor: 1000.0
+image_transport: compressed
+decompressed_image_topic: /front/zed_node/rgb_decompressed
+groundtruth_topic_env: BLT_GROUNDTRUTH_TOPIC
+groundtruth_topic: /odometry/gps
+groundtruth_frame_source: tf
+tf_topics: [/tf_static, /tf]
+camera_frame_env: BLT_CAMERA_FRAME
+camera_frame: front_left_camera_optical_frame
+camera_frame_candidates:
+  - front_left_camera_optical_frame
+  - front_left_camera_frame
+  - front_camera_center
+  - front_base_link
+  - base_link
+max_frames_env: BLT_MAX_FRAMES
+max_frames: 200
+max_seconds_env: BLT_MAX_SECONDS
+max_seconds: 0
+allow_placeholder_calibration_env: BLT_ALLOW_PLACEHOLDER_CALIBRATION
+use_camera_info_calibration_env: BLT_USE_CAMERA_INFO_CALIBRATION
+use_camera_info_calibration: false
+calibration_file_env: BLT_CALIBRATION_FILE
+calibration_file: dataset_blt_calibration.yaml
+calibration_sanity_check_env: BLT_CALIBRATION_SANITY_CHECK
+calibration_sanity_check: true
+calibration_sanity_tolerance: 0.10
+experimental_calibration_override_env: BLT_EXPERIMENTAL_CALIBRATION_OVERRIDE
+
+about:
+  license: Local data only; raw BLT rosbags are not redistributed by this integration.
+  summary: BLT ktima 2022 vineyard rosbag sequences converted to VSLAM-LAB mono/RGB-D format with RTK-derived ground truth.
+  homepage: https://lcas.lincoln.ac.uk/wp/research/data-sets-software/blt/
+  authors:
+    - BLT dataset contributors
+
+vslamlab_maintainer:
+  name: Riccardo Polvara
+  email: "pulver22@lincoln.ac.uk"
+  date: 2026-06-20
+
+sequence_names:
+  - ktima_2022_03
+  - ktima_2022_04
+  - ktima_2022_05
+  - ktima_2022_06
+  - ktima_2022_07
+  - ktima_2022_09
+
+source_bags:
+  ktima_2022_03: 03_march/rosbag_certh_compressed_2022-03-23-12-27-15.bag
+  ktima_2022_04: 04_april/rosbag_compressed_2022-04-06-11-02-34.bag
+  ktima_2022_05: 05_may/rosbag_compressed_2022-05-06.bag
+  ktima_2022_06: 06_june/rosbag_compressed_2022-06-22-13-02-08.bag
+  ktima_2022_07: 07_july/rosbag_compressed_2022-07-13-15-38-32.bag
+  ktima_2022_09: 09_september/rosbag_compressed_2022-09-15-14-23-20.bag
