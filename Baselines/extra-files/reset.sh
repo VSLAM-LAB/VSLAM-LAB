@@ -3,25 +3,29 @@
 DO_PIXI=false
 DO_DATASETS=false
 DO_BASELINES=false
+DO_EVALUATION=false
 for arg in "$@"; do
     case "$arg" in
         --pixi) DO_PIXI=true ;;
         --datasets) DO_DATASETS=true ;;
         --baselines) DO_BASELINES=true ;;
-        *) echo "Unknown flag: $arg" >&2; echo "Usage: $0 [--pixi] [--datasets] [--baselines]" >&2; exit 1 ;;
+        --evaluation) DO_EVALUATION=true ;;
+        *) echo "Unknown flag: $arg" >&2; echo "Usage: $0 [--pixi] [--datasets] [--baselines] [--evaluation]" >&2; exit 1 ;;
     esac
 done
 
-if ! $DO_PIXI && ! $DO_DATASETS && ! $DO_BASELINES; then
-    echo "Usage: $0 [--pixi] [--datasets] [--baselines]"
-    echo "  --pixi       Remove __pycache__ dirs, pixi envs/lock, and the system .cache directory"
-    echo "  --datasets   Remove downloaded benchmark datasets"
-    echo "  --baselines  Remove cloned baseline source directories"
+if ! $DO_PIXI && ! $DO_DATASETS && ! $DO_BASELINES && ! $DO_EVALUATION; then
+    echo "Usage: $0 [--pixi] [--datasets] [--baselines] [--evaluation]"
+    echo "  --pixi        Remove __pycache__ dirs, pixi envs/lock, and the system .cache directory"
+    echo "  --datasets    Remove downloaded benchmark datasets"
+    echo "  --baselines   Remove cloned baseline source directories"
+    echo "  --evaluation  Remove the VSLAM-LAB-Evaluation folder"
     exit 0
 fi
 
 VSLAM_LAB_DIR="/home/alejandro/VSLAM-LAB"
 VSLAM_LAB_BENCHMARK_DIR="/home/alejandro/VSLAM-LAB-Benchmark"
+VSLAM_LAB_EVALUATION_DIR="/home/alejandro/VSLAM-LAB-Evaluation"
 BASELINES_DIR="$VSLAM_LAB_DIR/Baselines"
 
 CACHE_DIR=/home/alejandro/.cache
@@ -99,4 +103,9 @@ if $DO_DATASETS; then
     # rm -rf "$VSLAM_LAB_BENCHMARK_DIR"/VITUM
     rm -rf "$VSLAM_LAB_BENCHMARK_DIR"/Replica.zip
     rm -rf "$VSLAM_LAB_BENCHMARK_DIR"/SONEVA
+fi
+
+if $DO_EVALUATION; then
+    echo "Removing VSLAM-LAB-Evaluation directory: $VSLAM_LAB_EVALUATION_DIR"
+    rm -rf "$VSLAM_LAB_EVALUATION_DIR"
 fi
