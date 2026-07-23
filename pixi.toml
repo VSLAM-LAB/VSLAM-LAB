@@ -15,7 +15,7 @@ platforms = [
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
-kill-all = { cmd = "pkill -f -e 'droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|glomap|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+kill-all = { cmd = "pkill -f -e 'droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 
 [environments]
 vslamlab = { features = ["vslamlab"]}
@@ -53,6 +53,7 @@ allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
 depth-anything = { features = ["depth-anything", "cuda126",  "py11"], solve-group = "depth-anything" }
+vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
 ros2 = { features = ["ros2"], solve-group = "ros2" }
@@ -1084,3 +1085,18 @@ opencv = ">=4.11.0,<5"
 numpy = ">=1.26.4,<3"
 pandas = ">=2.3.3,<4"
 pyyaml = ">=6.0.2,<7"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# vpr-lab
+[feature.vpr-lab]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.vpr-lab.tasks]
+vpr = "python Datasets/extra-files/run_vpr.py"
+
+[feature.vpr-lab.dependencies]
+pixi = "*"
+python = "*"
+pyyaml = "*"
