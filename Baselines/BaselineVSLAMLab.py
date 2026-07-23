@@ -68,6 +68,10 @@ class BaselineVSLAMLab(ABC):
         if self.is_cloned():
             return
 
+        print(f"\n{SCRIPT_LABEL}pixi initializing {self.label}\033[0m environment")
+        pixi_update_command = f"pixi run -e {self.baseline_name} echo ''"
+        subprocess.run(pixi_update_command, shell=True)
+
         log_file_path = VSLAMLAB_BASELINES / f'git_clone_{self.baseline_name}.txt'
         git_clone_command = f"pixi run --frozen -e {self.baseline_name} git-clone"
         with open(log_file_path, 'w') as log_file:
