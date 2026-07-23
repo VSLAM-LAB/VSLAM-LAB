@@ -26,6 +26,8 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from path_constants import VSLAMLAB_BENCHMARK, RGB_BASE_FOLDER, HUGGINGFACE_TOKEN
 
+VSLAMLAB_BENCHMARK = Path(os.environ.get("VSLAMLAB_BENCHMARK_OVERRIDE", VSLAMLAB_BENCHMARK))
+
 VPR_LAB_DIR = REPO_ROOT / "Baselines" / "VPR-LAB"
 DEFAULT_METHOD = "megaloc"
 
