@@ -39,6 +39,20 @@ There's no linter/formatter configured yet. `ruff` is a reasonable option if one
 
 This is a plugin architecture: new datasets/baselines are added by subclassing the respective base class and registering config/pixi entries — see the `add-dataset` and `add-baseline` skills for the full workflow, or the project's GitHub Wiki.
 
+## Sequence-target argument convention
+
+Any pixi task or script that operates on one or more dataset sequences (downloading, running, evaluating, syncing groundtruth, etc.) should accept its targets in this shape:
+
+- `<dataset> [<sequence> ...]` — positional, and the *only* shape that stays positional: one dataset, and (optionally) specific sequences of it. Zero sequences given means every downloaded sequence of that dataset. This is the one case that's unambiguous and needs no filesystem/repo-state lookup to parse.
+- `--datasets <dataset1> <dataset2> ...` — every downloaded sequence of each named dataset.
+- `--sequences <dataset> <sequence1> <sequence2> ...` — repeatable; explicit sequences of one dataset per use, e.g. `--sequences kitti 05 07 --sequences eth table_3` to mix per-dataset sequence subsets in one call.
+- `--exp <exp.yaml>` — every dataset:sequence pair referenced by an experiment yaml's `Config:` file(s).
+- `--configs <config.yaml>` — every pair listed directly in a config yaml (`dataset: [sequence, ...]`).
+
+All five are additive — combine as many as apply in one invocation and their results concatenate. Everything except the bare `<dataset> [<sequence> ...]` case requires an explicit flag rather than being guessed from the argument shape: how a command parses should never depend on repo state (e.g. a stray file on disk sharing a dataset's name), which an earlier heuristic-based version of this convention was vulnerable to.
+
+Don't hand-roll this per script — call `utilities.add_sequence_target_args(parser)` on your `argparse.ArgumentParser` to wire up all of the above, then pass the parsed args straight through to `utilities.resolve_sequence_targets(targets=args.targets, datasets=args.datasets, sequences=args.sequences, exp=args.exp, configs=args.configs, benchmark_path=...)`, which returns a flat `list[tuple[dataset_name, sequence_name]]` ready to iterate over. See `Datasets/extra-files/synch_gt.py` for a worked example, and the `pixi run synch-gt`/`pixi run vpr`/`pixi run sample-vpr` tasks for the calling convention this produces.
+
 ## Conventions
 
 - Feature branches off `main`, PRs into `main`. All GitHub PRs (including from forks) target `main` — it's the repo's default/integration branch.

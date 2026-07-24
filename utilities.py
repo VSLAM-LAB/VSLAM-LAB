@@ -23,10 +23,12 @@ from path_constants import RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK, V
 # Blocks in this file, in order:
 #   OTHERS                          - ungrouped misc helpers, some possibly dead (issue #69)
 #   Sequence path helpers           - sequence_path / sequence_rgb_csv / raw_path (issue #64)
-#   CSV row helpers                 - read_csv_rows / write_csv_rows (issue #65)
-#   resolve_sequence_targets        - the sequence-target CLI argument convention (CLAUDE.md)
+#   CSV row helpers                 - read_csv_rows / write_csv_rows / ensure_raw_backup /
+#                                      overwrite_csv_with_backup / revert_csv_from_backup (issue #65)
+#   resolve_sequence_targets        - the sequence-target CLI argument convention (CLAUDE.md),
+#                                      plus resolve_sequence_targets_or_exit for main()'s use
 #   Download / decompress helpers   - downloadFile / decompressFile (issue #66)
-#   Printing helpers                - ws / show_time / format_msg / print_msg (issue #68)
+#   Printing helpers                - ws / show_time / format_msg / print_msg / make_printers (issue #68)
 #   Trajectory / pandas CSV helpers - read_trajectory_csv / read_trajectory_txt /
 #                                     save_trajectory_csv / read_csv (issue #67)
 ##################################################################################################################################################
@@ -183,11 +185,14 @@ def raw_path(csv_path: str | Path) -> Path:
 #
 # General-purpose helpers for reading/writing a VSLAM-LAB sequence CSV (rgb.csv/groundtruth.csv)
 # as a plain (header, rows) pair, using the atomic write-then-replace pattern used throughout
-# Datasets/dataset_files/*.py. Currently used by Datasets/extra-files/synch_gt.py and
-# sample_vpr.py - the plan is for these to become the canonical way any VSLAM-LAB code reads/
-# writes these CSVs. TODO: migrate other ad-hoc CSV read/write call sites across the codebase
-# (e.g. Datasets/dataset_files/*.py's own csv.reader/csv.writer + atomic-write boilerplate) to
-# use them - tracked in issue #65.
+# Datasets/dataset_files/*.py, plus the backup/revert convention for scripts that edit a
+# sequence's CSV in place: ensure_raw_backup/overwrite_csv_with_backup never overwrite an
+# existing raw_path() backup, and revert_csv_from_backup restores from it (removing the backup by
+# default, so its existence always means "this file has pending edits"). Currently used by
+# Datasets/extra-files/synch_gt.py and sample_vpr.py - the plan is for these to become the
+# canonical way any VSLAM-LAB code reads/writes/backs up these CSVs. TODO: migrate other ad-hoc
+# CSV read/write call sites across the codebase (e.g. Datasets/dataset_files/*.py's own
+# csv.reader/csv.writer + atomic-write boilerplate) to use them - tracked in issue #65.
 ##################################################################################################################################################
 def read_csv_rows(path: str | Path) -> tuple[list[str], list[list[str]]]:
     """(header, rows) for a VSLAM-LAB sequence CSV (rgb.csv/groundtruth.csv), rows sorted by the
@@ -210,6 +215,43 @@ def write_csv_rows(path: str | Path, header: list[str], rows: list[list[str]]) -
         writer.writerow(header)
         writer.writerows(rows)
     tmp.replace(path)
+
+
+def ensure_raw_backup(csv_path: str | Path) -> Path:
+    """Copies csv_path to its raw_path() backup if one doesn't already exist yet. NEVER
+    overwrites an existing backup - call this once before any in-place edit of csv_path so the
+    original is always recoverable via revert_csv_from_backup(). Returns the raw path either way."""
+    csv_path = Path(csv_path)
+    raw = raw_path(csv_path)
+    if not raw.exists():
+        shutil.copy2(csv_path, raw)
+    return raw
+
+
+def overwrite_csv_with_backup(path: str | Path, header: list[str], rows: list[list[str]]) -> Path:
+    """ensure_raw_backup(path) followed by write_csv_rows(path, header, rows) - the standard
+    "back up once, then overwrite" pattern used by Datasets/extra-files/synch_gt.py and
+    sample_vpr.py. Returns the raw path."""
+    raw = ensure_raw_backup(path)
+    write_csv_rows(path, header, rows)
+    return raw
+
+
+def revert_csv_from_backup(csv_path: str | Path, *, keep_raw: bool = False) -> bool:
+    """Restores csv_path from its raw_path() backup, if one exists. By default removes the
+    backup afterward, so "a raw backup exists" always means "this file currently has pending
+    edits" (the invariant ensure_raw_backup's callers rely on to skip re-processing an
+    already-edited file). Pass keep_raw=True to copy instead of restoring-and-removing. Returns
+    True if a backup was found and restored, False if there was nothing to revert."""
+    csv_path = Path(csv_path)
+    raw = raw_path(csv_path)
+    if not raw.exists():
+        return False
+    if keep_raw:
+        shutil.copy2(raw, csv_path)
+    else:
+        raw.replace(csv_path)
+    return True
 
 
 ##################################################################################################################################################
@@ -335,6 +377,19 @@ def resolve_sequence_targets(
     if configs:
         pairs.extend(pairs_from_config_yaml(configs))
 
+    return pairs
+
+
+def resolve_sequence_targets_or_exit(args: argparse.Namespace, parser: argparse.ArgumentParser) -> list[tuple[str, str]]:
+    """resolve_sequence_targets() from an argparse Namespace produced by add_sequence_target_args(),
+    calling parser.error() (which prints usage and exits) if nothing resolved. The standard
+    main() one-liner for scripts built on the sequence-target argument convention."""
+    pairs = resolve_sequence_targets(
+        targets=args.targets, datasets=args.datasets, sequences=args.sequences,
+        exp=args.exp, configs=args.configs,
+    )
+    if not pairs:
+        parser.error("No dataset/sequence targets resolved from the given arguments")
     return pairs
 
 
@@ -464,6 +519,19 @@ def format_msg(script_label, msg, flag="info"):
 def print_msg(script_label, msg, flag="info", verb='NONE'):
     if VerbosityManager[verb] <= VerbosityManager[VSLAMLAB_VERBOSITY]:
         print(format_msg(script_label, msg, flag))
+
+
+def make_printers(script_label: str):
+    """Returns (print_info, print_warning) bound to script_label, so callers get the terse
+    print_info(msg)/print_warning(msg) call sites without redefining these two wrappers (and
+    re-capturing their own SCRIPT_LABEL) in every file - see Datasets/extra-files/*.py."""
+    def print_info(msg: str) -> None:
+        print_msg(script_label, msg)
+
+    def print_warning(msg: str) -> None:
+        print_msg(script_label, msg, flag="warning")
+
+    return print_info, print_warning
 ##################################################################################################################################################
 # Trajectory / pandas CSV helpers
 #
