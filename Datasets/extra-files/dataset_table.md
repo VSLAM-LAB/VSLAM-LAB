@@ -4,6 +4,7 @@
 | `ariel` | `equid4` | `mono` `mono-vi` `stereo` `stereo-vi` | `hugging-face` |  |  |
 | `caves` | `pinhole` | `mono` | `website` |  |  |
 | `drunkards` | `pinhole` | `mono` `rgbd` | `google-drive` |  |  |
+| `eiffel-tower` | `radtan4` | `mono` | `website` |  | Claude (Sonnet 5) |
 | `eth` | `pinhole` | `mono` `rgbd` | `website` |  |  |
 | `euroc` | `radtan4` | `mono` `stereo` `mono-vi` `stereo-vi` | `website` | `complete_dataset` |  |
 | `hamlyn` | `pinhole` | `mono` `rgbd` | `hugging-face` |  |  |

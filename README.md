@@ -198,6 +198,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**The MADMAX data set for visual-inertial rover navigation on Mars**](https://datasets.arches-projekt.de/morocco2018/) |  📸🏞️🤳 | `madmax` | `mono(-vi)` `stereo(-vi)`| `pinhole` |
 | [**Soneva Corals**](https://huggingface.co/datasets/wildflow/soneva-corals) | 📸🏞️🌊 |    `soneva`    |`mono` | `pinhole` |
 | [**Sweet Corals**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊 |    `sweetcorals`    |`mono` | `pinhole` `unknown` |
+| [**Eiffel Tower: A Deep-Sea Underwater Dataset for Long-Term Visual Localization**](https://www.seanoe.org/data/00810/92226/) | 📸🏞️🌊🤖 |    `eiffel-tower`    |`mono` | `radtan4` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|

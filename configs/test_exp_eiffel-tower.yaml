@@ -1,0 +1,5 @@
+exp_eiffel-tower_droidslam:
+  Config: test_config_eiffel-tower.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: droidslam

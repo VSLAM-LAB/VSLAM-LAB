@@ -1,0 +1,39 @@
+dataset_name: eiffel-tower
+
+rgb_hz: 0.33
+modes: ['mono']
+cam_models: ['radtan4']
+
+url_download_sequences:
+  '2015': "https://www.seanoe.org/data/00810/92226/data/98240.zip"
+  '2016': "https://www.seanoe.org/data/00810/92226/data/98289.zip"
+  '2018': "https://www.seanoe.org/data/00810/92226/data/98314.zip"
+  '2020': "https://www.seanoe.org/data/00810/92226/data/98356.zip"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - '2015'
+  - '2016'
+  - '2018'
+  - '2020'
+
+about:
+  license: CC-BY-NC-ND-4.0
+  summary: Deep-sea hydrothermal vent imagery from four ROV Victor6000 survey campaigns (2015-2020) of the Eiffel Tower edifice, with per-campaign COLMAP poses for long-term visual localization
+  homepage: https://www.seanoe.org/data/00810/92226/
+  authors:
+    - Clémentin Boittiaux
+    - Claire Dune
+    - Maxime Ferrera
+    - Aurélien Arnaubec
+    - Ricard Marxer
+    - Marjolaine Matabos
+    - Loïc Van Audenhaege
+    - Vincent Hugel
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-07-24
