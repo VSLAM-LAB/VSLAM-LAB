@@ -1,20 +1,49 @@
+import argparse
+import csv
+import os
+import re
 import shutil
-import os, sys, yaml, re
+import subprocess
+import sys
+import tarfile
 import urllib.request
 import zipfile
-import py7zr
-import tarfile
-import subprocess 
-from PIL import Image
-from colorama import Fore, Style
-import pandas as pd
 from pathlib import Path
 from typing import Any
 
-from path_constants import VSLAM_LAB_DIR, VSLAMLAB_VERBOSITY, VerbosityManager
+import pandas as pd
+import py7zr
+import yaml
+from colorama import Fore, Style
+from PIL import Image
+
+from path_constants import RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK, VSLAMLAB_VERBOSITY, VerbosityManager
+
+##################################################################################################################################################
+# Blocks in this file, in order:
+#   OTHERS                          - ungrouped misc helpers, some possibly dead (issue #69)
+#   Sequence path helpers           - sequence_path / sequence_rgb_csv / raw_path (issue #64)
+#   CSV row helpers                 - read_csv_rows / write_csv_rows (issue #65)
+#   resolve_sequence_targets        - the sequence-target CLI argument convention (CLAUDE.md)
+#   Download / decompress helpers   - downloadFile / decompressFile (issue #66)
+#   Printing helpers                - ws / show_time / format_msg / print_msg (issue #68)
+#   Trajectory / pandas CSV helpers - read_trajectory_csv / read_trajectory_txt /
+#                                     save_trajectory_csv / read_csv (issue #67)
+##################################################################################################################################################
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
+##################################################################################################################################################
+# OTHERS
+#
+# Miscellaneous standalone helpers that don't yet belong to any of the feature-specific blocks
+# below (path/CSV/logging/etc.) - grouped here for now rather than left scattered through the
+# file. Some appear to have no callers anywhere else in the codebase (check_parameter_for_
+# relative_path, filter_inputs, is_image_file, list_image_files_in_folder) - worth confirming
+# whether they're genuinely unused (like the activate_env/deactivate_env pair that was removed)
+# or just not yet wired up. TODO: audit this block - split each function into (or merge into) an
+# appropriate topical block, or remove it if dead - tracked in issue #69.
+##################################################################################################################################################
 def check_parameter_for_relative_path(parameter_value):
     if "VSLAM-LAB" in parameter_value:
         if ":" in parameter_value:
@@ -27,13 +56,6 @@ def filter_inputs(args):
         args.run = True
         args.evaluate = True
         args.compare = True
-
-def ws(n):
-    white_spaces = ""
-    for i in range(0, n):
-        white_spaces = white_spaces + " "
-    return white_spaces
-
 
 def find_files_with_string(folder_path, matching_string):
     matching_files = []
@@ -99,7 +121,230 @@ def find_common_sequences(experiments):
     return dataset_sequences
 
 
-# Functions to download files
+def replace_string_in_files(directory, old_string, new_string):
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.h') or file.endswith('.cpp'):
+                file_path = os.path.join(root, file)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                content = content.replace(old_string, new_string)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+
+def is_image_file(file_path):
+    try:
+        with Image.open(file_path) as img:
+            return True
+    except Exception:
+        return False
+
+
+def list_image_files_in_folder(folder_path):
+    image_files = []
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path) and is_image_file(file_path):
+            image_files.append(filename)
+    return image_files
+##################################################################################################################################################
+
+
+##################################################################################################################################################
+# Sequence path helpers
+#
+# General-purpose helpers for building the standard per-sequence paths (and their pre-edit backup
+# counterparts) under VSLAMLAB_BENCHMARK. Currently used by the sequence-target CLI machinery
+# below and the scripts built on it (Datasets/extra-files/*.py) - the plan is for these to become
+# the canonical way any VSLAM-LAB code builds these paths. TODO: migrate other ad-hoc path
+# construction across the codebase (e.g. Datasets/DatasetVSLAMLab.py, vslamlab_utilities.py) to
+# use them - tracked in issue #64.
+##################################################################################################################################################
+def sequence_path(dataset_name: str, sequence_name: str) -> Path:
+    """<benchmark>/<DATASET_FOLDER>/<sequence_name>, the standard per-sequence directory."""
+    return VSLAMLAB_BENCHMARK / dataset_name.upper() / sequence_name
+
+
+def sequence_rgb_csv(dataset_name: str, sequence_name: str) -> Path:
+    return sequence_path(dataset_name, sequence_name) / f"{RGB_BASE_FOLDER}.csv"
+
+
+def raw_path(csv_path: str | Path) -> Path:
+    """<name>_raw<suffix> next to csv_path - the pre-edit backup convention used by scripts that
+    overwrite a sequence's rgb.csv/groundtruth.csv in place (see Datasets/extra-files/synch_gt.py,
+    sample_vpr.py)."""
+    csv_path = Path(csv_path)
+    return csv_path.with_name(f"{csv_path.stem}_raw{csv_path.suffix}")
+
+
+##################################################################################################################################################
+# CSV row helpers
+#
+# General-purpose helpers for reading/writing a VSLAM-LAB sequence CSV (rgb.csv/groundtruth.csv)
+# as a plain (header, rows) pair, using the atomic write-then-replace pattern used throughout
+# Datasets/dataset_files/*.py. Currently used by Datasets/extra-files/synch_gt.py and
+# sample_vpr.py - the plan is for these to become the canonical way any VSLAM-LAB code reads/
+# writes these CSVs. TODO: migrate other ad-hoc CSV read/write call sites across the codebase
+# (e.g. Datasets/dataset_files/*.py's own csv.reader/csv.writer + atomic-write boilerplate) to
+# use them - tracked in issue #65.
+##################################################################################################################################################
+def read_csv_rows(path: str | Path) -> tuple[list[str], list[list[str]]]:
+    """(header, rows) for a VSLAM-LAB sequence CSV (rgb.csv/groundtruth.csv), rows sorted by the
+    first (timestamp) column."""
+    with open(path, "r", newline="", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        rows = [row for row in reader if row]
+    rows.sort(key=lambda row: int(row[0]))
+    return header, rows
+
+
+def write_csv_rows(path: str | Path, header: list[str], rows: list[list[str]]) -> None:
+    """Writes header+rows to path via the atomic write-then-replace pattern used throughout
+    Datasets/dataset_files/*.py."""
+    path = Path(path)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with open(tmp, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(rows)
+    tmp.replace(path)
+
+
+##################################################################################################################################################
+# resolve_sequence_targets
+#
+# Shared CLI-argument resolver for tasks/scripts that operate on one or more dataset sequences
+# (downloading, running, evaluating, syncing groundtruth, etc). See CLAUDE.md's "Sequence-target
+# argument convention" for the shapes this supports; Datasets/extra-files/synch_gt.py is a
+# worked example of a task built on top of it.
+##################################################################################################################################################
+##################################################################################################################################################
+def sequences_for_dataset(dataset_name: str) -> list[str]:
+    """Every sequence with a downloaded rgb.csv under <benchmark>/<DATASET_FOLDER>/."""
+    dataset_path = VSLAMLAB_BENCHMARK / dataset_name.upper()
+    if not dataset_path.is_dir():
+        print_msg(SCRIPT_LABEL, f"Dataset folder not found: {dataset_path}", flag="warning", verb='NONE')
+        return []
+    return sorted(
+        p.name for p in dataset_path.iterdir()
+        if p.is_dir() and (p / f"{RGB_BASE_FOLDER}.csv").is_file()
+    )
+
+
+def pairs_from_config_yaml(config_yaml: str | Path) -> list[tuple[str, str]]:
+    """dataset: [sequence, ...] format, e.g. configs/config_*.yaml."""
+    config = load_yaml_file(config_yaml) or {}
+    return [
+        (dataset_name, sequence_name)
+        for dataset_name, sequence_names in config.items()
+        for sequence_name in sequence_names
+    ]
+
+
+def pairs_from_exp_yaml(exp_yaml: str | Path) -> list[tuple[str, str]]:
+    """exp_name: {Config: <config.yaml>, ...} format, e.g. configs/exp_*.yaml. Collects every
+    pair from each distinct Config file referenced (deduplicated across experiments)."""
+    exp_data = load_yaml_file(exp_yaml) or {}
+    configs_dir = VSLAM_LAB_DIR / "configs"
+
+    seen_configs: set[str] = set()
+    seen_pairs: set[tuple[str, str]] = set()
+    pairs: list[tuple[str, str]] = []
+    for exp_name, settings in exp_data.items():
+        config_name = (settings or {}).get("Config")
+        if not config_name or config_name in seen_configs:
+            continue
+        seen_configs.add(config_name)
+
+        config_path = configs_dir / config_name
+        if not config_path.is_file():
+            print_msg(SCRIPT_LABEL, f"Skipping experiment '{exp_name}' - config not found: {config_path}", flag="warning", verb='NONE')
+            continue
+
+        for pair in pairs_from_config_yaml(config_path):
+            if pair not in seen_pairs:
+                seen_pairs.add(pair)
+                pairs.append(pair)
+    return pairs
+
+
+def add_sequence_target_args(parser: argparse.ArgumentParser) -> None:
+    """Adds the standard sequence-target flags (CLAUDE.md's sequence-target argument convention)
+    to an argparse parser. Only the single-dataset case stays positional (it's unambiguous and
+    needs no filesystem lookup to parse); every other shape is an explicit flag so that how a
+    command gets interpreted never depends on repo state (e.g. a stray file named the same as a
+    dataset). Pass the parsed args straight through to resolve_sequence_targets()."""
+    parser.add_argument(
+        "targets", nargs="*", metavar="DATASET [SEQUENCE ...]",
+        help="<dataset> [<sequence> ...] - one dataset, and (optionally) specific sequences of it"
+    )
+    parser.add_argument(
+        "--datasets", nargs="+", metavar="DATASET",
+        help="Every downloaded sequence of each named dataset"
+    )
+    parser.add_argument(
+        "--sequences", nargs="+", action="append", metavar="DATASET_OR_SEQUENCE",
+        help="<dataset> <sequence> [<sequence> ...] - repeatable; explicit sequences of one "
+             "dataset per use, e.g. --sequences kitti 05 07 --sequences eth table_3"
+    )
+    parser.add_argument("--exp", metavar="EXP_YAML", help="Every pair referenced by an experiment yaml's Config file(s)")
+    parser.add_argument("--configs", metavar="CONFIG_YAML", help="Every pair listed in a config yaml (dataset: [sequences])")
+
+
+def resolve_sequence_targets(
+    targets: list[str] | None = None,
+    datasets: list[str] | None = None,
+    sequences: list[list[str]] | None = None,
+    exp: str | Path | None = None,
+    configs: str | Path | None = None,
+) -> list[tuple[str, str]]:
+    """
+    Resolves the flags added by add_sequence_target_args() into an explicit list of
+    (dataset_name, sequence_name) pairs, per CLAUDE.md's sequence-target argument convention.
+    Every argument here is additive - pass as many as apply and their results are concatenated.
+      targets   - [<dataset>] or [<dataset>, <sequence>, ...]: one dataset, all or specific sequences
+      datasets  - every downloaded sequence of each named dataset
+      sequences - a list of [<dataset>, <sequence>, ...] groups (one per --sequences use)
+      exp       - path to an experiment yaml; every pair from its Config file(s)
+      configs   - path to a config yaml (dataset: [sequences])
+    """
+    pairs: list[tuple[str, str]] = []
+
+    if targets:
+        dataset_name, *sequence_names = targets
+        if sequence_names:
+            pairs.extend((dataset_name, s) for s in sequence_names)
+        else:
+            pairs.extend((dataset_name, s) for s in sequences_for_dataset(dataset_name))
+
+    for dataset_name in datasets or []:
+        pairs.extend((dataset_name, s) for s in sequences_for_dataset(dataset_name))
+
+    for group in sequences or []:
+        dataset_name, *sequence_names = group
+        if sequence_names:
+            pairs.extend((dataset_name, s) for s in sequence_names)
+        else:
+            pairs.extend((dataset_name, s) for s in sequences_for_dataset(dataset_name))
+
+    if exp:
+        pairs.extend(pairs_from_exp_yaml(exp))
+
+    if configs:
+        pairs.extend(pairs_from_config_yaml(configs))
+
+    return pairs
+
+
+##################################################################################################################################################
+# Download / decompress helpers
+#
+# Already the established, widely-adopted way to fetch and unpack a dataset sequence's raw
+# archive - used across most of Datasets/dataset_files/*.py (dataset_eth.py, dataset_kitti.py,
+# dataset_euroc.py, etc.), not something new that still needs integrating.
+##################################################################################################################################################
 def downloadFile(url, dest_dir_path, file_size=None):
     file_name = url.split('/')[-1]
     dest_file_path = os.path.join(dest_dir_path, file_name)
@@ -178,124 +423,25 @@ def decompressFile(filepath, extract_to=None):
         return None
 
     return extract_to
+##################################################################################################################################################
 
 
-def replace_string_in_files(directory, old_string, new_string):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith('.h') or file.endswith('.cpp'):
-                file_path = os.path.join(root, file)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                content = content.replace(old_string, new_string)
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
-
-
-def is_image_file(file_path):
-    try:
-        with Image.open(file_path) as img:
-            return True
-    except Exception:
-        return False
-
-
-def list_image_files_in_folder(folder_path):
-    image_files = []
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        if os.path.isfile(file_path) and is_image_file(file_path):
-            image_files.append(filename)
-    return image_files
-
-def deactivate_env(vslamlab_env):
-    file_path = os.path.join(VSLAM_LAB_DIR, 'pixi.toml')
-    with open(file_path, 'r') as file:
-        file_content = file.read()
-
-    # Split content by lines
-    lines = file_content.splitlines()
-
-    # Flags to track if we are within the baseline section
-    inside_baseline = False
-    inside_environments = False
-
-    # Iterate through lines and comment the baseline section
-    for i in range(len(lines)):
-        line = lines[i].strip()
-
-        if f"# {vslamlab_env} begin" == line:
-            inside_baseline = True
-            continue
-        elif f"# {vslamlab_env} end" == line:
-            inside_baseline = False
-            continue
-
-        if f"# environments begin" == line:
-            inside_environments = True
-            continue
-        elif f"# environments end" == line:
-            inside_environments = False
-            continue
-
-        # If inside the baseline block, comment the line
-        if inside_baseline:
-            if not ("#" in lines[i]):
-                lines[i] = "# " + lines[i]
-        if inside_environments:
-            if f'features = ["{vslamlab_env}"]' in lines[i]:
-                if not ("#" in lines[i]):
-                    lines[i] = "# " + lines[i]
-
-    new_file_content = "\n".join(lines)
-    with open(file_path, 'w') as file:
-        file.write(new_file_content)
-
-    subprocess.run("pixi clean && pixi update", shell=True)
-
-
-def activate_env(vslamlab_env):
-    file_path = os.path.join(VSLAM_LAB_DIR, 'pixi.toml')
-    with open(file_path, 'r') as file:
-        file_content = file.read()
-
-    # Split content by lines
-    lines = file_content.splitlines()
-
-    # Flags to track if we are within the baseline section
-    inside_baseline = False
-    inside_environments = False
-
-    # Iterate through lines and comment the baseline section
-    for i in range(len(lines)):
-        line = lines[i].strip()
-
-        if f"# {vslamlab_env} begin" == line:
-            inside_baseline = True
-            continue
-        elif f"# {vslamlab_env} end" == line:
-            inside_baseline = False
-            continue
-
-        if f"# environments begin" == line:
-            inside_environments = True
-            continue
-        elif f"# environments end" == line:
-            inside_environments = False
-            continue
-
-        # If inside the baseline block, comment the line
-        if inside_baseline:
-            lines[i] = lines[i].replace("# ", '')
-        if inside_environments:
-            if f'features = ["{vslamlab_env}"]' in lines[i]:
-                lines[i] = lines[i].replace("# ", '')
-
-    new_file_content = "\n".join(lines)
-    with open(file_path, 'w') as file:
-        file.write(new_file_content)
-
-    subprocess.run("pixi clean && pixi update", shell=True)
+##################################################################################################################################################
+# Printing helpers
+#
+# The hand-rolled, colorama-based logging story used across most of the codebase (print_msg is
+# used in 16+ files) alongside per-file SCRIPT_LABEL prefixes (CLAUDE.md's "Logging uses a
+# per-file SCRIPT_LABEL ANSI-colored prefix pattern" convention). Note loguru is already a pixi
+# dependency and already used directly (bypassing print_msg) in Datasets/DatasetVSLAMLab.py and
+# dataset_squidle.py - two parallel logging approaches coexist today. TODO: design a single,
+# consistent logging story (loguru-based or otherwise) and adopt it across VSLAM-LAB - tracked in
+# issue #68.
+##################################################################################################################################################
+def ws(n):
+    white_spaces = ""
+    for i in range(0, n):
+        white_spaces = white_spaces + " "
+    return white_spaces
 
 
 def show_time(time_s):
@@ -305,6 +451,7 @@ def show_time(time_s):
         return f"{(time_s / 60):.2f} minutes"
     return f"{(time_s / 3600):.2f} hours"
 
+
 def format_msg(script_label, msg, flag="info"):
     if flag == "info":
         return f"{script_label}{msg}"
@@ -313,10 +460,21 @@ def format_msg(script_label, msg, flag="info"):
     elif flag == "error":
         return f"{script_label}{Fore.RED} {msg} {Style.RESET_ALL}"
 
+
 def print_msg(script_label, msg, flag="info", verb='NONE'):
     if VerbosityManager[verb] <= VerbosityManager[VSLAMLAB_VERBOSITY]:
         print(format_msg(script_label, msg, flag))
-    
+##################################################################################################################################################
+# Trajectory / pandas CSV helpers
+#
+# pandas-based readers/writers for trajectory and generic CSV files, distinct from the plain
+# csv-module "CSV row helpers" block above (which is sequence rgb.csv/groundtruth.csv specific).
+# Known callers today: read_csv -> vslamlab_utilities.py, Evaluate/evaluate_functions.py,
+# Evaluate/compare_functions.py, Evaluate/plot_functions.py; read_trajectory_csv/
+# read_trajectory_txt/save_trajectory_csv -> Evaluate/evo_functions.py. TODO: audit for any other
+# ad-hoc pd.read_csv/to_csv call sites doing the same job across the codebase and make usage
+# consistent - tracked in issue #67.
+##################################################################################################################################################
 def read_trajectory_csv(csv_file):
     try:
         trajectory = pd.read_csv(Path(csv_file))
@@ -348,15 +506,5 @@ def read_csv(csv_file):
     except (pd.errors.EmptyDataError, FileNotFoundError):
         return pd.DataFrame()
     return csv_data
-
-if __name__ == "__main__":
-
-    if len(sys.argv) > 2:
-        function_name = sys.argv[1]
-
-        if function_name == "deactivate_env":
-            deactivate_env(sys.argv[2])
-        if function_name == "activate_env":
-            activate_env(sys.argv[2])
-
+##################################################################################################################################################
 
