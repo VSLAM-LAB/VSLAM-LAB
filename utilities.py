@@ -26,7 +26,8 @@ from path_constants import RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK, V
 #   CSV row helpers                 - read_csv_rows / write_csv_rows / ensure_raw_backup /
 #                                      overwrite_csv_with_backup / revert_csv_from_backup (issue #65)
 #   resolve_sequence_targets        - the sequence-target CLI argument convention (CLAUDE.md),
-#                                      plus resolve_sequence_targets_or_exit for main()'s use
+#                                      plus resolve_sequence_targets_or_exit for main()'s use;
+#                                      not yet adopted repo-wide (issue #70)
 #   Download / decompress helpers   - downloadFile / decompressFile (issue #66)
 #   Printing helpers                - ws / show_time / format_msg / print_msg / make_printers (issue #68)
 #   Trajectory / pandas CSV helpers - read_trajectory_csv / read_trajectory_txt /
@@ -260,7 +261,11 @@ def revert_csv_from_backup(csv_path: str | Path, *, keep_raw: bool = False) -> b
 # Shared CLI-argument resolver for tasks/scripts that operate on one or more dataset sequences
 # (downloading, running, evaluating, syncing groundtruth, etc). See CLAUDE.md's "Sequence-target
 # argument convention" for the shapes this supports; Datasets/extra-files/synch_gt.py is a
-# worked example of a task built on top of it.
+# worked example of a task built on top of it. Only adopted by run_vpr.py/sample_vpr.py/
+# synch_gt.py so far - vslamlab_utilities.py's download_sequence/download_sequences/
+# download_dataset/download_datasets (and possibly other commands) still reinvent this problem
+# with their own narrower, more fragile argument shapes. TODO: migrate them onto this convention
+# - tracked in issue #70.
 ##################################################################################################################################################
 ##################################################################################################################################################
 def sequences_for_dataset(dataset_name: str) -> list[str]:
