@@ -126,6 +126,8 @@ download-sequence = "python vslamlab_gui.py download_sequence"
 download-sequences = "python vslamlab_gui.py download_sequences"
 download-dataset = "python vslamlab_gui.py download_dataset"
 
+synch-gt = "python Datasets/extra-files/synch_gt.py"
+
 run-exp = "python vslamlab_gui.py run_exp"
 evaluate-exp = "python vslamlab_gui.py evaluate_exp"
 compare-exp = "python vslamlab_gui.py compare_exp"
