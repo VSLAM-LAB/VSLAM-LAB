@@ -1,9 +1,10 @@
 dataset_name: 7scenes
 
 rgb_hz: 30.0
-url_download_root: "https://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8"
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+
+url_download_root: "https://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8"
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -19,16 +20,16 @@ sequence_names:
   - fire_seq-04
   - heads_seq-01
   - heads_seq-02
-  - office_seq-01 
+  - office_seq-01
   - office_seq-02
   - office_seq-03
   - office_seq-04
   - office_seq-05
   - office_seq-06
-  - office_seq-07 
+  - office_seq-07
   - office_seq-08
   - office_seq-09
-  - office_seq-10  
+  - office_seq-10
   - pumpkin_seq-01
   - pumpkin_seq-02
   - pumpkin_seq-03
