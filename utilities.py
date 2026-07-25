@@ -1,3 +1,15 @@
+"""
+Module: VSLAM-LAB - utilities.py
+- Author: Alejandro Fontan Villacampa
+- Version: 2.0
+- Created: 2024-07-13
+- Updated: 2026-07-25
+- License: GPLv3 License
+
+Shared helpers used across VSLAM-LAB's dataset/baseline/evaluation code - see the block-summary
+comment below for what's in this file and where each block is used.
+"""
+
 import argparse
 import csv
 import os
@@ -29,6 +41,10 @@ from path_constants import (
 # Blocks in this file, in order:
 #   OTHERS                          - ungrouped misc helpers, some possibly dead (issue #69)
 #   Sequence path helpers           - sequence_path / sequence_rgb_csv / raw_path (issue #64)
+#   Sequence nickname helpers       - default_sequence_nicknames, called by DatasetVSLAMLAB.__init__
+#                                      as the base sequence_nicknames default; datasets needing
+#                                      something fancier (truncation, per-sequence renaming, etc.)
+#                                      overwrite self.sequence_nicknames after super().__init__()
 #   CSV row helpers                 - read_csv_rows / write_csv_rows / ensure_raw_backup /
 #                                      overwrite_csv_with_backup / revert_csv_from_backup (issue #65)
 #   resolve_sequence_targets        - the sequence-target CLI argument convention (CLAUDE.md),
@@ -198,6 +214,21 @@ def raw_path(csv_path: str | Path) -> Path:
     sample_vpr.py)."""
     csv_path = Path(csv_path)
     return csv_path.with_name(f"{csv_path.stem}_raw{csv_path.suffix}")
+
+
+##################################################################################################################################################
+# Sequence nickname helpers
+#
+# default_sequence_nicknames() is DatasetVSLAMLAB.__init__'s default for self.sequence_nicknames -
+# underscore-to-space, the simplest transform that reads better than the raw sequence_name without
+# knowing anything dataset-specific. Datasets whose sequence_names are already display-ready (no
+# underscores, or an identity nickname is preferred) can just not override it; datasets needing
+# something fancier (truncation, per-sequence renaming, dropping a shared prefix, etc.) overwrite
+# self.sequence_nicknames after calling super().__init__(...) - see dataset_eth.py.
+##################################################################################################################################################
+def default_sequence_nicknames(sequence_names: list[str]) -> list[str]:
+    """Underscore-to-space nicknames, e.g. "hb_20250710" -> "hb 20250710"."""
+    return [s.replace("_", " ") for s in sequence_names]
 
 
 ##################################################################################################################################################
