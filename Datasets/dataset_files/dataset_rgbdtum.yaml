@@ -88,3 +88,21 @@ sequence_names:
   # - rgbd_dataset_freiburg2_desk_validation
   # - rgbd_dataset_freiburg2_desk_with_person_validation
   # - rgbd_dataset_freiburg2_pioneer_360_validation
+
+about:
+  license: CC BY 4.0
+  summary: RGB-D SLAM benchmark with motion-capture ground-truth trajectories
+  homepage: https://cvg.cit.tum.de/data/datasets/rgbd-dataset
+  authors:
+    - Jürgen Sturm
+    - Nikolas Engelhard
+    - Felix Endres
+    - Wolfram Burgard
+    - Daniel Cremers
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-07-13
+

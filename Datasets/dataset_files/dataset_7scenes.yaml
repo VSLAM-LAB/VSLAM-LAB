@@ -53,3 +53,22 @@ sequence_names:
   - stairs_seq-04
   - stairs_seq-05
   - stairs_seq-06
+
+about:
+  license: Non-commercial use only (custom Microsoft Research license agreement)
+  summary: Tracked RGB-D Kinect frames from seven indoor scenes, for camera relocalization/SLAM research
+  homepage: https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/
+  authors:
+    - Jamie Shotton
+    - Ben Glocker
+    - Christopher Zach
+    - Shahram Izadi
+    - Antonio Criminisi
+    - Andrew Fitzgibbon
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-01-06
+

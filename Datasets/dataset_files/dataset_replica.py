@@ -1,3 +1,13 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_replica.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2024-08-22
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
 import csv
@@ -27,9 +37,6 @@ class ReplicaDataset(DatasetVSLAMLAB):
 
         # Get download url
         self.url_download_root: str = cfg["url_download_root"]
-
-        # Sequence nicknames
-        self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_names]
 
         # Depth factor
         self.depth_factor = cfg["depth_factor"]

@@ -22,4 +22,21 @@ sequence_names:
   - traj0n_frei_png
   - traj1n_frei_png
   - traj2n_frei_png
-  - traj3n_frei_png    
+  - traj3n_frei_png
+
+about:
+  license: CC BY 3.0
+  summary: ICL-NUIM RGB-D benchmark with ground-truth trajectories and 3D models for SLAM/odometry evaluation
+  homepage: https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html
+  authors:
+    - Ankur Handa
+    - Thomas Whelan
+    - John B. McDonald
+    - Andrew J. Davison
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-07-13
+

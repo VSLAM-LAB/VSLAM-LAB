@@ -23,3 +23,25 @@ sequence_names:
   - MH005
   - MH006
   - MH007
+
+about:
+  license: CC BY 4.0
+  summary: Large-scale photorealistic simulation dataset with multimodal ground truth for SLAM under challenging conditions
+  homepage: https://theairlab.org/tartanair-dataset/
+  authors:
+    - Wenshan Wang
+    - Delong Zhu
+    - Xiangwei Wang
+    - Yaoyu Hu
+    - Yuheng Qiu
+    - Chen Wang
+    - Yafei Hu
+    - Ashish Kapoor
+    - Sebastian Scherer
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-08-01
+

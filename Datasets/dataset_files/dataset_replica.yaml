@@ -15,3 +15,22 @@ sequence_names:
   - room0
   - room1
   - room2
+
+about:
+  license: Replica Dataset Research Terms (non-commercial research use)
+  summary: Photorealistic 3D indoor scene reconstructions (Replica), with RGB-D SLAM trajectories rendered by iMAP
+  homepage: https://github.com/facebookresearch/Replica-Dataset
+  authors:
+    - Julian Straub
+    - Thomas Whelan
+    - Others (Replica Dataset)
+    - Edgar Sucar
+    - Shikun Liu
+    - Joseph Ortiz
+    - Andrew Davison
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-08-22

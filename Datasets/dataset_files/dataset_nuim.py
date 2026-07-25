@@ -1,3 +1,13 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_nuim.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2024-07-13
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
 import os
