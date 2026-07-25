@@ -16,7 +16,6 @@ import shutil
 from typing import Any, Final
 
 import numpy as np
-import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
@@ -27,21 +26,14 @@ CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy,
 
 
 class TartanairDataset(DatasetVSLAMLAB):
-    """TARTANAIR dataset helper for VSLAM-LAB benchmark."""
+    """TartanAir dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "tartanair") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-        self.url_download_root_gt: str = cfg["url_download_root_gt"]
-
-        # Sequence nicknames
-        self.sequence_nicknames = self.sequence_names
+        self.url_download_root: str = self.cfg["url_download_root"]
+        self.url_download_root_gt: str = self.cfg["url_download_root_gt"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
 

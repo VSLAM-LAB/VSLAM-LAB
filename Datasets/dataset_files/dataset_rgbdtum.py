@@ -15,7 +15,6 @@ from urllib.parse import urljoin
 
 import numpy as np
 import pandas as pd
-import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
@@ -36,12 +35,8 @@ class RgbdtumDataset(DatasetVSLAMLAB):
     def __init__(self, dataset_name: str = "rgbdtum") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root: str = self.cfg["url_download_root"]
 
         # Sequence nicknames
         self.sequence_nicknames = [self._nickname(s) for s in self.sequence_names]
@@ -51,7 +46,7 @@ class RgbdtumDataset(DatasetVSLAMLAB):
         self.sequence_nicknames = [s.replace('long office household', 'office') for s in self.sequence_nicknames]
 
         # Depth factor
-        self.depth_factor = cfg["depth_factor"]
+        self.depth_factor = self.cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

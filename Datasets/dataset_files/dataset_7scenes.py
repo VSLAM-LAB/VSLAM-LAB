@@ -17,7 +17,6 @@ import shutil
 from typing import Any, Final
 
 import numpy as np
-import yaml
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
@@ -29,24 +28,20 @@ CAMERA_PARAMS: Final = [585.0, 585.0, 320.0, 240.0] # Camera intrinsics (fx, fy,
 
 
 class SevenscenesDataset(DatasetVSLAMLAB):
-    """7scenes dataset helper for VSLAM-LAB benchmark."""
+    """7-Scenes dataset helper for VSLAM-LAB benchmark."""
     
     def __init__(self, dataset_name: str = "7scenes") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root: str = self.cfg["url_download_root"]
 
         # Sequence nicknames
         self.sequence_nicknames = [s.replace('_seq-', ' ') for s in self.sequence_names]
 
         # Depth factor
-        self.depth_factor = cfg["depth_factor"]
-        
+        self.depth_factor = self.cfg["depth_factor"]
+
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_group = _find_sequence_group(sequence_name)
         compressed_name = sequence_group
