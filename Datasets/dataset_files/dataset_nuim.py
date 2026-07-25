@@ -16,7 +16,7 @@ from typing import Any, Final
 import numpy as np
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile, write_csv_rows
 
 CAMERA_PARAMS: Final = [481.20, -480.00, 319.50, 239.50] # Camera intrinsics (fx, fy, cx, cy)
@@ -143,4 +143,4 @@ class NuimDataset(DatasetVSLAMLAB):
                 (sequence_path / name).unlink(missing_ok=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            (VSLAMLAB_BENCHMARK / f"{sequence_name}.tar.gz").unlink(missing_ok=True)
+            (self.dataset_path / f"{sequence_name}.tar.gz").unlink(missing_ok=True)

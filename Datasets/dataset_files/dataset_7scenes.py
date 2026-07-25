@@ -146,6 +146,27 @@ class SevenscenesDataset(DatasetVSLAMLAB):
             self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,
         )
 
+    def remove_unused_files(self, sequence_name: str) -> None:
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            sequence_group = _find_sequence_group(sequence_name)
+            compressed_name = sequence_name.replace(sequence_group + '_', '')
+            group_folder = self.dataset_path / sequence_group
+
+            # This sequence's own sub-zip inside the shared, multi-sequence <group>.zip - safe to
+            # remove once this one sequence is done, unlike the group folder below.
+            (group_folder / f"{compressed_name}.zip").unlink(missing_ok=True)
+            # The shared archive itself - deleting it here (potentially before sibling sequences
+            # in the same group are downloaded) is safe: download_sequence_data re-downloads it
+            # on demand if a later sequence needs it again.
+            (self.dataset_path / f"{sequence_group}.zip").unlink(missing_ok=True)
+
+            # Remove the group folder once it's empty (every sequence in this group has had its
+            # own sub-zip cleaned up) - still safe if siblings haven't been processed yet, since
+            # their sub-zip would still be present and the folder wouldn't be empty.
+            if group_folder.is_dir() and not any(group_folder.iterdir()):
+                group_folder.rmdir()
+
+
 def _find_sequence_group(sequence_name):
     for scene in SCENES:
          if scene in sequence_name:

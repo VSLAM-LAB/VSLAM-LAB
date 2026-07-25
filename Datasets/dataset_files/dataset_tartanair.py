@@ -133,13 +133,14 @@ class TartanairDataset(DatasetVSLAMLAB):
         for sequence_name in self.sequence_names:
             super().download_process(sequence_name)
         
-        dataset_folder = self.dataset_path / 'tartanair-test-mono-release'
-        if dataset_folder.exists():
-            shutil.rmtree(dataset_folder)
+        if BENCHMARK_RETENTION != Retention.FULL:
+            dataset_folder = self.dataset_path / 'tartanair-test-mono-release'
+            if dataset_folder.exists():
+                shutil.rmtree(dataset_folder)
 
-        gt_folder = self.dataset_path / 'tartanair_cvpr_gt'
-        if gt_folder.exists():
-            shutil.rmtree(gt_folder)
+            gt_folder = self.dataset_path / 'tartanair_cvpr_gt'
+            if gt_folder.exists():
+                shutil.rmtree(gt_folder)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             (self.dataset_path / f"tartanair-test-mono-release.tar.gz").unlink(missing_ok=True)
