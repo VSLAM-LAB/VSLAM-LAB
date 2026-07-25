@@ -3,7 +3,7 @@ Module: VSLAM-LAB - Datasets - DatasetVSLAMLAB.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2024-07-12
-- Updated: 2025-12-30
+- Updated: 2026-07-25
 - License: GPLv3 License
 
 DatasetVSLAMLAB: A class to handle Visual SLAM dataset-related operations.
@@ -14,10 +14,10 @@ import sys
 import yaml
 from loguru import logger
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Tuple
 from abc import ABC, abstractmethod
 
-from utilities import ws, print_msg
+from utilities import ws, print_msg, default_sequence_nicknames
 from path_constants import GROUNTRUTH_FILE, RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK
 from Datasets.DatasetVSLAMLAB_calibration import (
     _get_rgb_yaml_section,
@@ -48,13 +48,21 @@ class DatasetVSLAMLAB(ABC):
         # Load YAML config
         with open(self.yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
+        self.cfg: dict = cfg
 
         self.sequence_names: List[str] = cfg["sequence_names"]
         self.rgb_hz: float = float(cfg["rgb_hz"])
         self.modes: List[str] = cfg.get("modes", ["mono"])
-        self.sequence_nicknames: List[str] = []
+        self.sequence_nicknames: List[str] = default_sequence_nicknames(self.sequence_names)
         self.cam_models: List[str] = cfg.get("cam_models", ["pinhole"])
-        
+
+        # target_resolution is optional; if the yaml doesn't set it (or it's removed later),
+        # create_rgb_folder falls back to copying images at their original resolution instead of
+        # resizing.
+        self.target_resolution: Optional[Tuple[int, int]] = (
+            tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
+        )
+
     @abstractmethod
     def download_sequence_data(self, sequence_name: str) -> None: ...
     @abstractmethod

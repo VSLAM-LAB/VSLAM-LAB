@@ -7,7 +7,7 @@ Module: VSLAM-LAB - Datasets - dataset_<name>.py
 - License: GPLv3 License
 
 Keep this in sync with the new dataset's own YAML vslamlab_maintainer: block (SKILL.md step 3) -
-same name, same assisted_by (if any), same date.
+same name, same assisted_by, same date.
 """
 
 from __future__ import annotations
@@ -19,31 +19,29 @@ from typing import Any, Final
 from urllib.parse import urljoin
 
 import numpy as np
-import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 
+
 class TemplateDataset(DatasetVSLAMLAB):
     """<Display Name> dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self):
-        super().__init__('dataset_name_template')
-
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
+    def __init__(self, dataset_name: str = "dataset_name_template") -> None:
+        super().__init__(dataset_name)
 
         # Get download url
-        # Pull out whichever source-specific field(s) this dataset's YAML carries:
-        #   website      -> self.url_download_root = cfg["url_download_root"]  (a root + filename
+        # self.cfg (set by DatasetVSLAMLAB.__init__ above) is this dataset's already-parsed yaml —
+        # don't reopen self.yaml_file here, just pull whichever source-specific field(s) it carries:
+        #   website      -> self.url_download_root = self.cfg["url_download_root"]  (a root + filename
         #                   pattern serving a .zip/.tar/.7z); if each sequence has its own unrelated
         #                   URL instead of a shared root, use self.url_download_sequences =
-        #                   cfg["url_download_sequences"]  (a dict keyed by sequence_name), Model:
+        #                   self.cfg["url_download_sequences"]  (a dict keyed by sequence_name), Model:
         #                   dataset_s3li.py — keyed lookup, not a positionally-indexed list
-        #   hugging-face -> self.hf_repo_id = cfg["hf_repo_id"]; if the repo is gated it needs a token —
-        #                   see HUGGINGFACE_TOKEN in path_constants.py (falls back to the HF_TOKEN env var)
-        #   google-drive -> self.url_download_root = cfg["url_download_root"]  (a drive.google.com
+        #   hugging-face -> self.hf_repo_id = self.cfg["hf_repo_id"]; if the repo is gated it needs a
+        #                   token — see HUGGINGFACE_TOKEN in path_constants.py (falls back to the
+        #                   HF_TOKEN env var)
+        #   google-drive -> self.url_download_root = self.cfg["url_download_root"]  (a drive.google.com
         #                   share link, or a drive.usercontent.google.com pre-resolved direct-download URL)
         #   local        -> nothing to pull here; affected sequences carry sequence_location: local instead
         # A dataset can mix patterns per sequence (see dataset_strayscanner.py: HF-backed, with
@@ -52,18 +50,11 @@ class TemplateDataset(DatasetVSLAMLAB):
         # depth_factor for rgbd, url_download_root_gt for a separate groundtruth archive, or
         # further url_download_<what-it-is> fields for extra assets the source splits into
         # separate downloads, e.g. url_download_timestamps in dataset_caves.py).
-        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root: str = self.cfg["url_download_root"]
 
-        # Get resolution size
-        # target_resolution is optional: present when resize (step 1) is true, driving
-        # create_rgb_folder to downscale each image to match this target's pixel area while
-        # preserving aspect ratio. Always read it with .get() (never cfg["target_resolution"]),
-        # falling back to None — this is what lets a user (now or later) remove the yaml's
-        # target_resolution entry and get original-resolution images back without touching code.
-        # Model: dataset_sweetcorals.py/.yaml (target_resolution: [640, 480]).
-        self.target_resolution: tuple[int, int] | None = (
-            tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
-        )
+        # self.target_resolution is already set by DatasetVSLAMLAB.__init__ (super().__init__()
+        # above) directly from this same yaml's target_resolution field — nothing to do here.
+        # See dataset_soneva.py/dataset_sweetcorals.py, which likewise don't re-read it.
 
         # Sequence nicknames
         # Short, human-friendly labels shown in CLI output, one per entry in self.sequence_names.

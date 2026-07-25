@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-import yaml
 from PIL import Image
 
 from Datasets.dataset_files.dataset_soneva import HFColmapDatasetMixin
@@ -80,12 +79,8 @@ class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
     def __init__(self, dataset_name: str = "sweetcorals") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get Hugging Face repo id
-        self.hf_repo_id = cfg["hf_repo_id"]
+        self.hf_repo_id = self.cfg["hf_repo_id"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
