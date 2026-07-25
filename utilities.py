@@ -3,6 +3,7 @@ import csv
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tarfile
@@ -11,13 +12,18 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import py7zr
 import yaml
 from colorama import Fore, Style
+from huggingface_hub import login, snapshot_download
 from PIL import Image
+from scipy.spatial.transform import Rotation
 
-from path_constants import RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK, VSLAMLAB_VERBOSITY, VerbosityManager
+from path_constants import (
+    HUGGINGFACE_TOKEN, RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK, VSLAMLAB_VERBOSITY, VerbosityManager,
+)
 
 ##################################################################################################################################################
 # Blocks in this file, in order:
@@ -29,6 +35,19 @@ from path_constants import RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK, V
 #                                      plus resolve_sequence_targets_or_exit for main()'s use;
 #                                      not yet adopted repo-wide (issue #70)
 #   Download / decompress helpers   - downloadFile / decompressFile (issue #66)
+#   Hugging Face download helpers   - hf_token / download_hf_snapshot / ensure_hf_sequence_download,
+#                                      used by dataset_soneva.py and dataset_sweetcorals.py; other
+#                                      HF-based datasets (e.g. dataset_ariel.py) not yet migrated
+#   COLMAP helpers                  - read_colmap_cameras / read_colmap_images /
+#                                      world_to_camera_to_pose, used by dataset_soneva.py and
+#                                      dataset_sweetcorals.py; generic COLMAP binary-format parsing,
+#                                      not specific to either dataset
+#   Image resize helpers            - compute_scaled_size, used by dataset_soneva.py/
+#                                      dataset_sweetcorals.py (via HFColmapDatasetMixin) and
+#                                      dataset_eiffel_tower.py; dataset_videos.py's
+#                                      estimate_new_resolution (inherited by dataset_strayscanner.py)
+#                                      does the same math with a different signature, not yet
+#                                      consolidated onto this
 #   Printing helpers                - ws / show_time / format_msg / print_msg / make_printers (issue #68)
 #   Trajectory / pandas CSV helpers - read_trajectory_csv / read_trajectory_txt /
 #                                     save_trajectory_csv / read_csv (issue #67)
@@ -483,6 +502,194 @@ def decompressFile(filepath, extract_to=None):
         return None
 
     return extract_to
+##################################################################################################################################################
+
+
+##################################################################################################################################################
+# Hugging Face download helpers
+#
+# Shared by dataset_soneva.py and dataset_sweetcorals.py, which previously each had their own
+# byte-identical _hf_token() plus near-identical fetch/flatten/cleanup logic in
+# download_sequence_data(). snapshot_download() itself already resumes partial per-file downloads
+# and skips files it already has, so it's safe to just call again after a dropped connection - the
+# thing that previously defeated that was each dataset's own caller checking "does rgb_0_raw/
+# exist" as its idempotency guard, which is true (the dir gets created) even after a download that
+# died partway through. ensure_hf_sequence_download() fixes that by only marking a sequence done
+# once every remote_dir has finished, via a completion-marker file rather than directory existence.
+##################################################################################################################################################
+def hf_token() -> str | None:
+    """The configured Hugging Face token: HUGGINGFACE_TOKEN from path_constants.py if set (also
+    logs in via huggingface_hub so gated repos work), else the HF_TOKEN env var, else None (public
+    repos still work; gated ones will fail download with a clear Hugging Face error)."""
+    if HUGGINGFACE_TOKEN is not None:
+        login(token=HUGGINGFACE_TOKEN)
+        return HUGGINGFACE_TOKEN
+    return os.environ.get("HF_TOKEN")
+
+
+def download_hf_snapshot(
+    repo_id: str, remote_dir: str, local_dir: str | Path, *,
+    pattern: str = "*", token: str | None = None, max_workers: int = 8,
+) -> None:
+    """Downloads every file matching remote_dir/pattern in a Hugging Face dataset repo, flattened
+    directly into local_dir (the repo's remote_dir/ nesting, and any leftover .cache/, are removed
+    afterwards). Only flattens/cleans up on success - if snapshot_download() raises partway
+    through, local_dir is left in a partial, unflattened state. Callers wanting an idempotency
+    guard against that (rather than gating a re-download skip on local_dir merely existing) should
+    use ensure_hf_sequence_download() instead of calling this directly."""
+    local_dir = Path(local_dir)
+    local_dir.mkdir(parents=True, exist_ok=True)
+
+    snapshot_download(
+        repo_id=repo_id,
+        repo_type="dataset",
+        local_dir=str(local_dir),
+        allow_patterns=[f"{remote_dir}/{pattern}"],
+        max_workers=max_workers,
+        token=token,
+    )
+
+    nested_dir = local_dir / remote_dir
+    for file_path in nested_dir.iterdir():
+        file_path.rename(local_dir / file_path.name)
+    shutil.rmtree(local_dir / remote_dir.split("/")[0], ignore_errors=True)
+    shutil.rmtree(local_dir / ".cache", ignore_errors=True)
+
+
+def ensure_hf_sequence_download(
+    repo_id: str, remote_dirs: list[str], local_dir: str | Path, *,
+    pattern: str = "*", token: str | None = None, max_workers: int = 8,
+) -> bool:
+    """Idempotent wrapper around download_hf_snapshot() for a dataset's per-sequence raw download
+    step: fetches every remote_dir in remote_dirs into the same flat local_dir (a sequence split
+    across multiple remote subfolders, e.g. two capture days), then marks local_dir complete (a
+    .download_complete marker file) only once all of them succeed. Returns False without doing
+    anything if local_dir is already marked complete. Safe against a dropped connection mid-run: a
+    previously-interrupted attempt has no marker, so calling again resumes/retries instead of being
+    silently treated as already downloaded."""
+    local_dir = Path(local_dir)
+    marker = local_dir / ".download_complete"
+    if marker.exists():
+        return False
+
+    for remote_dir in remote_dirs:
+        download_hf_snapshot(repo_id, remote_dir, local_dir, pattern=pattern, token=token, max_workers=max_workers)
+
+    marker.touch()
+    return True
+##################################################################################################################################################
+
+
+##################################################################################################################################################
+# COLMAP helpers
+#
+# Parsing for COLMAP's binary reconstruction format (https://colmap.github.io/format.html#binary-file-format),
+# used by dataset_soneva.py and dataset_sweetcorals.py to read each sequence's cameras.bin/
+# images.bin. Kept as plain functions over a file path rather than dataset methods, since neither
+# the binary format nor the world-to-camera pose convention it stores depend on which dataset
+# fetched the file - only fetching it (dataset_soneva.py/dataset_sweetcorals.py's own
+# _fetch_colmap_file) is dataset-specific.
+##################################################################################################################################################
+
+# COLMAP camera models these two datasets' reconstructions are known to use.
+# https://colmap.github.io/cameras.html
+_COLMAP_MODEL_NUM_PARAMS = {0: 3, 1: 4}  # 0: SIMPLE_PINHOLE (f, cx, cy), 1: PINHOLE (fx, fy, cx, cy)
+
+
+def read_colmap_cameras(path: str | Path) -> dict[int, tuple[str, int, int, tuple[float, ...]]]:
+    with open(path, "rb") as f:
+        data = f.read()
+
+    offset = 0
+    num_cameras = struct.unpack_from("<Q", data, offset)[0]
+    offset += 8
+
+    cameras: dict[int, tuple[str, int, int, tuple[float, ...]]] = {}
+    for _ in range(num_cameras):
+        camera_id, model_id = struct.unpack_from("<ii", data, offset)
+        offset += 8
+        width, height = struct.unpack_from("<QQ", data, offset)
+        offset += 16
+        n = _COLMAP_MODEL_NUM_PARAMS[model_id]
+        params = struct.unpack_from(f"<{n}d", data, offset)
+        offset += 8 * n
+        model_name = "SIMPLE_PINHOLE" if model_id == 0 else "PINHOLE"
+        cameras[camera_id] = (model_name, width, height, params)
+    return cameras
+
+
+def read_colmap_images(path: str | Path) -> dict[str, tuple[int, tuple[float, ...], tuple[float, ...]]]:
+    with open(path, "rb") as f:
+        data = f.read()
+
+    offset = 0
+    num_images = struct.unpack_from("<Q", data, offset)[0]
+    offset += 8
+
+    images: dict[str, tuple[int, tuple[float, ...], tuple[float, ...]]] = {}
+    for _ in range(num_images):
+        offset += 4  # image_id
+        qvec = struct.unpack_from("<4d", data, offset)
+        offset += 32
+        tvec = struct.unpack_from("<3d", data, offset)
+        offset += 24
+        camera_id = struct.unpack_from("<i", data, offset)[0]
+        offset += 4
+
+        end = data.index(b"\x00", offset)
+        name = data[offset:end].decode("utf-8")
+        offset = end + 1
+
+        num_points2d = struct.unpack_from("<Q", data, offset)[0]
+        offset += 8 + num_points2d * 24  # x, y (double) + point3D_id (int64) per point
+
+        images[name] = (camera_id, qvec, tvec)
+    return images
+
+
+def world_to_camera_to_pose(
+    qvec: tuple[float, float, float, float], tvec: tuple[float, float, float]
+) -> tuple[float, float, float, float, float, float, float]:
+    # COLMAP's qvec/tvec transform world -> camera coordinates (X_cam = R * X_world + t).
+    # Groundtruth trajectories are stored as the camera pose in the world frame instead.
+    qw, qx, qy, qz = qvec
+    rot_world_to_cam = Rotation.from_quat([qx, qy, qz, qw])
+    rot_cam_to_world = rot_world_to_cam.inv()
+
+    t_world = rot_cam_to_world.apply(-np.array(tvec))
+    qx_w, qy_w, qz_w, qw_w = rot_cam_to_world.as_quat()
+
+    return float(t_world[0]), float(t_world[1]), float(t_world[2]), float(qx_w), float(qy_w), float(qz_w), float(qw_w)
+##################################################################################################################################################
+
+
+##################################################################################################################################################
+# Image resize helpers
+#
+# Shared by dataset_soneva.py/dataset_sweetcorals.py (via HFColmapDatasetMixin) and
+# dataset_eiffel_tower.py, which each had a byte-identical _compute_scaled_size method before this
+# was pulled out. dataset_videos.py's estimate_new_resolution (inherited by
+# dataset_strayscanner.py) computes the same thing but takes explicit width/height instead of a
+# tuple and tolerates target_resolution=None - not yet migrated onto this, since consolidating it
+# means touching dataset_videos.py's/dataset_strayscanner.py's call sites too.
+##################################################################################################################################################
+def compute_scaled_size(
+    original_size: tuple[int, int], target_resolution: tuple[int, int] | None
+) -> tuple[int, int]:
+    """Scales original_size (width, height) to match target_resolution's pixel area while
+    preserving aspect ratio - the downscaling convention used by dataset create_rgb_folder hooks
+    when a dataset's source images are bigger than the target (see the add-dataset skill's
+    `resize` field). Returns original_size unchanged if target_resolution is None."""
+    if target_resolution is None:
+        return original_size
+
+    target_w, target_h = target_resolution
+    orig_w, orig_h = original_size
+    target_area = target_w * target_h
+
+    scaled_h = int(np.sqrt(target_area * orig_h / orig_w))
+    scaled_w = int(target_area / scaled_h)
+    return scaled_w, scaled_h
 ##################################################################################################################################################
 
 

@@ -43,11 +43,15 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         self.url_download_root: str = cfg["url_download_root"]
 
         # Get resolution size
-        # Only needed if resize (step 1) is true — the (width, height) images are downscaled
-        # to before use, matching this target's pixel area while preserving aspect ratio.
-        # Delete this line entirely if resize is false (source images are already <= 640x480).
+        # target_resolution is optional: present when resize (step 1) is true, driving
+        # create_rgb_folder to downscale each image to match this target's pixel area while
+        # preserving aspect ratio. Always read it with .get() (never cfg["target_resolution"]),
+        # falling back to None — this is what lets a user (now or later) remove the yaml's
+        # target_resolution entry and get original-resolution images back without touching code.
         # Model: dataset_sweetcorals.py/.yaml (target_resolution: [640, 480]).
-        self.target_resolution: tuple[int, int] = tuple(cfg["target_resolution"])
+        self.target_resolution: tuple[int, int] | None = (
+            tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
+        )
 
         # Sequence nicknames
         # Short, human-friendly labels shown in CLI output, one per entry in self.sequence_names.
@@ -61,8 +65,11 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         # Pick the implementation matching this dataset's download pattern:
         #   website      -> utilities.downloadFile(url, self.dataset_path) + decompressFile(...)
         #                   Model: dataset_7scenes.py
-        #   hugging-face -> HfApi / HfFileSystem from huggingface_hub, using self.repo_id
-        #                   Model: dataset_ariel.py
+        #   hugging-face -> use utilities.py's hf_token() / ensure_hf_sequence_download() (which
+        #                   wraps download_hf_snapshot()) against self.repo_id — resumable,
+        #                   idempotent per-sequence fetch+flatten, don't hand-roll this with
+        #                   HfApi/HfFileSystem/snapshot_download directly. Model:
+        #                   dataset_soneva.py, dataset_sweetcorals.py
         #   google-drive -> a share link (drive.google.com/...) needs gdown.download /
         #                   gdown.download_folder with a file/folder id, Model: dataset_hilti2026.py,
         #                   dataset_drunkards.py; a pre-resolved direct-download link
@@ -88,12 +95,15 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         # Normalize the raw downloaded images into rgb_0/ (plus rgb_1/ for stereo modes)
         # under self.dataset_path / sequence_name — renaming/moving files as needed so every
         # dataset exposes the same folder layout regardless of the source's original format.
-        # resize from step 1 decides what happens to each image on the way in:
-        #   true  -> source images are bigger than 640x480; scale each one down to match
-        #            self.target_resolution's pixel area while preserving aspect ratio before
-        #            writing it into rgb_0/. Model: dataset_sweetcorals.py (create_rgb_folder +
-        #            the _compute_scaled_size helper).
-        #   false -> source images are already <= 640x480; copy/link them into rgb_0/ unresized.
+        # Branch on self.target_resolution (not a separate resize flag) for every image:
+        #   None     -> source images are already <= 640x480 (or the yaml's target_resolution was
+        #               removed) - copy/link the file into rgb_0/ unresized (e.g. shutil.copy2),
+        #               never round-trip it through PIL just to leave it the same size.
+        #   not None -> scale the image down to match self.target_resolution's pixel area while
+        #               preserving aspect ratio via utilities.compute_scaled_size(img.size,
+        #               self.target_resolution), then save into rgb_0/.
+        # Model: dataset_soneva.py/dataset_sweetcorals.py (HFColmapDatasetMixin.create_rgb_folder),
+        # dataset_eiffel_tower.py.
         return
 
     def create_rgb_csv(self, sequence_name: str) -> None:

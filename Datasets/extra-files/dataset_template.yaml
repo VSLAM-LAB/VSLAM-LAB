@@ -6,8 +6,11 @@ cam_models: ['pinhole']
 
 url_download_root: ""
 
-# Only needed if resize (SKILL.md step 1) is true — delete this line if source images are
-# already <= 640x480. See dataset_sweetcorals.yaml.
+# Optional. Set when resize (SKILL.md step 1) is true, i.e. source images are bigger than
+# 640x480 — create_rgb_folder then downscales to match this target's pixel area while preserving
+# aspect ratio. Delete this line (now or later) to fall back to copying images at their original
+# resolution instead — no code change needed, __init__ reads this with .get(), defaulting to None.
+# See dataset_sweetcorals.yaml.
 target_resolution: [640, 480]
 
 sequence_names:

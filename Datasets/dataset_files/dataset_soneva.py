@@ -13,78 +13,43 @@ import csv
 import json
 import os
 import shutil
-import struct
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-import pandas as pd
 import yaml
-from huggingface_hub import HfApi, hf_hub_download, login, snapshot_download
+from huggingface_hub import HfApi, hf_hub_download
 from PIL import Image
-from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
-from path_constants import HUGGINGFACE_TOKEN
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import (
+    compute_scaled_size, ensure_hf_sequence_download, hf_token, make_printers, read_colmap_cameras,
+    read_colmap_images, world_to_camera_to_pose, write_csv_rows,
+)
 
-# COLMAP binary camera models this dataset's per-sequence reconstructions are known to use.
-# https://colmap.github.io/cameras.html
-_COLMAP_MODEL_NUM_PARAMS = {0: 3, 1: 4}  # 0: SIMPLE_PINHOLE (f, cx, cy), 1: PINHOLE (fx, fy, cx, cy)
+SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+print_info, print_warning = make_printers(SCRIPT_LABEL)
 
 # sequence_names are kept short (e.g. "hb_20250710"); every survey's actual top-level folder in
 # the HF repo carries this shared prefix (e.g. "maldives_soneva_hb_20250710").
 _REMOTE_SEQUENCE_PREFIX = "maldives_soneva_"
 
 
-class SONEVA_dataset(DatasetVSLAMLab):
-    """SONEVA dataset helper for VSLAM-LAB benchmark."""
-
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "soneva") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
-
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        # Get download url
-        self.repo_id = cfg["repo_id"]
-
-        # Create sequence_nicknames
-        self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
-
-        # Get resolution size
-        self.target_resolution = tuple(cfg["target_resolution"])
-
-    def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0_raw"
-
-        if rgb_path.exists():
-            return
-        rgb_path.mkdir(parents=True, exist_ok=True)
-
-        remote_name = self._remote_sequence_name(sequence_name)
-        subfolder = self._lhs_subfolder(sequence_name)
-        remote_dir = f"{remote_name}/raw/{subfolder}"
-
-        snapshot_download(
-            repo_id=self.repo_id,
-            repo_type="dataset",
-            local_dir=str(rgb_path),
-            allow_patterns=[f"{remote_dir}/*"],
-            max_workers=8,
-            token=self._hf_token(),
-        )
-
-        # snapshot_download() mirrors the repo's folder structure under local_dir; flatten it
-        # since VSLAM-LAB wants the images directly under rgb_0_raw/.
-        nested_dir = rgb_path / remote_name / "raw" / subfolder
-        for file_path in nested_dir.iterdir():
-            file_path.rename(rgb_path / file_path.name)
-        shutil.rmtree(rgb_path / remote_name)
-        shutil.rmtree(rgb_path / ".cache", ignore_errors=True)
+class HFColmapDatasetMixin:
+    """Shared logic for a Hugging-Face-sourced dataset with a per-sequence COLMAP reconstruction,
+    used by both SONEVA_dataset (below) and SWEETCORALS_dataset (dataset_sweetcorals.py, which
+    imports this mixin from here rather than utilities.py, since it's specific to this pair of
+    datasets). Concrete classes still define their own __init__, download_sequence_data,
+    create_calibration_yaml, and create_groundtruth_csv - only the parts that were byte-identical
+    between the two are here. _fetch_colmap_file() is also here (a template method), but concrete
+    classes must provide _remote_sequence_name(sequence_name): the one piece that actually differs
+    (a dynamic HfApi lookup in SONEVA_dataset vs. a hardcoded table in SWEETCORALS_dataset). The
+    COLMAP binary-format parsing itself (read_colmap_cameras/read_colmap_images/
+    world_to_camera_to_pose) lives in utilities.py instead, since it doesn't depend on either
+    dataset - only fetching the file to parse does."""
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
@@ -105,14 +70,18 @@ class SONEVA_dataset(DatasetVSLAMLab):
             if file_path.suffix.lower() not in IMAGE_SUFFIXES:
                 continue
 
+            if self.target_resolution is None:
+                shutil.copy2(file_path, rgb_path / file_path.name)
+                continue
+
             with Image.open(file_path) as img:
                 img.load()
                 if target_size is None:
                     init_size = img.size
-                    target_size = self._compute_scaled_size(img.size)
+                    target_size = compute_scaled_size(img.size, self.target_resolution)
 
                 if img.size != init_size:
-                    print(f"{file_path.name} {img.size} != {init_size}")
+                    print_warning(f"{file_path.name} {img.size} != {init_size}")
 
                 resized_img = img.resize(target_size, Image.LANCZOS)
                 resized_img.save(rgb_path / file_path.name)
@@ -125,29 +94,82 @@ class SONEVA_dataset(DatasetVSLAMLab):
             return
 
         rgb_files = sorted(file_path.name for file_path in rgb_path.iterdir() if file_path.is_file())
+        rows = [[int(i * 1e9 / self.rgb_hz), f"rgb_0/{filename}"] for i, filename in enumerate(rgb_files)]
+        write_csv_rows(rgb_csv, ["ts_rgb_0 (ns)", "path_rgb_0"], rows)
 
-        rgb = pd.DataFrame(
-            {
-                "ts_rgb_0 (ns)": [int(i * 1e9 / self.rgb_hz) for i in range(len(rgb_files))],
-                "path_rgb_0": [f"rgb_0/{filename}" for filename in rgb_files],
-            }
+    def get_download_issues(self, _):
+        if hf_token() is not None:
+            return []
+        return [
+            _get_dataset_issue(
+                issue_id="huggingface_token",
+                dataset_name=self.dataset_name,
+                website="https://huggingface.co/settings/tokens",
+                yaml_file=str(self.yaml_file),
+            )
+        ]
+
+    def remove_unused_files(self, sequence_name: str) -> None:
+        # Deliberately narrow: only rgb_0_raw/ (the resized-away raw images) is ever removed, even
+        # at MINIMAL retention. Anything else a concrete subclass keeps around - e.g.
+        # SONEVA_dataset's all_files_cache.json, a dataset-wide (not per-sequence) HfApi listing
+        # cache reused across every sequence's download - is left alone here; override this method
+        # if a subclass needs to clean up more.
+        sequence_path = self.dataset_path / sequence_name
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            shutil.rmtree(sequence_path / "rgb_0_raw", ignore_errors=True)
+
+    def _fetch_colmap_file(self, sequence_name: str, filename: str) -> Path:
+        """Downloads a single file from this sequence's colmap/ folder in the HF repo. Concrete
+        classes must provide _remote_sequence_name(sequence_name) - the only piece that actually
+        differs between soneva/sweetcorals (a dynamic HfApi lookup vs. a hardcoded table)."""
+        local_path = hf_hub_download(
+            repo_id=self.repo_id,
+            repo_type="dataset",
+            filename=f"{self._remote_sequence_name(sequence_name)}/colmap/{filename}",
+            token=hf_token(),
         )
+        return Path(local_path)
 
-        out = rgb[["ts_rgb_0 (ns)", "path_rgb_0"]]
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(rgb_csv)
-        finally:
-            tmp.unlink(missing_ok=True)
+
+class SONEVA_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
+    """SONEVA dataset helper for VSLAM-LAB benchmark."""
+
+    def __init__(self, benchmark_path: str | Path, dataset_name: str = "soneva") -> None:
+        super().__init__(dataset_name, Path(benchmark_path))
+
+        # Load settings
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+
+        # Get download url
+        self.repo_id = cfg["repo_id"]
+
+        # Create sequence_nicknames
+        self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
+
+        # Get resolution size - target_resolution is optional; if the yaml doesn't set it (or it's
+        # removed later), create_rgb_folder falls back to copying images at their original
+        # resolution instead of resizing.
+        self.target_resolution = tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
+
+    def download_sequence_data(self, sequence_name: str) -> None:
+        sequence_path = self.dataset_path / sequence_name
+        rgb_path = sequence_path / "rgb_0_raw"
+
+        remote_name = self._remote_sequence_name(sequence_name)
+        subfolder = self._lhs_subfolder(sequence_name)
+        remote_dir = f"{remote_name}/raw/{subfolder}"
+
+        ensure_hf_sequence_download(self.repo_id, [remote_dir], rgb_path, token=hf_token())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.dataset_path / sequence_name
         rgb_path = sequence_path / "rgb_0"
 
-        cameras = self._read_colmap_cameras(sequence_name)
+        cameras = read_colmap_cameras(self._fetch_colmap_file(sequence_name, "cameras.bin"))
         raw_to_colmap = self._read_image_mapping(sequence_name)
-        images = self._read_colmap_images(sequence_name)
+        images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
 
         # Any registered LHS frame tells us which COLMAP camera_id is the LHS camera.
         camera_id = next(images[name][0] for name in raw_to_colmap.values() if name in images)
@@ -179,55 +201,23 @@ class SONEVA_dataset(DatasetVSLAMLab):
         sequence_path = self.dataset_path / sequence_name
         rgb_path = sequence_path / "rgb_0"
         groundtruth_csv = sequence_path / "groundtruth.csv"
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         raw_to_colmap = self._read_image_mapping(sequence_name)
-        images = self._read_colmap_images(sequence_name)
-
+        images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
         rgb_files = sorted(file_path.name for file_path in rgb_path.iterdir() if file_path.is_file())
 
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
-            for i, filename in enumerate(rgb_files):
-                colmap_name = raw_to_colmap.get(filename)
-                if colmap_name is None or colmap_name not in images:
-                    continue
+        rows = []
+        for i, filename in enumerate(rgb_files):
+            colmap_name = raw_to_colmap.get(filename)
+            if colmap_name is None or colmap_name not in images:
+                continue
 
-                _, qvec, tvec = images[colmap_name]
-                tx, ty, tz, qx, qy, qz, qw = self._world_to_camera_to_pose(qvec, tvec)
+            _, qvec, tvec = images[colmap_name]
+            tx, ty, tz, qx, qy, qz, qw = world_to_camera_to_pose(qvec, tvec)
+            ts_ns = int(i * 1e9 / self.rgb_hz)
+            rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
 
-                ts_ns = int(i * 1e9 / self.rgb_hz)
-                w.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
-
-        tmp.replace(groundtruth_csv)
-
-    def get_download_issues(self, _):
-        if self._hf_token() is not None:
-            return []
-        return [
-            _get_dataset_issue(
-                issue_id="huggingface_token",
-                dataset_name=self.dataset_name,
-                website="https://huggingface.co/settings/tokens",
-                yaml_file=str(self.yaml_file),
-            )
-        ]
-
-    def _compute_scaled_size(self, original_size: tuple[int, int]) -> tuple[int, int]:
-        target_w, target_h = self.target_resolution
-        orig_w, orig_h = original_size
-        target_area = target_w * target_h
-
-        scaled_h = int(np.sqrt(target_area * orig_h / orig_w))
-        scaled_w = int(target_area / scaled_h)
-        return scaled_w, scaled_h
-
-    def _hf_token(self) -> str | None:
-        if HUGGINGFACE_TOKEN is not None:
-            login(token=HUGGINGFACE_TOKEN)
-            return HUGGINGFACE_TOKEN
-        return os.environ.get("HF_TOKEN")
+        write_csv_rows(groundtruth_csv, ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows)
 
     def _all_repo_files(self) -> list[str]:
         cache_file = self.dataset_path / "all_files_cache.json"
@@ -235,7 +225,7 @@ class SONEVA_dataset(DatasetVSLAMLab):
             with open(cache_file, "r", encoding="utf-8") as f:
                 return json.load(f)
 
-        api = HfApi(token=self._hf_token())
+        api = HfApi(token=hf_token())
         all_files = api.list_repo_files(repo_id=self.repo_id, repo_type="dataset")
         self.dataset_path.mkdir(parents=True, exist_ok=True)
         with open(cache_file, "w", encoding="utf-8") as f:
@@ -254,66 +244,6 @@ class SONEVA_dataset(DatasetVSLAMLab):
                 return subfolder
         raise FileNotFoundError(f"No LHS subfolder found for sequence {sequence_name}")
 
-    def _fetch_colmap_file(self, sequence_name: str, filename: str) -> Path:
-        local_path = hf_hub_download(
-            repo_id=self.repo_id,
-            repo_type="dataset",
-            filename=f"{self._remote_sequence_name(sequence_name)}/colmap/{filename}",
-            token=self._hf_token(),
-        )
-        return Path(local_path)
-
-    def _read_colmap_cameras(self, sequence_name: str) -> dict[int, tuple[str, int, int, tuple[float, ...]]]:
-        path = self._fetch_colmap_file(sequence_name, "cameras.bin")
-        with open(path, "rb") as f:
-            data = f.read()
-
-        offset = 0
-        num_cameras = struct.unpack_from("<Q", data, offset)[0]
-        offset += 8
-
-        cameras: dict[int, tuple[str, int, int, tuple[float, ...]]] = {}
-        for _ in range(num_cameras):
-            camera_id, model_id = struct.unpack_from("<ii", data, offset)
-            offset += 8
-            width, height = struct.unpack_from("<QQ", data, offset)
-            offset += 16
-            n = _COLMAP_MODEL_NUM_PARAMS[model_id]
-            params = struct.unpack_from(f"<{n}d", data, offset)
-            offset += 8 * n
-            model_name = "SIMPLE_PINHOLE" if model_id == 0 else "PINHOLE"
-            cameras[camera_id] = (model_name, width, height, params)
-        return cameras
-
-    def _read_colmap_images(self, sequence_name: str) -> dict[str, tuple[int, tuple[float, ...], tuple[float, ...]]]:
-        path = self._fetch_colmap_file(sequence_name, "images.bin")
-        with open(path, "rb") as f:
-            data = f.read()
-
-        offset = 0
-        num_images = struct.unpack_from("<Q", data, offset)[0]
-        offset += 8
-
-        images: dict[str, tuple[int, tuple[float, ...], tuple[float, ...]]] = {}
-        for _ in range(num_images):
-            offset += 4  # image_id
-            qvec = struct.unpack_from("<4d", data, offset)
-            offset += 32
-            tvec = struct.unpack_from("<3d", data, offset)
-            offset += 24
-            camera_id = struct.unpack_from("<i", data, offset)[0]
-            offset += 4
-
-            end = data.index(b"\x00", offset)
-            name = data[offset:end].decode("utf-8")
-            offset = end + 1
-
-            num_points2d = struct.unpack_from("<Q", data, offset)[0]
-            offset += 8 + num_points2d * 24  # x, y (double) + point3D_id (int64) per point
-
-            images[name] = (camera_id, qvec, tvec)
-        return images
-
     def _read_image_mapping(self, sequence_name: str) -> dict[str, str]:
         path = self._fetch_colmap_file(sequence_name, "image_mapping.csv")
         subfolder = self._lhs_subfolder(sequence_name)
@@ -326,18 +256,3 @@ class SONEVA_dataset(DatasetVSLAMLab):
                     continue
                 mapping[Path(raw_path).name] = row["colmap_image"]
         return mapping
-
-    @staticmethod
-    def _world_to_camera_to_pose(
-        qvec: tuple[float, float, float, float], tvec: tuple[float, float, float]
-    ) -> tuple[float, float, float, float, float, float, float]:
-        # COLMAP's qvec/tvec transform world -> camera coordinates (X_cam = R * X_world + t).
-        # Groundtruth trajectories are stored as the camera pose in the world frame instead.
-        qw, qx, qy, qz = qvec
-        rot_world_to_cam = Rotation.from_quat([qx, qy, qz, qw])
-        rot_cam_to_world = rot_world_to_cam.inv()
-
-        t_world = rot_cam_to_world.apply(-np.array(tvec))
-        qx_w, qy_w, qz_w, qw_w = rot_cam_to_world.as_quat()
-
-        return float(t_world[0]), float(t_world[1]), float(t_world[2]), float(qx_w), float(qy_w), float(qz_w), float(qw_w)

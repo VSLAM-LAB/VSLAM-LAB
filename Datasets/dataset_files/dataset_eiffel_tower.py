@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import compute_scaled_size, decompressFile, downloadFile
 
 # COLMAP's RADIAL camera model: f, cx, cy, k1, k2 (single focal length, purely radial distortion).
 # https://colmap.github.io/cameras.html
@@ -42,8 +42,10 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
         # Get download urls (one unrelated URL per campaign/sequence)
         self.url_download_sequences: dict[str, str] = cfg["url_download_sequences"]
 
-        # Get resolution size (source images are 1920x1080)
-        self.target_resolution: tuple[int, int] = tuple(cfg["target_resolution"])
+        # Get resolution size (source images are 1920x1080) - target_resolution is optional; if
+        # the yaml doesn't set it (or it's removed later), create_rgb_folder falls back to copying
+        # images at their original resolution instead of resizing.
+        self.target_resolution: tuple[int, int] | None = tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
@@ -70,10 +72,14 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
 
         target_size = None
         for file_path in tqdm(sorted(raw_path.glob("*.png")), desc="    resizing images"):
+            if self.target_resolution is None:
+                shutil.copy2(file_path, rgb_path / file_path.name)
+                continue
+
             with Image.open(file_path) as img:
                 img.load()
                 if target_size is None:
-                    target_size = self._compute_scaled_size(img.size)
+                    target_size = compute_scaled_size(img.size, self.target_resolution)
                 resized_img = img.resize(target_size, Image.LANCZOS)
                 resized_img.save(rgb_path / file_path.name)
 
@@ -146,15 +152,6 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             url = self.url_download_sequences[sequence_name]
             (self.dataset_path / url.rsplit("/", 1)[-1]).unlink(missing_ok=True)
-
-    def _compute_scaled_size(self, original_size: tuple[int, int]) -> tuple[int, int]:
-        target_w, target_h = self.target_resolution
-        orig_w, orig_h = original_size
-        target_area = target_w * target_h
-
-        scaled_h = int(np.sqrt(target_area * orig_h / orig_w))
-        scaled_w = int(target_area / scaled_h)
-        return scaled_w, scaled_h
 
     @staticmethod
     def _filename_to_ts_ns(filename: str) -> int:
