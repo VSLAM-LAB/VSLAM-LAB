@@ -100,10 +100,15 @@ class TartanairDataset(DatasetVSLAMLAB):
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         fx, fy, cx, cy = CAMERA_PARAMS
-        rgb0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb",
-                "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
-                "fps": float(self.rgb_hz),
-                "T_BS": np.eye(4)}        
+        rgb0: dict[str, Any] = {
+            "cam_name": "rgb_0",
+            "cam_type": "rgb",
+            "cam_model": "pinhole",
+            "focal_length": [fx, fy],
+            "principal_point": [cx, cy],
+            "fps": float(self.rgb_hz),
+            "T_BS": np.eye(4),
+        }
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:

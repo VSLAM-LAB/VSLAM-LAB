@@ -121,17 +121,22 @@ class RgbdtumDataset(DatasetVSLAMLAB):
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         camera = self._camera_from_sequence(sequence_name)
-
         fx, fy, cx, cy, k1, k2, p1, p2, k3 = CAMERA_PARAMS[camera]
-        
-        rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
-                "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
-                "depth_factor": float(self.depth_factor),
-                "fps": float(self.rgb_hz),
-                "T_BS": np.eye(4)}
-        if camera == "freiburg1" or camera == "freiburg2":
-               rgbd0["distortion_type"] = "radtan5"
-               rgbd0["distortion_coefficients"] = [k1, k2, p1, p2, k3]
+
+        rgbd0: dict[str, Any] = {
+            "cam_name": "rgb_0",
+            "cam_type": "rgb+depth",
+            "depth_name": "depth_0",
+            "cam_model": "pinhole",
+            "focal_length": [fx, fy],
+            "principal_point": [cx, cy],
+            "depth_factor": float(self.depth_factor),
+            "fps": float(self.rgb_hz),
+            "T_BS": np.eye(4),
+        }
+        if camera in ("freiburg1", "freiburg2"):
+            rgbd0["distortion_type"] = "radtan5"
+            rgbd0["distortion_coefficients"] = [k1, k2, p1, p2, k3]
 
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 

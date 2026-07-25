@@ -103,13 +103,18 @@ class NuimDataset(DatasetVSLAMLAB):
         )
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-
         fx, fy, cx, cy = CAMERA_PARAMS
-        rgbd0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "rgb+depth", "depth_name": "depth_0",
-                "cam_model": "pinhole", "focal_length": [fx, fy], "principal_point": [cx, cy],
-                "depth_factor": float(self.depth_factor),
-                "fps": float(self.rgb_hz),
-                "T_BS": np.eye(4)}        
+        rgbd0: dict[str, Any] = {
+            "cam_name": "rgb_0",
+            "cam_type": "rgb+depth",
+            "depth_name": "depth_0",
+            "cam_model": "pinhole",
+            "focal_length": [fx, fy],
+            "principal_point": [cx, cy],
+            "depth_factor": float(self.depth_factor),
+            "fps": float(self.rgb_hz),
+            "T_BS": np.eye(4),
+        }
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name):
