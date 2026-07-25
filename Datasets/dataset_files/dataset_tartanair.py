@@ -71,7 +71,6 @@ class TartanairDataset(DatasetVSLAMLAB):
             decompressFile(compressed_file, self.dataset_path / decompressed_name)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
         rgb_path.mkdir(parents=True, exist_ok=True)
 

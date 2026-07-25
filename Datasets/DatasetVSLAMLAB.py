@@ -3,7 +3,7 @@ Module: VSLAM-LAB - Datasets - DatasetVSLAMLAB.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2024-07-12
-- Updated: 2026-07-25
+- Updated: 2026-07-26
 - License: GPLv3 License
 
 DatasetVSLAMLAB: A class to handle Visual SLAM dataset-related operations.
@@ -116,6 +116,9 @@ class DatasetVSLAMLAB(ABC):
 
     def rgb_path(self, sequence_name: str) -> Path:
         return self.sequence_path(sequence_name) / "rgb_0"
+
+    def depth_path(self, sequence_name: str) -> Path:
+        return self.sequence_path(sequence_name) / "depth_0"
 
     def rgb_csv_path(self, sequence_name: str) -> Path:
         return self.sequence_path(sequence_name) / f"{RGB_BASE_FOLDER}.csv"

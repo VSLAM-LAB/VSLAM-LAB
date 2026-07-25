@@ -77,9 +77,9 @@ class SevenscenesDataset(DatasetVSLAMLAB):
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         modes = ['color', 'depth']
-        folder = {'color': 'rgb_0', 'depth': 'depth_0'}
+        folder = {'color': self.rgb_path(sequence_name), 'depth': self.depth_path(sequence_name)}
         for mode in modes:
-            folder_path = sequence_path / f'{folder[mode]}'
+            folder_path = folder[mode]
             if folder_path.exists():
                 continue
             folder_path.mkdir(parents=True, exist_ok=True)
@@ -88,10 +88,7 @@ class SevenscenesDataset(DatasetVSLAMLAB):
                 image_name = os.path.basename(image_path)
                 image_name = image_name.replace("frame-", "")
                 image_name = image_name.replace(f"{mode}.", "")
-                shutil.copy(image_path, folder_path / image_name)  
-            png_files = glob.glob(str(sequence_path / f'*.{mode}.png'))
-            for png_file in png_files:
-                os.remove(png_file)
+                shutil.move(image_path, folder_path / image_name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

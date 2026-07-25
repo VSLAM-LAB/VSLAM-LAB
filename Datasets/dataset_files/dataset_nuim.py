@@ -61,7 +61,7 @@ class NuimDataset(DatasetVSLAMLAB):
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
-        depth_path = sequence_path / 'depth_0'
+        depth_path = self.depth_path(sequence_name)
         rgb_path_original = sequence_path / 'rgb'
         depth_path_original = sequence_path / 'depth'
 

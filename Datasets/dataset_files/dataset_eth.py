@@ -4,7 +4,7 @@ Module: VSLAM-LAB - Datasets - dataset_eth.py
 - Assisted by: Claude (Sonnet 5)
 - Version: 2.0
 - Created: 2024-07-13
-- Updated: 2026-07-25
+- Updated: 2026-07-26
 - License: GPLv3 License
 """
 
@@ -70,9 +70,8 @@ class EthDataset(DatasetVSLAMLAB):
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
+        for raw, tgt in (("rgb", self.rgb_path(sequence_name)), ("depth", self.depth_path(sequence_name))):
             src = sequence_path / raw
-            tgt = sequence_path / dst
             if src.is_dir() and not tgt.exists():
                 src.replace(tgt)
 

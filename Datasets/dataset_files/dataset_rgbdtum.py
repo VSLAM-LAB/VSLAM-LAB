@@ -72,8 +72,8 @@ class RgbdtumDataset(DatasetVSLAMLAB):
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
-            src, tgt = sequence_path / raw, sequence_path / dst
+        for raw, tgt in (("rgb", self.rgb_path(sequence_name)), ("depth", self.depth_path(sequence_name))):
+            src = sequence_path / raw
             if src.is_dir() and not tgt.exists():
                 src.replace(tgt)
 

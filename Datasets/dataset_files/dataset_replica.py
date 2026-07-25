@@ -62,7 +62,7 @@ class ReplicaDataset(DatasetVSLAMLAB):
         sequence_path = self.sequence_path(sequence_name)
         results_path = sequence_path / 'results'
         rgb_path = self.rgb_path(sequence_name)
-        depth_path = sequence_path / 'depth_0'
+        depth_path = self.depth_path(sequence_name)
 
         if not rgb_path.exists():
             results_path.rename(rgb_path)
