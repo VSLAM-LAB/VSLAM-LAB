@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_replica.py
 
 from __future__ import annotations
 
-import csv
 import os
 import shutil
 from typing import Any, Final
@@ -21,7 +20,7 @@ from scipy.spatial.transform import Rotation as R
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
-from utilities import decompressFile, downloadFile, write_csv_rows
+from utilities import decompressFile, downloadFile, read_csv_rows, write_csv_rows
 
 CAMERA_PARAMS: Final = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy, cx, cy)
 
@@ -112,24 +111,13 @@ class ReplicaDataset(DatasetVSLAMLAB):
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        rgb_csv = self.rgb_csv_path(sequence_name)
         traj_txt = sequence_path / 'traj.txt'
-        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
-        # Read RGB timestamps from CSV (skip header)
-        rgb_timestamps_ns = []
-        with open(rgb_csv, 'r', newline='') as f:
-            reader = csv.reader(f)
-            _ = next(reader, None)  # skip header if present
-            for row in reader:
-                if not row:
-                    continue
-                rgb_timestamps_ns.append(float(row[0]))
 
-        # Write groundtruth.csv with header
-        with open(traj_txt, 'r') as src, open(groundtruth_csv, 'w', newline='') as dst:
-            writer = csv.writer(dst)
-            writer.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
+        _, rgb_rows = read_csv_rows(self.rgb_csv_path(sequence_name))
+        rgb_timestamps_ns = [float(row[0]) for row in rgb_rows]
 
+        rows = []
+        with open(traj_txt, 'r') as src:
             for idx, line in enumerate(src):
                 if idx >= len(rgb_timestamps_ns):
                     break  # avoid index error if traj has extra lines
@@ -141,9 +129,13 @@ class ReplicaDataset(DatasetVSLAMLAB):
                 tx, ty, tz = vals[3], vals[7], vals[11]
 
                 qx, qy, qz, qw = R.from_matrix(Rm).as_quat()  # [x, y, z, w]
-                ts_ns = rgb_timestamps_ns[idx]
+                ts_ns = int(rgb_timestamps_ns[idx])
 
-                writer.writerow([int(ts_ns), tx, ty, tz, qx, qy, qz, qw])
+                rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+
+        write_csv_rows(
+            self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,
+        )
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

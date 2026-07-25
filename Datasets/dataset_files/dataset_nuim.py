@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_nuim.py
 
 from __future__ import annotations
 
-import csv
 import os
 from typing import Any, Final
 
@@ -117,26 +116,25 @@ class NuimDataset(DatasetVSLAMLAB):
         }
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
-    def create_groundtruth_csv(self, sequence_name):
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / 'groundtruth.txt'
-        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         freiburg_txt = [file for file in os.listdir(sequence_path) if 'freiburg' in file.lower()]
-        with open(sequence_path / freiburg_txt[0], 'r') as source_file:
-            with open(groundtruth_txt, 'w') as destination_txt_file, \
-                open(groundtruth_csv, 'w', newline='') as destination_csv_file:
 
-                csv_writer = csv.writer(destination_csv_file)
-                header = ["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"]
-                csv_writer.writerow(header)
-                for line in source_file:
-                    values = line.strip().split()
-                    ts = float(values[0]) / self.rgb_hz 
-                    ts_ns = int(1e10 + ts * 1e9)
-                    values[0] = str(ts_ns)
-                    
-                    destination_txt_file.write(" ".join(values) + "\n")
-                    csv_writer.writerow(values)
+        rows = []
+        with open(sequence_path / freiburg_txt[0], 'r') as source_file, open(groundtruth_txt, 'w') as destination_txt_file:
+            for line in source_file:
+                values = line.strip().split()
+                ts = float(values[0]) / self.rgb_hz
+                ts_ns = int(1e10 + ts * 1e9)
+                values[0] = str(ts_ns)
+
+                destination_txt_file.write(" ".join(values) + "\n")
+                rows.append(values)
+
+        write_csv_rows(
+            self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,
+        )
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

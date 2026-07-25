@@ -144,26 +144,29 @@ class RgbdtumDataset(DatasetVSLAMLAB):
         sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "groundtruth.txt"
         groundtruth_csv = self.groundtruth_csv_path(sequence_name)
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
+
         if not groundtruth_txt.exists():
+            # No groundtruth is published for TUM's "validation" sequences - still write the
+            # file (header only, no rows) rather than leaving it missing.
+            write_csv_rows(groundtruth_csv, header, [])
             return
-        
+
         if groundtruth_csv.exists() and groundtruth_csv.stat().st_mtime >= groundtruth_txt.stat().st_mtime:
             return
 
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
-        with open(groundtruth_txt, "r", encoding="utf-8") as fin, open(tmp, "w", encoding="utf-8", newline="") as fout:
-            # Skip first 3 lines (header/comments), then write CSV header + values
+        with open(groundtruth_txt, "r", encoding="utf-8") as fin:
+            # Skip first 3 lines (header/comments)
             lines = fin.readlines()
-            data_lines = [ln.strip() for ln in lines[3:] if ln.strip() and not ln.lstrip().startswith("#")]
-            fout.write("ts (ns),tx (m),ty (m),tz (m),qx,qy,qz,qw\n")
-            for line in data_lines:
-                s = line.strip()
-                parts = s.split()
-                ts_ns = int(float(parts[0]) * 1e9)
-                new_line = f"{ts_ns}," + ",".join(parts[1:]) + "\n"    
-                fout.write(new_line)
-        tmp.replace(groundtruth_csv)
-        tmp.unlink(missing_ok=True)
+        data_lines = [ln.strip() for ln in lines[3:] if ln.strip() and not ln.lstrip().startswith("#")]
+
+        rows = []
+        for line in data_lines:
+            parts = line.split()
+            ts_ns = int(float(parts[0]) * 1e9)
+            rows.append([ts_ns] + parts[1:])
+
+        write_csv_rows(groundtruth_csv, header, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

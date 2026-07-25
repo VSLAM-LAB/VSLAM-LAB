@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_7scenes.py
 
 from __future__ import annotations
 
-import csv
 import glob
 import os
 import shutil
@@ -126,35 +125,26 @@ class SevenscenesDataset(DatasetVSLAMLAB):
         
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
-        pose_files = glob.glob(str(sequence_path / '*.pose.txt'))
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
-        pose_files.sort()
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
-            for iRGB, gt0 in enumerate(pose_files, start=0):
-                with open(gt0, 'r') as source_file:
-                    T = []
-                    for line in source_file:
-                        row = [float(x) for x in line.split()]
-                        T.append(row)
-                    tx = T[0][3]
-                    ty = T[1][3]
-                    tz = T[2][3]
-                    rotation_matrix = np.array([[T[0][0], T[0][1], T[0][2]],
-                                                [T[1][0], T[1][1], T[1][2]],
-                                                [T[2][0], T[2][1], T[2][2]]])
-                    rotation = R.from_matrix(rotation_matrix)
-                    quaternion = rotation.as_quat()
-                    qx = quaternion[0]
-                    qy = quaternion[1]
-                    qz = quaternion[2]
-                    qw = quaternion[3]
-                    ts_d_ns = int(1e12 + float(iRGB / self.rgb_hz) * 1e9)
-                    w.writerow([ts_d_ns, tx, ty, tz, qx, qy, qz, qw])
+        pose_files = sorted(glob.glob(str(sequence_path / '*.pose.txt')))
+
+        rows = []
+        for iRGB, gt0 in enumerate(pose_files):
+            with open(gt0, 'r') as source_file:
+                T = [[float(x) for x in line.split()] for line in source_file]
+            tx, ty, tz = T[0][3], T[1][3], T[2][3]
+            rotation_matrix = np.array([[T[0][0], T[0][1], T[0][2]],
+                                        [T[1][0], T[1][1], T[1][2]],
+                                        [T[2][0], T[2][1], T[2][2]]])
+            qx, qy, qz, qw = R.from_matrix(rotation_matrix).as_quat()
+            ts_d_ns = int(1e12 + float(iRGB / self.rgb_hz) * 1e9)
+            rows.append([ts_d_ns, tx, ty, tz, qx, qy, qz, qw])
+
+            if BENCHMARK_RETENTION != Retention.FULL:
                 os.remove(gt0)
-        tmp.replace(groundtruth_csv)
+
+        write_csv_rows(
+            self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,
+        )
 
 def _find_sequence_group(sequence_name):
     for scene in SCENES:

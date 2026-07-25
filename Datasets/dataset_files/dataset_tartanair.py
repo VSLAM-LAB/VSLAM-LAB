@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_tartanair.py
 
 from __future__ import annotations
 
-import csv
 import os
 import shutil
 from typing import Any, Final
@@ -112,27 +111,20 @@ class TartanairDataset(DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
-        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         groundtruth_txt = self.dataset_path / "tartanair_cvpr_gt" / "mono_gt" / f"{sequence_name}.txt"
-        tmp_path = sequence_path / "groundtruth.csv.tmp"
 
-        with open(groundtruth_txt, "r", encoding="utf-8") as fin, \
-            open(tmp_path, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
-
-            frame_idx = 0
-            for line in fin:
-                line = line.strip()
-                parts = line.split()
+        rows = []
+        with open(groundtruth_txt, "r", encoding="utf-8") as fin:
+            for frame_idx, line in enumerate(fin):
+                parts = line.strip().split()
                 ts = frame_idx / float(self.rgb_hz)
                 ts_ns = int(1e10 + ts * 1e9)
-                frame_idx += 1
                 tx, ty, tz, qx, qy, qz, qw = parts[:7]
-                w.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+                rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
 
-        os.replace(tmp_path, groundtruth_csv)
+        write_csv_rows(
+            self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,
+        )
 
     def get_download_issues(self, _):
         return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=8.2)]
