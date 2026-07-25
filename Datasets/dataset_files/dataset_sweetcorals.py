@@ -10,17 +10,11 @@ Module: VSLAM-LAB - Datasets - dataset_sweetcorals.py
 
 from __future__ import annotations
 
-from typing import Any
-
 import numpy as np
-from PIL import Image
 
 from Datasets.dataset_files.dataset_soneva import HFColmapDatasetMixin
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import (
-    ensure_hf_sequence_download, hf_token, read_colmap_cameras, read_colmap_images, world_to_camera_to_pose,
-    write_csv_rows,
-)
+from utilities import ensure_hf_sequence_download, hf_token, read_colmap_images, world_to_camera_to_pose, write_csv_rows
 
 # Only tabuhan_p1 has been fully processed on the source (color-corrected pinhole images plus a
 # colmap reconstruction with real poses) — every other sequence ships only raw, uncalibrated
@@ -98,36 +92,12 @@ class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         ensure_hf_sequence_download(self.hf_repo_id, remote_dirs, rgb_path, token=hf_token())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
-        rgb_path = self.rgb_path(sequence_name)
         if sequence_name == _PINHOLE_SEQUENCE:
-            cameras = read_colmap_cameras(self._fetch_colmap_file(sequence_name, "cameras.bin"))
             images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
 
             # Any registered Left frame tells us which COLMAP camera_id is the Left camera.
             camera_id = next(v[0] for name, v in images.items() if name.startswith(_PINHOLE_LEFT_PREFIX))
-            model_name, width, height, params = cameras[camera_id]
-
-            if model_name == "SIMPLE_PINHOLE":
-                f, cx, cy = params
-                fx, fy = f, f
-            else:  # PINHOLE
-                fx, fy, cx, cy = params
-
-            # Rescale intrinsics from COLMAP's reference image size to the resized rgb_0 image size.
-            with Image.open(next(rgb_path.iterdir())) as img:
-                resized_w, resized_h = img.size
-            scale_x, scale_y = resized_w / width, resized_h / height
-
-            rgb: dict[str, Any] = {
-                "cam_name": "rgb_0",
-                "cam_type": "rgb",
-                "cam_model": "pinhole",
-                "focal_length": [fx * scale_x, fy * scale_y],
-                "principal_point": [cx * scale_x, cy * scale_y],
-                "fps": float(self.rgb_hz),
-                "T_BS": np.eye(4),
-            }
+            rgb = self._pinhole_rgb_calibration(sequence_name, camera_id)
         else:
             # No calibration is published for this sequence's raw fisheye images.
             rgb = {

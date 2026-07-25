@@ -19,7 +19,7 @@ skill's file scope — this is a separate, ongoing hygiene pass across existing 
 
 4. **Redundant yaml reopen** — subclass `__init__` should read dataset-specific fields from `self.cfg` (set by `DatasetVSLAMLAB.__init__`), not reopen/re-parse `self.yaml_file` itself. If a subclass still does `with open(self.yaml_file...) as f: cfg = yaml.safe_load(f)`, switch it to `self.cfg` and drop the now-unused `import yaml` if nothing else in the file needs it.
 
-5. **Unused `sequence_path` locals** — `sequence_path = self.sequence_path(sequence_name)` assigned but never read afterward (the method builds `rgb_path`/other paths via other helpers instead). Fixed in `dataset_soneva.py`'s `create_rgb_csv` (`create_rgb_csv` pass). Still present in `dataset_soneva.py`'s `create_calibration_yaml`/`create_groundtruth_csv` and `dataset_sweetcorals.py`'s `create_calibration_yaml`/`create_groundtruth_csv` — scoped to whichever pass reviews those specific hooks.
+5. **Unused `sequence_path` locals** — `sequence_path = self.sequence_path(sequence_name)` assigned but never read afterward (the method builds `rgb_path`/other paths via other helpers instead). Fixed in `dataset_soneva.py`'s `create_rgb_csv` and `create_calibration_yaml`, and `dataset_sweetcorals.py`'s `create_calibration_yaml`. Still present in both files' `create_groundtruth_csv` — scoped to that pass.
 
 6. **`check_sequence_integrity` mode coverage (base class)** — `DatasetVSLAMLAB.check_sequence_integrity` only conditionally checks `rgb_1/` (stereo) and IMU CSV (mono-vi); there's no check for `depth_0/` when `'rgbd' in self.modes`. A mono-only download can get marked `"available"` and skip re-download even though `depth_0/` was never fetched, for any rgbd dataset. Tracked in [#76](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/76). Not dataset-file-specific, so this is a `DatasetVSLAMLAB.py` fix, not something a per-dataset pass can resolve on its own.
 
@@ -165,5 +165,21 @@ Finding (fixed): `dataset_eth.py`'s `create_rgb_csv` hand-rolled the same open/`
 Verified: both files parse; `EthDataset()`/`SonevaDataset()`/`SweetcoralsDataset()` still instantiate correctly under `pixi run -e vslamlab python`; a standalone `write_csv_rows` call with eth-shaped rows produces byte-identical header/row output to the old hand-rolled version.
 
 Not done (scope creep, logged): `write_csv_rows` is only adopted by 2 of ~19 dataset files that hand-roll the same csv-writing pattern (`dataset_kitti.py`, `dataset_hilti2022.py`, `dataset_madmax.py`, etc. — checked via grep) — same "new shared utility, not yet repo-wide" situation as `self.cfg`. Left the other ~17 files alone; only `dataset_eth.py` (in scope for this cleanup) was migrated.
+
+Commit: `d3108dd`
+
+### 2026-07-25 — `create_calibration_yaml` pass
+
+Files: `dataset_eth.py` (reviewed, no changes needed), `dataset_soneva.py`, `dataset_sweetcorals.py`.
+
+Fixed (checklist item 5): removed dead `sequence_path` from both `dataset_soneva.py`'s and `dataset_sweetcorals.py`'s `create_calibration_yaml`.
+
+Finding (fixed, user-approved before implementing): `dataset_soneva.py`'s entire `create_calibration_yaml` body and `dataset_sweetcorals.py`'s pinhole branch were near byte-identical (COLMAP camera lookup → pinhole intrinsics → rescale to resized image → build `rgb` dict) — duplicated logic that `HFColmapDatasetMixin`'s own docstring already flagged as "not byte-identical, kept separate" without noting that everything *except* the `camera_id` resolution actually was identical. Extracted a new `HFColmapDatasetMixin._pinhole_rgb_calibration(sequence_name, camera_id) -> dict[str, Any]` helper covering the shared part; each subclass's `create_calibration_yaml` now only resolves its own `camera_id` (soneva: `raw_to_colmap` mapping; sweetcorals: `_PINHOLE_LEFT_PREFIX` match) and calls the helper.
+
+Import cleanup from the extraction: `dataset_sweetcorals.py` no longer uses `read_colmap_cameras` or `PIL.Image` directly (moved into the helper in `dataset_soneva.py`), and dropped `from typing import Any` (its only remaining use, the `rgb: dict[str, Any]` annotation, was removed along with the inlined dict).
+
+Verified against real previously-downloaded data (not just syntax/instantiation): regenerated `calibration.yaml` for `soneva/hb_20250710`, `sweetcorals/tabuhan_p1` (pinhole branch), and `sweetcorals/watudodol_p1` (non-pinhole/"unknown" branch) against a saved pre-refactor baseline of each — all three byte-identical after the refactor.
+
+`dataset_eth.py`'s `create_calibration_yaml` (per-sequence `calibration.txt` parsing, unrelated pattern) reviewed, no issues found.
 
 Commit: *(pending — not yet committed)*

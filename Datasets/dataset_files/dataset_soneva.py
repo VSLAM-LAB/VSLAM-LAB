@@ -130,6 +130,36 @@ class HFColmapDatasetMixin:
         )
         return Path(local_path)
 
+    def _pinhole_rgb_calibration(self, sequence_name: str, camera_id: int) -> dict[str, Any]:
+        """Builds the rgb_0 pinhole calibration dict for write_calibration_yaml from an
+        already-resolved COLMAP camera_id. Shared by SonevaDataset/SweetcoralsDataset, which
+        differ only in how camera_id itself gets resolved - see each class's own
+        create_calibration_yaml."""
+        cameras = read_colmap_cameras(self._fetch_colmap_file(sequence_name, "cameras.bin"))
+        model_name, width, height, params = cameras[camera_id]
+
+        if model_name == "SIMPLE_PINHOLE":
+            f, cx, cy = params
+            fx, fy = f, f
+        else:  # PINHOLE
+            fx, fy, cx, cy = params
+
+        # Rescale intrinsics from COLMAP's reference image size to the resized rgb_0 image size.
+        rgb_path = self.rgb_path(sequence_name)
+        with Image.open(next(rgb_path.iterdir())) as img:
+            resized_w, resized_h = img.size
+        scale_x, scale_y = resized_w / width, resized_h / height
+
+        return {
+            "cam_name": "rgb_0",
+            "cam_type": "rgb",
+            "cam_model": "pinhole",
+            "focal_length": [fx * scale_x, fy * scale_y],
+            "principal_point": [cx * scale_x, cy * scale_y],
+            "fps": float(self.rgb_hz),
+            "T_BS": np.eye(4),
+        }
+
 
 class SonevaDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
     """Soneva dataset helper for VSLAM-LAB benchmark."""
@@ -151,36 +181,12 @@ class SonevaDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         ensure_hf_sequence_download(self.hf_repo_id, [remote_dir], rgb_path, token=hf_token())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
-        rgb_path = self.rgb_path(sequence_name)
-        cameras = read_colmap_cameras(self._fetch_colmap_file(sequence_name, "cameras.bin"))
         raw_to_colmap = self._read_image_mapping(sequence_name)
         images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
 
         # Any registered LHS frame tells us which COLMAP camera_id is the LHS camera.
         camera_id = next(images[name][0] for name in raw_to_colmap.values() if name in images)
-        model_name, width, height, params = cameras[camera_id]
-
-        if model_name == "SIMPLE_PINHOLE":
-            f, cx, cy = params
-            fx, fy = f, f
-        else:  # PINHOLE
-            fx, fy, cx, cy = params
-
-        # Rescale intrinsics from COLMAP's reference image size to the resized rgb_0 image size.
-        with Image.open(next(rgb_path.iterdir())) as img:
-            resized_w, resized_h = img.size
-        scale_x, scale_y = resized_w / width, resized_h / height
-
-        rgb: dict[str, Any] = {
-            "cam_name": "rgb_0",
-            "cam_type": "rgb",
-            "cam_model": "pinhole",
-            "focal_length": [fx * scale_x, fy * scale_y],
-            "principal_point": [cx * scale_x, cy * scale_y],
-            "fps": float(self.rgb_hz),
-            "T_BS": np.eye(4),
-        }
+        rgb = self._pinhole_rgb_calibration(sequence_name, camera_id)
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
