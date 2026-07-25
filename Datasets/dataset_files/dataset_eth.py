@@ -9,14 +9,14 @@ from urllib.parse import urljoin
 import numpy as np
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile
 
 MAX_NICKNAME_LEN: Final = 15
 
 
-class ETH_dataset(DatasetVSLAMLab):
+class EthDataset(DatasetVSLAMLAB):
     """ETH dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "eth") -> None:

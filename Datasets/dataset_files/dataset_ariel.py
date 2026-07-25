@@ -12,13 +12,13 @@ from huggingface_hub import HfApi, HfFileSystem, login
 from huggingface_hub.utils import disable_progress_bars
 from tqdm import tqdm
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import HUGGINGFACE_TOKEN
 
 INITIAL_TIMESTAMP: int = 1_700_604_776_000_000_000
 
 
-class ARIEL_dataset(DatasetVSLAMLab):
+class ArielDataset(DatasetVSLAMLAB):
     """ARIEL dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "ariel") -> None:

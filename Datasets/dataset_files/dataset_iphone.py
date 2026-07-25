@@ -7,14 +7,14 @@ from urllib.parse import urljoin
 from typing import Final, Any
 from collections.abc import Iterable
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
 
 MAX_NICKNAME_LEN: Final = 15
 
 
-class IPHONE_dataset(DatasetVSLAMLab):
+class IphoneDataset(DatasetVSLAMLAB):
     """IPHONE dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "iphone") -> None:

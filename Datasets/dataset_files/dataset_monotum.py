@@ -3,7 +3,7 @@ import yaml
 import shutil
 import subprocess
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile
 from utilities import decompressFile
 
@@ -11,7 +11,7 @@ from utilities import replace_string_in_files
 from path_constants import VSLAM_LAB_DIR
 
 
-class MONOTUM_dataset(DatasetVSLAMLab):
+class MonotumDataset(DatasetVSLAMLAB):
     """MONOTUM dataset helper for VSLAM-LAB benchmark."""
     
     def __init__(self, dataset_name: str = "monotum") -> None:

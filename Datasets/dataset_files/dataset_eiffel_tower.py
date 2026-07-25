@@ -20,7 +20,7 @@ from PIL import Image
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import compute_scaled_size, decompressFile, downloadFile
 
@@ -29,7 +29,7 @@ from utilities import compute_scaled_size, decompressFile, downloadFile
 _RADIAL_NUM_PARAMS = 5
 
 
-class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
+class EiffelTowerDataset(DatasetVSLAMLAB):
     """Eiffel Tower deep-sea underwater dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "eiffel-tower") -> None:

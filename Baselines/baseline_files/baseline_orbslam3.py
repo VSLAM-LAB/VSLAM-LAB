@@ -4,12 +4,12 @@ from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class ORBSLAM3_baseline(BaselineVSLAMLab):
+class ORBSLAM3_baseline(BaselineVSLAMLAB):
     """ORB-SLAM3 helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'orbslam3', baseline_folder: str = 'ORB-SLAM3') -> None:

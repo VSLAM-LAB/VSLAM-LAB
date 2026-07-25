@@ -12,11 +12,11 @@ import yaml
 from huggingface_hub import HfApi, HfFileSystem, login
 from huggingface_hub.utils import disable_progress_bars
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import HUGGINGFACE_TOKEN, VSLAMLAB_VIDEOS
 
 
-class VIDEOS_dataset(DatasetVSLAMLab):
+class VideosDataset(DatasetVSLAMLAB):
     """VIDEOS dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "videos") -> None:

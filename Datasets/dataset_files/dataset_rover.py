@@ -8,14 +8,14 @@ import pandas as pd
 from pathlib import Path
 from typing import Final, Any
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 
 TIME_DIFF_THRESH: Final = 0.02  # seconds for RGB/Depth association
 
 
-class ROVER_dataset(DatasetVSLAMLab):
+class RoverDataset(DatasetVSLAMLAB):
     """ROVER dataset helper for VSLAM-LAB benchmark."""    
 
     DATES = {
@@ -214,7 +214,7 @@ class ROVER_dataset(DatasetVSLAMLab):
             callback=cleanup_macosx)
         
 
-class ROVER_t265_dataset(ROVER_dataset):    
+class RoverT265Dataset(RoverDataset):    
     """ROVER T265 dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "rover-t265") -> None:
@@ -278,7 +278,7 @@ class ROVER_t265_dataset(ROVER_dataset):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
 
-class ROVER_d435i_dataset(ROVER_dataset):    
+class RoverD435iDataset(RoverDataset):    
     """ROVER D435i dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "rover-d435i") -> None:
@@ -356,7 +356,7 @@ class ROVER_d435i_dataset(ROVER_dataset):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0], imu=[imu])
 
 
-class ROVER_picam_dataset(ROVER_dataset):    
+class RoverPicamDataset(RoverDataset):    
     """ROVER Picam dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "rover-picam") -> None:

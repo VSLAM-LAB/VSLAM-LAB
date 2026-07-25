@@ -3,9 +3,9 @@ name: add-baseline
 description: Add a new SLAM baseline to VSLAM-LAB. Use when the user asks to add/integrate a new SLAM system, wire up a baseline for the pipeline, or asks "how do I add a baseline".
 ---
 
-Adding a baseline means creating a `BaselineVSLAMLab` subclass, registering a pixi feature/environment for its dependencies, and wiring both into `Baselines/get_baseline.py`.
+Adding a baseline means creating a `BaselineVSLAMLAB` subclass, registering a pixi feature/environment for its dependencies, and wiring both into `Baselines/get_baseline.py`.
 
-1. **Implement the class**: create `Baselines/baseline_files/baseline_<name>.py`, subclassing `BaselineVSLAMLab` (`Baselines/BaselineVSLAMLab.py`). There is no template file for baselines — copy the closest existing baseline of similar type (e.g. `baseline_droidslam.py` for a learned/CUDA method, `baseline_orbslam2.py` for a classical feature-based method) and adapt it. At minimum implement the abstract hooks:
+1. **Implement the class**: create `Baselines/baseline_files/baseline_<name>.py`, subclassing `BaselineVSLAMLAB` (`Baselines/BaselineVSLAMLAB.py`). There is no template file for baselines — copy the closest existing baseline of similar type (e.g. `baseline_droidslam.py` for a learned/CUDA method, `baseline_orbslam2.py` for a classical feature-based method) and adapt it. At minimum implement the abstract hooks:
    - `__init__(self, baseline_name, baseline_folder, default_parameters='')` — set `baseline_path`, `settings_yaml`, labels/colors.
    - `build_execute_command(self, exp_it, exp, dataset, sequence_name)` — construct the shell command that runs the baseline on a sequence.
    - `is_installed(self)` — check whether the baseline's environment/weights are already set up.

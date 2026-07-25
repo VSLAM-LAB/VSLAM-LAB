@@ -7,7 +7,7 @@ Usage: `/add-dataset <name> <source>` — e.g. `/add-dataset soneva https://exam
 
 Both `<name>` and `<source>` are required — parse them from `$ARGUMENTS` (or from however the user phrased the request, if invoked without the slash command). If either is missing or ambiguous, stop and ask the user rather than guessing a dataset name or searching for a source yourself.
 
-Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAML, registering it in `Datasets/get_dataset.py`, adding a smoke-test config/experiment pair under `configs/`, actually running that smoke test end to end, and committing the result. **The skill is not complete until step 9 (the commit) has run.** Steps 1–7 produce files that look correct by inspection; step 8 is what actually proves the dataset works, and it has been skipped in past runs because step 7 (the README row) feels like a natural stopping point — it is not. Do not report the dataset as done, and do not stop, until you have executed step 8's simulation and step 9's commit, in order.
+Adding a dataset means creating a `DatasetVSLAMLAB` subclass plus a settings YAML, registering it in `Datasets/get_dataset.py`, adding a smoke-test config/experiment pair under `configs/`, actually running that smoke test end to end, and committing the result. **The skill is not complete until step 9 (the commit) has run.** Steps 1–7 produce files that look correct by inspection; step 8 is what actually proves the dataset works, and it has been skipped in past runs because step 7 (the README row) feels like a natural stopping point — it is not. Do not report the dataset as done, and do not stop, until you have executed step 8's simulation and step 9's commit, in order.
 
 **Hard constraint — file scope.** The only files this skill may create or modify are:
 
@@ -19,7 +19,7 @@ Adding a dataset means creating a `DatasetVSLAMLab` subclass plus a settings YAM
 - `README.md` — only the new row appended to the Datasets table in step 7, nothing else in the file.
 - `Datasets/extra-files/dataset_table.md` — regenerated (never hand-edited) via the script in step 0, since it's generated output.
 
-Everything else — `Datasets/DatasetVSLAMLab.py`, `Datasets/DatasetVSLAMLab_calibration.py`, `Datasets/DatasetVSLAMLab_issues.py`, any other dataset's `.py`/`.yaml`, any other `configs/*.yaml` (including a non-`test_`-prefixed `config_<name>.yaml`/`exp_<name>.yaml`, which is a production config outside this skill's scope), the templates in `Datasets/extra-files/`, any part of `README.md` outside the single new table row, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly. This scope covers the repo only. Outside the repo, the one place this skill may touch is `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` (the downloaded benchmark data for this dataset, `<DATASET_FOLDER>` matching what this dataset's YAML/class designate) — freely creating, removing, or recreating files and folders anywhere inside it is expected and fine, that's exactly what steps 6/8's test runs are for. Nothing outside `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` may be touched — not other datasets' folders under `VSLAM-LAB-Benchmark/`, not `VSLAM-LAB-Evaluation/`, nothing else.
+Everything else — `Datasets/DatasetVSLAMLAB.py`, `Datasets/DatasetVSLAMLAB_calibration.py`, `Datasets/DatasetVSLAMLAB_issues.py`, any other dataset's `.py`/`.yaml`, any other `configs/*.yaml` (including a non-`test_`-prefixed `config_<name>.yaml`/`exp_<name>.yaml`, which is a production config outside this skill's scope), the templates in `Datasets/extra-files/`, any part of `README.md` outside the single new table row, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly. This scope covers the repo only. Outside the repo, the one place this skill may touch is `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` (the downloaded benchmark data for this dataset, `<DATASET_FOLDER>` matching what this dataset's YAML/class designate) — freely creating, removing, or recreating files and folders anywhere inside it is expected and fine, that's exactly what steps 6/8's test runs are for. Nothing outside `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` may be touched — not other datasets' folders under `VSLAM-LAB-Benchmark/`, not `VSLAM-LAB-Evaluation/`, nothing else.
 
 The one exception to "create or modify" above is git itself: step 9 stages and commits the files in this list (nothing else) as a single local commit. That's the only git write this skill performs — never `git push`, never amend or rewrite an existing commit, never touch branches.
 
@@ -98,7 +98,7 @@ The one exception to "create or modify" above is git itself: step 9 stages and c
    - An `about:` block (license, summary, homepage, authors) and a `vslamlab_maintainer:` block, following the shape already used in every existing dataset YAML (see `dataset_hilti2026.yaml` for the full shape).
    `calibration_type` and `download_issues` aren't YAML fields themselves — they inform how `create_calibration_yaml` and `get_download_issues` get implemented in step 4.
 
-4. **Copy the Python template and implement the class**: start from `Datasets/extra-files/dataset_template.py`, save as `Datasets/dataset_files/dataset_<name>.py`, subclass `DatasetVSLAMLab` (`Datasets/DatasetVSLAMLab.py`), name it `<NAME>_dataset` — study the source-pattern model from step 1 (and a sibling of the same mode: monocular/RGBD/stereo/stereo-VI, see the section comments in `get_dataset.py`) rather than writing from scratch.
+4. **Copy the Python template and implement the class**: start from `Datasets/extra-files/dataset_template.py`, save as `Datasets/dataset_files/dataset_<name>.py`, subclass `DatasetVSLAMLAB` (`Datasets/DatasetVSLAMLAB.py`), name it `<Name>Dataset` in PEP 8 CapWords (e.g. `soneva` -> `SonevaDataset`, `eiffel_tower` -> `EiffelTowerDataset`, `hilti2022` -> `Hilti2022Dataset` — capitalize each underscore-separated token of `dataset_name`, no acronym exceptions) — study the source-pattern model from step 1 (and a sibling of the same mode: monocular/RGBD/stereo/stereo-VI, see the section comments in `get_dataset.py`) rather than writing from scratch.
 
    @../../../Datasets/extra-files/dataset_template.py
 
@@ -116,11 +116,11 @@ The one exception to "create or modify" above is git itself: step 9 stages and c
    e. `create_calibration_yaml` (and `create_imu_csv` if applicable).
    f. `create_groundtruth_csv`, if `groundtruth_available`.
    g. `remove_unused_files`.
-   h. `get_download_issues`, if `download_issues` is non-blank — built via `_get_dataset_issue(issue_id=..., dataset_name=self.dataset_name, ...)` in `Datasets/DatasetVSLAMLab_issues.py`.
+   h. `get_download_issues`, if `download_issues` is non-blank — built via `_get_dataset_issue(issue_id=..., dataset_name=self.dataset_name, ...)` in `Datasets/DatasetVSLAMLAB_issues.py`.
 
 5. **Register it** in `Datasets/get_dataset.py`:
-   - Add `from Datasets.dataset_files.dataset_<name> import <NAME>_dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
-   - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <NAME>_dataset(),`.
+   - Add `from Datasets.dataset_files.dataset_<name> import <Name>Dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
+   - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <Name>Dataset(),`.
 
 6. **Create a smoke-test config + experiment pair** under `configs/`, following the shape of the closest sibling from step 2 (e.g. `test_config_sweetcorals.yaml`/`test_exp_sweetcorals.yaml`, `test_config_eth.yaml`/`test_exp_eth.yaml`, `test_config_videos.yaml`/`test_exp_videos.yaml`):
    - `configs/test_config_<name>.yaml` — a single `<dataset_name>:` key with a YAML list of sequence names to smoke-test:
@@ -159,7 +159,7 @@ The one exception to "create or modify" above is git itself: step 9 stages and c
    6. `create_groundtruth_csv`
    7. `remove_unused_files`
 
-   (Drop rows 4/6 if `create_imu_csv`/`create_groundtruth_csv` were deleted in step 4 because they don't apply to this dataset.) Instead of invoking the CLI as one opaque call, drive the same sequence yourself one hook at a time (e.g. `dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)` then call each method directly in the order above) so every stage's inputs and outputs can be inspected before moving to the next.
+   (Drop rows 4/6 if `create_imu_csv`/`create_groundtruth_csv` were deleted in step 4 because they don't apply to this dataset.) Instead of invoking the CLI as one opaque call, drive the same sequence yourself one hook at a time (e.g. `dataset = get_dataset(dataset_name)` then call each method directly in the order above) so every stage's inputs and outputs can be inspected before moving to the next.
 
    Keep the list above visible as a running checklist, updating each row's state as you go (`to be run` → `running` → `processed`), e.g.:
 

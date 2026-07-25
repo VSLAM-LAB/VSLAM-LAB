@@ -7,15 +7,15 @@ import numpy as np
 from typing import Final, Any
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 
 CAMERA_PARAMS: Final = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy, cx, cy)
 
 
-class REPLICA_dataset(DatasetVSLAMLab):
+class ReplicaDataset(DatasetVSLAMLAB):
     """REPLICA dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "replica") -> None:

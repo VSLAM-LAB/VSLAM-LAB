@@ -3,12 +3,12 @@ from pathlib import Path
 
 
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class OKVIS2_baseline(BaselineVSLAMLab):
+class OKVIS2_baseline(BaselineVSLAMLAB):
     """OKVIS2 helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'okvis2', baseline_folder: str = 'OKVIS2') -> None:

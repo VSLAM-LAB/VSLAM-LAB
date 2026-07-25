@@ -7,13 +7,13 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import decompressFile, downloadFile
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
 
-class HILTI2022_dataset(DatasetVSLAMLab):
+class Hilti2022Dataset(DatasetVSLAMLAB):
     """HILTI 2022 dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "hilti2022") -> None:

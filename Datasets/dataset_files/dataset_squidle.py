@@ -19,9 +19,9 @@ from typing import Final, Any
 from scipy.spatial.transform import Rotation
 
 from utilities import print_msg
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import Retention, BENCHMARK_RETENTION
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 CAMPAIGNS: Final = {"ssk16": "ssk16-01", "ssk17": "ssk17-01", "ssk18": "ssk18-01"}
@@ -51,7 +51,7 @@ ORIGIN_ZONE: Final = {
 IMAGE_CROP: Final = {"ssk16": [146,3], "ssk17": [6,13], "ssk18": [4,6],
                      "scottreef15_01": [0,0], "scottreef11_01": [0,0], "scottreef15_02": [0,0], "scottreef11_02": [0,0]}
 
-class SQUIDLE_dataset(DatasetVSLAMLab):
+class SquidleDataset(DatasetVSLAMLAB):
     """SQUIDLE dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "squidle") -> None:
@@ -226,7 +226,7 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
         return [_get_dataset_issue(issue_id="api_token", dataset_name=self.dataset_name, website=self.url_download_root, yaml_file=self.yaml_file)]
 
 
-class SESOKO_dataset(SQUIDLE_dataset):
+class SesokoDataset(SquidleDataset):
     """SESOKO dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "sesoko") -> None:
@@ -424,7 +424,7 @@ def _get_query_structure(sequence_name: str):
 }
     return query_structure
 
-class SCOTTREEF_dataset(SESOKO_dataset):
+class ScottreefDataset(SesokoDataset):
     """SCOTTREEF dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "scottreef") -> None:

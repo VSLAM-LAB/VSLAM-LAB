@@ -9,15 +9,15 @@ import numpy as np
 from urllib.parse import urljoin
 from typing import Final, Any
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 
 CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
 
 
-class TARTANAIR_dataset(DatasetVSLAMLab):
+class TartanairDataset(DatasetVSLAMLAB):
     """TARTANAIR dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "tartanair") -> None:

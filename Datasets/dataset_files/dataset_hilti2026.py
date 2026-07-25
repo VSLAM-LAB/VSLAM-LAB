@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 
@@ -18,7 +18,7 @@ IMAGE_TOPIC = "/image_raw/compressed"
 CALIBRATION_FILE = "kalibr_imucam_chain.yaml"
 
 
-class HILTI2026_dataset(DatasetVSLAMLab):
+class Hilti2026Dataset(DatasetVSLAMLAB):
     """HILTI 2026 dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "hilti2026") -> None:

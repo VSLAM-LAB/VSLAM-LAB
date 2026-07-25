@@ -4,15 +4,15 @@ import numpy as np
 import yaml
 import yt_dlp
 
-from Datasets.dataset_files.dataset_videos import VIDEOS_dataset
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.dataset_files.dataset_videos import VideosDataset
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 
 
-class YOUTUBE_dataset(VIDEOS_dataset):
+class YoutubeDataset(VideosDataset):
     """YOUTUBE dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "youtube") -> None:
-        DatasetVSLAMLab.__init__(self, dataset_name)
+        DatasetVSLAMLAB.__init__(self, dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:

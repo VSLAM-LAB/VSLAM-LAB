@@ -1,4 +1,4 @@
-class BenchmarkVSLAMLab:
+class BenchmarkVSLAMLAB:
     BM = {
         "droidslam": {
             "euroc": {

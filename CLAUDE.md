@@ -27,9 +27,9 @@ There's no linter/formatter configured yet. `ruff` is a reasonable option if one
 
 ## Project structure
 
-- `Baselines/baseline_files/*.py` — one class per SLAM baseline, subclassing `BaselineVSLAMLab` (`Baselines/BaselineVSLAMLab.py`).
+- `Baselines/baseline_files/*.py` — one class per SLAM baseline, subclassing `BaselineVSLAMLAB` (`Baselines/BaselineVSLAMLAB.py`).
 - `Baselines/<Name>/` — actual third-party baseline source, cloned in by `install-baseline` at setup time; gitignored, not part of this repo's history.
-- `Datasets/dataset_files/*.py` + paired `.yaml` — one class per dataset, subclassing `DatasetVSLAMLab`. `Datasets/extra-files/dataset_template.py`/`.yaml` is the starting template for a new dataset.
+- `Datasets/dataset_files/*.py` + paired `.yaml` — one class per dataset, subclassing `DatasetVSLAMLAB`. `Datasets/extra-files/dataset_template.py`/`.yaml` is the starting template for a new dataset.
 - `configs/` — experiment YAMLs (`exp_*.yaml`, referencing a `Config:` block that lists dataset:sequence pairs, `NumRuns`, `Parameters`, `Module`) and sequence-list configs (`config_*.yaml`). `test_*` files here are test experiment configs, not pytest.
 - `Run/` — pipeline execution logic.
 - `Evaluate/` — metrics and evaluation logic.
@@ -59,4 +59,4 @@ Don't hand-roll this per script — call `utilities.add_sequence_target_args(par
 - `dev` is a personal working branch, not a shared integration branch — it isn't a PR target on GitHub. Don't assume work should branch off `dev` or merge into it; treat it like any other local/scratch branch.
 - Work items are tracked as GitHub issues, labeled `baseline` / `dataset` / `capability` / `improvement` / `bug` (the last reuses GitHub's stock `bug` label). Use `gh issue list --label <label>` to browse by category, `gh issue create --label <label> ...` to file new ones.
 - Logging uses a per-file `SCRIPT_LABEL` ANSI-colored prefix pattern — follow existing baseline/dataset files for style when adding new ones.
-- Newer files (e.g. `BaselineVSLAMLab.py`, `baseline_orbslam2.py`) are fully type-hinted with module header docstrings (Author/Version/Created/Updated) — match this style in new files rather than older untyped ones.
+- Newer files (e.g. `BaselineVSLAMLAB.py`, `baseline_orbslam2.py`) are fully type-hinted with module header docstrings (Author/Version/Created/Updated) — match this style in new files rather than older untyped ones.

@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 from typing import Final, Any
 from collections.abc import Iterable
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
 
@@ -20,7 +20,7 @@ CAMERA_PARAMS = { # Camera intrinsics (fx, fy, cx, cy, k1, k2, p1, p2, k3)
 }
 
 
-class RGBDTUM_dataset(DatasetVSLAMLab):
+class RgbdtumDataset(DatasetVSLAMLAB):
     """TUM RGB-D dataset helper for VSLAM-LAB benchmark."""
     
     def __init__(self, dataset_name: str = "rgbdtum") -> None:

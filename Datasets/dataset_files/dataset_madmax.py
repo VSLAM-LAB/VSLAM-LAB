@@ -9,13 +9,13 @@ import pandas as pd
 import yaml
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile
 
 
-class MADMAX_dataset(DatasetVSLAMLab):
+class MadmaxDataset(DatasetVSLAMLAB):
     """MADMAX dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "madmax") -> None:

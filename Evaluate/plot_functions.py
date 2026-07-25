@@ -45,7 +45,7 @@ import matplotlib as mpl
 
 import logging
 
-from Evaluate.BenchmarkVSLAMLab import BenchmarkVSLAMLab as BM
+from Evaluate.BenchmarkVSLAMLAB import BenchmarkVSLAMLAB as BM
 
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 

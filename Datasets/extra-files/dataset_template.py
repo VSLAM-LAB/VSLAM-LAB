@@ -9,10 +9,10 @@ from urllib.parse import urljoin
 import numpy as np
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 
-class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
+class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLAB):
     """DATASET_NAME_TEMPLATE dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self):
@@ -61,7 +61,7 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
         # Fetch the raw sequence data and leave it under self.dataset_path / sequence_name,
         # in whatever shape the source ships it — the create_* hooks below normalize it into
         # VSLAM-LAB's standard layout. Skip re-downloading/re-decompressing if the target
-        # already exists (see check_sequence_availability in DatasetVSLAMLab.py).
+        # already exists (see check_sequence_availability in DatasetVSLAMLAB.py).
         # Pick the implementation matching this dataset's download pattern:
         #   website      -> utilities.downloadFile(url, self.dataset_path) + decompressFile(...)
         #                   Model: dataset_7scenes.py
@@ -119,7 +119,7 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
     def create_calibration_yaml(self, sequence_name: str) -> None:
         # Write calibration.yaml via self.write_calibration_yaml(rgb=[...], rgbd=[...], imu=[...]),
         # one dict per camera/IMU (cam_model, focal_length, principal_point, T_BS, ...) — see
-        # Datasets/DatasetVSLAMLab_calibration.py for the exact dict shape expected per cam_model.
+        # Datasets/DatasetVSLAMLAB_calibration.py for the exact dict shape expected per cam_model.
         # calibration_type from SKILL.md step 1 decides where the values come from:
         #   global       -> the same fixed values are written for every sequence
         #                   Model: dataset_7scenes.py (constant CAMERA_PARAMS)
@@ -160,7 +160,7 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
 
     def get_download_issues(self, _):
         # Only implement this if the dataset has one of the known constraints that block
-        # *automatic* download of a sequence (see Datasets/DatasetVSLAMLab_issues.py):
+        # *automatic* download of a sequence (see Datasets/DatasetVSLAMLAB_issues.py):
         #   "complete_dataset"  -> can't be split into per-sequence downloads (pass size_gb)
         #   "api_token"         -> requires an API token (pass website, yaml_file)
         #   "huggingface_token" -> requires a Hugging Face token (pass website, yaml_file)

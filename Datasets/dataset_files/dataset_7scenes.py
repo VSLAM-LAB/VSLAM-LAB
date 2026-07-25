@@ -9,7 +9,7 @@ import numpy as np
 from typing import Final, Any
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
 
@@ -17,7 +17,7 @@ SCENES = ['chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen', 'stairs']
 CAMERA_PARAMS: Final = [585.0, 585.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
 
 
-class SEVENSCENES_dataset(DatasetVSLAMLab):
+class SevenscenesDataset(DatasetVSLAMLAB):
     """7scenes dataset helper for VSLAM-LAB benchmark."""
     
     def __init__(self, dataset_name: str = "7scenes") -> None:

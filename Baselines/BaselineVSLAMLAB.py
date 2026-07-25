@@ -1,13 +1,13 @@
 
 """
-Module: VSLAM-LAB - Baselines - BaselineVSLAMLab.py
+Module: VSLAM-LAB - Baselines - BaselineVSLAMLAB.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2024-07-12
 - Updated: 2025-12-30
 - License: GPLv3 License
 
-BaselineVSLAMLab: A class to handle Visual SLAM baseline-related operations.
+BaselineVSLAMLAB: A class to handle Visual SLAM baseline-related operations.
 
 """
 
@@ -32,7 +32,7 @@ from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME, VSLAMLAB_VE
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class BaselineVSLAMLab(ABC):
+class BaselineVSLAMLAB(ABC):
     """Base baseline class for VSLAM-LAB."""
 
     # ---- Abstract hooks that concrete baselines must implement ----

@@ -7,11 +7,11 @@ from typing import Any
 
 import numpy as np
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from PIL import Image
 
 
-class IMAGEFOLDER_dataset(DatasetVSLAMLab):
+class IMAGEFOLDER_dataset(DatasetVSLAMLAB):
     def __init__(self):
         # Initialize the dataset
         super().__init__('imagefolder')

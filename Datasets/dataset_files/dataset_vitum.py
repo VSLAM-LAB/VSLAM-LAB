@@ -7,12 +7,12 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile
 
 
-class VITUM_dataset(DatasetVSLAMLab):
+class VitumDataset(DatasetVSLAMLAB):
     """VITUM dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "vitum") -> None:

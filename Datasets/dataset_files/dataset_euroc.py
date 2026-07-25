@@ -9,13 +9,13 @@ from typing import Any
 from decimal import Decimal
 from contextlib import suppress
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 
 
-class EUROC_dataset(DatasetVSLAMLab):
+class EurocDataset(DatasetVSLAMLAB):
     """EUROC MAV dataset helper for VSLAM-LAB benchmark."""
 
     _GROUP_INFO = {

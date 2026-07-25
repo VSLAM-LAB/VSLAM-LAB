@@ -8,12 +8,12 @@ from typing import  Any
 from pathlib import Path
 from huggingface_hub import hf_hub_download
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
 
 
-class OPENLORIS_dataset(DatasetVSLAMLab):
+class OpenlorisDataset(DatasetVSLAMLAB):
     """OPENLORIS dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "openloris") -> None:
@@ -103,7 +103,7 @@ def _get_compressed_file_name(sequence_name: str) -> str:
     if sequence_name.startswith("corridor1-1"):
         return "package/corridor1-1.7z"
     
-class OPENLORIS_d400_dataset(OPENLORIS_dataset):
+class OpenlorisD400Dataset(OpenlorisDataset):
     """OPENLORIS_d400 dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "openloris-d400") -> None:
@@ -189,7 +189,7 @@ class OPENLORIS_d400_dataset(OPENLORIS_dataset):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0], imu =[imu])
 
 
-class OPENLORIS_t265_dataset(OPENLORIS_dataset):
+class OpenlorisT265Dataset(OpenlorisDataset):
     """OPENLORIS_t265 dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "openloris-t265") -> None:

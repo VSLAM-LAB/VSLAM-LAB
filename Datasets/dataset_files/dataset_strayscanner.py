@@ -14,17 +14,17 @@ import yaml
 from huggingface_hub import HfApi, HfFileSystem, login
 from huggingface_hub.utils import disable_progress_bars
 
-from Datasets.dataset_files.dataset_videos import VIDEOS_dataset
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.dataset_files.dataset_videos import VideosDataset
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, HUGGINGFACE_TOKEN, Retention
 from utilities import decompressFile
 
 
-class StrayScanner_dataset(VIDEOS_dataset):
+class StrayscannerDataset(VideosDataset):
     """Iphone datasets from StrayScanner app"""
 
     def __init__(self, dataset_name: str = "strayscanner") -> None:
-        DatasetVSLAMLab.__init__(self, dataset_name)
+        DatasetVSLAMLAB.__init__(self, dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:

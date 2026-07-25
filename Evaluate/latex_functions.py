@@ -1,6 +1,6 @@
 from Datasets.get_dataset import get_dataset
 from Baselines.get_baseline import get_baseline
-from Evaluate.BenchmarkVSLAMLab import BenchmarkVSLAMLab as BM
+from Evaluate.BenchmarkVSLAMLAB import BenchmarkVSLAMLAB as BM
 
 import numpy as np
 import pandas as pd

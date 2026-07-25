@@ -7,11 +7,11 @@ import cv2
 import numpy as np
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import decompressFile, downloadFile
 
 
-class S3LI_dataset(DatasetVSLAMLab):
+class S3liDataset(DatasetVSLAMLAB):
     """DLR S3LI Etna & Vulcano dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "s3li") -> None:

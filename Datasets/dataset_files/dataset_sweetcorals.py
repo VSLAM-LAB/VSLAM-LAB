@@ -16,7 +16,7 @@ import yaml
 from PIL import Image
 
 from Datasets.dataset_files.dataset_soneva import HFColmapDatasetMixin
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import (
     ensure_hf_sequence_download, hf_token, read_colmap_cameras, read_colmap_images, world_to_camera_to_pose,
     write_csv_rows,
@@ -73,7 +73,7 @@ _RAW_CAMERA_SUBFOLDERS = {
 }
 
 
-class SWEETCORALS_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
+class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
     """SWEETCORALS dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "sweetcorals") -> None:
@@ -180,5 +180,5 @@ class SWEETCORALS_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
     def _remote_sequence_name(sequence_name: str) -> str:
         """The HFColmapDatasetMixin._fetch_colmap_file() override point - this dataset's remote
         top-level folder names are a hardcoded table rather than looked up dynamically (contrast
-        SONEVA_dataset's HfApi-backed version)."""
+        SonevaDataset's HfApi-backed version)."""
         return _REMOTE_FOLDER[sequence_name]

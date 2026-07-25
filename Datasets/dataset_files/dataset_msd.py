@@ -12,11 +12,11 @@ from zipfile import ZipFile
 from huggingface_hub import hf_hub_download
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import Retention, BENCHMARK_RETENTION
 
 
-class MSD_dataset(DatasetVSLAMLab):
+class MsdDataset(DatasetVSLAMLAB):
     """MSD dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "msd") -> None:    

@@ -180,7 +180,7 @@ def list_image_files_in_folder(folder_path):
 # counterparts) under VSLAMLAB_BENCHMARK. Currently used by the sequence-target CLI machinery
 # below and the scripts built on it (Datasets/extra-files/*.py) - the plan is for these to become
 # the canonical way any VSLAM-LAB code builds these paths. TODO: migrate other ad-hoc path
-# construction across the codebase (e.g. Datasets/DatasetVSLAMLab.py, vslamlab_utilities.py) to
+# construction across the codebase (e.g. Datasets/DatasetVSLAMLAB.py, vslamlab_utilities.py) to
 # use them - tracked in issue #64.
 ##################################################################################################################################################
 def sequence_path(dataset_name: str, sequence_name: str) -> Path:
@@ -699,7 +699,7 @@ def compute_scaled_size(
 # The hand-rolled, colorama-based logging story used across most of the codebase (print_msg is
 # used in 16+ files) alongside per-file SCRIPT_LABEL prefixes (CLAUDE.md's "Logging uses a
 # per-file SCRIPT_LABEL ANSI-colored prefix pattern" convention). Note loguru is already a pixi
-# dependency and already used directly (bypassing print_msg) in Datasets/DatasetVSLAMLab.py and
+# dependency and already used directly (bypassing print_msg) in Datasets/DatasetVSLAMLAB.py and
 # dataset_squidle.py - two parallel logging approaches coexist today. TODO: design a single,
 # consistent logging story (loguru-based or otherwise) and adopt it across VSLAM-LAB - tracked in
 # issue #68.

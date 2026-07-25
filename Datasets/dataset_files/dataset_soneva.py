@@ -22,8 +22,8 @@ from huggingface_hub import HfApi, hf_hub_download
 from PIL import Image
 from tqdm import tqdm
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import (
     compute_scaled_size, ensure_hf_sequence_download, hf_token, make_printers, read_colmap_cameras,
@@ -40,13 +40,13 @@ _REMOTE_SEQUENCE_PREFIX = "maldives_soneva_"
 
 class HFColmapDatasetMixin:
     """Shared logic for a Hugging-Face-sourced dataset with a per-sequence COLMAP reconstruction,
-    used by both SONEVA_dataset (below) and SWEETCORALS_dataset (dataset_sweetcorals.py, which
+    used by both SonevaDataset (below) and SweetcoralsDataset (dataset_sweetcorals.py, which
     imports this mixin from here rather than utilities.py, since it's specific to this pair of
     datasets). Concrete classes still define their own __init__, download_sequence_data,
     create_calibration_yaml, and create_groundtruth_csv - only the parts that were byte-identical
     between the two are here. _fetch_colmap_file() is also here (a template method), but concrete
     classes must provide _remote_sequence_name(sequence_name): the one piece that actually differs
-    (a dynamic HfApi lookup in SONEVA_dataset vs. a hardcoded table in SWEETCORALS_dataset). The
+    (a dynamic HfApi lookup in SonevaDataset vs. a hardcoded table in SweetcoralsDataset). The
     COLMAP binary-format parsing itself (read_colmap_cameras/read_colmap_images/
     world_to_camera_to_pose) lives in utilities.py instead, since it doesn't depend on either
     dataset - only fetching the file to parse does."""
@@ -112,7 +112,7 @@ class HFColmapDatasetMixin:
     def remove_unused_files(self, sequence_name: str) -> None:
         # Deliberately narrow: only rgb_0_raw/ (the resized-away raw images) is ever removed, even
         # at MINIMAL retention. Anything else a concrete subclass keeps around - e.g.
-        # SONEVA_dataset's all_files_cache.json, a dataset-wide (not per-sequence) HfApi listing
+        # SonevaDataset's all_files_cache.json, a dataset-wide (not per-sequence) HfApi listing
         # cache reused across every sequence's download - is left alone here; override this method
         # if a subclass needs to clean up more.
         sequence_path = self.sequence_path(sequence_name)
@@ -132,7 +132,7 @@ class HFColmapDatasetMixin:
         return Path(local_path)
 
 
-class SONEVA_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
+class SonevaDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
     """SONEVA dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "soneva") -> None:

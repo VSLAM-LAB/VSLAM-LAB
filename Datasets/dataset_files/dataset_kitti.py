@@ -9,13 +9,13 @@ import numpy as np
 from typing import  Any
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 
 
-class KITTI_dataset(DatasetVSLAMLab):
+class KittiDataset(DatasetVSLAMLAB):
     """KITTI dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "kitti") -> None:

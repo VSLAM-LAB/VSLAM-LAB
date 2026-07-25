@@ -6,14 +6,14 @@ import yaml
 import numpy as np
 from typing import Final, Any
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 
 CAMERA_PARAMS: Final = [481.20, -480.00, 319.50, 239.50] # Camera intrinsics (fx, fy, cx, cy)
 
 
-class NUIM_dataset(DatasetVSLAMLab):
+class NuimDataset(DatasetVSLAMLAB):
     """NUIM dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "nuim") -> None:

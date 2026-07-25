@@ -6,14 +6,14 @@ from typing import Final, Any
 import numpy as np
 import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile
 
 CAMERA_PARAMS: Final = [405.6384738851233, 405.588335378204, 189.9054317917407, 139.9149578253755] # Camera intrinsics (fx, fy, cx, cy)
 
 
-class CAVES_dataset(DatasetVSLAMLab):
+class CavesDataset(DatasetVSLAMLAB):
     """CAVES dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "caves") -> None:

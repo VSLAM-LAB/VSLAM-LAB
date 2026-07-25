@@ -1,11 +1,11 @@
 import os.path
 from pathlib import Path
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class PYCUVSLAM_baseline(BaselineVSLAMLab):
+class PYCUVSLAM_baseline(BaselineVSLAMLAB):
     """PyCuVSLAM helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'pycuvslam', baseline_folder: str = 'PyCuVSLAM') -> None:

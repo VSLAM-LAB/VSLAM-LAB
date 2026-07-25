@@ -13,12 +13,12 @@ from urllib.parse import urljoin
 from typing import Any
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from utilities import downloadFile, decompressFile
 from path_constants import Retention, BENCHMARK_RETENTION
 
 
-class UT_CODA_dataset(DatasetVSLAMLab):
+class UtCodaDataset(DatasetVSLAMLAB):
     """UT_CODA dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "ut-coda") -> None:

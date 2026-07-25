@@ -9,11 +9,11 @@ from zipfile import ZipFile
 from huggingface_hub import login
 from huggingface_hub import hf_hub_download
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import HUGGINGFACE_TOKEN, BENCHMARK_RETENTION, Retention
 
 
-class HAMLYN_dataset(DatasetVSLAMLab):
+class HamlynDataset(DatasetVSLAMLAB):
     """HAMLYN dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "hamlyn") -> None:

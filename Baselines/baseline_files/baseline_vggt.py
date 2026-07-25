@@ -1,11 +1,11 @@
 import os.path
 from pathlib import Path
 
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
-class VGGT_baseline(BaselineVSLAMLab):
+class VGGT_baseline(BaselineVSLAMLAB):
     """vggt helper for VSLAM-LAB Baselines."""
     def __init__(self, baseline_name='vggt', baseline_folder='VGGT'):
 

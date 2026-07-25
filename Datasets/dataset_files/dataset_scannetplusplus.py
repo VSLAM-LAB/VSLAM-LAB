@@ -5,9 +5,9 @@ import json
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 
-class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
+class ScannetplusplusDataset(DatasetVSLAMLAB):
     """SCANNETPLUSPLUS dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "scannetplusplus") -> None:

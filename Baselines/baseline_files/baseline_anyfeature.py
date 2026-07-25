@@ -5,12 +5,12 @@ from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class ANYFEATURE_baseline(BaselineVSLAMLab):
+class ANYFEATURE_baseline(BaselineVSLAMLAB):
     """AnyFeature-VSLAM helper for VSLAM-LAB Baselines."""    
 
     def __init__(self, baseline_name: str = 'anyfeature', baseline_folder: str = 'AnyFeature-VSLAM') -> None:    

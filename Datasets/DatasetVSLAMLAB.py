@@ -1,12 +1,12 @@
 """
-Module: VSLAM-LAB - Datasets - DatasetVSLAMLab.py
+Module: VSLAM-LAB - Datasets - DatasetVSLAMLAB.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2024-07-12
 - Updated: 2025-12-30
 - License: GPLv3 License
 
-DatasetVSLAMLab: A class to handle Visual SLAM dataset-related operations.
+DatasetVSLAMLAB: A class to handle Visual SLAM dataset-related operations.
 
 """
 
@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 
 from utilities import ws, print_msg
 from path_constants import GROUNTRUTH_FILE, RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK
-from Datasets.DatasetVSLAMLab_calibration import (
+from Datasets.DatasetVSLAMLAB_calibration import (
     _get_rgb_yaml_section,
     _get_imu_yaml_section,
     _get_rgbd_yaml_section
@@ -28,7 +28,7 @@ from Datasets.DatasetVSLAMLab_calibration import (
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class DatasetVSLAMLab(ABC):
+class DatasetVSLAMLAB(ABC):
     """Base dataset class for VSLAM-LAB."""
 
     # ---- Abstract hooks that concrete datasets must implement ----

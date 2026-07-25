@@ -3,12 +3,12 @@ from pathlib import Path
 from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class COLMAP_baseline(BaselineVSLAMLab):
+class COLMAP_baseline(BaselineVSLAMLAB):
     """colmap helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'colmap', baseline_folder: str = 'colmap') -> None:
