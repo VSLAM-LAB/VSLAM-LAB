@@ -190,7 +190,6 @@ class SonevaDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
         groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         raw_to_colmap = self._read_image_mapping(sequence_name)

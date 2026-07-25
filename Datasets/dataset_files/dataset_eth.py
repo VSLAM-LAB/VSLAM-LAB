@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_eth.py
 
 from __future__ import annotations
 
-import csv
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Final
@@ -113,15 +112,12 @@ class EthDataset(DatasetVSLAMLAB):
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "groundtruth.txt"
-        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         if not groundtruth_txt.exists():
             raise FileNotFoundError(f"Missing groundtruth: {groundtruth_txt}")
 
-        with open(groundtruth_txt, "r", encoding="utf-8") as fin, open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
+        rows = []
+        with open(groundtruth_txt, "r", encoding="utf-8") as fin:
             for line in fin:
                 s = line.strip()
                 if not s or s.startswith("#"):
@@ -129,9 +125,9 @@ class EthDataset(DatasetVSLAMLAB):
 
                 parts = s.split()
                 ts_ns = int(float(parts[0]) * 1e9)
-                w.writerow([ts_ns] + parts[1:])
+                rows.append([ts_ns] + parts[1:])
 
-        tmp.replace(groundtruth_csv)
+        write_csv_rows(self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

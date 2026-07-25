@@ -113,12 +113,16 @@ class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
+
         if sequence_name != _PINHOLE_SEQUENCE:
+            # No calibration/pose data is published for this sequence's raw fisheye images -
+            # still write the file (header only, no rows) rather than leaving it missing.
+            write_csv_rows(groundtruth_csv, header, [])
             return
 
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
-        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
         rgb_files = sorted(file_path.name for file_path in rgb_path.iterdir() if file_path.is_file())
 
@@ -132,7 +136,7 @@ class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
             ts_ns = int(i * 1e9 / self.rgb_hz)
             rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
 
-        write_csv_rows(groundtruth_csv, ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows)
+        write_csv_rows(groundtruth_csv, header, rows)
 
     @staticmethod
     def _remote_sequence_name(sequence_name: str) -> str:

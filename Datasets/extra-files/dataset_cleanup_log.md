@@ -19,7 +19,7 @@ skill's file scope — this is a separate, ongoing hygiene pass across existing 
 
 4. **Redundant yaml reopen** — subclass `__init__` should read dataset-specific fields from `self.cfg` (set by `DatasetVSLAMLAB.__init__`), not reopen/re-parse `self.yaml_file` itself. If a subclass still does `with open(self.yaml_file...) as f: cfg = yaml.safe_load(f)`, switch it to `self.cfg` and drop the now-unused `import yaml` if nothing else in the file needs it.
 
-5. **Unused `sequence_path` locals** — `sequence_path = self.sequence_path(sequence_name)` assigned but never read afterward (the method builds `rgb_path`/other paths via other helpers instead). Fixed in `dataset_soneva.py`'s `create_rgb_csv` and `create_calibration_yaml`, and `dataset_sweetcorals.py`'s `create_calibration_yaml`. Still present in both files' `create_groundtruth_csv` — scoped to that pass.
+5. **Unused `sequence_path` locals** — `sequence_path = self.sequence_path(sequence_name)` assigned but never read afterward (the method builds `rgb_path`/other paths via other helpers instead). **Closed**: all instances fixed across `dataset_soneva.py`/`dataset_sweetcorals.py`'s `create_rgb_csv`/`create_calibration_yaml`/`create_groundtruth_csv`.
 
 6. **`check_sequence_integrity` mode coverage (base class)** — `DatasetVSLAMLAB.check_sequence_integrity` only conditionally checks `rgb_1/` (stereo) and IMU CSV (mono-vi); there's no check for `depth_0/` when `'rgbd' in self.modes`. A mono-only download can get marked `"available"` and skip re-download even though `depth_0/` was never fetched, for any rgbd dataset. Tracked in [#76](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/76). Not dataset-file-specific, so this is a `DatasetVSLAMLAB.py` fix, not something a per-dataset pass can resolve on its own.
 
@@ -181,5 +181,19 @@ Import cleanup from the extraction: `dataset_sweetcorals.py` no longer uses `rea
 Verified against real previously-downloaded data (not just syntax/instantiation): regenerated `calibration.yaml` for `soneva/hb_20250710`, `sweetcorals/tabuhan_p1` (pinhole branch), and `sweetcorals/watudodol_p1` (non-pinhole/"unknown" branch) against a saved pre-refactor baseline of each — all three byte-identical after the refactor.
 
 `dataset_eth.py`'s `create_calibration_yaml` (per-sequence `calibration.txt` parsing, unrelated pattern) reviewed, no issues found.
+
+Commit: `5173f18`
+
+### 2026-07-25 — `create_groundtruth_csv` pass
+
+Files: `dataset_eth.py`, `dataset_soneva.py`, `dataset_sweetcorals.py`.
+
+Fixed (checklist item 5, now fully closed): removed dead `sequence_path` from `dataset_soneva.py`'s and `dataset_sweetcorals.py`'s `create_groundtruth_csv` — the last two remaining instances.
+
+Bug found and fixed: `dataset_sweetcorals.py`'s `create_groundtruth_csv` did `if sequence_name != _PINHOLE_SEQUENCE: return` — for every non-pinhole sequence (12 of 13) it wrote **no `groundtruth.csv` at all**, violating the template's own documented convention ("Always create this file... write just the header row... rather than... leaving no file at all. Model: `dataset_videos.py`"), which `dataset_videos.py` itself confirms in practice. Confirmed live: the already-downloaded `watudodol_p1` (non-pinhole) had no `groundtruth.csv` on disk. Fixed by writing a header-only `groundtruth.csv` via `write_csv_rows(groundtruth_csv, header, [])` for non-pinhole sequences instead of returning early.
+
+Also refactored (matching the `create_rgb_csv` pass's precedent): `dataset_eth.py`'s `create_groundtruth_csv` hand-rolled the same open/`csv.writer`/tmp/`.replace()` pattern `write_csv_rows` already covers. Refactored to build a `rows` list and call `write_csv_rows`; `import csv` was then fully unused in the file (its only other use was the `create_rgb_csv` this same pattern was already removed from) and was dropped.
+
+Verified: `table_3` (the only locally-downloaded eth sequence) already had its raw `groundtruth.txt` removed by `remove_unused_files` at this retention level, so the eth refactor was verified with a synthetic before/after comparison (crafted `groundtruth.txt` with blank lines/comments/multiple rows) instead — byte-identical old vs. new. soneva/sweetcorals were verified against real downloaded data: regenerated `groundtruth.csv` for `soneva/hb_20250710` and `sweetcorals/tabuhan_p1` (pinhole) — both byte-identical to pre-fix baselines (dead-variable removal doesn't change output) — and `sweetcorals/watudodol_p1` (non-pinhole) now correctly produces a header-only file where none existed before.
 
 Commit: *(pending — not yet committed)*
