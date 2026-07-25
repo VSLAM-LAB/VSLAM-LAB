@@ -10,15 +10,16 @@ Module: VSLAM-LAB - Datasets - dataset_nuim.py
 
 from __future__ import annotations
 
-import os
 import csv
-import yaml
+import os
+from typing import Any, Final
+
 import numpy as np
-from typing import Final, Any
+import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
+from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from utilities import decompressFile, downloadFile
 
 CAMERA_PARAMS: Final = [481.20, -480.00, 319.50, 239.50] # Camera intrinsics (fx, fy, cx, cy)
 

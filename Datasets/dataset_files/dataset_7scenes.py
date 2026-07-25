@@ -10,18 +10,19 @@ Module: VSLAM-LAB - Datasets - dataset_7scenes.py
 
 from __future__ import annotations
 
-import os
 import csv
 import glob
-import yaml
+import os
 import shutil
+from typing import Any, Final
+
 import numpy as np
-from typing import Final, Any
+import yaml
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import decompressFile, downloadFile
 
 SCENES = ['chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen', 'stairs']
 CAMERA_PARAMS: Final = [585.0, 585.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)

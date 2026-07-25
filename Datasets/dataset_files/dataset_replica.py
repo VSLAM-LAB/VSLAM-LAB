@@ -11,16 +11,18 @@ Module: VSLAM-LAB - Datasets - dataset_replica.py
 from __future__ import annotations
 
 import csv
-import yaml
-import os, shutil 
+import os
+import shutil
+from typing import Any, Final
+
 import numpy as np
-from typing import Final, Any
+import yaml
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
+from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from utilities import decompressFile, downloadFile
 
 CAMERA_PARAMS: Final = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy, cx, cy)
 

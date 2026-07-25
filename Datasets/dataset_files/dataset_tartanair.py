@@ -10,18 +10,18 @@ Module: VSLAM-LAB - Datasets - dataset_tartanair.py
 
 from __future__ import annotations
 
-import os
 import csv
-import yaml
+import os
 import shutil
+from typing import Any, Final
+
 import numpy as np
-from urllib.parse import urljoin
-from typing import Final, Any
+import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
+from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from utilities import decompressFile, downloadFile
 
 CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
 

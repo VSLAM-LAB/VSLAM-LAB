@@ -10,16 +10,16 @@ Module: VSLAM-LAB - Datasets - dataset_rgbdtum.py
 
 from __future__ import annotations
 
-import yaml
+from typing import Any, Final
+from urllib.parse import urljoin
+
 import numpy as np
 import pandas as pd
-from urllib.parse import urljoin
-from typing import Final, Any
-from collections.abc import Iterable
+import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import decompressFile, downloadFile
 
 TIME_DIFF_THRESH: Final = 0.02  # seconds for RGB/Depth association
 
