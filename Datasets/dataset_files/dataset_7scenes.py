@@ -6,7 +6,6 @@ import glob
 import yaml
 import shutil
 import numpy as np
-from pathlib import Path
 from typing import Final, Any
 from scipy.spatial.transform import Rotation as R
 
@@ -21,8 +20,8 @@ CAMERA_PARAMS: Final = [585.0, 585.0, 320.0, 240.0] # Camera intrinsics (fx, fy,
 class SEVENSCENES_dataset(DatasetVSLAMLab):
     """7scenes dataset helper for VSLAM-LAB benchmark."""
     
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "7scenes") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "7scenes") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -63,7 +62,7 @@ class SEVENSCENES_dataset(DatasetVSLAMLab):
 
         # Constants
         compressed_file = self.dataset_path / sequence_group / compressed_name_ext
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         decompressed_folder = sequence_path
 
         if not decompressed_folder.exists():
@@ -71,7 +70,7 @@ class SEVENSCENES_dataset(DatasetVSLAMLab):
             os.rename(self.dataset_path / decompressed_name, sequence_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         modes = ['color', 'depth']
         folder = {'color': 'rgb_0', 'depth': 'depth_0'}
         for mode in modes:
@@ -90,8 +89,8 @@ class SEVENSCENES_dataset(DatasetVSLAMLab):
                 os.remove(png_file)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
         tmp = rgb_csv.with_suffix(".csv.tmp")
@@ -126,8 +125,8 @@ class SEVENSCENES_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
         
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        groundtruth_csv = sequence_path / 'groundtruth.csv'
+        sequence_path = self.sequence_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         pose_files = glob.glob(str(sequence_path / '*.pose.txt'))
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
         pose_files.sort()

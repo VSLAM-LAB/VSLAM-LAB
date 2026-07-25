@@ -14,7 +14,7 @@ def generate_latex_tables(values, dataset_sequences, metric, figures_path, exper
     all_seq_keys = []        # list of (dataset_name, seq_name) keys for indexing values
     all_seq_labels = []      # list of pretty names for LaTeX header
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, "-")
+        dataset = get_dataset(dataset_name)
         for sequence_name in sequence_names:
             all_seq_keys.append((dataset_name, sequence_name))
             all_seq_labels.append(dataset.get_sequence_nickname(sequence_name))

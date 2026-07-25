@@ -2,7 +2,6 @@ import os
 import yaml
 import shutil
 import subprocess
-from pathlib import Path
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 from utilities import downloadFile
@@ -15,8 +14,8 @@ from path_constants import VSLAM_LAB_DIR
 class MONOTUM_dataset(DatasetVSLAMLab):
     """MONOTUM dataset helper for VSLAM-LAB benchmark."""
     
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "monotum") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "monotum") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -29,7 +28,7 @@ class MONOTUM_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [s.replace('sequence_', 'seq ') for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if sequence_path.exists():
             return
         
@@ -53,9 +52,8 @@ class MONOTUM_dataset(DatasetVSLAMLab):
 
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / 'rgb_0'
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         rgb_path.mkdir(parents=True, exist_ok=True)
 
 
@@ -65,7 +63,7 @@ class MONOTUM_dataset(DatasetVSLAMLab):
         os.remove(os.path.join(sequence_path, 'images.zip'))
 
     def create_rgb_csv(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.sequence_path(sequence_name)
         rgb_path = os.path.join(sequence_path, 'rgb')
         rgb_txt = os.path.join(sequence_path, 'rgb.txt')
 
@@ -86,7 +84,7 @@ class MONOTUM_dataset(DatasetVSLAMLab):
 
     def create_calibration_yaml(self, sequence_name):
 
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.sequence_path(sequence_name)
         calibration_txt = os.path.join(sequence_path, 'calibration.txt')
         with open(calibration_txt, 'r') as file:
             calibration = [value for value in file.readline().split()]
@@ -97,7 +95,7 @@ class MONOTUM_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml('OPENCV', fx, fy, cx, cy, k1, k2, p1, p2, k3, sequence_name)
 
     def create_groundtruth_csv(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
 
         with open(os.path.join(sequence_path, 'groundtruthSync.txt')) as source_file:
@@ -107,8 +105,7 @@ class MONOTUM_dataset(DatasetVSLAMLab):
                         destination_file.write(line)
 
     def remove_unused_files(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
-
+        sequence_path = self.sequence_path(sequence_name)
         #os.remove(os.path.join(sequence_path, 'calibration.txt'))
         #os.remove(os.path.join(sequence_path, 'camera.txt'))
         #os.remove(os.path.join(sequence_path, 'pcalib.txt'))

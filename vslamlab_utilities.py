@@ -147,7 +147,7 @@ def evaluate_exp(exp_yaml: str | Path, overwrite: bool = False) -> None:
         with open(exp.config_yaml, 'r') as file:
             config_file_data = yaml.safe_load(file)
             for dataset_name, sequence_names in config_file_data.items():
-                dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+                dataset = get_dataset(dataset_name)
                 for sequence_name in sequence_names:
                     if first_evaluation_found:
                         print_msg(f"\n{SCRIPT_LABEL}", f"Evaluating (in {VSLAMLAB_EVALUATION}) ...")
@@ -184,7 +184,7 @@ def run_exp(exp_yaml: str | Path) -> None:
             first_not_finished_experiment = exp_log[exp_log["STATUS"] != "completed"].index.min()
             row = exp_log.loc[first_not_finished_experiment]
             baseline = get_baseline(row['method_name'])
-            dataset = get_dataset(row['dataset_name'], VSLAMLAB_BENCHMARK)    
+            dataset = get_dataset(row['dataset_name'])    
 
             if num_executed_runs == 0:
                 print(f"\n{SCRIPT_LABEL}Running experiments (in {exp_yaml}) ...")
@@ -226,24 +226,24 @@ def run_exp(exp_yaml: str | Path) -> None:
 ##################################################################################################################################################
 
 def download_sequence(dataset_name: str, sequence_name: str) -> None:
-    dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+    dataset = get_dataset(dataset_name)
     dataset.download_sequence(sequence_name)
 
 def download_sequences(dataset_sequence_name: list[str]) -> None:
     for i in range(0, len(dataset_sequence_name), 2):
         dataset_name = dataset_sequence_name[i]
         sequence_name = dataset_sequence_name[i + 1]
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         dataset.download_sequence(sequence_name)
 
 def download_dataset(dataset_name: str) -> None:
-    dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+    dataset = get_dataset(dataset_name)
     for sequence_name in dataset.get_sequence_names():
         dataset.download_sequence(sequence_name)
 
 def download_datasets(dataset_names: list[str]) -> None:
     for dataset_name in dataset_names:
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         for sequence_name in dataset.get_sequence_names():
             dataset.download_sequence(sequence_name)
 
@@ -335,7 +335,7 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
         with open(config_file, 'r') as file:
             config_file_data = yaml.safe_load(file)
             for dataset_name, sequence_names in config_file_data.items():
-                dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+                dataset = get_dataset(dataset_name)
                 for sequence_name in sequence_names: 
                     sequences[sequence_name] = dataset_name
     
@@ -344,7 +344,7 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
     num_total_sequences = len(sequences)
     num_available_sequences = 0
     for sequence_name, dataset_name in sequences.items():
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         if dataset_name not in sequences_to_download:
             sequences_to_download[dataset_name] = []
         if dataset.check_sequence_availability(sequence_name, verbose = False) == "available":
@@ -364,7 +364,7 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
     for dataset_name, sequence_names in sequences_to_download.items():
         if sequence_names == []:
             continue
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         issues_seq = dataset.get_download_issues(sequence_names)
         if issues_seq:
             if not first_download_issue_found:
@@ -425,7 +425,7 @@ def get_experiment_resources(exp_yaml: str | Path) -> None:
 
     first_time = True
     for dataset_name, sequence_names in sequences_to_download.items():
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         for sequence_name in sequence_names:
             if first_time:
                 print(f"\n{SCRIPT_LABEL}Downloading (to {VSLAMLAB_BENCHMARK}) ...")
@@ -603,7 +603,7 @@ def check_experiment_sequence_names(exp_data: Any, exp_yaml: str | Path) -> None
                 errors.append(f"[Error] Dataset '{dataset_name}' doesn't exist (in config '{config_file}').")
                 continue
 
-            dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+            dataset = get_dataset(dataset_name)
 
             for sequence_name in sequence_names:
                 if not dataset.contains_sequence(sequence_name):
@@ -665,7 +665,7 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mo
         config_file_data = load_yaml_file(config_file)
     
         for dataset_name in config_file_data.keys():
-            dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+            dataset = get_dataset(dataset_name)
             if mode not in dataset.modes:
                 errors.append(
                     f"[Error] Dataset '{dataset_name}' (in config '{config_file}') doesn't handle mode "

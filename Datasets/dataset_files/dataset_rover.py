@@ -76,8 +76,8 @@ class ROVER_dataset(DatasetVSLAMLab):
     # persist between get_dataset calls
     seq2group = {}
     
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "rover") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -94,7 +94,7 @@ class ROVER_dataset(DatasetVSLAMLab):
         location, setting, sensor, date = self._sequence_data_from_name(sequence_name)
         sequence_group_name = "_".join([location, setting, date])
         resource_name = "_".join([location, date])
-        sequence_path = (self.dataset_path / sequence_name).resolve()
+        sequence_path = self.sequence_path(sequence_name).resolve()
         sequence_group_path = (VSLAMLAB_BENCHMARK / 'ROVER' / sequence_group_name).resolve()
         sequence_subdir = sequence_group_path / self.SENSOR_NICKNAMES[sensor]
         
@@ -122,10 +122,9 @@ class ROVER_dataset(DatasetVSLAMLab):
         self.seq2group[sequence_name] = sequence_group_path
    
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         src = sequence_path / "imu" /  "imu.txt"
-        dst = sequence_path / "imu_0.csv"
-
+        dst = self.imu_csv_path(sequence_name)
         if not src.exists():
             return
 
@@ -154,9 +153,9 @@ class ROVER_dataset(DatasetVSLAMLab):
                 tmp.unlink()
   
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         gt_src = self.seq2group[sequence_name] / "groundtruth.txt"
-        gt_dst_csv = sequence_path / "groundtruth.csv"
+        gt_dst_csv = self.groundtruth_csv_path(sequence_name)
         header = "ts (ns),tx (m),ty (m),tz (m),qx,qy,qz,qw\n"
                      
         with open(gt_dst_csv, "w") as dst, open(gt_src, "r") as src:
@@ -218,19 +217,19 @@ class ROVER_dataset(DatasetVSLAMLab):
 class ROVER_t265_dataset(ROVER_dataset):    
     """ROVER T265 dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover-t265") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "rover-t265") -> None:
+        super().__init__(dataset_name)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for raw, dst in (("cam_left", "rgb_0"), ("cam_right", "rgb_1")):
             src, tgt = sequence_path / raw, sequence_path / dst
             if src.is_dir() and not tgt.exists():
                 os.symlink(src, tgt)  
        
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / 'rgb.csv'
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         cols = ['ts', 'path']
         df_left = pd.read_csv(sequence_path / "cam_left.txt", sep=' ', header=None, names=cols)
         df_right = pd.read_csv(sequence_path / "cam_right.txt", sep=' ', header=None, names=cols)
@@ -282,8 +281,8 @@ class ROVER_t265_dataset(ROVER_dataset):
 class ROVER_d435i_dataset(ROVER_dataset):    
     """ROVER D435i dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover-d435i") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "rover-d435i") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -293,16 +292,15 @@ class ROVER_d435i_dataset(ROVER_dataset):
         self.depth_factor = cfg["depth_factor"]
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
             src, tgt = sequence_path / raw, sequence_path / dst
             if src.is_dir() and not tgt.exists():
                 src.replace(tgt)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / 'rgb.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_txt = sequence_path / 'rgb.txt'
         depth_txt = sequence_path / 'depth.txt'
         # Load monotonically sorted timestamps
@@ -361,19 +359,18 @@ class ROVER_d435i_dataset(ROVER_dataset):
 class ROVER_picam_dataset(ROVER_dataset):    
     """ROVER Picam dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rover-picam") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "rover-picam") -> None:
+        super().__init__(dataset_name)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         src, tgt = sequence_path / 'rgb', sequence_path / 'rgb_0'
         if src.is_dir() and not tgt.exists():
             os.symlink(src, tgt)     
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / 'rgb.csv'
-   
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         cols = ['ts', 'path']
         df = pd.read_csv(sequence_path / "rgb.txt", sep=' ', header=None, names=cols)
         df['path'] = df['path'].str.replace('rgb/', 'rgb_0/', regex=False)

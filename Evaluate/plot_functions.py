@@ -202,7 +202,7 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
     num_sequences = 0
     splts = {}
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, " ")
+        dataset = get_dataset(dataset_name)
         for sequence_name in sequence_names:
             splts[sequence_name]= {}
             splts[sequence_name]['id']= num_sequences
@@ -678,7 +678,7 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
     num_sequences = 0
     splts = {}
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, " ")
+        dataset = get_dataset(dataset_name)
         for sequence_name in sequence_names:
             splts[sequence_name] = {}
             splts[sequence_name]['id'] = num_sequences

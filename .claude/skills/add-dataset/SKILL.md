@@ -120,7 +120,7 @@ The one exception to "create or modify" above is git itself: step 9 stages and c
 
 5. **Register it** in `Datasets/get_dataset.py`:
    - Add `from Datasets.dataset_files.dataset_<name> import <NAME>_dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
-   - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <NAME>_dataset(benchmark_path),`.
+   - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <NAME>_dataset(),`.
 
 6. **Create a smoke-test config + experiment pair** under `configs/`, following the shape of the closest sibling from step 2 (e.g. `test_config_sweetcorals.yaml`/`test_exp_sweetcorals.yaml`, `test_config_eth.yaml`/`test_exp_eth.yaml`, `test_config_videos.yaml`/`test_exp_videos.yaml`):
    - `configs/test_config_<name>.yaml` — a single `<dataset_name>:` key with a YAML list of sequence names to smoke-test:

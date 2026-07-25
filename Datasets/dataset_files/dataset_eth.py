@@ -19,8 +19,8 @@ MAX_NICKNAME_LEN: Final = 15
 class ETH_dataset(DatasetVSLAMLab):
     """ETH dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "eth") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "eth") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -50,7 +50,7 @@ class ETH_dataset(DatasetVSLAMLab):
             download_url = urljoin(self.url_download_root, f"datasets/{compressed_name}")
 
             compressed_file = self.dataset_path / compressed_name
-            decompressed_folder = self.dataset_path / sequence_name
+            decompressed_folder = self.sequence_path(sequence_name)
 
             if not compressed_file.exists():
                 downloadFile(download_url, str(self.dataset_path))
@@ -65,7 +65,7 @@ class ETH_dataset(DatasetVSLAMLab):
                 decompressFile(str(compressed_file), str(self.dataset_path))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
             src = sequence_path / raw
             tgt = sequence_path / dst
@@ -73,11 +73,11 @@ class ETH_dataset(DatasetVSLAMLab):
                 src.replace(tgt)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt", "rgb/", "rgb_0/"))
         depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", "depth_0/"))
 
-        rgb_csv = sequence_path / "rgb.csv"
+        rgb_csv = self.rgb_csv_path(sequence_name)
         tmp = rgb_csv.with_suffix(".csv.tmp")
 
         with open(tmp, "w", newline="", encoding="utf-8") as fout:
@@ -90,7 +90,7 @@ class ETH_dataset(DatasetVSLAMLab):
         tmp.replace(rgb_csv)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         with open(sequence_path / "calibration.txt", "r", encoding="utf-8") as f:
             first = f.readline().split()
             fx, fy, cx, cy = map(float, first[:4])
@@ -108,9 +108,9 @@ class ETH_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "groundtruth.txt"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         if not groundtruth_txt.exists():
@@ -131,8 +131,7 @@ class ETH_dataset(DatasetVSLAMLab):
         tmp.replace(groundtruth_csv)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
             for name in ("calibration.txt", "groundtruth.txt", "rgb.txt", "depth.txt", "associated.txt"):
                 (sequence_path / name).unlink(missing_ok=True)

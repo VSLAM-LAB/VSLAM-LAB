@@ -2,7 +2,6 @@ import csv
 import os
 import re
 import shutil
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -19,8 +18,8 @@ from utilities import decompressFile, downloadFile
 class MADMAX_dataset(DatasetVSLAMLab):
     """MADMAX dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "madmax") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "madmax") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -39,7 +38,7 @@ class MADMAX_dataset(DatasetVSLAMLab):
         self.dataset_homepage: str = cfg["about"]["homepage"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         sequence_path.mkdir(parents=True, exist_ok=True)
 
         remote_file_urls = self._get_file_url(sequence_name)
@@ -64,9 +63,8 @@ class MADMAX_dataset(DatasetVSLAMLab):
         pass
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
@@ -94,8 +92,8 @@ class MADMAX_dataset(DatasetVSLAMLab):
                 writer.writerow([ts_ns_0, f"rgb_0/{filename_0}", ts_ns_1, f"rgb_1/{filename_1}"])
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        imu_csv = sequence_path / "imu_0.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        imu_csv = self.imu_csv_path(sequence_name)
         imu_raw_csv = sequence_path / "imu_raw.csv"
         df = pd.read_csv(imu_raw_csv)
         selected_columns = [
@@ -180,12 +178,11 @@ class MADMAX_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         gt_6DoF_gnss_and_imu_csv = (
             sequence_path / "groundtruth" / f"{sequence_name}_ground_truth" / "gt_6DoF_gnss_and_imu.csv"
         )
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         df = pd.read_csv(gt_6DoF_gnss_and_imu_csv, skiprows=13)
         selected_columns = [
             "% UNIX time",
@@ -203,7 +200,7 @@ class MADMAX_dataset(DatasetVSLAMLab):
         df_selected.to_csv(groundtruth_csv, index=False)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
             for zip_file in sequence_path.rglob("*.zip"):
                 zip_file.unlink(missing_ok=True)

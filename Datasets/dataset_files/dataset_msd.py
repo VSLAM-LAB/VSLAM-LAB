@@ -6,7 +6,6 @@ import json
 import shutil
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from typing import  Any
 from contextlib import suppress
 from zipfile import ZipFile
@@ -20,8 +19,8 @@ from path_constants import Retention, BENCHMARK_RETENTION
 class MSD_dataset(DatasetVSLAMLab):
     """MSD dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "msd") -> None:    
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "msd") -> None:    
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -36,8 +35,7 @@ class MSD_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [s.split("_")[0] for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         if not sequence_path.exists():
             compressed_name_ext = sequence_name + '.zip'
             file_path = hf_hub_download(repo_id=self.repo_id, 
@@ -53,7 +51,7 @@ class MSD_dataset(DatasetVSLAMLab):
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         # Create symlinks for each camera folder
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         cam_count = len(list((sequence_path / "mav0").glob("cam*/data")))
         
         for cam in range(cam_count):
@@ -64,8 +62,8 @@ class MSD_dataset(DatasetVSLAMLab):
             target.symlink_to(src_dir)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
@@ -95,10 +93,9 @@ class MSD_dataset(DatasetVSLAMLab):
                 tmp.unlink()
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        seq = self.dataset_path / sequence_name
+        seq = self.sequence_path(sequence_name)
         src = seq / "mav0" / "imu0" / "data.csv"
-        dst = seq / "imu_0.csv"
-
+        dst = self.imu_csv_path(sequence_name)
         if not src.exists():
             return
 
@@ -126,8 +123,7 @@ class MSD_dataset(DatasetVSLAMLab):
                 pass
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         calibration_json = sequence_path / self.calibration_file
         with open(calibration_json, "r") as f:
             json_content = json.load(f)
@@ -173,10 +169,9 @@ class MSD_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=cams, imu=[imu])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         gt_csv = sequence_path / "mav0" / "gt" / "data.csv"
-        newgt_csv = sequence_path / "groundtruth.csv"
-
+        newgt_csv = self.groundtruth_csv_path(sequence_name)
         if not gt_csv.exists():
             return
 
@@ -212,7 +207,6 @@ class MSD_dataset(DatasetVSLAMLab):
         return msdmi_path
     
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             (sequence_path / "calibration.json").unlink(missing_ok=True)

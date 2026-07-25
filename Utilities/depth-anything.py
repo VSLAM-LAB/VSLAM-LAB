@@ -18,7 +18,6 @@ from depth_anything_3.api import DepthAnything3
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from path_constants import VSLAMLAB_BENCHMARK
 from Datasets.get_dataset import get_dataset
 
 def parse_args():
@@ -43,8 +42,8 @@ def main():
     device = torch.device(args.device)
     torch.backends.cudnn.benchmark = True
 
-    dataset = get_dataset(args.dataset_name, VSLAMLAB_BENCHMARK)
-    sequence_path = VSLAMLAB_BENCHMARK / dataset.dataset_folder / args.sequence_name
+    dataset = get_dataset(args.dataset_name)
+    sequence_path = dataset.sequence_path(args.sequence_name)
     if not sequence_path.exists():
         raise FileNotFoundError(f"Sequence path does not exist: {sequence_path}")
 

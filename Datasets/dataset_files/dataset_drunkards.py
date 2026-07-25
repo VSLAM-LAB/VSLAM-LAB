@@ -1,7 +1,6 @@
 import csv
 import os
 import shutil
-from pathlib import Path
 from typing import Any, Final
 from zipfile import ZipFile
 
@@ -19,8 +18,8 @@ CAMERA_PARAMS_320: Final = [190.68059285, 286.02088928, 160.0, 160.0]  # Camera 
 class DRUNKARDS_dataset(DatasetVSLAMLab):
     """DRUNKARDS dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "drunkards") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "drunkards") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -36,8 +35,7 @@ class DRUNKARDS_dataset(DatasetVSLAMLab):
         self.depth_factor = cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         folder_id = self._get_folder_id(sequence_name)
         color_zip = sequence_path / "color.zip"
         if not color_zip.exists():
@@ -51,7 +49,7 @@ class DRUNKARDS_dataset(DatasetVSLAMLab):
                 resume=True,
             )
 
-        rgb_path = sequence_path / "rgb_0"
+        rgb_path = self.rgb_path(sequence_name)
         if not rgb_path.exists():
             with ZipFile(color_zip, "r") as zip_ref:
                 zip_ref.extractall(sequence_path)
@@ -70,10 +68,9 @@ class DRUNKARDS_dataset(DatasetVSLAMLab):
         pass
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        rgb_csv = sequence_path / "rgb.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
@@ -107,10 +104,9 @@ class DRUNKARDS_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "pose.txt"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
         with open(groundtruth_txt, "r", encoding="utf-8") as fin, open(tmp, "w", encoding="utf-8", newline="") as fout:
             lines = fin.readlines()
@@ -127,7 +123,7 @@ class DRUNKARDS_dataset(DatasetVSLAMLab):
 
     def remove_unused_files(self, sequence_name: str) -> None:
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            sequence_path = self.dataset_path / sequence_name
+            sequence_path = self.sequence_path(sequence_name)
             shutil.rmtree(sequence_path / "pose.txt", ignore_errors=True)
             for zip_file in self.dataset_path.rglob("*.zip"):
                 zip_file.unlink(missing_ok=True)

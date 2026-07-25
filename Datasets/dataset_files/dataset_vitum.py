@@ -1,7 +1,6 @@
 import csv
 import os
 import shutil
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -16,8 +15,8 @@ from utilities import decompressFile, downloadFile
 class VITUM_dataset(DatasetVSLAMLab):
     """VITUM dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "vitum") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "vitum") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -48,7 +47,7 @@ class VITUM_dataset(DatasetVSLAMLab):
             decompressFile(compressed_file, self.dataset_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         source_path = self.dataset_path / ('dataset-' + sequence_name + '_512_16')
         
         for cam in ['0', '1']:
@@ -82,10 +81,9 @@ class VITUM_dataset(DatasetVSLAMLab):
                                 shutil.copy(img, rgb_path / img.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         source_path = self.dataset_path / ('dataset-' + sequence_name + '_512_16')
-        rgb_csv = sequence_path / 'rgb.csv'
-
+        rgb_csv = self.rgb_csv_path(sequence_name)
         # Build filename -> timestamp mapping from times.txt
         filename_to_timestamp = {}
         rgb_files = {}
@@ -122,10 +120,10 @@ class VITUM_dataset(DatasetVSLAMLab):
                 writer.writerow([f'{ts_0_ns}', f'rgb_0/{filename_0}', f'{ts_1_ns}', f'rgb_1/{filename_1}'])
         
     def create_imu_csv(self, sequence_name: str) -> None:
-        seq = self.dataset_path / sequence_name
+        seq = self.sequence_path(sequence_name)
         source_path = self.dataset_path / ('dataset-' + sequence_name + '_512_16')
         src = source_path / 'mav0'/ 'imu0'/ 'data.csv'
-        dst = seq / "imu_0.csv"
+        dst = self.imu_csv_path(sequence_name)
         if not src.exists():
             return
 
@@ -205,8 +203,8 @@ class VITUM_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        out_csv = sequence_path / 'groundtruth.csv'
+        sequence_path = self.sequence_path(sequence_name)
+        out_csv = self.groundtruth_csv_path(sequence_name)
         source_path = self.dataset_path / f'dataset-{sequence_name}_512_16' / 'dso' / 'gt_imu.csv'
 
         with open(source_path, 'r', newline='') as src, open(out_csv, 'w', newline='') as dst:

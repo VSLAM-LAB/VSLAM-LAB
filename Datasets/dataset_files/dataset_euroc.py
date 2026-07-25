@@ -6,7 +6,6 @@ import shutil
 import numpy as np
 import pandas as pd
 from typing import Any
-from pathlib import Path
 from decimal import Decimal
 from contextlib import suppress
 
@@ -25,8 +24,8 @@ class EUROC_dataset(DatasetVSLAMLab):
         "V2_": ("vicon_room2", None),
     }
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "euroc") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "euroc") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -43,7 +42,7 @@ class EUROC_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [s.replace("difficult", "") for s in self.sequence_nicknames]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if sequence_path.exists():
             return
         url = self.url_download_sequences[sequence_name]
@@ -79,7 +78,7 @@ class EUROC_dataset(DatasetVSLAMLab):
                 supp_zip.unlink()
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for cam in (0, 1):
             target = sequence_path / f"rgb_{cam}"
             if target.exists():
@@ -92,8 +91,8 @@ class EUROC_dataset(DatasetVSLAMLab):
                 shutil.move(png , target / png.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
@@ -130,10 +129,9 @@ class EUROC_dataset(DatasetVSLAMLab):
                 tmp.unlink()
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        seq = self.dataset_path / sequence_name
+        seq = self.sequence_path(sequence_name)
         src = seq / "mav0" / "imu0" / "data.csv"
-        dst = seq / "imu_0.csv"
-
+        dst = self.imu_csv_path(sequence_name)
         if not src.exists():
             return
 
@@ -161,7 +159,7 @@ class EUROC_dataset(DatasetVSLAMLab):
                 pass
         
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         cam0_yaml = sequence_path / "mav0" / "cam0" / "sensor.yaml"
         cam1_yaml = sequence_path / "mav0" / "cam1" / "sensor.yaml"
         imu_yaml  = sequence_path / "mav0" / "imu0" / "sensor.yaml"
@@ -195,10 +193,9 @@ class EUROC_dataset(DatasetVSLAMLab):
         """
         Write groundtruth.csv from TUM 'supp_v2/gtFiles/mav_<sequence>.txt'.
         """
-        seq = self.dataset_path / sequence_name
+        seq = self.sequence_path(sequence_name)
         src = self.dataset_path / "supp_v2" / "gtFiles" / f"mav_{sequence_name}.txt"
-        dst = seq / "groundtruth.csv"
-
+        dst = self.groundtruth_csv_path(sequence_name)
         if not src.exists():
             return
         if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime:
@@ -225,7 +222,7 @@ class EUROC_dataset(DatasetVSLAMLab):
             tmp.unlink()
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        seq = self.dataset_path / sequence_name
+        seq = self.sequence_path(sequence_name)
         for rel in ("mav0", "__MACOSX"):
             with suppress(FileNotFoundError):
                 shutil.rmtree(seq / rel)

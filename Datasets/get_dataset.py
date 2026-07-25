@@ -50,46 +50,46 @@ from Datasets.dataset_files.dataset_strayscanner import StrayScanner_dataset
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
-def get_dataset(dataset_name, benchmark_path):
+def get_dataset(dataset_name):
     dataset_name = dataset_name.lower()
     switcher = {
         # ADD your datasets here
-        "tartanair": lambda: TARTANAIR_dataset(benchmark_path),
-        "eth": lambda: ETH_dataset(benchmark_path),
-        "rgbdtum": lambda: RGBDTUM_dataset(benchmark_path),
-        "replica": lambda: REPLICA_dataset(benchmark_path),
-        "nuim": lambda: NUIM_dataset(benchmark_path),
-        "kitti": lambda: KITTI_dataset(benchmark_path),
-        "ut-coda": lambda: UT_CODA_dataset(benchmark_path),
-        "euroc": lambda: EUROC_dataset(benchmark_path),
-        "rover-t265": lambda: ROVER_t265_dataset(benchmark_path),
-        "rover-d435i": lambda: ROVER_d435i_dataset(benchmark_path),
-        "rover-picam": lambda: ROVER_picam_dataset(benchmark_path),
-        "s3li": lambda: S3LI_dataset(benchmark_path),
-        "msd": lambda: MSD_dataset(benchmark_path),
-        "sesoko": lambda: SESOKO_dataset(benchmark_path),
-        "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
-        "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
-        "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
-        "sweetcorals": lambda: SWEETCORALS_dataset(benchmark_path),
-        "soneva": lambda: SONEVA_dataset(benchmark_path),
-        "monotum": lambda: MONOTUM_dataset(benchmark_path),
-        "ariel": lambda: ARIEL_dataset(benchmark_path),
-        "hilti2022": lambda: HILTI2022_dataset(benchmark_path),
-        "madmax": lambda: MADMAX_dataset(benchmark_path),
-        "hamlyn": lambda: HAMLYN_dataset(benchmark_path),
-        "hilti2026": lambda: HILTI2026_dataset(benchmark_path),
-        "drunkards": lambda: DRUNKARDS_dataset(benchmark_path),
-        "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
-        "caves": lambda: CAVES_dataset(benchmark_path),
-        "vitum": lambda: VITUM_dataset(benchmark_path),
-        "eiffel-tower": lambda: EIFFEL_TOWER_dataset(benchmark_path),
+        "tartanair": lambda: TARTANAIR_dataset(),
+        "eth": lambda: ETH_dataset(),
+        "rgbdtum": lambda: RGBDTUM_dataset(),
+        "replica": lambda: REPLICA_dataset(),
+        "nuim": lambda: NUIM_dataset(),
+        "kitti": lambda: KITTI_dataset(),
+        "ut-coda": lambda: UT_CODA_dataset(),
+        "euroc": lambda: EUROC_dataset(),
+        "rover-t265": lambda: ROVER_t265_dataset(),
+        "rover-d435i": lambda: ROVER_d435i_dataset(),
+        "rover-picam": lambda: ROVER_picam_dataset(),
+        "s3li": lambda: S3LI_dataset(),
+        "msd": lambda: MSD_dataset(),
+        "sesoko": lambda: SESOKO_dataset(),
+        "7scenes": lambda: SEVENSCENES_dataset(),
+        "openloris-d400": lambda: OPENLORIS_d400_dataset(),
+        "openloris-t265": lambda: OPENLORIS_t265_dataset(),
+        "sweetcorals": lambda: SWEETCORALS_dataset(),
+        "soneva": lambda: SONEVA_dataset(),
+        "monotum": lambda: MONOTUM_dataset(),
+        "ariel": lambda: ARIEL_dataset(),
+        "hilti2022": lambda: HILTI2022_dataset(),
+        "madmax": lambda: MADMAX_dataset(),
+        "hamlyn": lambda: HAMLYN_dataset(),
+        "hilti2026": lambda: HILTI2026_dataset(),
+        "drunkards": lambda: DRUNKARDS_dataset(),
+        "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(),
+        "caves": lambda: CAVES_dataset(),
+        "vitum": lambda: VITUM_dataset(),
+        "eiffel-tower": lambda: EIFFEL_TOWER_dataset(),
 
         # Development
-        "videos": lambda: VIDEOS_dataset(benchmark_path),
-        "iphone": lambda: IPHONE_dataset(benchmark_path),
-        "youtube": lambda: YOUTUBE_dataset(benchmark_path),
-        "strayscanner": lambda: StrayScanner_dataset(benchmark_path)
+        "videos": lambda: VIDEOS_dataset(),
+        "iphone": lambda: IPHONE_dataset(),
+        "youtube": lambda: YOUTUBE_dataset(),
+        "strayscanner": lambda: StrayScanner_dataset()
     }
 
     return switcher.get(dataset_name, lambda: "Invalid case")()

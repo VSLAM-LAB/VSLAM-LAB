@@ -9,7 +9,6 @@ Module: VSLAM-LAB - Datasets - dataset_sweetcorals.py
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -77,8 +76,8 @@ _RAW_CAMERA_SUBFOLDERS = {
 class SWEETCORALS_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
     """SWEETCORALS dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "sweetcorals") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "sweetcorals") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -96,7 +95,7 @@ class SWEETCORALS_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
         self.target_resolution = tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rgb_path = sequence_path / "rgb_0_raw"
         remote_folder = self._remote_sequence_name(sequence_name)
 
@@ -111,9 +110,8 @@ class SWEETCORALS_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
         ensure_hf_sequence_download(self.repo_id, remote_dirs, rgb_path, token=hf_token())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         if sequence_name == _PINHOLE_SEQUENCE:
             cameras = read_colmap_cameras(self._fetch_colmap_file(sequence_name, "cameras.bin"))
             images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
@@ -160,10 +158,9 @@ class SWEETCORALS_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
         if sequence_name != _PINHOLE_SEQUENCE:
             return
 
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
         rgb_files = sorted(file_path.name for file_path in rgb_path.iterdir() if file_path.is_file())
 

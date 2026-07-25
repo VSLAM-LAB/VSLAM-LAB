@@ -93,7 +93,7 @@ def get_experiments(experiments):
     sequence_nicknames = {}
     dataset_rgbHz = {}
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, "-")
+        dataset = get_dataset(dataset_name)
         dataset_nicknames[dataset_name] = []
         dataset_rgbHz[dataset_name] = dataset.rgb_hz
         for sequence_name in sequence_names:

@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -12,8 +11,8 @@ from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 class YOUTUBE_dataset(VIDEOS_dataset):
     """YOUTUBE dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "youtube") -> None:
-        DatasetVSLAMLab.__init__(self, dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "youtube") -> None:
+        DatasetVSLAMLab.__init__(self, dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -32,7 +31,7 @@ class YOUTUBE_dataset(VIDEOS_dataset):
         self.time_windows = cfg.get("time_windows", [[0, None] for _ in self.sequence_names])
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         video_path = self._get_video_path(sequence_name)
         if video_path.exists():
             return
@@ -48,8 +47,8 @@ class YOUTUBE_dataset(VIDEOS_dataset):
             ydl.download([url])
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         video_path = self._get_video_path(sequence_name)
 
         if not rgb_path.exists():

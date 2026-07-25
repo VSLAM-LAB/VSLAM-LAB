@@ -7,7 +7,6 @@ import yaml
 import shutil
 import numpy as np
 from typing import  Any
-from pathlib import Path
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
@@ -19,8 +18,8 @@ from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
 class KITTI_dataset(DatasetVSLAMLab):
     """KITTI dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "kitti") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "kitti") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -56,7 +55,7 @@ class KITTI_dataset(DatasetVSLAMLab):
             decompressFile(self.dataset_path / 'data_odometry_poses.zip', self.dataset_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for rgb_i, image in zip(['rgb_0', 'rgb_1'], ['image_0', 'image_1']):    
             rgb_path = sequence_path / rgb_i
             if not rgb_path.exists():
@@ -73,9 +72,8 @@ class KITTI_dataset(DatasetVSLAMLab):
             shutil.rmtree(rgb_path_raw)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / 'rgb.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         times_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'times.txt'
 
         # Read timestamps
@@ -87,7 +85,7 @@ class KITTI_dataset(DatasetVSLAMLab):
                     times.append(float(line))
 
         # Collect and sort image filenames
-        rgb_path = sequence_path / 'rgb_0'
+        rgb_path = self.rgb_path(sequence_name)
         rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
@@ -122,9 +120,8 @@ class KITTI_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        out_csv = sequence_path / 'groundtruth.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        out_csv = self.groundtruth_csv_path(sequence_name)
         # Keep your original guard
         sequence_name_int = int(sequence_name)
         if sequence_name_int > 10:

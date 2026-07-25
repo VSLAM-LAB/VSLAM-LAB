@@ -1,7 +1,6 @@
 import csv
 import os
 import subprocess
-from pathlib import Path
 from typing import Any
 
 import gdown
@@ -22,8 +21,8 @@ CALIBRATION_FILE = "kalibr_imucam_chain.yaml"
 class HILTI2026_dataset(DatasetVSLAMLab):
     """HILTI 2026 dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "hilti2026") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "hilti2026") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -36,8 +35,7 @@ class HILTI2026_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [s.split("_", 1)[0] for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         # Download calibration file
         calibration_file = self.dataset_path / CALIBRATION_FILE
         if not calibration_file.exists():
@@ -82,7 +80,7 @@ class HILTI2026_dataset(DatasetVSLAMLab):
         )
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rosbag = sequence_path / ROSBAG_NAME
         for cam in ["0", "1"]:
             image_topic = f"/cam{cam}{IMAGE_TOPIC}"
@@ -99,9 +97,9 @@ class HILTI2026_dataset(DatasetVSLAMLab):
         pass
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rosbag = sequence_path / ROSBAG_NAME
-        imu_csv = sequence_path / "imu_0.csv"
+        imu_csv = self.imu_csv_path(sequence_name)
         if imu_csv.exists():
             return
 
@@ -109,8 +107,8 @@ class HILTI2026_dataset(DatasetVSLAMLab):
         command = f"pixi run -e ros2 extract-ros2bag-imu {inputs}"
         subprocess.run(command, shell=True)
 
-        rgb_csv = sequence_path / "rgb.csv"
-        imu_csv = sequence_path / "imu_0.csv"
+        rgb_csv = self.rgb_csv_path(sequence_name)
+        imu_csv = self.imu_csv_path(sequence_name)
         rgb = pd.read_csv(rgb_csv)
         imu = pd.read_csv(imu_csv)
 
@@ -190,9 +188,9 @@ class HILTI2026_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         gt_txt = sequence_path / "groundtruth.txt"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         if gt_txt.exists():

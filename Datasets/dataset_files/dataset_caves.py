@@ -1,6 +1,5 @@
 import csv
 import os
-from pathlib import Path
 import shutil
 from typing import Final, Any
 
@@ -17,8 +16,8 @@ CAMERA_PARAMS: Final = [405.6384738851233, 405.588335378204, 189.9054317917407, 
 class CAVES_dataset(DatasetVSLAMLab):
     """CAVES dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "caves") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "caves") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -39,8 +38,7 @@ class CAVES_dataset(DatasetVSLAMLab):
         download_url = self.url_download_root
         timestamps_url = self.url_download_timestamps
         groundtruth_url = self.url_download_root_gt
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         # Constants
         compressed_file = self.dataset_path / compressed_name_ext
         timestamp_file = self.dataset_path / 'undistorted_frames_timestamps.txt'    
@@ -61,7 +59,7 @@ class CAVES_dataset(DatasetVSLAMLab):
             downloadFile(groundtruth_url, self.dataset_path)
             os.rename(self.dataset_path / 'full_dataset.zip?download=1', self.dataset_path / 'full_dataset.zip')
 
-        rgb_path = sequence_path / 'rgb_0'
+        rgb_path = self.rgb_path(sequence_name)
         if not sequence_path.exists():
             decompressFile(compressed_file, sequence_path)
             os.rename(sequence_path / 'undistorted_frames', rgb_path)
@@ -73,8 +71,8 @@ class CAVES_dataset(DatasetVSLAMLab):
         pass
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / 'rgb.csv'
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         timestamps_txt = self.dataset_path / 'undistorted_frames_timestamps.txt'
 
         with open(timestamps_txt, "r") as ts_file, open(rgb_csv, "w", newline="") as csv_file:
@@ -96,9 +94,8 @@ class CAVES_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
         
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        groundtruth_csv = sequence_path / 'groundtruth.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         groundtruth_txt_0 = self.dataset_path / 'full_dataset' / 'odometry.txt'
 
         columns = [

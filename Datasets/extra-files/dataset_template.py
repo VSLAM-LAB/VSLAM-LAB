@@ -15,8 +15,8 @@ from path_constants import BENCHMARK_RETENTION, Retention
 class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLab):
     """DATASET_NAME_TEMPLATE dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path):
-        super().__init__('dataset_name_template', benchmark_path)
+    def __init__(self):
+        super().__init__('dataset_name_template')
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:

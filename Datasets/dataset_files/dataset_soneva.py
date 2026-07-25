@@ -54,8 +54,8 @@ class HFColmapDatasetMixin:
     def create_rgb_folder(self, sequence_name: str) -> None:
         IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
 
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         rgb_raw_path = sequence_path / "rgb_0_raw"
 
         if rgb_path.exists():
@@ -87,9 +87,9 @@ class HFColmapDatasetMixin:
                 resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
@@ -115,7 +115,7 @@ class HFColmapDatasetMixin:
         # SONEVA_dataset's all_files_cache.json, a dataset-wide (not per-sequence) HfApi listing
         # cache reused across every sequence's download - is left alone here; override this method
         # if a subclass needs to clean up more.
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             shutil.rmtree(sequence_path / "rgb_0_raw", ignore_errors=True)
 
@@ -135,8 +135,8 @@ class HFColmapDatasetMixin:
 class SONEVA_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
     """SONEVA dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "soneva") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "soneva") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -154,7 +154,7 @@ class SONEVA_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
         self.target_resolution = tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rgb_path = sequence_path / "rgb_0_raw"
 
         remote_name = self._remote_sequence_name(sequence_name)
@@ -164,9 +164,8 @@ class SONEVA_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
         ensure_hf_sequence_download(self.repo_id, [remote_dir], rgb_path, token=hf_token())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         cameras = read_colmap_cameras(self._fetch_colmap_file(sequence_name, "cameras.bin"))
         raw_to_colmap = self._read_image_mapping(sequence_name)
         images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
@@ -198,10 +197,9 @@ class SONEVA_dataset(HFColmapDatasetMixin, DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         raw_to_colmap = self._read_image_mapping(sequence_name)
         images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
         rgb_files = sorted(file_path.name for file_path in rgb_path.iterdir() if file_path.is_file())

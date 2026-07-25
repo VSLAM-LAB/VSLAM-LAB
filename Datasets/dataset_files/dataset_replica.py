@@ -4,7 +4,6 @@ import csv
 import yaml
 import os, shutil 
 import numpy as np
-from pathlib import Path
 from typing import Final, Any
 from scipy.spatial.transform import Rotation as R
 
@@ -19,8 +18,8 @@ CAMERA_PARAMS: Final = [600.0, 600.0, 599.5, 339.5] # Camera intrinsics (fx, fy,
 class REPLICA_dataset(DatasetVSLAMLab):
     """REPLICA dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "replica") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "replica") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -56,9 +55,9 @@ class REPLICA_dataset(DatasetVSLAMLab):
             os.rename(VSLAMLAB_BENCHMARK / 'Replica', decompressed_folder)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         results_path = sequence_path / 'results'
-        rgb_path = sequence_path / 'rgb_0'
+        rgb_path = self.rgb_path(sequence_name)
         depth_path = sequence_path / 'depth_0'
 
         if not rgb_path.exists():
@@ -76,10 +75,9 @@ class REPLICA_dataset(DatasetVSLAMLab):
                     old_file.rename(new_file)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / 'rgb_0'
-        rgb_csv = sequence_path / 'rgb.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
@@ -104,11 +102,10 @@ class REPLICA_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / 'rgb.csv'
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         traj_txt = sequence_path / 'traj.txt'
-        groundtruth_csv = sequence_path /'groundtruth.csv'
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         # Read RGB timestamps from CSV (skip header)
         rgb_timestamps_ns = []
         with open(rgb_csv, 'r', newline='') as f:
@@ -140,7 +137,7 @@ class REPLICA_dataset(DatasetVSLAMLab):
                 writer.writerow([int(ts_ns), tx, ty, tz, qx, qy, qz, qw])
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
             (sequence_path / "traj.txt").unlink(missing_ok=True)
             (self.dataset_path / "cam_params.json").unlink(missing_ok=True)

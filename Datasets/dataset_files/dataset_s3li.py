@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-from pathlib import Path
 from typing import Any
 
 import cv2
@@ -15,8 +14,8 @@ from utilities import decompressFile, downloadFile
 class S3LI_dataset(DatasetVSLAMLab):
     """DLR S3LI Etna & Vulcano dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "s3li") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "s3li") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -29,7 +28,7 @@ class S3LI_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = cfg["sequence_nicknames"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         url = self.url_download_sequences[sequence_name]
         zip_path_0 = self.dataset_path / f"{url.rsplit('/', 1)[-1]}"
         zip_path = self.dataset_path / f"{sequence_name}.zip"
@@ -47,10 +46,9 @@ class S3LI_dataset(DatasetVSLAMLab):
         pass
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         input_path = sequence_path / "rgb_raw.csv"
-        output_path = sequence_path / "rgb.csv"
-
+        output_path = self.rgb_csv_path(sequence_name)
         if output_path.exists() and not input_path.exists():
             output_path.rename(input_path)
 
@@ -74,11 +72,9 @@ class S3LI_dataset(DatasetVSLAMLab):
                 writer.writerow(row)
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         input_path = sequence_path / "imu.csv"
-        output_path = sequence_path / "imu_0.csv"
-
+        output_path = self.imu_csv_path(sequence_name)
         header = [
             "ts (ns)",
             "wx (rad s^-1)",
@@ -105,7 +101,7 @@ class S3LI_dataset(DatasetVSLAMLab):
                 writer.writerow(row)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        calibration_yaml = self.dataset_path / sequence_name / "calibration.yaml"
+        calibration_yaml = self.calibration_yaml_path(sequence_name)
         fs = cv2.FileStorage(str(calibration_yaml), cv2.FILE_STORAGE_READ)
 
         fx = fs.getNode("Camera0.fx").real()
@@ -159,9 +155,8 @@ class S3LI_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
-        out = sequence_path / "groundtruth.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        out = self.groundtruth_csv_path(sequence_name)
         tmp = out.with_suffix(".csv.tmp")
 
         header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]

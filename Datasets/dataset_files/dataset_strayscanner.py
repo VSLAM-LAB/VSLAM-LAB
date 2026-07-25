@@ -23,8 +23,8 @@ from utilities import decompressFile
 class StrayScanner_dataset(VIDEOS_dataset):
     """Iphone datasets from StrayScanner app"""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "strayscanner") -> None:
-        DatasetVSLAMLab.__init__(self, dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "strayscanner") -> None:
+        DatasetVSLAMLab.__init__(self, dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -49,11 +49,11 @@ class StrayScanner_dataset(VIDEOS_dataset):
         self.target_resolution = cfg.get("target_resolution", None)
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         sequence_location = self.sequence_location[self.sequence_names.index(sequence_name)]
         if sequence_location == "local":
             print(
-                f"Sequence '{sequence_name}' is marked as 'local'. Please ensure the data is available at {self.dataset_path / sequence_name}."
+                f"Sequence '{sequence_name}' is marked as 'local'. Please ensure the data is available at {self.sequence_path(sequence_name)}."
             )
             return
         else:
@@ -90,7 +90,7 @@ class StrayScanner_dataset(VIDEOS_dataset):
             decompressFile(str(compressed_file), str(self.dataset_path))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for raw, dst in (("depth", "depth_0"),):
             src = sequence_path / raw
             tgt = sequence_path / dst
@@ -104,7 +104,7 @@ class StrayScanner_dataset(VIDEOS_dataset):
                 target_resolution=self.target_resolution,
             )
 
-        depth_dir = self.dataset_path / sequence_name / "depth_0"
+        depth_dir = sequence_path / "depth_0"
         for depth_file in sorted(depth_dir.glob("*.png")):
             img = cv2.imread(str(depth_file), cv2.IMREAD_UNCHANGED)  # keep 16-bit
             if img.shape[:2] != (self.target_resolution[1], self.target_resolution[0]):
@@ -113,9 +113,8 @@ class StrayScanner_dataset(VIDEOS_dataset):
                 cv2.imwrite(str(depth_file), img)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         tmp = rgb_csv.with_suffix(".csv.tmp")
 
         odometry_csv = pandas.read_csv(sequence_path / "odometry.csv")
@@ -139,8 +138,7 @@ class StrayScanner_dataset(VIDEOS_dataset):
         tmp.replace(rgb_csv)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         odometry_csv = pandas.read_csv(sequence_path / "odometry.csv")
         assert isinstance(odometry_csv, pandas.DataFrame) and not odometry_csv.empty, "odometry.csv is missing or empty"
         fx = odometry_csv[" fx"].iloc[0].item()
@@ -179,10 +177,10 @@ class StrayScanner_dataset(VIDEOS_dataset):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         odometry_csv = pandas.read_csv(sequence_path / "odometry.csv")
         assert isinstance(odometry_csv, pandas.DataFrame) and not odometry_csv.empty, "odometry.csv is missing or empty"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         with open(tmp, "w", newline="", encoding="utf-8") as fout:

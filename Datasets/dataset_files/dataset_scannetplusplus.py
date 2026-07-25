@@ -3,7 +3,6 @@ import csv
 import subprocess
 import json
 import numpy as np
-from pathlib import Path
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
@@ -11,8 +10,8 @@ from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
 class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
     """SCANNETPLUSPLUS dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "scannetplusplus") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "scannetplusplus") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -22,7 +21,7 @@ class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [f"scannet_{s[:2]}" for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if os.path.exists(sequence_path):
             return
 
@@ -33,7 +32,7 @@ class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
 
 
     def create_rgb_folder(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.sequence_path(sequence_name)
         rgb_path = os.path.join(sequence_path, 'rgb')
         if not os.path.exists(rgb_path):
             os.makedirs(rgb_path)
@@ -42,7 +41,7 @@ class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
             subprocess.run(command, shell=True)
 
     def create_rgb_csv(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.sequence_path(sequence_name)
         rgb_txt = os.path.join(sequence_path, 'rgb.txt')
         pose_intrinsic_imu_json =  os.path.join(self.dataset_path, 'data', sequence_name, 'iphone', 'pose_intrinsic_imu.json')
 
@@ -74,7 +73,7 @@ class SCANNETPLUSPLUS_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml('PINHOLE', fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0, 0.0, sequence_name)
 
     def create_groundtruth_csv(self, sequence_name):
-        sequence_path = os.path.join(self.dataset_path, sequence_name)
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = os.path.join(sequence_path, 'groundtruth.txt')
         groundtruth_csv = os.path.join(sequence_path, 'groundtruth.csv')
         pose_intrinsic_imu_json =  os.path.join(self.dataset_path, 'data', sequence_name, 'iphone', 'pose_intrinsic_imu.json')

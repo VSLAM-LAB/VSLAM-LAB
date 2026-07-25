@@ -14,11 +14,11 @@ import sys
 import yaml
 from loguru import logger
 from pathlib import Path
-from typing import List, Union
+from typing import List
 from abc import ABC, abstractmethod
 
 from utilities import ws, print_msg
-from path_constants import VSLAM_LAB_DIR
+from path_constants import GROUNTRUTH_FILE, RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_BENCHMARK
 from Datasets.DatasetVSLAMLab_calibration import (
     _get_rgb_yaml_section,
     _get_imu_yaml_section,
@@ -33,7 +33,7 @@ class DatasetVSLAMLab(ABC):
 
     # ---- Abstract hooks that concrete datasets must implement ----
     @abstractmethod
-    def __init__(self, dataset_name: str, benchmark_path: Union[str, Path]) -> None:  
+    def __init__(self, dataset_name: str) -> None:
         # Basic fields
         self.dataset_name: str = dataset_name
         self.dataset_color: str = "\033[38;2;255;165;0m"
@@ -41,7 +41,7 @@ class DatasetVSLAMLab(ABC):
         self.dataset_folder: str = dataset_name.upper()
 
         # Paths
-        self.benchmark_path: Path = Path(benchmark_path)
+        self.benchmark_path: Path = VSLAMLAB_BENCHMARK
         self.dataset_path: Path = self.benchmark_path / self.dataset_folder
         self.yaml_file: Path = VSLAM_LAB_DIR / "Datasets" / "dataset_files" / f"dataset_{self.dataset_name}.yaml"
 
@@ -102,11 +102,30 @@ class DatasetVSLAMLab(ABC):
         self.remove_unused_files(sequence_name)
 
     ####################################################################################################################
+    # Path helpers
+    def sequence_path(self, sequence_name: str) -> Path:
+        return self.dataset_path / sequence_name
+
+    def rgb_path(self, sequence_name: str) -> Path:
+        return self.sequence_path(sequence_name) / "rgb_0"
+
+    def rgb_csv_path(self, sequence_name: str) -> Path:
+        return self.sequence_path(sequence_name) / f"{RGB_BASE_FOLDER}.csv"
+
+    def imu_csv_path(self, sequence_name: str) -> Path:
+        return self.sequence_path(sequence_name) / "imu_0.csv"
+
+    def groundtruth_csv_path(self, sequence_name: str) -> Path:
+        return self.sequence_path(sequence_name) / GROUNTRUTH_FILE
+
+    def calibration_yaml_path(self, sequence_name: str) -> Path:
+        return self.sequence_path(sequence_name) / "calibration.yaml"
+
+    ####################################################################################################################
     # Auxiliary methods
     def write_calibration_yaml(self, sequence_name: str, rgb=None, rgbd=None, imu=None) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        calibration_yaml = sequence_path / 'calibration.yaml'
-        
+        calibration_yaml = self.calibration_yaml_path(sequence_name)
+
         yaml_content_lines = ["%YAML 1.2", "---",]
 
         if rgb or rgbd:    
@@ -128,7 +147,7 @@ class DatasetVSLAMLab(ABC):
                 file.write(f"{line}\n")
 
     def check_sequence_availability(self, sequence_name: str, verbose: bool = True) -> str:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if sequence_path.is_dir():
             sequence_complete = self.check_sequence_integrity(sequence_name, verbose=verbose)
             if sequence_complete:
@@ -138,19 +157,19 @@ class DatasetVSLAMLab(ABC):
         return "non-available"
 
     def check_sequence_integrity(self, sequence_name: str, verbose: bool) -> bool:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
 
         # Define requirements: (Path, Description, is_directory)
         requirements = [
             (sequence_path, "Sequence folder", True),
-            (sequence_path / 'rgb_0', "RGB folder", True),
-            (sequence_path / 'rgb.csv', "RGB timestamp CSV", False),
-            (sequence_path / 'calibration.yaml', "Calibration YAML", False),
+            (self.rgb_path(sequence_name), "RGB folder", True),
+            (self.rgb_csv_path(sequence_name), "RGB timestamp CSV", False),
+            (self.calibration_yaml_path(sequence_name), "Calibration YAML", False),
         ]
         if 'stereo' in self.modes:
             requirements.append((sequence_path / 'rgb_1', "Right RGB folder", True))
         if 'mono-vi' in self.modes:
-            requirements.append((sequence_path / 'imu_0.csv', "IMU CSV", False))
+            requirements.append((self.imu_csv_path(sequence_name), "IMU CSV", False))
 
         # Check all requirements
         complete_sequence = True

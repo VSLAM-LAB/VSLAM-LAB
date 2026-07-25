@@ -32,8 +32,8 @@ _RADIAL_NUM_PARAMS = 5
 class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
     """Eiffel Tower deep-sea underwater dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "eiffel-tower") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "eiffel-tower") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -51,7 +51,7 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = self.sequence_names
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         url = self.url_download_sequences[sequence_name]
         zip_path = self.dataset_path / url.rsplit("/", 1)[-1]
 
@@ -62,8 +62,8 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
             decompressFile(str(zip_path), str(self.dataset_path))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         raw_path = sequence_path / "images"
 
         if rgb_path.exists():
@@ -84,10 +84,9 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
                 resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        rgb_csv = sequence_path / "rgb.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = sorted(f.name for f in rgb_path.iterdir() if f.is_file())
 
         tmp = rgb_csv.with_suffix(".csv.tmp")
@@ -100,7 +99,7 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
         tmp.replace(rgb_csv)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         cameras_txt = sequence_path / "sfm" / "cameras.txt"
 
         width, height, f, cx, cy, k1, k2 = self._read_colmap_camera(cameras_txt)
@@ -124,10 +123,9 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         images_txt = sequence_path / "sfm" / "images.txt"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         poses = self._read_colmap_images(images_txt)
 
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
@@ -142,8 +140,7 @@ class EIFFEL_TOWER_dataset(DatasetVSLAMLab):
         tmp.replace(groundtruth_csv)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
             shutil.rmtree(sequence_path / "images", ignore_errors=True)
             shutil.rmtree(sequence_path / "sfm", ignore_errors=True)

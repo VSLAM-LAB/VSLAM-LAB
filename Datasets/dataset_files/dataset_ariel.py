@@ -21,8 +21,8 @@ INITIAL_TIMESTAMP: int = 1_700_604_776_000_000_000
 class ARIEL_dataset(DatasetVSLAMLab):
     """ARIEL dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "ariel") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "ariel") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -35,7 +35,7 @@ class ARIEL_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rosbag_name = f"{sequence_name}.bag"
         rosbag = sequence_path / rosbag_name
         calibration_folder = self.dataset_path / "calibrations"
@@ -79,8 +79,7 @@ class ARIEL_dataset(DatasetVSLAMLab):
             fs.get_file(f"datasets/{self.repo_id}/{remote_file}", str(local_file))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         rosbag_name = f"{sequence_name}.bag"
         rosbag = sequence_path / rosbag_name
 
@@ -96,9 +95,8 @@ class ARIEL_dataset(DatasetVSLAMLab):
             subprocess.run(command, shell=True)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb = pd.read_csv(rgb_csv)
 
         col0 = "path_rgb_0"
@@ -128,11 +126,11 @@ class ARIEL_dataset(DatasetVSLAMLab):
                     tmp.unlink()
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rosbag_name = f"{sequence_name}.bag"
         rosbag = sequence_path / rosbag_name
         imu_topic = "/alphasense_driver_ros/imu"
-        imu_csv = sequence_path / "imu_0.csv"
+        imu_csv = self.imu_csv_path(sequence_name)
         if imu_csv.exists():
             return
 
@@ -140,8 +138,8 @@ class ARIEL_dataset(DatasetVSLAMLab):
         command = f"pixi run -e ros1 extract-rosbag-imu {inputs}"
         subprocess.run(command, shell=True)
 
-        rgb_csv = sequence_path / "rgb.csv"
-        imu_csv = sequence_path / "imu_0.csv"
+        rgb_csv = self.rgb_csv_path(sequence_name)
+        imu_csv = self.imu_csv_path(sequence_name)
         rgb = pd.read_csv(rgb_csv)
         imu = pd.read_csv(imu_csv)
 
@@ -225,9 +223,9 @@ class ARIEL_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_tum = sequence_path / f"{sequence_name}_baseline.tum"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         with open(groundtruth_tum, "r", encoding="utf-8") as fin, open(tmp, "w", newline="", encoding="utf-8") as fout:

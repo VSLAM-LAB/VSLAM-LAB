@@ -54,8 +54,8 @@ IMAGE_CROP: Final = {"ssk16": [146,3], "ssk17": [6,13], "ssk18": [4,6],
 class SQUIDLE_dataset(DatasetVSLAMLab):
     """SQUIDLE dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "squidle") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "squidle") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -74,11 +74,11 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
         self.image_resolution = cfg.get("target_resolution", [640, 480])
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path: Path = self.dataset_path / sequence_name
+        sequence_path: Path = self.sequence_path(sequence_name)
         raw_path: Path = sequence_path / "raw"
-        rgb_path: Path = sequence_path / "rgb_0"
-        rgb_csv: Path = sequence_path / "rgb.csv"
-        gt_csv: Path = sequence_path / "groundtruth.csv"
+        rgb_path: Path = self.rgb_path(sequence_name)
+        rgb_csv: Path = self.rgb_csv_path(sequence_name)
+        gt_csv: Path = self.groundtruth_csv_path(sequence_name)
         if rgb_path.exists():
             return
         rgb_path.mkdir(parents=True, exist_ok=True)
@@ -229,8 +229,8 @@ class SQUIDLE_dataset(DatasetVSLAMLab):
 class SESOKO_dataset(SQUIDLE_dataset):
     """SESOKO dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "sesoko") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "sesoko") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -240,8 +240,8 @@ class SESOKO_dataset(SQUIDLE_dataset):
         self.combined = cfg.get("combined", {})
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path: Path = self.dataset_path / sequence_name
-        rgb_path: Path = sequence_path / "rgb_0"
+        sequence_path: Path = self.sequence_path(sequence_name)
+        rgb_path: Path = self.rgb_path(sequence_name)
         if rgb_path.exists():
                 return
 
@@ -259,10 +259,10 @@ class SESOKO_dataset(SQUIDLE_dataset):
         super().download_sequence_data(sequence_name)
 
     def download_subsequence(self, sequence_name: str) -> None:
-            sequence_path: Path = self.dataset_path / sequence_name
-            rgb_path: Path = sequence_path / "rgb_0"
-            rgb_csv: Path = sequence_path / "rgb.csv"
-            gt_csv: Path = sequence_path / "groundtruth.csv"
+            sequence_path: Path = self.sequence_path(sequence_name)
+            rgb_path: Path = self.rgb_path(sequence_name)
+            rgb_csv: Path = self.rgb_csv_path(sequence_name)
+            gt_csv: Path = self.groundtruth_csv_path(sequence_name)
             if rgb_path.exists():
                     return
             rgb_path.mkdir(parents=True, exist_ok=True)
@@ -305,10 +305,10 @@ class SESOKO_dataset(SQUIDLE_dataset):
             df_gt_sub.to_csv(gt_csv, index=False, sep=',')
 
     def download_combined_subsequence(self, sequence_name):
-        sequence_path: Path = self.dataset_path / sequence_name
-        rgb_path: Path = sequence_path / "rgb_0"
-        rgb_csv: Path = sequence_path / "rgb.csv"
-        gt_csv: Path = sequence_path / "groundtruth.csv"
+        sequence_path: Path = self.sequence_path(sequence_name)
+        rgb_path: Path = self.rgb_path(sequence_name)
+        rgb_csv: Path = self.rgb_csv_path(sequence_name)
+        gt_csv: Path = self.groundtruth_csv_path(sequence_name)
         if rgb_path.exists():
                 return
         rgb_path.mkdir(parents=True, exist_ok=True)
@@ -427,8 +427,8 @@ def _get_query_structure(sequence_name: str):
 class SCOTTREEF_dataset(SESOKO_dataset):
     """SCOTTREEF dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "scottreef") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "scottreef") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:

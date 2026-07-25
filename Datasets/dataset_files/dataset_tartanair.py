@@ -6,7 +6,6 @@ import csv
 import yaml
 import shutil
 import numpy as np
-from pathlib import Path
 from urllib.parse import urljoin
 from typing import Final, Any
 
@@ -21,8 +20,8 @@ CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy,
 class TARTANAIR_dataset(DatasetVSLAMLab):
     """TARTANAIR dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "tartanair") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "tartanair") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -71,8 +70,8 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
             decompressFile(compressed_file, self.dataset_path / decompressed_name)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / 'rgb_0'
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
         rgb_path.mkdir(parents=True, exist_ok=True)
 
         rgb_path_0 = self.dataset_path / 'tartanair-test-mono-release' / 'mono' / sequence_name
@@ -86,10 +85,9 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
         shutil.rmtree(rgb_path_0)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / 'rgb_0'
-        rgb_csv = sequence_path / 'rgb.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path = self.rgb_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
@@ -114,8 +112,8 @@ class TARTANAIR_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        groundtruth_csv = sequence_path / "groundtruth.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         groundtruth_txt = self.dataset_path / "tartanair_cvpr_gt" / "mono_gt" / f"{sequence_name}.txt"
         tmp_path = sequence_path / "groundtruth.csv.tmp"
 

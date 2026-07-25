@@ -12,9 +12,9 @@ from PIL import Image
 
 
 class IMAGEFOLDER_dataset(DatasetVSLAMLab):
-    def __init__(self, benchmark_path):
+    def __init__(self):
         # Initialize the dataset
-        super().__init__('imagefolder', benchmark_path)
+        super().__init__('imagefolder')
 
         # Load settings from .yaml file
         with open(self.yaml_file, 'r') as file:

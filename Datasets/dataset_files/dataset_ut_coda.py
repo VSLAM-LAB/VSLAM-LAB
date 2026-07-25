@@ -21,8 +21,8 @@ from path_constants import Retention, BENCHMARK_RETENTION
 class UT_CODA_dataset(DatasetVSLAMLab):
     """UT_CODA dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "ut-coda") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "ut-coda") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -36,8 +36,7 @@ class UT_CODA_dataset(DatasetVSLAMLab):
 
   
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path: Path = self.dataset_path / sequence_name
-
+        sequence_path: Path = self.sequence_path(sequence_name)
         # Variables
         compressed_name_ext = sequence_name + '.zip'    
         decompressed_name = sequence_name
@@ -57,7 +56,7 @@ class UT_CODA_dataset(DatasetVSLAMLab):
             decompressFile(compressed_file, sequence_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rgb_path_0 = sequence_path / 'rgb_0'
         rgb_path_1 = sequence_path / 'rgb_1'
         rgb_path_0_raw = sequence_path / '2d_rect' / 'cam0' / sequence_name
@@ -68,8 +67,8 @@ class UT_CODA_dataset(DatasetVSLAMLab):
                     os.symlink(src, tgt)  
         
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path: Path = self.dataset_path / sequence_name
-        rgb_csv: Path = sequence_path / 'rgb.csv'
+        sequence_path: Path = self.sequence_path(sequence_name)
+        rgb_csv: Path = self.rgb_csv_path(sequence_name)
         rgb_path_0: Path = sequence_path / 'rgb_0'
         rgb_path_1: Path = sequence_path / 'rgb_1'
         times_txt: Path = sequence_path / 'timestamps' / (sequence_name + '.txt')
@@ -92,8 +91,7 @@ class UT_CODA_dataset(DatasetVSLAMLab):
         df_rgb.to_csv(rgb_csv, index=False)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path: Path = self.dataset_path / sequence_name
-
+        sequence_path: Path = self.sequence_path(sequence_name)
         cams = []
         for cam_idx in (0, 1):
             calibration_yaml: Path = sequence_path / 'calibrations' / sequence_name / f'calib_cam{cam_idx}_intrinsics.yaml'
@@ -115,9 +113,8 @@ class UT_CODA_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=cams)
         
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        groundtruth_csv = sequence_path / 'groundtruth.csv'
-
+        sequence_path = self.sequence_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         CAM2ENU = np.array([[0., 0., 1., 0.], [-1., 0., 0., 0.], [0., -1., 0., 0.], [0., 0., 0., 1.]])
         ENU2CAM = np.array([[0., -1., 0., 0.], [0., 0., -1., 0.], [1., 0., 0., 0.], [0., 0., 0., 1.]])
 
@@ -142,7 +139,7 @@ class UT_CODA_dataset(DatasetVSLAMLab):
                 writer.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
 
     def remove_unused_files(self, sequence_name):
-        sequence_path: Path = self.dataset_path / sequence_name
+        sequence_path: Path = self.sequence_path(sequence_name)
         calibration_folder: Path  = sequence_path / "calibrations"
         metadata_folder: Path  = sequence_path / "metadata"
         timestamps_folder: Path  = sequence_path / "timestamps"

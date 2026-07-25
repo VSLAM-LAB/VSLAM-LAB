@@ -399,11 +399,11 @@ def check_get_dataset_registration(py_path: Path, yaml_data: dict | None, get_da
         fail_red(f"Missing import in get_dataset.py: [bold]{expected_import}[/bold]")
 
     # Check 2: switcher entry
-    expected_switcher = f'"{dataset_name}": lambda: {class_name}(benchmark_path)'
+    expected_switcher = f'"{dataset_name}": lambda: {class_name}()'
     if expected_switcher in gd_source:
-        ok(f"switcher entry found: [dim]\"{dataset_name}\": lambda: {class_name}(benchmark_path)[/dim]")
+        ok(f"switcher entry found: [dim]\"{dataset_name}\": lambda: {class_name}()[/dim]")
     else:
-        fail_red(f"Missing switcher entry in get_dataset.py: [bold]\"{dataset_name}\": lambda: {class_name}(benchmark_path)[/bold]")
+        fail_red(f"Missing switcher entry in get_dataset.py: [bold]\"{dataset_name}\": lambda: {class_name}()[/bold]")
 
 
 # ──────────────────────────────────────────────

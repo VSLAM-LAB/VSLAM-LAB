@@ -16,8 +16,8 @@ from path_constants import Retention, BENCHMARK_RETENTION
 class OPENLORIS_dataset(DatasetVSLAMLab):
     """OPENLORIS dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "openloris") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "openloris") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -31,7 +31,7 @@ class OPENLORIS_dataset(DatasetVSLAMLab):
         self.sequence_nicknames = self.sequence_names
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if sequence_path.exists():
             return  
         
@@ -54,11 +54,10 @@ class OPENLORIS_dataset(DatasetVSLAMLab):
         pass
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         accel_txt = self.dataset_path_raw / sequence_name / f'{self.camera_name}_accelerometer.txt'
         gyro_txt = self.dataset_path_raw / sequence_name / f'{self.camera_name}_gyroscope.txt'
-        imu_csv = sequence_path / "imu_0.csv"
-
+        imu_csv = self.imu_csv_path(sequence_name)
         df_accel = pd.read_csv(accel_txt, sep=r'\s+', comment='#', header=None, names=['Time', 'Ax', 'Ay', 'Az'])
         df_gyro = pd.read_csv(gyro_txt, sep=r'\s+', comment='#', header=None, names=['Time', 'Gx', 'Gy', 'Gz'])
 
@@ -79,10 +78,9 @@ class OPENLORIS_dataset(DatasetVSLAMLab):
         merged_df.to_csv(imu_csv, index=False)
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = self.dataset_path_raw / sequence_name / 'groundtruth.txt'
-        groundtruth_csv = sequence_path / 'groundtruth.csv'
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         df = pd.read_csv(groundtruth_txt, sep=r'\s+', header=None, comment='#')
         df.columns = ["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"]
         df['ts (ns)'] = pd.to_datetime(df['ts (ns)'], unit='s').astype('int64')
@@ -108,8 +106,8 @@ def _get_compressed_file_name(sequence_name: str) -> str:
 class OPENLORIS_d400_dataset(OPENLORIS_dataset):
     """OPENLORIS_d400 dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "openloris-d400") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "openloris-d400") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -122,7 +120,7 @@ class OPENLORIS_d400_dataset(OPENLORIS_dataset):
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         openloris_path = self.dataset_path_raw / sequence_name
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         raw_folders = ['color', 'aligned_depth']
         new_folders = ['rgb_0', 'depth_0']
         sequence_path.mkdir(parents=True, exist_ok=True)
@@ -135,8 +133,8 @@ class OPENLORIS_d400_dataset(OPENLORIS_dataset):
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         openloris_path = self.dataset_path_raw / sequence_name
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
         color_txt = openloris_path / 'color.txt'
@@ -194,13 +192,13 @@ class OPENLORIS_d400_dataset(OPENLORIS_dataset):
 class OPENLORIS_t265_dataset(OPENLORIS_dataset):
     """OPENLORIS_t265 dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "openloris-t265") -> None:
-        super().__init__(Path(benchmark_path), dataset_name)
+    def __init__(self, dataset_name: str = "openloris-t265") -> None:
+        super().__init__(dataset_name)
         self.camera_name = "t265"
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         openloris_path = self.dataset_path_raw / sequence_name
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         raw_folders = ['fisheye1', 'fisheye2']
         new_folders = ['rgb_0', 'rgb_1']
         sequence_path.mkdir(parents=True, exist_ok=True)
@@ -212,8 +210,8 @@ class OPENLORIS_t265_dataset(OPENLORIS_dataset):
         
     def create_rgb_csv(self, sequence_name: str) -> None:
         openloris_path = self.dataset_path_raw / sequence_name
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
         fisheye1_txt = openloris_path / 'fisheye1.txt'

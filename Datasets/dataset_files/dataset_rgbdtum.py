@@ -3,7 +3,6 @@ from __future__ import annotations
 import yaml
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from urllib.parse import urljoin
 from typing import Final, Any
 from collections.abc import Iterable
@@ -24,8 +23,8 @@ CAMERA_PARAMS = { # Camera intrinsics (fx, fy, cx, cy, k1, k2, p1, p2, k3)
 class RGBDTUM_dataset(DatasetVSLAMLab):
     """TUM RGB-D dataset helper for VSLAM-LAB benchmark."""
     
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "rgbdtum") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "rgbdtum") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -45,7 +44,7 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
         self.depth_factor = cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         camera = self._camera_from_sequence(sequence_name)
 
         # .tgz layout on server: <root>/<camera>/<sequence>.tgz
@@ -67,7 +66,7 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
                 decompressed_folder.replace(sequence_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
             src, tgt = sequence_path / raw, sequence_path / dst
             if src.is_dir() and not tgt.exists():
@@ -75,8 +74,8 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         """Associate RGB and Depth using nearest timestamp within tolerance."""
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
@@ -127,10 +126,9 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "groundtruth.txt"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         if not groundtruth_txt.exists():
             return
         
@@ -153,7 +151,7 @@ class RGBDTUM_dataset(DatasetVSLAMLab):
         tmp.unlink(missing_ok=True)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
             for name in ("accelerometer.txt", "depth.txt", "groundtruth.txt", "rgb.txt"):
                 (sequence_path / name).unlink(missing_ok=True)

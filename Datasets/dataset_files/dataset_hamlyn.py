@@ -1,7 +1,6 @@
 import csv
 import os
 import shutil
-from pathlib import Path
 from typing import Any
 
 import yaml
@@ -17,8 +16,8 @@ from path_constants import HUGGINGFACE_TOKEN, BENCHMARK_RETENTION, Retention
 class HAMLYN_dataset(DatasetVSLAMLab):
     """HAMLYN dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "hamlyn") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "hamlyn") -> None:
+        super().__init__(dataset_name)
 
         # Load settings
         with open(self.yaml_file, "r", encoding="utf-8") as f:
@@ -34,8 +33,7 @@ class HAMLYN_dataset(DatasetVSLAMLab):
         self.depth_factor = cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         rgb_0_path = sequence_path / 'rgb_0'
         if rgb_0_path.exists():
             return
@@ -63,7 +61,7 @@ class HAMLYN_dataset(DatasetVSLAMLab):
                 f_dest.write(f_src.read())
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         for cam, id in zip(['rgb_0', 'rgb_1', 'depth_0', 'depth_1'], ['image01', 'image02', 'depth01', 'depth02']):
             rgb_path = sequence_path / cam
             image_path = sequence_path / id
@@ -72,10 +70,9 @@ class HAMLYN_dataset(DatasetVSLAMLab):
 
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         rgb_path = sequence_path / 'rgb'
-        rgb_csv = sequence_path / 'rgb.csv'
-
+        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = {}
         for cam in ['rgb_0', 'rgb_1', 'depth_0', 'depth_1']:
             rgb_path = sequence_path / cam
@@ -102,7 +99,7 @@ class HAMLYN_dataset(DatasetVSLAMLab):
                                  ts_ns[f3], f"depth_1/{name[f3]}.png"])
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         calibration_file = sequence_path / f"intrinsics_{sequence_name}.txt"
 
         with open(calibration_file, 'r') as file:
@@ -124,8 +121,8 @@ class HAMLYN_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0, rgbd1])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        groundtruth_csv = sequence_path / "groundtruth.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         with  open(tmp, "w", newline="", encoding="utf-8") as fout:
@@ -134,6 +131,6 @@ class HAMLYN_dataset(DatasetVSLAMLab):
         tmp.replace(groundtruth_csv)
             
     def remove_unused_files(self, sequence_name: str) -> None:  
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             shutil.rmtree(sequence_path / f"intrinsics_{sequence_name}.txt", ignore_errors=True)
