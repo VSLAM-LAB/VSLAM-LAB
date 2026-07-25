@@ -1,8 +1,0 @@
-rgbdtum: 
-  - 'rgbd_dataset_freiburg3_walking_xyz'
-eth: 
-  - 'motion_1'
-kitti:
-  - '20'
-tartanair:
-  - 'ME004'  

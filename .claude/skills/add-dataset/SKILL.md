@@ -128,23 +128,23 @@ The one exception to "create or modify" above is git itself: step 9 stages and c
    - Add `from Datasets.dataset_files.dataset_<name> import <Name>Dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
    - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <Name>Dataset(),`.
 
-6. **Create a smoke-test config + experiment pair** under `configs/`, following the shape of the closest sibling from step 2 (e.g. `test_config_sweetcorals.yaml`/`test_exp_sweetcorals.yaml`, `test_config_eth.yaml`/`test_exp_eth.yaml`, `test_config_videos.yaml`/`test_exp_videos.yaml`):
-   - `configs/test_config_<name>.yaml` — a single `<dataset_name>:` key with a YAML list of sequence names to smoke-test:
+6. **Create a smoke-test config + experiment pair** under `configs/`. The current reference example is `test_config_eth.yaml`/`test_exp_eth.yaml` — eth is a `mono`+`rgbd` dataset with 97 sequences, and its smoke-test pair demonstrates both rules below at once: a small representative sequence subsample, and one experiment per supported mode. Follow it (or another sibling from step 2 if a closer match) rather than inventing the shape:
+   - `configs/test_config_<name>.yaml` — a single `<dataset_name>:` key with a small, representative sequence subsample, not the whole dataset:
      ```yaml
      <dataset_name>:
-     - sequence_01
-     - sequence_02
+       - sequence_01
+       - sequence_02
      ```
-     For a small dataset, list every sequence (see `test_config_sweetcorals.yaml`, 13/13). For a large one, a small representative handful is enough (see `test_config_videos.yaml`, 5 sequences; `test_config_strayscanner.yaml`, 1) — don't enumerate hundreds of sequences just to be thorough; pick ones that exercise different sizes/conditions if the dataset is heterogeneous.
-   - `configs/test_exp_<name>.yaml` — one `exp_<name>_<baseline>:` block (or a few, one per baseline worth smoke-testing):
+     Representative means picking sequences that exercise different sizes/conditions if the dataset is heterogeneous, not just the first N alphabetically — see `test_config_eth.yaml` (2 of eth's 97 sequences, one from a different scene category each) and `test_config_sweetcorals.yaml` (4 of 13, one per site group, including `tabuhan_p1` specifically since it's the only sequence with real calibration/groundtruth — every other sweetcorals sequence is raw uncalibrated fisheye). Always trim to a subset, even for a small dataset — don't list every sequence just because the dataset itself is small.
+   - `configs/test_exp_<name>.yaml` — **one `test_exp_<name>_<baseline>:` block per mode this dataset supports** (the step-1 `modes` list), not just one experiment total:
      ```yaml
-     exp_<name>_<baseline>:
+     test_exp_<name>_<baseline>:
        Config: test_config_<name>.yaml
        NumRuns: 1
        Parameters: {verbose: 1, mode: <one of this dataset's modes>, rgb_idx: [0,2000]}
        Module: <baseline>
      ```
-     Pick `<baseline>` (the `Module`) matching what the closest sibling's `test_exp_*.yaml` uses where possible (`droidslam` and `dpvo` are common lightweight choices for `mono`/`rgbd`) — it must be a pixi environment name from `pixi.toml`'s `[environments]` table. `rgb_idx: [0,2000]` caps the run to the first ~2000 frames for a quick test; omit it if the matched sibling's convention doesn't use it (see `test_exp_videos.yaml`/`test_exp_strayscanner.yaml`).
+     See `test_exp_eth.yaml`: two blocks, `mode: rgbd` via `droidslam` and `mode: mono` via `colmap`, since eth supports both — the minimum for a single-mode dataset is one block (the mode-coverage rule is already satisfied), but testing a second baseline for the same mode is also worth doing when convenient, not just when a second mode forces it: `test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` (both `mono`-only) each have two blocks, `droidslam` and `colmap`, purely for baseline diversity. Pick `<baseline>` (the `Module`) matching what the closest sibling's `test_exp_*.yaml` uses where possible (`droidslam` and `dpvo` are common lightweight choices for `mono`/`rgbd`) — it must be a pixi environment name from `pixi.toml`'s `[environments]` table; different modes can use different baselines if that fits better (as `test_exp_eth.yaml` does). Cap the run so the smoke test stays quick: `rgb_idx: [0,2000]` (first ~2000 frames) is the default — omit it if the matched sibling's convention doesn't use it (see `test_exp_videos.yaml`/`test_exp_strayscanner.yaml`). `test_exp_eth.yaml`/`test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` instead use `max_rgb`/`step_size`, which spreads a fixed frame count across the *whole* sequence rather than truncating to an early window — a deliberate choice when content late in the run (e.g. loop closures) matters for a meaningful smoke test, not the default to copy elsewhere without the same reason.
 
 7. **Add the dataset to the README table.** In `README.md`, under the "VSLAM-LAB Supported Baselines and Datasets" section, add one new row to the **Datasets** table (the table headed `| Datasets | Features | Label | Modes | Camera Models |`) — append it as the last real row, immediately above the commented-out placeholder rows at the bottom of that table (the `<!-- | [**Sweet Corals**]... -->`-style rows for datasets not yet implemented). Match the exact shape of existing rows:
    ```

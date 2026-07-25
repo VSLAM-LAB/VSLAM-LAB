@@ -1,5 +1,5 @@
-exp_sweetcorals_droidslam:
+test_exp_sweetcorals_colmap:
   Config: test_config_sweetcorals.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
-  Module: droidslam
+  Parameters: {verbose: 1, mode: mono, max_rgb: 200, step_size: 3}
+  Module: colmap

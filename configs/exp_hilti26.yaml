@@ -1,5 +1,0 @@
-exp_hilti26_orbslam3:
-  Config: config_hilti26.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, mode: mono-vi}
-  Module: orbslam3

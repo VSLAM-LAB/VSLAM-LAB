@@ -1,5 +1,0 @@
-exp_hamlyn_orbslam2:
-  Config: config_hamlyn.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, mode: rgbd, rgb_idx: [0,2000]}
-  Module: orbslam2

@@ -244,7 +244,7 @@ No other issues: `about:`/`vslamlab_maintainer:` field order, `modes`/`cam_model
 
 Not done (scope creep, logged): `dataset_videos.yaml` and `dataset_vitum.yaml` have the same `sequence_names` indentation inconsistency (flush-left and 1-space respectively) but are outside this cleanup's eth/soneva/sweetcorals/template scope — left alone.
 
-Commit: *(pending — not yet committed)*
+Commit: `7ffb1f5`
 
 ### 2026-07-25 — `dataset_template.yaml`: inlined a real `about:` placeholder block
 
@@ -254,7 +254,7 @@ Added a real `about:` block (`license`/`summary`/`homepage`/`authors`, matching 
 
 Verified: file still parses; `about` block loads with the expected 4 keys.
 
-Commit: *(pending — not yet committed)*
+Commit: `7ffb1f5`
 
 ### 2026-07-25 — `dataset_template.yaml`: documented the download-source field alternatives
 
@@ -264,7 +264,7 @@ Added a comment above `url_download_root` in `dataset_template.yaml` listing all
 
 Verified against the actual cited files: `dataset_s3li.yaml`'s `url_download_sequences` is a dict keyed by sequence name; `dataset_strayscanner.yaml`'s `sequence_location` is a plain list, positionally parallel to `sequence_names` (not itself keyed by name) — corrected the comment's wording after an initial draft said "keyed by sequence_name" for the list case, which was imprecise.
 
-Commit: *(pending — not yet committed)*
+Commit: `7ffb1f5`
 
 ### 2026-07-25 — Unrelated bug found while regenerating `dataset_table.md`: `generate_dataset_table.py`
 
@@ -276,12 +276,133 @@ Fixed directly (one-line, unambiguous): `cfg.get("repo_id")` → `cfg.get("hf_re
 
 Filed [#77](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/77) to record the bug and its impact (SKILL.md step 2's cross-check-by-shared-Download-source would have failed to match hugging-face candidates for a new dataset addition).
 
-Commit: *(pending — not yet committed)*
+Commit: `7ffb1f5`
 
 ### 2026-07-25 — `dataset_template.yaml`: documented the closed `modes`/`cam_models` value lists
 
 User-spotted, same gap pattern as the `url_download_root` entry above: `modes: ['mono', 'rgbd']` and `cam_models: ['pinhole']` gave no indication these are closed lists (SKILL.md step 1) sourced from `dataset_table.md`'s Modes/Camera Models columns, or what the current valid values are.
 
 Confirmed the live value sets by regenerating `dataset_table.md` (now with the `hf_repo_id` fix from the previous entry): `modes` = `{mono, mono-vi, rgbd, rgbd-vi, stereo, stereo-vi}`, `cam_models` = `{equid4, pinhole, radtan4, radtan5, unknown}` — matches SKILL.md's own hardcoded documentation of both lists exactly. Added comments above each field listing the current values (marked "as of this writing" since SKILL.md says to read the list live, it can grow) plus, for `modes`, the derivation rule from SKILL.md step 1 (native mode + every mode derivable by dropping a channel: stereo/rgbd → mono, -vi → non-vi) with the same worked examples SKILL.md uses.
+
+Commit: `7ffb1f5`
+
+### 2026-07-25 — SKILL.md step 6 rewrite: smoke-test config/exp pair, using eth as the current reference
+
+Files: `.claude/skills/add-dataset/SKILL.md`.
+
+Context: while checking the config-file deletions above, `configs/test_config_eth.yaml`/`test_exp_eth.yaml` had themselves been substantially rewritten by the user during this session — `test_config_eth.yaml` trimmed from 87 to 2 sequences, `test_exp_eth.yaml` gained a second `mode: mono` block (`colmap`) alongside the existing `mode: rgbd` block (`droidslam`), and both blocks were renamed with a `test_exp_` prefix (`test_exp_eth_droidslam`/`test_exp_eth_colmap`, previously `exp_eth_droidslam`). `test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` got the same block-name prefix change. User then explicitly asked to update SKILL.md step 6 to match, citing eth as the canonical example, and stating two requirements: experiments representative of the dataset's modes, sequences a small representative subsample.
+
+Checked how widespread the `test_exp_` block-name prefix actually is before rewriting: only 5 of 17 `test_exp_*.yaml` files use it (`test_exp_eth.yaml`, `test_exp_soneva.yaml`, `test_exp_sweetcorals.yaml` — all touched this session — plus `test_exp_rgbd.yaml`/`test_exp_stereo.yaml`, pre-existing). The other 12 still use the old unprefixed `exp_<name>_<baseline>:` block name. Same "new convention, not yet backfilled everywhere" situation as `self.cfg`/`write_csv_rows` earlier — SKILL.md governs *future* additions, so it was updated to the new convention without touching the 12 old files.
+
+Rewrote step 6: block-name template changed from `exp_<name>_<baseline>:` to `test_exp_<name>_<baseline>:`; added an explicit rule that `test_exp_<name>.yaml` needs **one block per mode the dataset supports** (not just one experiment total), citing `test_exp_eth.yaml`'s two blocks (`rgbd`/`droidslam`, `mono`/`colmap`) as the model — a single-mode dataset trivially satisfies this with its existing one block. Replaced the `test_config_videos.yaml`/`test_config_strayscanner.yaml` citations for "small representative handful" with `test_config_eth.yaml` (2 of 97 sequences) as the primary example, keeping `test_config_sweetcorals.yaml` (13/13) for the small-dataset-lists-everything exception. Also documented `test_exp_eth.yaml`'s `max_rgb`/`step_size` frame-capping (spreads samples across the whole sequence) as a deliberate alternative to the default `rgb_idx` (early-window truncation) for datasets where late-sequence content matters — not the default to copy without the same reason, matching the "intentional, not a bug" conclusion from the earlier `test_exp_eth.yaml` review in this log.
+
+Also fixed the yaml code-block example's `sequence_names`-equivalent list indentation (`- sequence_01` → `  - sequence_01`, 2-space), matching the yaml-indentation convention fixed in the earlier `.yaml` files pass.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — soneva/sweetcorals test_config/test_exp brought in line with the new SKILL.md step 6
+
+Files: `configs/test_config_soneva.yaml`, `configs/test_config_sweetcorals.yaml` (`test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` reviewed, no changes needed).
+
+Checked both pairs against the just-rewritten SKILL.md step 6:
+- Block naming (`test_exp_<name>_<baseline>:`) — already compliant in both (part of the same user edit that prompted the SKILL.md rewrite).
+- One experiment block per supported mode — both datasets are mono-only, so their existing single block already satisfies this trivially. No new blocks added.
+- `Parameters`/`rgb_idx` shape — already matches the SKILL.md template exactly in both.
+
+Fixed: `test_config_soneva.yaml`/`test_config_sweetcorals.yaml` list-item indentation (flush-left → 2-space), matching `test_config_eth.yaml` and the yaml-indentation convention fixed earlier this log for `Datasets/dataset_files/*.yaml` — these `configs/test_config_*.yaml` files are separate files that pass hadn't touched.
+
+Fixed (user-confirmed): `test_config_soneva.yaml`'s 5 sequences covered 5 of soneva's 6 location groups (`hb`/`ootbm`/`ootbr`/`ootsl1`/`ootsr3`), missing `ootsr2` entirely. Added `ootsr2_20250702` (chronologically first for that location) for full 6/6 location coverage, matching the "representative sequence subsample" principle more completely. `test_config_sweetcorals.yaml` already lists all 13/13 sequences (the small-dataset exception), left as-is.
+
+Verified: both files parse; `test_config_soneva.yaml` now has 6 sequences (was 5), `test_config_sweetcorals.yaml` unchanged content (13), only formatting changed.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — test_exp_soneva.yaml/test_exp_sweetcorals.yaml: switched to eth's max_rgb/step_size
+
+Files: `configs/test_exp_soneva.yaml`, `configs/test_exp_sweetcorals.yaml`.
+
+User asked to make these more similar to `test_exp_eth.yaml`. The one remaining stylistic difference (block naming, `Config`/`NumRuns`/`Module` shape were already identical) was the frame-capping parameter: `rgb_idx: [0,2000]` vs. eth's `max_rgb: 200, step_size: 3`. Switched both files' `Parameters` to `max_rgb: 200, step_size: 3`, matching eth's exact values.
+
+Verified: both files parse correctly with the new Parameters.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — Added colmap block to test_exp_soneva.yaml/test_exp_sweetcorals.yaml, fixed the now-stale SKILL.md claim
+
+Files: `configs/test_exp_soneva.yaml`, `configs/test_exp_sweetcorals.yaml`, `.claude/skills/add-dataset/SKILL.md`.
+
+User asked to add a `colmap` block too (mirroring `test_exp_eth.yaml`'s two baselines) and confirmed `test_config_sweetcorals.yaml` still has all 13 sequences (verified: yes, only formatting had changed in the earlier pass, not content).
+
+Added `test_exp_soneva_colmap`/`test_exp_sweetcorals_colmap` blocks to both files (same `Config`/`NumRuns`/`Parameters` as their `droidslam` block, `Module: colmap`) — both datasets are mono-only, so this is two baselines testing the *same* mode, not mode-coverage.
+
+This directly contradicted a claim I'd just written into SKILL.md step 6 ("a single-mode dataset (e.g. soneva, mono-only) needs only the one block") — fixed: reworded to say one block per mode is the *minimum*, but a second baseline for the same mode is also worth adding for baseline diversity, citing soneva/sweetcorals's new two-block shape as the example. Also updated the `max_rgb`/`step_size` citation to include soneva/sweetcorals (now 3 files use it, not just eth).
+
+Verified: both `test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` parse with two top-level blocks each.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — test_config_sweetcorals.yaml trimmed to a real subset, dropped the "small dataset lists everything" exception
+
+Files: `configs/test_config_sweetcorals.yaml`, `.claude/skills/add-dataset/SKILL.md`.
+
+User: "the test config should be a subset of sequences" — a general principle, not a sweetcorals-specific fix. This overrides the exception kept from the original SKILL.md text (small dataset → list every sequence, cited via `test_config_sweetcorals.yaml`'s prior 13/13).
+
+Trimmed `test_config_sweetcorals.yaml` from 13 to 4 sequences: one per site group (`banyuwangi_farm`, `pemuteran_p1`, `tabuhan_p1`, `watudodol_p1`), keeping `tabuhan_p1` specifically since it's the only sequence with real calibration/groundtruth (every other sweetcorals sequence is raw uncalibrated fisheye — losing it from the smoke test would mean nothing in the sample ever exercises the calibrated code path).
+
+Updated SKILL.md step 6 to match: removed the "small dataset, list everything" exception entirely, replaced the `test_config_sweetcorals.yaml` citation (now demonstrating "trim to a subset even when the dataset is small," 4/13, one per site group including the calibrated sequence) as the second worked example alongside `test_config_eth.yaml`.
+
+Verified: `test_config_sweetcorals.yaml` parses with 4 sequences; no other stale reference to the old 13/13 citation remains in SKILL.md.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — generate_dataset_table.py: fixed Download Issues detection for soneva/sweetcorals
+
+Files: `Datasets/extra-files/generate_dataset_table.py`.
+
+User-spotted: `dataset_table.md`'s Download Issues column was empty for `soneva`/`sweetcorals`, even though both should show `huggingface_token` (`HFColmapDatasetMixin.get_download_issues`, shared by both via `dataset_soneva.py`).
+
+Root cause, three compounding regex/design issues, all triggered by exactly this multi-inheritance case (confirmed via grep: `dataset_soneva.py`/`dataset_sweetcorals.py` are the *only* dataset files using multi-inheritance anywhere in the repo):
+1. `_CLASS_RE` required parens (`\(([\w.]+)\)`), so `class HFColmapDatasetMixin:` (no base class, no parens) wasn't matched as a class at all.
+2. `_CLASS_RE`'s base-class group (`[\w.]+`) didn't allow commas, so `class SonevaDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):`/`class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):` (multiple bases) weren't matched either — `_class_blocks()` returned an empty dict for both files, so every lookup immediately failed.
+3. Even with 1/2 fixed, `SweetcoralsDataset`'s real base with the actual `get_download_issues` implementation (`HFColmapDatasetMixin`) lives in a *different* file (`dataset_soneva.py`) than the class being checked — the script's own docstring says "(single-file) inheritance chain," an explicit scope limit that doesn't cover this case.
+
+Fixed all three: `_CLASS_RE` now makes the base-class group optional and captures the full parenthesized content; `_class_blocks()` splits it into a list of base names instead of a single one; walking the chain now tries every base in order, and a new `_local_imports()` helper parses `from Datasets.dataset_files.X import Y` lines so a base class not found in the current file's blocks is looked up in whichever sibling dataset file actually imports/defines it (following exactly the soneva→sweetcorals mixin-sharing pattern).
+
+Verified: script runs clean, `dataset_table.md` diff is exactly the two expected rows — `soneva`/`sweetcorals` now both show `huggingface_token` in Download Issues, every other row unchanged (including `strayscanner`, another hugging-face+local dataset, confirming the fix didn't touch anything outside the multi-inheritance case).
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — generate_dataset_table.py: added Features/License columns, reordered README's Datasets table
+
+Files: `Datasets/extra-files/generate_dataset_table.py`, `Datasets/extra-files/dataset_table.md`, `README.md`.
+
+User asked for two things: (1) add `Features`/`License` columns to `dataset_table.md` in a specific order (`Features Label Modes Camera Models License Download Download Issues Maintainer AI-Assisted`), Features sourced from README.md, License from each dataset's own yaml; (2) reorder README's Datasets table to match `dataset_table.md`'s alphabetical order.
+
+**Script changes**: renamed the "Dataset" column to "Label" (matching README's own terminology) and reordered columns per spec. Added `_expand_label()` to handle README rows that cover multiple dataset_table.md labels via a shared prefix (`openloris-d400/t265` → `openloris-d400`+`openloris-t265`; `rover-picam/d435i/t265` → all three `rover-*` labels) — the constituents share everything up to the last `-` before the first `/`, varying only the suffix. Added `_readme_features()`, which parses every row (active *and* commented-out placeholder rows — they already carry curated Features tags, no reason to leave them blank) in the region between the `| Datasets` table header and the next `## ` heading, so the differently-shaped Baselines table above it (no Features column, but a similarly-shaped `[**Name**](url) | ... | \`label\`` row structure) is never touched. License comes straight from `cfg.get("about", {}).get("license", "")`.
+
+**Real bug found in README along the way**: the `monotum` commented-out placeholder row was missing its leading `| ` (`<!-- [**Monocular...` instead of `<!-- | [**Monocular...`), unlike all 8 other commented rows — meant its Features were silently unparseable by any row-shaped regex. Fixed the missing pipe while reordering this block anyway.
+
+**Reordered README's Datasets table**: 17 active rows + 9 commented placeholder rows, both blocks independently sorted alphabetically by Label to match `dataset_table.md`'s `sorted(dataset_files_dir.glob(...))` order. Verified row count unchanged (17+9=26 before and after) and no row content altered beyond reordering + the monotum pipe fix.
+
+**Notable finding surfaced by the new License column, not fixed** (needs domain knowledge, not something to guess): `dataset_ariel.yaml`, `dataset_caves.yaml`, `dataset_drunkards.yaml`, `dataset_hamlyn.yaml`, `dataset_hilti2022.yaml`, `dataset_hilti2026.yaml`, `dataset_madmax.yaml`, `dataset_s3li.yaml`, `dataset_videos.yaml`, `dataset_youtube.yaml` all literally have `license: License` in their `about:` block — an unfilled template placeholder, never actually set to a real license identifier. Confirmed this is genuine yaml content, not a script parsing bug. Worth a follow-up pass to fill in real license values.
+
+Verified: script runs clean under the reordered README, all 34 dataset_table.md rows present, `monotum`'s Features now populate (📸🏠🤳), `soneva`/`sweetcorals`/`openloris-*`/`rover-*` all show the expected Features from their (possibly grouped) README row.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — generate_dataset_table.py: added leftmost Datasets column (from yaml, not README)
+
+Files: `Datasets/extra-files/generate_dataset_table.py`, `Datasets/extra-files/dataset_table.md`.
+
+Note: user restored `README.md` to its pre-reorder state ("temporarily") before this pass — the earlier README reorder entry above is now reverted in the working tree; not re-applied here, this pass only touched the script.
+
+User asked for a new leftmost "Datasets" column matching README's `[**Name**](URL)` display format, but sourced from each dataset's own yaml this time (`about.summary` for Name, `about.homepage` for URL) rather than cross-referencing README — the opposite direction from the Features column added earlier this session. Added `dataset_link = f"[**{display_name}**]({homepage})"` (falls back to plain `display_name` text, no link, if `homepage` is missing) as the new leftmost column, ahead of Features.
+
+Three real findings surfaced by actually running this against every dataset yaml, not bugs in the implementation:
+1. **18 of 34 dataset yamls have no `about:` block at all** (`7scenes`, `euroc`, `iphone`, `kitti`, `monotum`, `msd`, `nuim`, `openloris-d400`/`openloris-t265`, `replica`, `rgbdtum`, `rover-d435i`/`rover-picam`/`rover-t265`, `scannetplusplus`, `sesoko`, `tartanair`, `ut-coda`) — blank Datasets *and* License cells for all of them, consistent with the License-column finding from the earlier pass. These predate the `about:` block convention (SKILL.md step 3) and were never backfilled.
+2. Where `about.summary` exists, it doesn't always read like a short display title the way README's hand-curated Datasets-column names do — `soneva`/`sweetcorals` use their full one-line descriptive sentence as `summary` ("Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and Sustainability Maldives and Wildflow" vs. README's actual "Soneva Corals"), and `eth`'s summary text ("ETH3D SLAM & Stereo Benchmarks") differs in wording from README's ("ETH3D SLAM Benchmarks"). Not a bug — this column is defined to pull from the yaml, and the yaml's `summary` field just isn't always title-length.
+3. `youtube` correctly falls back to plain (unlinked) text since its yaml has `summary` but no `homepage` key — confirmed intentional fallback behavior, not a bug.
+
+Verified: script runs clean, 34 rows written, spot-checked `eth`/`soneva`/`sweetcorals`/`kitti`/`iphone`/`youtube` rows against their actual yaml `about:` blocks.
 
 Commit: *(pending — not yet committed)*
