@@ -42,7 +42,7 @@ class SevenscenesDataset(DatasetVSLAMLAB):
         self.depth_factor = self.cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_group = _find_sequence_group(sequence_name)
+        sequence_group = self._find_sequence_group(sequence_name)
         compressed_name = sequence_group
         compressed_name_ext = compressed_name + '.zip'
         decompressed_name = compressed_name
@@ -148,7 +148,7 @@ class SevenscenesDataset(DatasetVSLAMLAB):
 
     def remove_unused_files(self, sequence_name: str) -> None:
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            sequence_group = _find_sequence_group(sequence_name)
+            sequence_group = self._find_sequence_group(sequence_name)
             compressed_name = sequence_name.replace(sequence_group + '_', '')
             group_folder = self.dataset_path / sequence_group
 
@@ -166,8 +166,9 @@ class SevenscenesDataset(DatasetVSLAMLAB):
             if group_folder.is_dir() and not any(group_folder.iterdir()):
                 group_folder.rmdir()
 
-
-def _find_sequence_group(sequence_name):
-    for scene in SCENES:
-         if scene in sequence_name:
-            return scene
+    @staticmethod
+    def _find_sequence_group(sequence_name: str) -> str:
+        for scene in SCENES:
+            if scene in sequence_name:
+                return scene
+        raise ValueError(f"Cannot infer scene group from sequence name: {sequence_name}")
