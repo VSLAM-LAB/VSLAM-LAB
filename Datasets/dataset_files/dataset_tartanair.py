@@ -19,7 +19,7 @@ import numpy as np
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
-from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile
 
 CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
@@ -151,5 +151,5 @@ class TartanairDataset(DatasetVSLAMLAB):
             shutil.rmtree(gt_folder)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            (VSLAMLAB_BENCHMARK / f"tartanair-test-mono-release.tar.gz").unlink(missing_ok=True)
-            (VSLAMLAB_BENCHMARK / f"3p1sf0eljfwrz4qgbpc6g95xtn2alyfk.zip").unlink(missing_ok=True)
+            (self.dataset_path / f"tartanair-test-mono-release.tar.gz").unlink(missing_ok=True)
+            (self.dataset_path / f"3p1sf0eljfwrz4qgbpc6g95xtn2alyfk.zip").unlink(missing_ok=True)

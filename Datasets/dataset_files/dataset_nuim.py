@@ -44,20 +44,18 @@ class NuimDataset(DatasetVSLAMLAB):
         sequence_path = self.sequence_path(sequence_name)
         # Variables
         compressed_name_ext = sequence_name + '.tar.gz'
-        decompressed_name = sequence_name
-        
+
         download_url = os.path.join(self.url_download_root, compressed_name_ext)
 
         # Constants
         compressed_file = self.dataset_path / compressed_name_ext
-        decompressed_folder = self.dataset_path / decompressed_name
 
         # Download the compressed file
         if not compressed_file.exists():
             downloadFile(download_url, self.dataset_path)
 
         # Decompress the file
-        if not decompressed_folder.exists():
+        if not sequence_path.exists():
             decompressFile(compressed_file, sequence_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:

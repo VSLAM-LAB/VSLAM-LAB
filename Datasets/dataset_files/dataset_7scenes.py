@@ -69,9 +69,8 @@ class SevenscenesDataset(DatasetVSLAMLAB):
         # Constants
         compressed_file = self.dataset_path / sequence_group / compressed_name_ext
         sequence_path = self.sequence_path(sequence_name)
-        decompressed_folder = sequence_path
 
-        if not decompressed_folder.exists():
+        if not sequence_path.exists():
             decompressFile(compressed_file, self.dataset_path)
             os.rename(self.dataset_path / decompressed_name, sequence_path)
 
