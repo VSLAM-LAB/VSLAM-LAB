@@ -4,33 +4,33 @@ rgb_hz: 2.0
 modes: ['mono']
 cam_models: ['pinhole']
 
-repo_id: "wildflow/soneva-corals"
+hf_repo_id: "wildflow/soneva-corals"
 target_resolution: [640, 480]
 
 sequence_names:
-- hb_20250710
-- hb_20250728
-- hb_20251029
-- hb_20260304
-- ootbm_20250624
-- ootbm_20250703
-- ootbm_20251007
-- ootbr_20250709
-- ootbr_20250728
-- ootbr_20251029
-- ootbr_20260304
-- ootsl1_20250602
-- ootsl1_20250620
-- ootsl1_20251007
-- ootsl1_20260218
-- ootsr2_20250702
-- ootsr2_20250704
-- ootsr2_20251008
-- ootsr2_20260303
-- ootsr3_20250703
-- ootsr3_20250704
-- ootsr3_20251008
-- ootsr3_20260303
+  - hb_20250710
+  - hb_20250728
+  - hb_20251029
+  - hb_20260304
+  - ootbm_20250624
+  - ootbm_20250703
+  - ootbm_20251007
+  - ootbr_20250709
+  - ootbr_20250728
+  - ootbr_20251029
+  - ootbr_20260304
+  - ootsl1_20250602
+  - ootsl1_20250620
+  - ootsl1_20251007
+  - ootsl1_20260218
+  - ootsr2_20250702
+  - ootsr2_20250704
+  - ootsr2_20251008
+  - ootsr2_20260303
+  - ootsr3_20250703
+  - ootsr3_20250704
+  - ootsr3_20251008
+  - ootsr3_20260303
 
 about:
   license: CC-BY-4.0

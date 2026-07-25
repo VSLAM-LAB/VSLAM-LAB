@@ -5,7 +5,7 @@
 | `caves` | `pinhole` | `mono` | `website` |  | Alejandro Fontan |  |
 | `drunkards` | `pinhole` | `mono` `rgbd` | `google-drive` |  | Alejandro Fontan |  |
 | `eiffel-tower` | `radtan4` | `mono` | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
-| `eth` | `pinhole` | `mono` `rgbd` | `website` |  | Alejandro Fontan |  |
+| `eth` | `pinhole` | `mono` `rgbd` | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
 | `euroc` | `radtan4` | `mono` `stereo` `mono-vi` `stereo-vi` | `website` | `complete_dataset` |  |  |
 | `hamlyn` | `pinhole` | `mono` `rgbd` | `hugging-face` |  | Alejandro Fontan |  |
 | `hilti2022` | `equid4` | `mono` `mono-vi` `stereo` `stereo-vi` | `website` |  | Alejandro Fontan |  |

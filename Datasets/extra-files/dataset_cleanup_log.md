@@ -27,7 +27,11 @@ skill's file scope — this is a separate, ongoing hygiene pass across existing 
 
 8. **`get_download_issues` return shape (base class)** — must return `list[dict]` (`_get_dataset_issue(...)`'s output, one call per issue), never a bare `dict`. `DatasetVSLAMLAB.py`'s default previously mismatched this (`-> dict: return {}`); fixed to `-> List[dict]: return []`. Check any new implementation actually returns a list, not a single dict or a bare `_get_dataset_issue(...)` call unwrapped in a list.
 
-9. *(next checks TBD as they come up — e.g. YAML field shape, etc.)*
+9. **YAML formatting** — `sequence_names` list items indented 2 spaces (`  - name`), matching `dataset_template.yaml`/`dataset_eth.yaml`/the repo-wide majority — not flush-left. File ends with a trailing newline. `about:`/`vslamlab_maintainer:` key order and quoting style should match sibling yamls (see checklist item 2 for the `vslamlab_maintainer:` block specifically).
+
+10. **Template self-containment** — `dataset_template.yaml`/`dataset_template.py` should be usable as a standalone starting point without needing to cross-reference SKILL.md or another dataset's files for basic facts (closed-list values, which yaml field goes with which download pattern, etc.) — a pointer comment alone (e.g. "see dataset_hilti2026.yaml") is a gap unless the actual shape/values are also inlined. Before trusting `dataset_table.md`-derived facts (closed-list values, Download column, etc.), regenerate it first (`python3 Datasets/extra-files/generate_dataset_table.py`) — a stale copy silently drifts from the yaml files it's generated from.
+
+11. *(next checks TBD as they come up, e.g. field-value validation)*
 
 ## Entries
 
@@ -223,5 +227,61 @@ Bug found and fixed: the base class's default `get_download_issues(self, sequenc
 Reviewed the 3 real files against this: none needed changes. `dataset_eth.py` correctly has no override (no auth constraint, matches SKILL.md step 1 "leave blank if none"); `dataset_sweetcorals.py` correctly has no override either, inheriting the HF-token check from `HFColmapDatasetMixin` via multiple inheritance rather than duplicating it; the mixin's own implementation was already correct.
 
 Verified: `EthDataset().get_download_issues(['x'])`, `SonevaDataset().get_download_issues(['x'])`, `SweetcoralsDataset().get_download_issues(['x'])` all return `[]` under `pixi run -e vslamlab python` (HF token is set in this environment, so the mixin's no-issue branch is exercised for soneva/sweetcorals; eth exercises the base class default).
+
+Commit: `22bc9e1`
+
+### 2026-07-25 — `.yaml` files pass
+
+Files: `dataset_eth.yaml`, `dataset_soneva.yaml`, `dataset_sweetcorals.yaml`, `Datasets/extra-files/dataset_template.yaml`.
+
+(Header/`vslamlab_maintainer:` block consistency was already covered in the earlier header-consistency and Assisted-by-convention passes — this pass covered everything else: field order, formatting, quoting.)
+
+Finding (fixed): `sequence_names` list-item indentation was inconsistent — `dataset_eth.yaml`/`dataset_template.yaml` indent items 2 spaces (`  - cables_1`), but `dataset_soneva.yaml`/`dataset_sweetcorals.yaml` had them flush left (`- hb_20250710`, no indent). Checked indentation across all ~33 dataset yamls (not just our 4): 28+ use the 2-space style, only soneva/sweetcorals (in scope) plus `dataset_videos.yaml`/`dataset_vitum.yaml` (out of scope, not touched) deviate. Reindented soneva/sweetcorals's `sequence_names` to 2 spaces to match the dominant convention; verified both still parse with identical `sequence_names` content/count (23 and 13 respectively) after the change.
+
+Finding (fixed): `dataset_template.yaml` was missing a trailing newline at end-of-file (the other three all have one). Added.
+
+No other issues: `about:`/`vslamlab_maintainer:` field order, `modes`/`cam_models` values (checked against SKILL.md's closed lists), quoting style, and blank-line section spacing are all already consistent across the four files.
+
+Not done (scope creep, logged): `dataset_videos.yaml` and `dataset_vitum.yaml` have the same `sequence_names` indentation inconsistency (flush-left and 1-space respectively) but are outside this cleanup's eth/soneva/sweetcorals/template scope — left alone.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — `dataset_template.yaml`: inlined a real `about:` placeholder block
+
+User-spotted: `dataset_template.yaml` had only a one-line pointer comment for `about:` ("see dataset_hilti2026.yaml for the full shape") instead of an actual fill-in-the-blank block like `sequence_names`/`vslamlab_maintainer` both have — inconsistent with the template's own established pattern of being a concrete, ready-to-edit starting point rather than a set of pointers elsewhere.
+
+Added a real `about:` block (`license`/`summary`/`homepage`/`authors`, matching `dataset_hilti2026.yaml`'s shape and the field order already used by `dataset_eth.yaml`/`dataset_soneva.yaml`/`dataset_sweetcorals.yaml`), placed between `sequence_names` and `vslamlab_maintainer` to match where it sits in all three real files. Kept a short comment clarifying `authors` means the dataset's original creators, not the `vslamlab_maintainer` (the VSLAM-LAB integrator) — a distinction that isn't obvious from the field name alone.
+
+Verified: file still parses; `about` block loads with the expected 4 keys.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — `dataset_template.yaml`: documented the download-source field alternatives
+
+User-spotted: `url_download_root: ""` was presented with no indication it's only one of several mutually-exclusive download-source fields depending on pattern (website/google-drive use `url_download_root`, hugging-face uses `hf_repo_id`, local uses `sequence_location`, and website can alternatively use `url_download_sequences` for a per-sequence-URL table) — that mapping was only documented in `dataset_template.py`'s `__init__` comment, not in the yaml template itself, so someone filling out just the yaml first (SKILL.md step 3, before step 4's `.py`) could easily keep the wrong field.
+
+Added a comment above `url_download_root` in `dataset_template.yaml` listing all four patterns and which field(s) each uses, with model citations (`dataset_s3li.yaml` for `url_download_sequences`, `dataset_soneva.yaml`/`dataset_sweetcorals.yaml` for `hf_repo_id`, `dataset_strayscanner.yaml` for `sequence_location`) — condensed from `dataset_template.py`'s existing `__init__` comment rather than duplicating it verbatim, so the two stay easy to keep in sync.
+
+Verified against the actual cited files: `dataset_s3li.yaml`'s `url_download_sequences` is a dict keyed by sequence name; `dataset_strayscanner.yaml`'s `sequence_location` is a plain list, positionally parallel to `sequence_names` (not itself keyed by name) — corrected the comment's wording after an initial draft said "keyed by sequence_name" for the list case, which was imprecise.
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — Unrelated bug found while regenerating `dataset_table.md`: `generate_dataset_table.py`
+
+Files: `Datasets/extra-files/generate_dataset_table.py`, `Datasets/extra-files/dataset_table.md`.
+
+While regenerating `dataset_table.md` to check the live `cam_models`/`modes` value sets (for the next entry below), the Download column came back wrong for 9 datasets (`ariel`, `hamlyn`, `msd`, `openloris-d400`, `openloris-t265`, `soneva`, `strayscanner`, `sweetcorals`, `videos`) — all showing `other` instead of `hugging-face`. Root cause: `generate_dataset_table.py`'s `_download_labels()` checked `cfg.get("repo_id")`, but every hugging-face dataset yaml in the repo uses `hf_repo_id` (confirmed via grep — zero yaml files use bare `repo_id`) — a permanently-dead check. Not caused by this session's edits; the previously-committed `dataset_table.md` just hadn't been regenerated since the yaml field was renamed `repo_id` → `hf_repo_id` at some earlier point.
+
+Fixed directly (one-line, unambiguous): `cfg.get("repo_id")` → `cfg.get("hf_repo_id")`. Regenerated `dataset_table.md`; all 9 datasets now correctly show `hugging-face`. Also picked up an unrelated stale entry while regenerating: `eth`'s "AI-Assisted" column now correctly shows "Claude (Sonnet 5)" (this session's earlier `Assisted by` addition to `dataset_eth.yaml` had never been reflected in the table until this regeneration).
+
+Filed [#77](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/77) to record the bug and its impact (SKILL.md step 2's cross-check-by-shared-Download-source would have failed to match hugging-face candidates for a new dataset addition).
+
+Commit: *(pending — not yet committed)*
+
+### 2026-07-25 — `dataset_template.yaml`: documented the closed `modes`/`cam_models` value lists
+
+User-spotted, same gap pattern as the `url_download_root` entry above: `modes: ['mono', 'rgbd']` and `cam_models: ['pinhole']` gave no indication these are closed lists (SKILL.md step 1) sourced from `dataset_table.md`'s Modes/Camera Models columns, or what the current valid values are.
+
+Confirmed the live value sets by regenerating `dataset_table.md` (now with the `hf_repo_id` fix from the previous entry): `modes` = `{mono, mono-vi, rgbd, rgbd-vi, stereo, stereo-vi}`, `cam_models` = `{equid4, pinhole, radtan4, radtan5, unknown}` — matches SKILL.md's own hardcoded documentation of both lists exactly. Added comments above each field listing the current values (marked "as of this writing" since SKILL.md says to read the list live, it can grow) plus, for `modes`, the derivation rule from SKILL.md step 1 (native mode + every mode derivable by dropping a channel: stereo/rgbd → mono, -vi → non-vi) with the same worked examples SKILL.md uses.
 
 Commit: *(pending — not yet committed)*

@@ -100,7 +100,7 @@ def _is_google_drive_url(url: object) -> bool:
 def _download_labels(cfg: dict) -> list[str]:
     """Infer the source pattern(s) (hugging-face/google-drive/website/local/other) from the YAML's download fields."""
     labels: list[str] = []
-    if cfg.get("repo_id"):
+    if cfg.get("hf_repo_id"):
         labels.append("hugging-face")
 
     urls = [cfg.get("url_download_root"), cfg.get("url_download_sequences")]

@@ -1,9 +1,36 @@
 dataset_name: dataset_name_template
 
 rgb_hz: 30.0
+
+# Closed list (SKILL.md step 1) - every value must already appear in the Modes column of
+# Datasets/extra-files/dataset_table.md (regenerate via generate_dataset_table.py first; read
+# live since the set can grow - as of this writing: mono, mono-vi, rgbd, rgbd-vi, stereo,
+# stereo-vi). Include the native mode(s) *and* every mode derivable by dropping a channel:
+#   stereo/rgbd -> mono (one image of the pair / drop depth - stereo and rgbd don't reduce to
+#                  each other)
+#   -vi         -> non-vi (drop the IMU stream - one-way only, never invent IMU data)
+# e.g. native stereo-vi -> ['mono', 'mono-vi', 'stereo', 'stereo-vi']; plain stereo ->
+# ['mono', 'stereo']; plain mono -> ['mono'].
 modes: ['mono', 'rgbd']
+
+# Closed list (SKILL.md step 1) - every value must already appear in the Camera Models column of
+# Datasets/extra-files/dataset_table.md (same regenerate-first, read-live rule as modes above -
+# as of this writing: equid4, pinhole, radtan4, radtan5, unknown).
 cam_models: ['pinhole']
 
+# The field below is for the "website"/"google-drive" download patterns (SKILL.md step 1) -
+# replace it entirely with whichever field matches this dataset's actual source:
+#   website      -> url_download_root: a root URL + filename pattern serving a .zip/.tar/.7z
+#                   (or url_download_sequences: a dict keyed by sequence_name instead, if each
+#                   sequence has its own unrelated URL rather than a shared root - see
+#                   dataset_s3li.yaml)
+#   hugging-face -> hf_repo_id: "org/name" (see dataset_soneva.yaml/dataset_sweetcorals.yaml)
+#   google-drive -> url_download_root: a drive.google.com share link, or a pre-resolved
+#                   drive.usercontent.google.com direct-download URL
+#   local        -> no field here; affected sequences carry sequence_location: local instead
+#                   (a list with one entry per sequence_names, same order, if only some
+#                   sequences are local; a single scalar if all are - see
+#                   dataset_strayscanner.yaml)
 url_download_root: ""
 
 # Optional. Set when resize (SKILL.md step 1) is true, i.e. source images are bigger than
@@ -17,7 +44,15 @@ sequence_names:
   - sequence_01
   - sequence_02
 
-# about: license, summary, homepage, authors — see dataset_hilti2026.yaml for the full shape.
+# authors: the dataset's original creators/publishers, not the vslamlab_maintainer below (the
+# person/agent who integrated it into VSLAM-LAB) — see dataset_hilti2026.yaml for a real example.
+about:
+  license: CC-BY-4.0
+  summary: One-line description of the dataset
+  homepage: https://example.com/dataset
+  authors:
+    - Author Name
+    - Another Author
 
 vslamlab_maintainer:
   name: Maintainer Name
