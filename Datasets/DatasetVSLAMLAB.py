@@ -78,8 +78,8 @@ class DatasetVSLAMLAB(ABC):
         pass
     def remove_unused_files(self, sequence_name: str) -> None: 
         pass
-    def get_download_issues(self, sequence_names: List[str]) -> dict:
-        return {}
+    def get_download_issues(self, sequence_names: List[str]) -> List[dict]:
+        return []
     
     ####################################################################################################################
     # Download methods

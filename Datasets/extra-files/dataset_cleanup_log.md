@@ -23,7 +23,11 @@ skill's file scope — this is a separate, ongoing hygiene pass across existing 
 
 6. **`check_sequence_integrity` mode coverage (base class)** — `DatasetVSLAMLAB.check_sequence_integrity` only conditionally checks `rgb_1/` (stereo) and IMU CSV (mono-vi); there's no check for `depth_0/` when `'rgbd' in self.modes`. A mono-only download can get marked `"available"` and skip re-download even though `depth_0/` was never fetched, for any rgbd dataset. Tracked in [#76](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/76). Not dataset-file-specific, so this is a `DatasetVSLAMLAB.py` fix, not something a per-dataset pass can resolve on its own.
 
-7. *(next checks TBD as they come up — e.g. YAML field shape, `remove_unused_files`/`BENCHMARK_RETENTION` handling, etc.)*
+7. **`remove_unused_files` / `Retention` tiers** — `FULL` deletes nothing; `STANDARD` (default) deletes intermediate files that are pure reformats of data already captured in the standardized layout (no information loss, e.g. eth's per-frame `.txt` files once parsed into `.csv`/`.yaml`); `MINIMAL` additionally deletes the *original source* downloads (archives, un-resized raw images) that would need a fresh download to reproduce. In code: `if BENCHMARK_RETENTION != Retention.FULL: <STANDARD-tier deletes>` then `if BENCHMARK_RETENTION == Retention.MINIMAL: <MINIMAL-tier deletes too>` — a dataset with no purely-reformatted intermediates (e.g. soneva/sweetcorals) only needs the second check. Full definition in `dataset_template.py`'s `remove_unused_files` comment.
+
+8. **`get_download_issues` return shape (base class)** — must return `list[dict]` (`_get_dataset_issue(...)`'s output, one call per issue), never a bare `dict`. `DatasetVSLAMLAB.py`'s default previously mismatched this (`-> dict: return {}`); fixed to `-> List[dict]: return []`. Check any new implementation actually returns a list, not a single dict or a bare `_get_dataset_issue(...)` call unwrapped in a list.
+
+9. *(next checks TBD as they come up — e.g. YAML field shape, etc.)*
 
 ## Entries
 
@@ -195,5 +199,29 @@ Bug found and fixed: `dataset_sweetcorals.py`'s `create_groundtruth_csv` did `if
 Also refactored (matching the `create_rgb_csv` pass's precedent): `dataset_eth.py`'s `create_groundtruth_csv` hand-rolled the same open/`csv.writer`/tmp/`.replace()` pattern `write_csv_rows` already covers. Refactored to build a `rows` list and call `write_csv_rows`; `import csv` was then fully unused in the file (its only other use was the `create_rgb_csv` this same pattern was already removed from) and was dropped.
 
 Verified: `table_3` (the only locally-downloaded eth sequence) already had its raw `groundtruth.txt` removed by `remove_unused_files` at this retention level, so the eth refactor was verified with a synthetic before/after comparison (crafted `groundtruth.txt` with blank lines/comments/multiple rows) instead — byte-identical old vs. new. soneva/sweetcorals were verified against real downloaded data: regenerated `groundtruth.csv` for `soneva/hb_20250710` and `sweetcorals/tabuhan_p1` (pinhole) — both byte-identical to pre-fix baselines (dead-variable removal doesn't change output) — and `sweetcorals/watudodol_p1` (non-pinhole) now correctly produces a header-only file where none existed before.
+
+Commit: `cce205d`
+
+### 2026-07-25 — `remove_unused_files` pass: documented the 3 `Retention` levels in the template
+
+Files: `Datasets/extra-files/dataset_template.py`.
+
+User asked to write out what each `Retention` level (`path_constants.py`: `MINIMAL`/`STANDARD`/`FULL`, default `STANDARD`) keeps vs. removes, since the enum itself carries no docstring and the convention was only implicit across dataset files. Derived the convention by reading every `BENCHMARK_RETENTION`/`Retention` usage across all dataset files that have one (~15, via grep, not just eth/soneva/sweetcorals) — the pattern is consistent repo-wide: `if BENCHMARK_RETENTION != Retention.FULL:` guards deleting intermediate files that are pure reformats of data already captured in the standardized layout (no information loss); `if BENCHMARK_RETENTION == Retention.MINIMAL:` guards additionally deleting the *original source* downloads (archives, un-resized raw images) that would otherwise require a fresh download to reproduce.
+
+Rewrote `dataset_template.py`'s `remove_unused_files` comment block to spell out all three tiers explicitly (`FULL` = delete nothing, `STANDARD` = delete redundant reformats only, `MINIMAL` = also delete original source downloads), with the two-check code shape and both `dataset_eth.py` (both tiers) and `HFColmapDatasetMixin` (`MINIMAL`-only) cited as models.
+
+Reviewed `remove_unused_files` itself against this now-documented convention: `dataset_eth.py` and `HFColmapDatasetMixin` (soneva/sweetcorals) both already match it exactly — no code changes needed. The mixin's lack of a `!= FULL`/`STANDARD`-tier check isn't an inconsistency: soneva/sweetcorals have no purely-reformatted intermediate files to clean (they don't parse raw per-frame text files the way eth does), only the `MINIMAL`-tier `rgb_0_raw/`.
+
+Commit: `cce205d`
+
+### 2026-07-25 — `get_download_issues` pass: base class return-type mismatch
+
+Files: `Datasets/DatasetVSLAMLAB.py`.
+
+Bug found and fixed: the base class's default `get_download_issues(self, sequence_names: List[str]) -> dict: return {}` was typed and implemented as returning a `dict`, but every actual implementation returns a `list[dict]` — `HFColmapDatasetMixin.get_download_issues` (`dataset_soneva.py`, shared by sweetcorals) returns `[_get_dataset_issue(...)]`, `_get_dataset_issue` (`DatasetVSLAMLAB_issues.py`) itself returns a single dict (not a list), and the sole caller (`vslamlab_utilities.py:373`, `for issue_seq in issues_seq: ... issue_seq['name']`) only works for a list of dicts — iterating an actual non-empty dict would iterate its keys (strings) and crash on `issue_seq['name']`. The template's own comment already correctly said "Return a list of dicts..." — only the base class's signature/default was wrong. Not a live bug today (both `{}` and `[]` are falsy, so the empty default behaves identically either way), but a trap for the next dataset that trusts the type hint literally. Fixed: `-> List[dict]`, `return []`.
+
+Reviewed the 3 real files against this: none needed changes. `dataset_eth.py` correctly has no override (no auth constraint, matches SKILL.md step 1 "leave blank if none"); `dataset_sweetcorals.py` correctly has no override either, inheriting the HF-token check from `HFColmapDatasetMixin` via multiple inheritance rather than duplicating it; the mixin's own implementation was already correct.
+
+Verified: `EthDataset().get_download_issues(['x'])`, `SonevaDataset().get_download_issues(['x'])`, `SweetcoralsDataset().get_download_issues(['x'])` all return `[]` under `pixi run -e vslamlab python` (HF token is set in this environment, so the mixin's no-issue branch is exercised for soneva/sweetcorals; eth exercises the base class default).
 
 Commit: *(pending — not yet committed)*

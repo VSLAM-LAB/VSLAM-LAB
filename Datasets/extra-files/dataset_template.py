@@ -166,11 +166,35 @@ class TemplateDataset(DatasetVSLAMLAB):
         tmp.replace(groundtruth_csv)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        # Delete raw/intermediate files left over after create_rgb_folder / create_rgb_csv /
-        # create_calibration_yaml / create_groundtruth_csv have consumed them (e.g. the original
-        # compressed archive, per-frame pose .txt files), so the benchmark directory only keeps
-        # the standardized layout. Check BENCHMARK_RETENTION / Retention if this dataset should
-        # keep raw files around at higher retention levels.
+        # Delete files that create_rgb_folder / create_rgb_csv / create_calibration_yaml /
+        # create_groundtruth_csv have already consumed and turned into the standardized layout
+        # (rgb_0/, rgb.csv, calibration.yaml, groundtruth.csv, ...), so the benchmark directory
+        # doesn't keep redundant copies of the same data in two formats. How much gets deleted
+        # depends on BENCHMARK_RETENTION (path_constants.py, default Retention.STANDARD) — a
+        # three-level Enum every dataset's remove_unused_files should follow the same way:
+        #
+        #   Retention.FULL     -> delete nothing. Keep every raw/intermediate file exactly as
+        #                         downloaded/generated, alongside the standardized layout.
+        #   Retention.STANDARD -> delete intermediate files that are pure reformats of data
+        #                         already fully captured in the standardized layout - no
+        #                         information is lost by deleting them (e.g. eth.py's per-frame
+        #                         calibration.txt/groundtruth.txt/rgb.txt/depth.txt/associated.txt,
+        #                         once parsed into calibration.yaml/groundtruth.csv/rgb.csv). Keep
+        #                         the *original source* downloads (zip archives, un-resized raw
+        #                         images) - they're not redundant, since re-deriving the
+        #                         standardized layout from them again (e.g. at a different
+        #                         target_resolution) would otherwise require re-downloading.
+        #   Retention.MINIMAL  -> delete everything STANDARD does, plus the original source
+        #                         downloads too (e.g. eth.py's downloaded {sequence}_{mode}.zip,
+        #                         HFColmapDatasetMixin's rgb_0_raw/ pre-resize images) - only the
+        #                         standardized layout remains: smallest footprint, but not
+        #                         reprocessable without a fresh download.
+        #
+        # In code this is almost always exactly two checks:
+        #   if BENCHMARK_RETENTION != Retention.FULL: <delete STANDARD-tier files>
+        #   if BENCHMARK_RETENTION == Retention.MINIMAL: <delete MINIMAL-tier files too>
+        # Model: dataset_eth.py (both tiers - raw .txt files vs. downloaded .zip archives),
+        # HFColmapDatasetMixin.remove_unused_files in dataset_soneva.py (MINIMAL-only: rgb_0_raw/).
         return
 
     def get_download_issues(self, _):
