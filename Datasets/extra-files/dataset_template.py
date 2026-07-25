@@ -127,8 +127,23 @@ class TemplateDataset(DatasetVSLAMLAB):
         #   stereo -> ts_rgb_0 (ns), path_rgb_0, ts_rgb_1 (ns), path_rgb_1
         #   rgbd   -> ts_rgb_0 (ns), path_rgb_0, ts_depth_0 (ns), path_depth_0
         # Timestamps in nanoseconds; derive them from self.rgb_hz if the source ships none.
-        # Write to a <name>.csv.tmp file first, then .replace() it onto the final path — the
-        # atomic-write pattern used throughout Datasets/dataset_files/*.py.
+        # Build a `rows` list and write it via utilities.write_csv_rows(path, header, rows) — the
+        # atomic write-then-replace pattern used throughout Datasets/dataset_files/*.py.
+        #
+        # rgbd only: check whether the source's RGB/depth pair is a single hardware-synchronized
+        # capture or two independently-timestamped streams before picking how to associate them:
+        #   synchronized -> rgb_0/ and depth_0/ already correspond 1:1 by capture order - list both,
+        #                   sort, and zip the two sorted filename lists by index. This is the common
+        #                   case. Model: dataset_eth.py, dataset_nuim.py, dataset_replica.py,
+        #                   dataset_7scenes.py.
+        #   async        -> each stream carries its own independent timestamps (e.g. two separate
+        #                   sensors, as with a Kinect's RGB and depth cameras) - a naive index-zip
+        #                   would silently pair frames from different moments. Read each stream's
+        #                   real timestamps and associate them by nearest-timestamp match within a
+        #                   tolerance (e.g. pandas.merge_asof(..., direction="nearest",
+        #                   tolerance=...)), dropping any frame with no match close enough in time.
+        #                   Model: dataset_rgbdtum.py - the first (and, as of this writing, only)
+        #                   dataset in this repo needing this.
         return
 
     def create_calibration_yaml(self, sequence_name: str) -> None:

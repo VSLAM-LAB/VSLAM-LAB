@@ -20,7 +20,7 @@ import numpy as np
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
 
@@ -85,23 +85,18 @@ class TartanairDataset(DatasetVSLAMLAB):
         shutil.rmtree(rgb_path_0)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
-        rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
         rgb_files.sort()
 
-        tmp_path = sequence_path / "rgb.csv.tmp"
-        with open(tmp_path, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0"])
-            for filename in rgb_files:
-                name, _ = os.path.splitext(filename)
-                ts = float(name) / self.rgb_hz
-                ts_ns = int(1e10 + ts * 1e9)
-                w.writerow([ts_ns, f"rgb_0/{filename}"])
+        rows = []
+        for filename in rgb_files:
+            name, _ = os.path.splitext(filename)
+            ts = float(name) / self.rgb_hz
+            ts_ns = int(1e10 + ts * 1e9)
+            rows.append([ts_ns, f"rgb_0/{filename}"])
 
-        os.replace(tmp_path, rgb_csv)
+        write_csv_rows(self.rgb_csv_path(sequence_name), ["ts_rgb_0 (ns)", "path_rgb_0"], rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         fx, fy, cx, cy = CAMERA_PARAMS

@@ -21,7 +21,7 @@ from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 SCENES = ['chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen', 'stairs']
 CAMERA_PARAMS: Final = [585.0, 585.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
@@ -91,30 +91,23 @@ class SevenscenesDataset(DatasetVSLAMLAB):
                 shutil.move(image_path, folder_path / image_name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
-        tmp = rgb_csv.with_suffix(".csv.tmp")
 
-        modes = ['color', 'depth']
-        folder = {'color': 'rgb_0', 'depth': 'depth_0'}
-        png_files ={}
-        for mode in modes:
-            folder_path = sequence_path / f'{folder[mode]}'
-            png_files[mode] = [file for file in os.listdir(folder_path) if file.endswith('.png')]
-            png_files[mode].sort()
+        folder = {'color': self.rgb_path(sequence_name), 'depth': self.depth_path(sequence_name)}
+        png_files = {}
+        for mode, folder_path in folder.items():
+            png_files[mode] = sorted(file for file in os.listdir(folder_path) if file.endswith('.png'))
 
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"])  
-            for iPNG in range(len(png_files['color'])):
-                ts_r0_ns = int(1e12 + float(iPNG / self.rgb_hz) * 1e9)
-                path_r0 = f"rgb_0/{png_files['color'][iPNG]}"
-                ts_d_ns = int(1e12 + float(iPNG / self.rgb_hz) * 1e9)
-                path_d = f"depth_0/{png_files['depth'][iPNG]}"
-                w.writerow([ts_r0_ns, path_r0, ts_d_ns, path_d])
-        tmp.replace(rgb_csv)
+        rows = []
+        for iPNG in range(len(png_files['color'])):
+            ts_ns = int(1e12 + float(iPNG / self.rgb_hz) * 1e9)
+            path_r0 = f"rgb_0/{png_files['color'][iPNG]}"
+            path_d = f"depth_0/{png_files['depth'][iPNG]}"
+            rows.append([ts_ns, path_r0, ts_ns, path_d])
+
+        write_csv_rows(rgb_csv, ["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"], rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
 

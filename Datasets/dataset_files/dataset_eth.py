@@ -77,8 +77,8 @@ class EthDataset(DatasetVSLAMLAB):
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt", "rgb/", "rgb_0/"))
-        depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", "depth_0/"))
+        rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt", "rgb/", f"{self.rgb_path(sequence_name).name}/"))
+        depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", f"{self.depth_path(sequence_name).name}/"))
 
         rows = []
         for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries, strict=True):

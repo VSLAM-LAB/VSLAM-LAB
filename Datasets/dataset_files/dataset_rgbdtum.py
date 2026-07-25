@@ -18,7 +18,7 @@ import pandas as pd
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 TIME_DIFF_THRESH: Final = 0.02  # seconds for RGB/Depth association
 
@@ -78,7 +78,17 @@ class RgbdtumDataset(DatasetVSLAMLAB):
                 src.replace(tgt)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        """Associate RGB and Depth using nearest timestamp within tolerance."""
+        """Associate RGB and Depth using nearest timestamp within tolerance.
+
+        TUM's Kinect emits RGB and depth as two independently-timestamped streams (not a single
+        hardware-synchronized capture), so unlike most rgbd datasets in this repo - which just
+        list rgb_0/ and depth_0/ and zip the sorted filenames by index, assuming each pair is
+        already the same frame (see dataset_eth.py/dataset_nuim.py/dataset_replica.py/
+        dataset_7scenes.py) - a naive index-zip here would silently pair frames from different
+        moments. This instead reads each stream's own timestamps from rgb.txt/depth.txt and
+        associates them via a nearest-timestamp merge (pandas.merge_asof) within
+        TIME_DIFF_THRESH, dropping any RGB frame with no depth frame close enough in time.
+        """
         sequence_path = self.sequence_path(sequence_name)
         rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
@@ -107,12 +117,7 @@ class RgbdtumDataset(DatasetVSLAMLAB):
         merged["path_depth_0"] = merged["depth_path"].astype(str).str.replace(r"^depth/", "depth_0/", regex=True)
 
         out = merged[["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"]]
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(rgb_csv)
-        finally:
-            tmp.unlink(missing_ok=True)
+        write_csv_rows(rgb_csv, ["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"], out.values.tolist())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         camera = self._camera_from_sequence(sequence_name)
