@@ -145,9 +145,9 @@ class SonevaDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         sequence_path = self.sequence_path(sequence_name)
         rgb_path = sequence_path / "rgb_0_raw"
 
-        remote_name = self._remote_sequence_name(sequence_name)
+        remote_folder = self._remote_sequence_name(sequence_name)
         subfolder = self._lhs_subfolder(sequence_name)
-        remote_dir = f"{remote_name}/raw/{subfolder}"
+        remote_dir = f"{remote_folder}/raw/{subfolder}"
 
         ensure_hf_sequence_download(self.hf_repo_id, [remote_dir], rgb_path, token=hf_token())
 

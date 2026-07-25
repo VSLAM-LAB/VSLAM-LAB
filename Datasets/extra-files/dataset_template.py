@@ -98,15 +98,27 @@ class TemplateDataset(DatasetVSLAMLAB):
         # Normalize the raw downloaded images into rgb_0/ (plus rgb_1/ for stereo modes)
         # under self.dataset_path / sequence_name — renaming/moving files as needed so every
         # dataset exposes the same folder layout regardless of the source's original format.
-        # Branch on self.target_resolution (not a separate resize flag) for every image:
+        # Branch on self.target_resolution (not a separate resize flag) for every rgb_0/rgb_1
+        # image:
         #   None     -> source images are already <= 640x480 (or the yaml's target_resolution was
         #               removed) - copy/link the file into rgb_0/ unresized (e.g. shutil.copy2),
         #               never round-trip it through PIL just to leave it the same size.
         #   not None -> scale the image down to match self.target_resolution's pixel area while
         #               preserving aspect ratio via utilities.compute_scaled_size(img.size,
         #               self.target_resolution), then save into rgb_0/.
-        # Model: dataset_soneva.py/dataset_sweetcorals.py (HFColmapDatasetMixin.create_rgb_folder),
-        # dataset_eiffel_tower.py.
+        # rgbd modes also need depth_0/, following the same self.target_resolution branch as
+        # rgb_0/rgb_1 above when the source needs resizing — but never resize a depth map with
+        # PIL's LANCZOS (or any interpolating resample); that blends depth values across object
+        # boundaries and corrupts the metric data. Use nearest-neighbor (e.g. PIL's Image.NEAREST,
+        # or cv2.resize(..., interpolation=cv2.INTER_NEAREST)) instead, which just samples the
+        # nearest source pixel per output pixel and keeps every depth value exact.
+        # dataset_eth.py's depth_0/ is a plain rename with no resizing at all — not because rgbd
+        # depth shouldn't be resized in general, but because ETH3D's source images are already
+        # close enough to 640x480 that eth.yaml sets no target_resolution, so nothing (rgb or
+        # depth) gets resized for this particular dataset.
+        # Model: dataset_soneva.py/dataset_sweetcorals.py (HFColmapDatasetMixin.create_rgb_folder)
+        # for the rgb_0 resize pattern; dataset_eth.py for depth_0/'s folder layout (unresized in
+        # eth's case specifically, see above).
         return
 
     def create_rgb_csv(self, sequence_name: str) -> None:
