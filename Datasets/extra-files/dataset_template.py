@@ -1,3 +1,15 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_<name>.py
+- Author: <your name>
+- Assisted by: <agent name, or None if no AI coding agent was involved>
+- Version: 1.0
+- Created: YYYY-MM-DD
+- License: GPLv3 License
+
+Keep this in sync with the new dataset's own YAML vslamlab_maintainer: block (SKILL.md step 3) -
+same name, same assisted_by (if any), same date.
+"""
+
 from __future__ import annotations
 
 import csv
@@ -12,8 +24,8 @@ import yaml
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
 
-class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLAB):
-    """DATASET_NAME_TEMPLATE dataset helper for VSLAM-LAB benchmark."""
+class TemplateDataset(DatasetVSLAMLAB):
+    """<Display Name> dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self):
         super().__init__('dataset_name_template')
@@ -29,7 +41,7 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLAB):
         #                   URL instead of a shared root, use self.url_download_sequences =
         #                   cfg["url_download_sequences"]  (a dict keyed by sequence_name), Model:
         #                   dataset_s3li.py — keyed lookup, not a positionally-indexed list
-        #   hugging-face -> self.repo_id = cfg["repo_id"]; if the repo is gated it needs a token —
+        #   hugging-face -> self.hf_repo_id = cfg["hf_repo_id"]; if the repo is gated it needs a token —
         #                   see HUGGINGFACE_TOKEN in path_constants.py (falls back to the HF_TOKEN env var)
         #   google-drive -> self.url_download_root = cfg["url_download_root"]  (a drive.google.com
         #                   share link, or a drive.usercontent.google.com pre-resolved direct-download URL)
@@ -66,7 +78,7 @@ class DATASET_NAME_TEMPLATE_dataset(DatasetVSLAMLAB):
         #   website      -> utilities.downloadFile(url, self.dataset_path) + decompressFile(...)
         #                   Model: dataset_7scenes.py
         #   hugging-face -> use utilities.py's hf_token() / ensure_hf_sequence_download() (which
-        #                   wraps download_hf_snapshot()) against self.repo_id — resumable,
+        #                   wraps download_hf_snapshot()) against self.hf_repo_id — resumable,
         #                   idempotent per-sequence fetch+flatten, don't hand-roll this with
         #                   HfApi/HfFileSystem/snapshot_download directly. Model:
         #                   dataset_soneva.py, dataset_sweetcorals.py

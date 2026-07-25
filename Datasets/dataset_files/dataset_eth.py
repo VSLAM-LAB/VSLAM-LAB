@@ -1,3 +1,13 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_eth.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 2.0
+- Created: 2024-07-13
+- Updated: 2026-07-25
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
 import csv
@@ -17,7 +27,7 @@ MAX_NICKNAME_LEN: Final = 15
 
 
 class EthDataset(DatasetVSLAMLAB):
-    """ETH dataset helper for VSLAM-LAB benchmark."""
+    """ETH3D dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "eth") -> None:
         super().__init__(dataset_name)

@@ -22,7 +22,7 @@ sequence_names:
 vslamlab_maintainer:
   name: Maintainer Name
   # If an AI coding agent (Claude, Copilot, etc.) helped write this dataset's files, credit it
-  # here alongside the human maintainer — omit this line entirely if no agent was involved.
-  assisted_by: Claude (Sonnet 5)
+  # here alongside the human maintainer — set to None if no agent was involved.
+  assisted_by: Claude (Sonnet 5)   # e.g. None
   email: maintainer@example.com
   date: YYYY-MM-DD

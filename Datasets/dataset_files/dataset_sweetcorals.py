@@ -1,9 +1,10 @@
 """
 Module: VSLAM-LAB - Datasets - dataset_sweetcorals.py
-- Author: Alejandro Fontan Villacampa
+- Author: Alejandro Fontan
 - Assisted by: Claude (Sonnet 5)
 - Version: 1.0
 - Created: 2026-07-22
+- Updated: 2026-07-25
 - License: GPLv3 License
 """
 
@@ -74,7 +75,7 @@ _RAW_CAMERA_SUBFOLDERS = {
 
 
 class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
-    """SWEETCORALS dataset helper for VSLAM-LAB benchmark."""
+    """Sweet Corals dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "sweetcorals") -> None:
         super().__init__(dataset_name)
@@ -83,16 +84,8 @@ class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         with open(self.yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
-        # Get download url
-        self.repo_id = cfg["repo_id"]
-
-        # Create sequence_nicknames
-        self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
-
-        # Get resolution size - target_resolution is optional; if the yaml doesn't set it (or it's
-        # removed later), create_rgb_folder falls back to copying images at their original
-        # resolution instead of resizing.
-        self.target_resolution = tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
+        # Get Hugging Face repo id
+        self.hf_repo_id = cfg["hf_repo_id"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -102,12 +95,12 @@ class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
         if sequence_name == _PINHOLE_SEQUENCE:
             remote_dir = f"{remote_folder}/corrected/images"
             ensure_hf_sequence_download(
-                self.repo_id, [remote_dir], rgb_path, pattern=f"{_PINHOLE_LEFT_PREFIX}*", token=hf_token(),
+                self.hf_repo_id, [remote_dir], rgb_path, pattern=f"{_PINHOLE_LEFT_PREFIX}*", token=hf_token(),
             )
             return
 
         remote_dirs = [f"{remote_folder}/raw/{subfolder}" for subfolder in _RAW_CAMERA_SUBFOLDERS[sequence_name]]
-        ensure_hf_sequence_download(self.repo_id, remote_dirs, rgb_path, token=hf_token())
+        ensure_hf_sequence_download(self.hf_repo_id, remote_dirs, rgb_path, token=hf_token())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
