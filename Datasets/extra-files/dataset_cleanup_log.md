@@ -19,7 +19,7 @@ skill's file scope — this is a separate, ongoing hygiene pass across existing 
 
 4. **Redundant yaml reopen** — subclass `__init__` should read dataset-specific fields from `self.cfg` (set by `DatasetVSLAMLAB.__init__`), not reopen/re-parse `self.yaml_file` itself. If a subclass still does `with open(self.yaml_file...) as f: cfg = yaml.safe_load(f)`, switch it to `self.cfg` and drop the now-unused `import yaml` if nothing else in the file needs it.
 
-5. **Unused `sequence_path` locals** — `sequence_path = self.sequence_path(sequence_name)` assigned but never read afterward (the method builds `rgb_path`/other paths via other helpers instead). Confirmed present in `dataset_soneva.py`'s `create_rgb_csv`/`create_calibration_yaml`/`create_groundtruth_csv` and `dataset_sweetcorals.py`'s `create_calibration_yaml`/`create_groundtruth_csv` (Pylance flagged these repeatedly across sessions) — not yet fixed, scoped to whichever pass reviews those specific hooks.
+5. **Unused `sequence_path` locals** — `sequence_path = self.sequence_path(sequence_name)` assigned but never read afterward (the method builds `rgb_path`/other paths via other helpers instead). Fixed in `dataset_soneva.py`'s `create_rgb_csv` (`create_rgb_csv` pass). Still present in `dataset_soneva.py`'s `create_calibration_yaml`/`create_groundtruth_csv` and `dataset_sweetcorals.py`'s `create_calibration_yaml`/`create_groundtruth_csv` — scoped to whichever pass reviews those specific hooks.
 
 6. **`check_sequence_integrity` mode coverage (base class)** — `DatasetVSLAMLAB.check_sequence_integrity` only conditionally checks `rgb_1/` (stereo) and IMU CSV (mono-vi); there's no check for `depth_0/` when `'rgbd' in self.modes`. A mono-only download can get marked `"available"` and skip re-download even though `depth_0/` was never fetched, for any rgbd dataset. Tracked in [#76](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/76). Not dataset-file-specific, so this is a `DatasetVSLAMLAB.py` fix, not something a per-dataset pass can resolve on its own.
 
@@ -126,7 +126,7 @@ Finding (minor, fixed): `dataset_soneva.py` named the resolved remote top-level 
 
 Finding (flagged, not fixed — outside `download_sequence_data` itself): confirmed by reading the code (not just the Pylance diagnostic) that `sequence_path = self.sequence_path(sequence_name)` is genuinely dead in 5 other methods — `dataset_soneva.py`'s `create_rgb_csv`/`create_calibration_yaml`/`create_groundtruth_csv`, `dataset_sweetcorals.py`'s `create_calibration_yaml`/`create_groundtruth_csv` — each uses `rgb_path`/other helpers instead and never reads `sequence_path` again. Added as checklist item 5 for whichever pass reviews those specific hooks.
 
-Commit: *(pending — not yet committed)*
+Commit: `90ac921`
 
 ### 2026-07-25 — `create_rgb_folder` pass: near-miss, caught by user before landing
 
@@ -140,7 +140,7 @@ Near-miss (proposed, then reverted before commit): in `HFColmapDatasetMixin.crea
 
 Lesson for future passes: before "fixing" resize/calibration-adjacent logic, check downstream consumers (`create_calibration_yaml` in particular) for assumptions the change might break — a locally-cheap, locally-correct-looking change can violate a whole-sequence invariant a different method depends on.
 
-Commit: *(pending — not yet committed)*
+Commit: `90ac921`
 
 ### 2026-07-25 — `create_rgb_folder` template comment: missing depth_0/rgbd coverage
 
@@ -151,5 +151,19 @@ Finding (user-spotted): the template's `create_rgb_folder` comment mentioned `rg
 First fix attempt was itself wrong and got corrected by the user: I initially wrote that `depth_0/` is generally handled outside the resize branch, "normally just a plain rename/copy at original resolution." User corrected this — rgbd depth *does* need resizing when the source requires it, following the same `self.target_resolution` branch as `rgb_0`/`rgb_1`; `dataset_eth.py`'s depth being an unresized plain rename is specific to ETH3D's source already being close enough to 640x480 that `eth.yaml` sets no `target_resolution` at all (nothing gets resized for eth, not just depth) — not a general rule that depth is exempt from resizing.
 
 Corrected fix: template now says rgbd's `depth_0/` follows the same `target_resolution` branch as `rgb_0`/`rgb_1`, but must use a non-interpolating resample (nearest-neighbor — `Image.NEAREST`/`cv2.INTER_NEAREST`) instead of LANCZOS, since interpolating resample blends depth values across object boundaries and corrupts the metric data. `dataset_eth.py` is cited specifically as the depth_0/ folder-layout model, with an explicit note that its lack of resizing is dataset-specific, not a general pattern.
+
+Commit: `90ac921`
+
+### 2026-07-25 — `create_rgb_csv` pass
+
+Files: `dataset_eth.py`, `dataset_soneva.py`.
+
+Fixed (checklist item 5): removed the dead `sequence_path = self.sequence_path(sequence_name)` from `HFColmapDatasetMixin.create_rgb_csv` (`dataset_soneva.py`, shared by `dataset_sweetcorals.py`) — genuinely unused, the method only ever reads `rgb_path`.
+
+Finding (fixed): `dataset_eth.py`'s `create_rgb_csv` hand-rolled the same open/`csv.writer`/tmp/`.replace()` pattern that `utilities.write_csv_rows` already encapsulates byte-for-byte (confirmed via its docstring: "the atomic write-then-replace pattern used throughout `Datasets/dataset_files/*.py`"). `dataset_soneva.py`/`dataset_sweetcorals.py` already use `write_csv_rows`; `dataset_eth.py` predates it. Refactored `create_rgb_csv` to build a `rows` list and call `write_csv_rows`, matching the newer files. `import csv` stays in `dataset_eth.py` — still used by `create_groundtruth_csv`, out of scope for this pass.
+
+Verified: both files parse; `EthDataset()`/`SonevaDataset()`/`SweetcoralsDataset()` still instantiate correctly under `pixi run -e vslamlab python`; a standalone `write_csv_rows` call with eth-shaped rows produces byte-identical header/row output to the old hand-rolled version.
+
+Not done (scope creep, logged): `write_csv_rows` is only adopted by 2 of ~19 dataset files that hand-roll the same csv-writing pattern (`dataset_kitti.py`, `dataset_hilti2022.py`, `dataset_madmax.py`, etc. — checked via grep) — same "new shared utility, not yet repo-wide" situation as `self.cfg`. Left the other ~17 files alone; only `dataset_eth.py` (in scope for this cleanup) was migrated.
 
 Commit: *(pending — not yet committed)*

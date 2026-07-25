@@ -20,7 +20,7 @@ import numpy as np
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 MAX_NICKNAME_LEN: Final = 15
 
@@ -82,17 +82,15 @@ class EthDataset(DatasetVSLAMLAB):
         rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt", "rgb/", "rgb_0/"))
         depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", "depth_0/"))
 
-        rgb_csv = self.rgb_csv_path(sequence_name)
-        tmp = rgb_csv.with_suffix(".csv.tmp")
+        rows = []
+        for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries, strict=True):
+            ts_r0_ns = int(float(ts_r0) * 1e9)
+            ts_d_ns = int(float(ts_d) * 1e9)
+            rows.append([ts_r0_ns, path_r0, ts_d_ns, path_d])
 
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"])
-            for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries, strict=True):
-                ts_r0_ns = int(float(ts_r0) * 1e9)
-                ts_d_ns = int(float(ts_d) * 1e9)
-                w.writerow([ts_r0_ns, path_r0, ts_d_ns, path_d])
-        tmp.replace(rgb_csv)
+        write_csv_rows(
+            self.rgb_csv_path(sequence_name), ["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"], rows,
+        )
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

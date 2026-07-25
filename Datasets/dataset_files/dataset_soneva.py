@@ -87,7 +87,6 @@ class HFColmapDatasetMixin:
                 resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
         rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
