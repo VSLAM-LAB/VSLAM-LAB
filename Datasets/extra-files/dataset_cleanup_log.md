@@ -298,7 +298,7 @@ Rewrote step 6: block-name template changed from `exp_<name>_<baseline>:` to `te
 
 Also fixed the yaml code-block example's `sequence_names`-equivalent list indentation (`- sequence_01` → `  - sequence_01`, 2-space), matching the yaml-indentation convention fixed in the earlier `.yaml` files pass.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — soneva/sweetcorals test_config/test_exp brought in line with the new SKILL.md step 6
 
@@ -315,7 +315,7 @@ Fixed (user-confirmed): `test_config_soneva.yaml`'s 5 sequences covered 5 of son
 
 Verified: both files parse; `test_config_soneva.yaml` now has 6 sequences (was 5), `test_config_sweetcorals.yaml` unchanged content (13), only formatting changed.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — test_exp_soneva.yaml/test_exp_sweetcorals.yaml: switched to eth's max_rgb/step_size
 
@@ -325,7 +325,7 @@ User asked to make these more similar to `test_exp_eth.yaml`. The one remaining 
 
 Verified: both files parse correctly with the new Parameters.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — Added colmap block to test_exp_soneva.yaml/test_exp_sweetcorals.yaml, fixed the now-stale SKILL.md claim
 
@@ -339,7 +339,7 @@ This directly contradicted a claim I'd just written into SKILL.md step 6 ("a sin
 
 Verified: both `test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` parse with two top-level blocks each.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — test_config_sweetcorals.yaml trimmed to a real subset, dropped the "small dataset lists everything" exception
 
@@ -353,7 +353,7 @@ Updated SKILL.md step 6 to match: removed the "small dataset, list everything" e
 
 Verified: `test_config_sweetcorals.yaml` parses with 4 sequences; no other stale reference to the old 13/13 citation remains in SKILL.md.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — generate_dataset_table.py: fixed Download Issues detection for soneva/sweetcorals
 
@@ -370,7 +370,7 @@ Fixed all three: `_CLASS_RE` now makes the base-class group optional and capture
 
 Verified: script runs clean, `dataset_table.md` diff is exactly the two expected rows — `soneva`/`sweetcorals` now both show `huggingface_token` in Download Issues, every other row unchanged (including `strayscanner`, another hugging-face+local dataset, confirming the fix didn't touch anything outside the multi-inheritance case).
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — generate_dataset_table.py: added Features/License columns, reordered README's Datasets table
 
@@ -388,7 +388,7 @@ User asked for two things: (1) add `Features`/`License` columns to `dataset_tabl
 
 Verified: script runs clean under the reordered README, all 34 dataset_table.md rows present, `monotum`'s Features now populate (📸🏠🤳), `soneva`/`sweetcorals`/`openloris-*`/`rover-*` all show the expected Features from their (possibly grouped) README row.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
 
 ### 2026-07-25 — generate_dataset_table.py: added leftmost Datasets column (from yaml, not README)
 
@@ -405,4 +405,4 @@ Three real findings surfaced by actually running this against every dataset yaml
 
 Verified: script runs clean, 34 rows written, spot-checked `eth`/`soneva`/`sweetcorals`/`kitti`/`iphone`/`youtube` rows against their actual yaml `about:` blocks.
 
-Commit: *(pending — not yet committed)*
+Commit: `00aa003`
