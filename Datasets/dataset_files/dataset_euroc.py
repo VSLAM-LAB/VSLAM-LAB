@@ -1,22 +1,37 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_euroc.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2024-07-13
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
 import csv
-import yaml
+import os
 import shutil
+from contextlib import suppress
+from decimal import Decimal
+from typing import Any
+
 import numpy as np
 import pandas as pd
-from typing import Any
-from decimal import Decimal
-from contextlib import suppress
+import yaml
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import decompressFile, downloadFile, make_printers
+
+SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+print_info, print_warning = make_printers(SCRIPT_LABEL)
 
 
 class EurocDataset(DatasetVSLAMLAB):
-    """EUROC MAV dataset helper for VSLAM-LAB benchmark."""
+    """EuRoC MAV dataset helper for VSLAM-LAB benchmark."""
 
     _GROUP_INFO = {
         "MH_": ("machine_hall", 12683729426),
@@ -27,13 +42,9 @@ class EurocDataset(DatasetVSLAMLAB):
     def __init__(self, dataset_name: str = "euroc") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download urls
-        self.url_download_sequences: dict[str, str] = cfg["url_download_sequences"]
-        self.url_download_root_gt: str = cfg["url_download_root_gt"]
+        self.url_download_root: dict[str, str] = self.cfg["url_download_root"]
+        self.url_download_root_gt: str = self.cfg["url_download_root_gt"]
 
         # Sequence nicknames
         self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
@@ -45,8 +56,8 @@ class EurocDataset(DatasetVSLAMLAB):
         sequence_path = self.sequence_path(sequence_name)
         if sequence_path.exists():
             return
-        url = self.url_download_sequences[sequence_name]
-        subfolder, file_size = self._subfolder_for(sequence_name)
+        prefix, subfolder, file_size = self._group_for(sequence_name)
+        url = self.url_download_root[prefix]
 
         content_zip = self.dataset_path / "content"
         subfolder_path = self.dataset_path / subfolder
@@ -56,7 +67,7 @@ class EurocDataset(DatasetVSLAMLAB):
             downloadFile(url, str(self.dataset_path), file_size=file_size)    
             content_zip.rename(subfolder_zip)
 
-        print(f"Decompressing {sequence_zip} to {sequence_path}...")
+        print_info(f"Decompressing {sequence_zip} to {sequence_path}...")
         if not subfolder_path.exists():
             decompressFile(subfolder_zip, str(self.dataset_path))
 
@@ -234,10 +245,10 @@ class EurocDataset(DatasetVSLAMLAB):
             shutil.rmtree(self.dataset_path / "vicon_room1", ignore_errors=True)
             shutil.rmtree(self.dataset_path / "vicon_room2", ignore_errors=True)
 
-    def _subfolder_for(self, sequence_name: str) -> tuple[str, int | None]:
+    def _group_for(self, sequence_name: str) -> tuple[str, str, int | None]:
         for prefix, (subfolder, file_size) in self._GROUP_INFO.items():
             if sequence_name.startswith(prefix):
-                return subfolder, file_size
+                return prefix, subfolder, file_size
         raise ValueError(f"Unknown EUROC sequence prefix: {sequence_name}")
         
     def get_download_issues(self, _):

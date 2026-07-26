@@ -16,7 +16,7 @@ sequence_names:
   - E-0
 
 about:
-  license: License
+  license: Academic use only (registration required)
   summary: The MADMAX data set for visual-inertial rover navigation on Mars
   homepage: https://datasets.arches-projekt.de/morocco2018/
   authors:
@@ -26,5 +26,6 @@ about:
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
   date: 2026-03-07

@@ -27,5 +27,21 @@ sequence_names:
   - '17'  
   - '18'
   - '19'
-  - '20' 
-  - '21'   
+  - '20'
+  - '21'
+
+about:
+  license: CC BY-NC-SA 3.0
+  summary: KITTI Odometry Benchmark with stereo image sequences and ground-truth poses for visual odometry/SLAM
+  homepage: https://www.cvlibs.net/datasets/kitti/
+  authors:
+    - Andreas Geiger
+    - Philip Lenz
+    - Christoph Stiller
+    - Raquel Urtasun
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-07-13

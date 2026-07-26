@@ -1,3 +1,15 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_madmax.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2026-03-07
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
+
+from __future__ import annotations
+
 import csv
 import os
 import re
@@ -16,26 +28,19 @@ from utilities import decompressFile, downloadFile
 
 
 class MadmaxDataset(DatasetVSLAMLAB):
-    """MADMAX dataset helper for VSLAM-LAB benchmark."""
+    """MADMAX Mars rover navigation dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "madmax") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-
-        # Sequence nicknames
-        self.sequence_nicknames = self.sequence_names
+        self.url_download_root: str = self.cfg["url_download_root"]
 
         # API token
-        self.api_token: str = cfg.get("api_token", "not_set")
+        self.api_token: str = self.cfg.get("api_token", "not_set")
 
         # Dataset homepage
-        self.dataset_homepage: str = cfg["about"]["homepage"]
+        self.dataset_homepage: str = self.cfg["about"]["homepage"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

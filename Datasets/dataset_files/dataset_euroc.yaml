@@ -5,18 +5,12 @@ imu_hz: 200.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['radtan4']
 
-url_download_sequences:
-  MH_01_easy: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content"
-  MH_02_easy: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content"
-  MH_03_medium: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content"
-  MH_04_difficult: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content"
-  MH_05_difficult: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content"
-  V1_01_easy: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/02ecda9a-298f-498b-970c-b7c44334d880/content"
-  V1_02_medium: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/02ecda9a-298f-498b-970c-b7c44334d880/content"
-  V1_03_difficult: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/02ecda9a-298f-498b-970c-b7c44334d880/content"
-  V2_01_easy: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/ea12bc01-3677-4b4c-853d-87c7870b8c44/content"
-  V2_02_medium: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/ea12bc01-3677-4b4c-853d-87c7870b8c44/content"
-  V2_03_difficult: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/ea12bc01-3677-4b4c-853d-87c7870b8c44/content"
+# Shared per-group archive root, one URL per EuRoC sequence group (see dataset_euroc.py's
+# _GROUP_INFO, which maps the same prefixes to each group's subfolder name/download size).
+url_download_root:
+  MH_: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/7b2419c1-62b5-4714-b7f8-485e5fe3e5fe/content"
+  V1_: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/02ecda9a-298f-498b-970c-b7c44334d880/content"
+  V2_: "https://www.research-collection.ethz.ch/server/api/core/bitstreams/ea12bc01-3677-4b4c-853d-87c7870b8c44/content"
 
 url_download_root_gt: "https://cvg.cit.tum.de/mono/supp_v2.zip"
 
@@ -32,4 +26,24 @@ sequence_names:
   - V2_01_easy
   - V2_02_medium
   - V2_03_difficult
+
+about:
+  license: Not explicitly stated (research/academic use)
+  summary: EuRoC MAV visual-inertial dataset with stereo images, IMU, and ground-truth trajectories from a micro aerial vehicle
+  homepage: https://projects.asl.ethz.ch/datasets/euroc-mav/
+  authors:
+    - Michael Burri
+    - Janosch Nikolic
+    - Pascal Gohl
+    - Thomas Schneider
+    - Joern Rehder
+    - Sammy Omari
+    - Markus W. Achtelik
+    - Roland Siegwart
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-07-13
 

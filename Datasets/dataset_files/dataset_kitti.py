@@ -1,36 +1,38 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_kitti.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2024-07-13
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
 
 from __future__ import annotations
 
-import os
 import csv
-import yaml
+import os
 import shutil
+from typing import Any
+
 import numpy as np
-from typing import  Any
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import downloadFile, decompressFile
-from path_constants import Retention, BENCHMARK_RETENTION, VSLAMLAB_BENCHMARK
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
+from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from utilities import decompressFile, downloadFile
 
 
 class KittiDataset(DatasetVSLAMLAB):
-    """KITTI dataset helper for VSLAM-LAB benchmark."""
+    """KITTI Odometry dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "kitti") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-        self.url_download_root_gt: str = cfg["url_download_root_gt"]
-
-        # Sequence nicknames
-        self.sequence_nicknames = self.sequence_names
+        self.url_download_root: str = self.cfg["url_download_root"]
+        self.url_download_root_gt: str = self.cfg["url_download_root_gt"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
 
