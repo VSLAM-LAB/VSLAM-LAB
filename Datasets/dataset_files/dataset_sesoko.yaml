@@ -1,10 +1,11 @@
 dataset_name: sesoko
 
 rgb_hz: 30.0
+modes: ['mono']
+cam_models: ['unknown']
+
 url_download_root: "https://squidle.org"
 api_token: "54198b8ada2f96907e257016c2b31796d333e3e566ed07a80a61e93f"
-modes: ['mono']
-cam_models: ['pinhole']
 target_resolution: [640, 480]
 
 sequence_names:
@@ -54,3 +55,20 @@ combined:
   sskall-s05: [ssk16-s05, ssk17-s05, ssk18-s05]
   sskall-s15: [ssk16-s15, ssk17-s15, ssk18-s15]
   sskall-s30: [ssk16-s30, ssk17-s30, ssk18-s30]
+
+about:
+  license: No explicit license stated by SQUIDLE+ or the source surveys; imagery served via the SQUIDLE+ platform (squidle.org)
+  summary: AUV (TUNA-SAND) coral-reef mapping surveys off Sesoko Island, Okinawa, Japan (2016-2018 campaigns), served via the SQUIDLE+ marine imagery platform
+  homepage: https://squidle.org/
+  authors:
+    - Blair Thornton
+    - Toshihiro Maki
+    - Saki Harii
+    - Oscar Pizarro
+    - Kazuo Nishida
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-01-03

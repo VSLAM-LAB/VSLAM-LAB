@@ -4,7 +4,7 @@ rgb_hz: 0.33
 modes: ['mono']
 cam_models: ['radtan4']
 
-url_download_sequences:
+url_download_root:
   '2015': "https://www.seanoe.org/data/00810/92226/data/98240.zip"
   '2016': "https://www.seanoe.org/data/00810/92226/data/98289.zip"
   '2018': "https://www.seanoe.org/data/00810/92226/data/98314.zip"

@@ -1,28 +1,28 @@
 """
 Module: VSLAM-LAB - Datasets - dataset_eiffel_tower.py
-- Author: Alejandro Fontan Villacampa
+- Author: Alejandro Fontan
 - Assisted by: Claude (Sonnet 5)
 - Version: 1.0
 - Created: 2026-07-24
+- Updated: 2026-07-26
 - License: GPLv3 License
 """
 
 from __future__ import annotations
 
-import csv
+import datetime
 import shutil
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 from PIL import Image
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, decompressFile, downloadFile
+from utilities import compute_scaled_size, decompressFile, downloadFile, write_csv_rows
 
 # COLMAP's RADIAL camera model: f, cx, cy, k1, k2 (single focal length, purely radial distortion).
 # https://colmap.github.io/cameras.html
@@ -35,24 +35,12 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
     def __init__(self, dataset_name: str = "eiffel-tower") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download urls (one unrelated URL per campaign/sequence)
-        self.url_download_sequences: dict[str, str] = cfg["url_download_sequences"]
-
-        # Get resolution size (source images are 1920x1080) - target_resolution is optional; if
-        # the yaml doesn't set it (or it's removed later), create_rgb_folder falls back to copying
-        # images at their original resolution instead of resizing.
-        self.target_resolution: tuple[int, int] | None = tuple(cfg["target_resolution"]) if cfg.get("target_resolution") else None
-
-        # Sequence nicknames
-        self.sequence_nicknames = self.sequence_names
+        self.url_download_root: dict[str, str] = self.cfg["url_download_root"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        url = self.url_download_sequences[sequence_name]
+        url = self.url_download_root[sequence_name]
         zip_path = self.dataset_path / url.rsplit("/", 1)[-1]
 
         if not zip_path.exists() and not sequence_path.exists():
@@ -80,23 +68,17 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
                 img.load()
                 if target_size is None:
                     target_size = compute_scaled_size(img.size, self.target_resolution)
-                resized_img = img.resize(target_size, Image.LANCZOS)
+                resized_img = img.resize(target_size, Image.Resampling.LANCZOS)
                 resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
         rgb_csv = self.rgb_csv_path(sequence_name)
         rgb_files = sorted(f.name for f in rgb_path.iterdir() if f.is_file())
 
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0"])
-            for filename in rgb_files:
-                ts_ns = self._filename_to_ts_ns(filename)
-                w.writerow([ts_ns, f"rgb_0/{filename}"])
-        tmp.replace(rgb_csv)
+        header = ["ts_rgb_0 (ns)", "path_rgb_0"]
+        rows = [[self._filename_to_ts_ns(filename), f"rgb_0/{filename}"] for filename in rgb_files]
+        write_csv_rows(rgb_csv, header, rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -128,16 +110,14 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
         groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         poses = self._read_colmap_images(images_txt)
 
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
-            for filename in sorted(poses.keys()):
-                qvec, tvec = poses[filename]
-                tx, ty, tz, qx, qy, qz, qw = self._world_to_camera_to_pose(qvec, tvec)
-                ts_ns = self._filename_to_ts_ns(filename)
-                w.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
-        tmp.replace(groundtruth_csv)
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
+        rows = []
+        for filename in sorted(poses.keys()):
+            qvec, tvec = poses[filename]
+            tx, ty, tz, qx, qy, qz, qw = self._world_to_camera_to_pose(qvec, tvec)
+            ts_ns = self._filename_to_ts_ns(filename)
+            rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+        write_csv_rows(groundtruth_csv, header, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -147,7 +127,7 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
             (sequence_path / "navigation.txt").unlink(missing_ok=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            url = self.url_download_sequences[sequence_name]
+            url = self.url_download_root[sequence_name]
             (self.dataset_path / url.rsplit("/", 1)[-1]).unlink(missing_ok=True)
 
     @staticmethod
@@ -160,7 +140,6 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
         hh, mi, ss = int(time_part[0:2]), int(time_part[2:4]), int(time_part[4:6])
         ms = int(ms_part[:3])
 
-        import datetime
         dt = datetime.datetime(yyyy, mm, dd, hh, mi, ss, ms * 1000, tzinfo=datetime.timezone.utc)
         return int(dt.timestamp() * 1e9)
 

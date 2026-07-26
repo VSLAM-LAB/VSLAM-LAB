@@ -25,7 +25,7 @@
 |  | 📸🏞️🚗 | `rover-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `website` |  |  |  |
 | [**The S3LI Vulcano Dataset A Dataset for Multi-Modal SLAM in Unstructured Planetary Environments**](https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets) |  | `s3li` | `mono` `stereo` `mono-vi` `stereo-vi` | `pinhole` | License | `website` |  | Alejandro Fontan |  |
 |  | 📸🏠🤳 | `scannetplusplus` | `mono` | `radtan5` |  | `local` |  |  |  |
-|  | 📸🏞️🌊 | `sesoko` | `mono` | `pinhole` |  | `website` | `api_token` |  |  |
+| [**AUV (TUNA-SAND) coral-reef mapping surveys off Sesoko Island, Okinawa, Japan (2016-2018 campaigns), served via the SQUIDLE+ marine imagery platform**](https://squidle.org/) | 📸🏞️🌊 | `sesoko` | `mono` | `unknown` | No explicit license stated by SQUIDLE+ or the source surveys; imagery served via the SQUIDLE+ platform (squidle.org) | `website` | `api_token` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and Sustainability Maldives and Wildflow**](https://huggingface.co/datasets/wildflow/soneva-corals) | 📸🏞️🌊🤳 | `soneva` | `mono` | `pinhole` | CC-BY-4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**An app for collecting raw RGB-D scans on iOS devices.**](https://docs.strayrobots.io/) | 📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` | MIT | `hugging-face` `local` |  | Nicolas Marticorena |  |
 | [**Coral reef 3D photogrammetry (Indonesia), from Wildflow**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊🤳 | `sweetcorals` | `mono` | `pinhole` `unknown` | CC-BY-4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
