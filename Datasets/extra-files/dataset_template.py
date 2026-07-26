@@ -37,12 +37,20 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                   pattern serving a .zip/.tar/.7z); if each sequence has its own unrelated
         #                   URL instead of a shared root, use self.url_download_sequences =
         #                   self.cfg["url_download_sequences"]  (a dict keyed by sequence_name), Model:
-        #                   dataset_s3li.py — keyed lookup, not a positionally-indexed list
+        #                   dataset_s3li.py — keyed lookup, not a positionally-indexed list. Also the
+        #                   right field for a *pre-resolved* drive.usercontent.google.com
+        #                   direct-download URL — downloads exactly like any other website URL (plain
+        #                   downloadFile, no gdown) even though it's hosted on Google Drive, Model:
+        #                   dataset_tartanair.py
         #   hugging-face -> self.hf_repo_id = self.cfg["hf_repo_id"]; if the repo is gated it needs a
         #                   token — see HUGGINGFACE_TOKEN in path_constants.py (falls back to the
         #                   HF_TOKEN env var)
-        #   google-drive -> self.url_download_root = self.cfg["url_download_root"]  (a drive.google.com
-        #                   share link, or a drive.usercontent.google.com pre-resolved direct-download URL)
+        #   google-drive -> self.google_drive_link = self.cfg["google_drive_link"]  (a real
+        #                   drive.google.com share link — Drive shows a virus-scan interstitial for
+        #                   most files this size that a plain download can't click through, so
+        #                   download_sequence_data must fetch this via gdown.download/
+        #                   gdown.download_folder instead), Model: dataset_hilti2026.py,
+        #                   dataset_drunkards.py. Don't confuse with the pre-resolved-link case above.
         #   local        -> nothing to pull here; affected sequences carry sequence_location: local instead
         # A dataset can mix patterns per sequence (see dataset_strayscanner.py: HF-backed, with
         # local overrides for sequences the user must place manually).
@@ -58,6 +66,21 @@ class TemplateDataset(DatasetVSLAMLAB):
 
         # Sequence nicknames
         # Short, human-friendly labels shown in CLI output, one per entry in self.sequence_names.
+        # DatasetVSLAMLAB.__init__ (super().__init__() above) already set self.sequence_nicknames
+        # to a reasonable default (default_sequence_nicknames() in utilities.py: underscore -> space)
+        # - if that's already good enough (sequence_names are display-ready, or a plain underscore
+        # swap reads fine), don't override it at all. Only assign self.sequence_nicknames here if
+        # something fancier is genuinely needed (truncation, dropping a shared prefix, per-sequence
+        # renaming) - see dataset_eth.py. When you do need something fancier and it involves
+        # replacing a specific substring that itself contains an underscore (e.g. TUM's
+        # "rgbd_dataset_freiburg" -> "fr", or 7-Scenes' "_seq-" -> " "), build the transform from
+        # self.sequence_names (the raw names), not the already-underscore-replaced
+        # self.sequence_nicknames the base class set - by the time the default has run, the
+        # underscore your substring match depends on is already gone. See dataset_rgbdtum.py/
+        # dataset_7scenes.py. dataset_tartanair.py used to have
+        # self.sequence_nicknames = self.sequence_names here - a no-op override, since that's
+        # exactly what the base class default already produces when there's nothing to swap
+        # (tartanair's sequence_names have no underscores) - removed once spotted.
         # e.g. self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
@@ -67,18 +90,22 @@ class TemplateDataset(DatasetVSLAMLAB):
         # already exists (see check_sequence_availability in DatasetVSLAMLAB.py).
         # Pick the implementation matching this dataset's download pattern:
         #   website      -> utilities.downloadFile(url, self.dataset_path) + decompressFile(...)
-        #                   Model: dataset_7scenes.py
+        #                   Model: dataset_7scenes.py. This also covers a *pre-resolved*
+        #                   drive.usercontent.google.com direct-download link
+        #                   (...?...&confirm=t&...) — it already bypasses Drive's virus-scan
+        #                   interstitial, so a plain downloadFile works, no gdown needed. Model:
+        #                   dataset_tartanair.py
         #   hugging-face -> use utilities.py's hf_token() / ensure_hf_sequence_download() (which
         #                   wraps download_hf_snapshot()) against self.hf_repo_id — resumable,
         #                   idempotent per-sequence fetch+flatten, don't hand-roll this with
         #                   HfApi/HfFileSystem/snapshot_download directly. Model:
         #                   dataset_soneva.py, dataset_sweetcorals.py
-        #   google-drive -> a share link (drive.google.com/...) needs gdown.download /
-        #                   gdown.download_folder with a file/folder id, Model: dataset_hilti2026.py,
-        #                   dataset_drunkards.py; a pre-resolved direct-download link
-        #                   (drive.usercontent.google.com/download?...&confirm=t&...) already bypasses
-        #                   Drive's interstitial page, so a plain downloadFile(url, self.dataset_path)
-        #                   works instead, Model: dataset_tartanair.py
+        #   google-drive -> a real share link (drive.google.com/...) needs gdown.download /
+        #                   gdown.download_folder with a file/folder id, since Drive shows a
+        #                   virus-scan interstitial for most files this size that a plain download
+        #                   can't click through. Model: dataset_hilti2026.py, dataset_drunkards.py.
+        #                   If your URL works with a plain HTTP GET, it's the website case above
+        #                   instead, not this one.
         #   local        -> no fetch; print "Sequence '{sequence_name}' is marked as 'local'. Please
         #                   ensure the data is available at {path}." and return (never exit()/crash —
         #                   this must only skip the one sequence, base-class integrity checks report
@@ -98,6 +125,9 @@ class TemplateDataset(DatasetVSLAMLAB):
         # Normalize the raw downloaded images into rgb_0/ (plus rgb_1/ for stereo modes)
         # under self.dataset_path / sequence_name — renaming/moving files as needed so every
         # dataset exposes the same folder layout regardless of the source's original format.
+        # Use self.rgb_path(sequence_name)/self.depth_path(sequence_name) (DatasetVSLAMLAB base-class
+        # helpers) to build these folder paths — never hardcode the 'rgb_0'/'depth_0' string
+        # literals yourself, even though that's what those helpers resolve to under the hood.
         # Branch on self.target_resolution (not a separate resize flag) for every rgb_0/rgb_1
         # image:
         #   None     -> source images are already <= 640x480 (or the yaml's target_resolution was
@@ -210,6 +240,33 @@ class TemplateDataset(DatasetVSLAMLAB):
         #   if BENCHMARK_RETENTION == Retention.MINIMAL: <delete MINIMAL-tier files too>
         # Model: dataset_eth.py (both tiers - raw .txt files vs. downloaded .zip archives),
         # HFColmapDatasetMixin.remove_unused_files in dataset_soneva.py (MINIMAL-only: rgb_0_raw/).
+        #
+        # Common bug: whatever path you unlink() here must be *exactly* where download_sequence_data
+        # actually wrote the file - dataset_tartanair.py and dataset_nuim.py both once unlinked
+        # VSLAMLAB_BENCHMARK / <archive> here while the archive was actually downloaded to
+        # self.dataset_path / <archive> (one level deeper, inside the dataset's own folder).
+        # unlink(missing_ok=True) silently swallows the mismatch, so nothing ever actually got
+        # deleted at MINIMAL retention and it went unnoticed until a later cleanup pass. Double-check
+        # this path against the one download_sequence_data/download_process actually built.
+        #
+        # An archive shared across multiple sequences needs different handling depending on scope:
+        #   whole-dataset -> if the source can't be split into per-sequence downloads at all
+        #                    (get_download_issues' "complete_dataset" case), do the shared-archive
+        #                    cleanup in an overridden download_process instead of here, after the
+        #                    loop over every sequence has finished - never in remove_unused_files
+        #                    itself, since it runs per sequence. Model: dataset_tartanair.py,
+        #                    dataset_replica.py.
+        #   scene/group     -> if only a *subset* of sequences share one archive (e.g. 7-Scenes:
+        #                      chess.zip is shared by chess_seq-01..06, but each sequence is still
+        #                      independently downloadable), don't try to coordinate cleanup across
+        #                      sequences in a dataset-wide download_process override - that would
+        #                      break requesting a single sequence in isolation, which no longer
+        #                      loops over the whole dataset. Instead, in remove_unused_files: delete
+        #                      only this sequence's own exclusive sub-file safely, and it's fine to
+        #                      also delete the shared file itself (even before sibling sequences in
+        #                      the same group are downloaded) *if* download_sequence_data
+        #                      re-downloads it on demand when a later sequence needs it again - check
+        #                      that fallback exists before relying on it. Model: dataset_7scenes.py.
         return
 
     def get_download_issues(self, _):

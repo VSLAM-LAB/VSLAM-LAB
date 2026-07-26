@@ -26,7 +26,7 @@ class DrunkardsDataset(DatasetVSLAMLAB):
             cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.url_download_root = cfg["url_download_root"]
+        self.google_drive_link = cfg["google_drive_link"]
 
         # Sequence nicknames
         self.sequence_nicknames = [f"{self.dataset_name}_{s[:1]}" for s in self.sequence_names]
@@ -39,7 +39,7 @@ class DrunkardsDataset(DatasetVSLAMLAB):
         folder_id = self._get_folder_id(sequence_name)
         color_zip = sequence_path / "color.zip"
         if not color_zip.exists():
-            folder_url = f"{self.url_download_root}/{folder_id}"
+            folder_url = f"{self.google_drive_link}/{folder_id}"
             gdown.download_folder(
                 url=folder_url,
                 output=str(sequence_path),

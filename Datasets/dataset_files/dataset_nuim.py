@@ -65,9 +65,9 @@ class NuimDataset(DatasetVSLAMLAB):
         depth_path_original = sequence_path / 'depth'
 
         if rgb_path_original.is_dir() and not rgb_path.is_dir():
-            rgb_path_original.rename(rgb_path) 
-        if depth_path_original.is_dir() and not depth_path.is_dir():    
-            depth_path_original.rename(depth_path) 
+            rgb_path_original.rename(rgb_path)
+        if depth_path_original.is_dir() and not depth_path.is_dir():
+            depth_path_original.rename(depth_path)
 
         for png_file in os.listdir(rgb_path):
             if png_file.endswith(".png"):

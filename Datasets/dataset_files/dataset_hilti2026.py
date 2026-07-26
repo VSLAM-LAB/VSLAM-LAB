@@ -29,7 +29,7 @@ class Hilti2026Dataset(DatasetVSLAMLAB):
             cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
+        self.google_drive_link: str = cfg["google_drive_link"]
 
         # Sequence nicknames
         self.sequence_nicknames = [s.split("_", 1)[0] for s in self.sequence_names]
@@ -69,7 +69,7 @@ class Hilti2026Dataset(DatasetVSLAMLAB):
         if rosbag.exists():
             return
         folder_id = self._get_folder_id(sequence_name)
-        folder_url = f"{self.url_download_root}/{folder_id}"
+        folder_url = f"{self.google_drive_link}/{folder_id}"
         gdown.download_folder(
             url=folder_url,
             output=str(sequence_path),

@@ -28,7 +28,7 @@ CAMERA_PARAMS: Final = [585.0, 585.0, 320.0, 240.0] # Camera intrinsics (fx, fy,
 
 class SevenscenesDataset(DatasetVSLAMLAB):
     """7-Scenes dataset helper for VSLAM-LAB benchmark."""
-    
+
     def __init__(self, dataset_name: str = "7scenes") -> None:
         super().__init__(dataset_name)
 
@@ -122,7 +122,7 @@ class SevenscenesDataset(DatasetVSLAMLAB):
             "T_BS": np.eye(4),
         }
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
-        
+
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         pose_files = sorted(glob.glob(str(sequence_path / '*.pose.txt')))

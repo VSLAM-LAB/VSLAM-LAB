@@ -38,11 +38,10 @@ class ReplicaDataset(DatasetVSLAMLAB):
         self.depth_factor = self.cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-
         # Variables
         compressed_name_ext = 'Replica.zip'
         decompressed_name = self.dataset_name.upper()
-        
+
         download_url = self.url_download_root
 
         # Constants

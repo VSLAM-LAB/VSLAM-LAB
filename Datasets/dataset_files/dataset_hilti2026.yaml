@@ -4,7 +4,7 @@ rgb_hz: 30.0
 modes: ['mono', 'mono-vi']
 cam_models: ['equid4']
 
-url_download_root: "https://drive.google.com/drive/folders"
+google_drive_link: "https://drive.google.com/drive/folders"
 
 sequence_names:
   - 'floor_1_2025_05_05'

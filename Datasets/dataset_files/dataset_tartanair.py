@@ -35,7 +35,6 @@ class TartanairDataset(DatasetVSLAMLAB):
         self.url_download_root_gt: str = self.cfg["url_download_root_gt"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-
         # Variables
         compressed_name = 'tartanair-test-mono-release'
         compressed_name_ext = compressed_name + '.tar.gz'
@@ -132,7 +131,7 @@ class TartanairDataset(DatasetVSLAMLAB):
     def download_process(self, _):
         for sequence_name in self.sequence_names:
             super().download_process(sequence_name)
-        
+
         if BENCHMARK_RETENTION != Retention.FULL:
             dataset_folder = self.dataset_path / 'tartanair-test-mono-release'
             if dataset_folder.exists():

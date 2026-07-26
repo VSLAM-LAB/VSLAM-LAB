@@ -23,10 +23,18 @@ cam_models: ['pinhole']
 #   website      -> url_download_root: a root URL + filename pattern serving a .zip/.tar/.7z
 #                   (or url_download_sequences: a dict keyed by sequence_name instead, if each
 #                   sequence has its own unrelated URL rather than a shared root - see
-#                   dataset_s3li.yaml)
+#                   dataset_s3li.yaml). This is also the right field for a *pre-resolved*
+#                   drive.usercontent.google.com direct-download URL - it downloads exactly like
+#                   any other website URL (plain utilities.downloadFile, no gdown), even though
+#                   it happens to be hosted on Google Drive - see dataset_tartanair.yaml.
 #   hugging-face -> hf_repo_id: "org/name" (see dataset_soneva.yaml/dataset_sweetcorals.yaml)
-#   google-drive -> url_download_root: a drive.google.com share link, or a pre-resolved
-#                   drive.usercontent.google.com direct-download URL
+#   google-drive -> google_drive_link: a real drive.google.com share link. Drive shows a
+#                   virus-scan interstitial for most files this size that a plain download can't
+#                   click through - download_sequence_data must use gdown.download/
+#                   gdown.download_folder against this field instead, see
+#                   dataset_hilti2026.yaml/dataset_drunkards.yaml. Don't confuse this with the
+#                   pre-resolved-link case above - if in doubt, try the URL with a plain HTTP GET
+#                   first; if that works, it's website (url_download_root), not this.
 #   local        -> no field here; affected sequences carry sequence_location: local instead
 #                   (a list with one entry per sequence_names, same order, if only some
 #                   sequences are local; a single scalar if all are - see

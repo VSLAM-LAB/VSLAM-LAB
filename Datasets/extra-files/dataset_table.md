@@ -1,6 +1,6 @@
 | Datasets | Features | Label | Modes | Camera Models | License | Download | Download Issues | Maintainer | AI-Assisted |
 |:---|:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|  | 📸🏠🤳 | `7scenes` | `mono` `rgbd` | `pinhole` |  | `website` |  |  |  |
+| [**Tracked RGB-D Kinect frames from seven indoor scenes, for camera relocalization/SLAM research**](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/) | 📸🏠🤳 | `7scenes` | `mono` `rgbd` | `pinhole` | Non-commercial use only (custom Microsoft Research license agreement) | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
 | [**Multi-Camera Underwater Visual-Inertial Dataset**](https://huggingface.co/datasets/ntnu-arl/underwater-datasets) | 📸🏞️🌊 | `ariel` | `mono` `mono-vi` `stereo` `stereo-vi` | `equid4` | License | `hugging-face` |  | Alejandro Fontan |  |
 | [**Underwater Caves Sonar and Vision Data Set**](https://cirs.udg.edu/caves-dataset/) | 📸🏞️🌊 | `caves` | `mono` | `pinhole` | License | `website` |  | Alejandro Fontan |  |
 | [**The Drunkards Odometry, Estimating Camera Motion in Deforming Scenes**](https://davidrecasens.github.io/TheDrunkard%27sOdometry/#download-dataset) | 💻🏠🤳 | `drunkards` | `mono` `rgbd` | `pinhole` | License | `google-drive` |  | Alejandro Fontan |  |
@@ -15,11 +15,11 @@
 | [**The MADMAX data set for visual-inertial rover navigation on Mars**](https://datasets.arches-projekt.de/morocco2018/) | 📸🏞️🤳 | `madmax` | `mono` `mono-vi` `stereo` `stereo-vi` | `pinhole` | License | `website` | `api_token` | Alejandro Fontan |  |
 |  |  | `monotum` | `mono` | `radtan5` |  | `website` |  |  |  |
 |  | 📸🏠🥽 | `msd` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `hugging-face` |  |  |  |
-|  | 💻🏠🤳 | `nuim` | `mono` `rgbd` | `pinhole` |  | `website` |  |  |  |
+| [**ICL-NUIM RGB-D benchmark with ground-truth trajectories and 3D models for SLAM/odometry evaluation**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html) | 💻🏠🤳 | `nuim` | `mono` `rgbd` | `pinhole` | CC BY 3.0 | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
 |  | 📸🏠🤳 | `openloris-d400` | `mono` `rgbd` `mono-vi` `rgbd-vi` | `pinhole` |  | `hugging-face` |  |  |  |
 |  | 📸🏠🤳 | `openloris-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `hugging-face` |  |  |  |
-|  | 💻🏠🤳 | `replica` | `mono` `rgbd` | `pinhole` |  | `website` | `complete_dataset` |  |  |
-|  | 📸🏠🤳 | `rgbdtum` | `mono` `rgbd` | `radtan5` |  | `website` |  |  |  |
+| [**Photorealistic 3D indoor scene reconstructions (Replica), with RGB-D SLAM trajectories rendered by iMAP**](https://github.com/facebookresearch/Replica-Dataset) | 💻🏠🤳 | `replica` | `mono` `rgbd` | `pinhole` | Replica Dataset Research Terms (non-commercial research use) | `website` | `complete_dataset` | Alejandro Fontan | Claude (Sonnet 5) |
+| [**RGB-D SLAM benchmark with motion-capture ground-truth trajectories**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset) | 📸🏠🤳 | `rgbdtum` | `mono` `rgbd` | `radtan5` | CC BY 4.0 | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
 |  | 📸🏞️🚗 | `rover-d435i` | `mono` `rgbd` `rgbd-vi` | `radtan4` |  | `website` |  |  |  |
 |  | 📸🏞️🚗 | `rover-picam` | `mono` | `equid4` |  | `website` |  |  |  |
 |  | 📸🏞️🚗 | `rover-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `website` |  |  |  |
@@ -29,7 +29,7 @@
 | [**Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and Sustainability Maldives and Wildflow**](https://huggingface.co/datasets/wildflow/soneva-corals) | 📸🏞️🌊🤳 | `soneva` | `mono` | `pinhole` | CC-BY-4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**An app for collecting raw RGB-D scans on iOS devices.**](https://docs.strayrobots.io/) | 📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` | MIT | `hugging-face` `local` |  | Nicolas Marticorena |  |
 | [**Coral reef 3D photogrammetry (Indonesia), from Wildflow**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊🤳 | `sweetcorals` | `mono` | `pinhole` `unknown` | CC-BY-4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
-|  | 💻🏞️🤳 | `tartanair` | `mono` | `pinhole` |  | `google-drive` | `complete_dataset` |  |  |
+| [**Large-scale photorealistic simulation dataset with multimodal ground truth for SLAM under challenging conditions**](https://theairlab.org/tartanair-dataset/) | 💻🏞️🤳 | `tartanair` | `mono` | `pinhole` | CC BY 4.0 | `website` | `complete_dataset` | Alejandro Fontan | Claude (Sonnet 5) |
 |  | 📸🏞️🤖 | `ut-coda` | `mono` `stereo` | `radtan5` |  | `website` |  |  |  |
 | [**Videos recorded for VSLAM-LAB**](https://huggingface.co/datasets/vslamlab/videos) |  | `videos` | `mono` | `unknown` `pinhole` `radtan4` | License | `hugging-face` |  | Alejandro Fontan |  |
 | [**The TUM VI Benchmark for Evaluating Visual-Inertial Odometry**](https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset) | 📸🏠🤳 | `vitum` | `mono` `mono-vi` `stereo` `stereo-vi` | `equid4` | CC BY 4.0 | `website` |  | Alejandro Fontan |  |

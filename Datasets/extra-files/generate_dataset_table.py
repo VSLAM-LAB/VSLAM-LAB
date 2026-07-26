@@ -10,9 +10,9 @@ Description: Scans Datasets/dataset_files/*.yaml (and, via get_dataset.py, the
              commented-out placeholder rows), License from each dataset's own
              yaml about.license field.
 Author: Alejandro Fontan Villacampa
-Version: 1.3
+Version: 1.4
 Created: 2026-07-19
-Updated: 2026-07-25
+Updated: 2026-07-26
 License: GPLv3
 List of Known Bugs: None
 """
@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import re
 from pathlib import Path
-from urllib.parse import urlparse
 
 import yaml
 
@@ -135,26 +134,24 @@ def _download_issues_for_dataset(dataset_name: str, dataset_files_dir: Path,
     return _issue_ids_for_class(class_name, module_stem, dataset_files_dir, class_blocks_cache, imports_cache)
 
 
-def _is_google_drive_url(url: object) -> bool:
-    """True for any Google Drive host, including pre-resolved direct-download links
-    (e.g. drive.usercontent.google.com), not just the drive.google.com share-link host."""
-    if not isinstance(url, str):
-        return False
-    host = urlparse(url).hostname or ""
-    return host.endswith("google.com") and "drive" in host
-
-
 def _download_labels(cfg: dict) -> list[str]:
-    """Infer the source pattern(s) (hugging-face/google-drive/website/local/other) from the YAML's download fields."""
+    """Infer the source pattern(s) (hugging-face/google-drive/website/local/other) from the YAML's
+    download fields. google-drive vs. website is decided purely by which field is present, not by
+    inspecting the URL's host: google_drive_link is for a real drive.google.com share link that
+    needs gdown to navigate Drive's virus-scan interstitial (Model: dataset_drunkards.py,
+    dataset_hilti2026.py); url_download_root/url_download_sequences is a website label
+    unconditionally, even when the URL happens to be hosted on Google Drive - a pre-resolved
+    direct-download link (drive.usercontent.google.com/download?...&confirm=t&...) already bypasses
+    the interstitial, so it downloads exactly like any other website URL (Model: dataset_tartanair.py)."""
     labels: list[str] = []
     if cfg.get("hf_repo_id"):
         labels.append("hugging-face")
 
-    urls = [cfg.get("url_download_root"), cfg.get("url_download_sequences")]
-    urls = [u for u in urls if u]
-    if any(_is_google_drive_url(u) for u in urls):
+    if cfg.get("google_drive_link"):
         labels.append("google-drive")
-    elif urls:
+
+    urls = [cfg.get("url_download_root"), cfg.get("url_download_sequences")]
+    if any(urls):
         labels.append("website")
 
     sequence_location = cfg.get("sequence_location")

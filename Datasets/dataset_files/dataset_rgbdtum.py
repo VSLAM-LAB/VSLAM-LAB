@@ -31,7 +31,7 @@ CAMERA_PARAMS = { # Camera intrinsics (fx, fy, cx, cy, k1, k2, p1, p2, k3)
 
 class RgbdtumDataset(DatasetVSLAMLAB):
     """TUM RGB-D dataset helper for VSLAM-LAB benchmark."""
-    
+
     def __init__(self, dataset_name: str = "rgbdtum") -> None:
         super().__init__(dataset_name)
 
@@ -184,7 +184,7 @@ class RgbdtumDataset(DatasetVSLAMLAB):
         s = s.replace("validation", "v").replace("structure", "st").replace("texture", "tx")
         s = s.replace("walking xyz", "walk")
         return s
-    
+
     @staticmethod
     def _camera_from_sequence(name: str) -> str:
         for cam in ("freiburg1", "freiburg2", "freiburg3"):
