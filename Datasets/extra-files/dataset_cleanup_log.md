@@ -41,7 +41,9 @@ skill's file scope — this is a separate, ongoing hygiene pass across existing 
 
 15. **Shared-archive cleanup scope** — an archive shared across multiple sequences needs different handling depending on scope: whole-dataset shares (the source can't be split into per-sequence downloads at all) belong in an overridden `download_process`, run once after the loop over every sequence — never in `remove_unused_files`, which runs per sequence and could delete a still-needed shared resource mid-loop. A scene/group-scoped share (only some sequences, not the whole dataset) instead belongs in `remove_unused_files` itself: delete only that one sequence's exclusive piece, and it's fine to also delete the shared file itself (even before sibling sequences are downloaded) *if* `download_sequence_data` re-downloads it on demand — verify that fallback actually exists before relying on it.
 
-16. *(next checks TBD as they come up, e.g. field-value validation)*
+16. **Final step — check whether the shared docs need updating** — once every per-file item above is done for this pass's datasets, check whether anything the pass surfaced should be encoded into `Datasets/extra-files/generate_dataset_table.py`, `dataset_template.py`/`.yaml`, `.claude/skills/add-dataset/SKILL.md`, or `CLAUDE.md` — a new download pattern, a closed-list semantic that wasn't documented, a bug in the table generator, etc. This happened after the #78 pass, the #79 pass, and the squidle/sesoko/eiffel_tower pass (#84/#85), but only because it was asked each time, not because this checklist told the next session to — codified here so it happens by default. Distinct from item 10: that one is an ongoing self-containment property to check per item as you go; this is a deliberate final sweep after the per-file work is done.
+
+17. *(next checks TBD as they come up, e.g. field-value validation)*
 
 ## Entries
 
