@@ -34,7 +34,6 @@ class KittiDataset(DatasetVSLAMLAB):
         self.url_download_root_gt: str = self.cfg["url_download_root_gt"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-
         # Variables
         compressed_name = 'data_odometry_gray'
         compressed_name_ext = compressed_name + '.zip'
@@ -93,7 +92,7 @@ class KittiDataset(DatasetVSLAMLAB):
             t_ns = int(float(t) * 1e9)
             rows.append([t_ns, f"rgb_0/{fname}", t_ns, f"rgb_1/{fname}"])
         write_csv_rows(rgb_csv, header, rows)
-        
+
     def create_calibration_yaml(self, sequence_name: str) -> None:
         calibration_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'calib.txt'
 
@@ -127,7 +126,7 @@ class KittiDataset(DatasetVSLAMLAB):
             "T_BS": T_BS_1,
         }
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1])
-    
+
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         out_csv = self.groundtruth_csv_path(sequence_name)
         header = ['ts (ns)', 'tx (m)', 'ty (m)', 'tz (m)', 'qx', 'qy', 'qz', 'qw']

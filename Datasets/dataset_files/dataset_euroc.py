@@ -63,7 +63,7 @@ class EurocDataset(DatasetVSLAMLAB):
         subfolder_zip = self.dataset_path / f"{subfolder}.zip"
         sequence_zip = self.dataset_path / subfolder / sequence_name / f"{sequence_name}.zip"
         if not content_zip.exists() and not subfolder_zip.exists() and not sequence_zip.exists() and not subfolder_path.exists():
-            downloadFile(url, str(self.dataset_path), file_size=file_size)    
+            downloadFile(url, str(self.dataset_path), file_size=file_size)
             content_zip.rename(subfolder_zip)
 
         print_info(f"Decompressing {sequence_zip} to {sequence_path}...")
@@ -72,7 +72,7 @@ class EurocDataset(DatasetVSLAMLAB):
 
         if not sequence_path.exists():
             decompressFile(str(sequence_zip), str(sequence_path))
-        
+
         # Download TUM supplemental ground-truth if needed
         supp_root = self.dataset_path / "supp_v2"
         if not supp_root.exists():
@@ -145,7 +145,7 @@ class EurocDataset(DatasetVSLAMLAB):
         df["timestamp [ns]"] = df["timestamp [ns]"].astype("int64")
         rows = df[raw_cols].astype(object).values.tolist()
         write_csv_rows(dst, header, rows)
-        
+
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         cam0_yaml = sequence_path / "mav0" / "cam0" / "sensor.yaml"
@@ -195,7 +195,7 @@ class EurocDataset(DatasetVSLAMLAB):
             "T_BS": np.array(np.eye(4)).reshape((4, 4)),
         }
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
-    
+
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         """Write groundtruth.csv from TUM 'supp_v2/gtFiles/mav_<sequence>.txt'."""
         src = self.dataset_path / "supp_v2" / "gtFiles" / f"mav_{sequence_name}.txt"
@@ -240,6 +240,6 @@ class EurocDataset(DatasetVSLAMLAB):
             if sequence_name.startswith(prefix):
                 return prefix, subfolder, file_size
         raise ValueError(f"Unknown EUROC sequence prefix: {sequence_name}")
-        
+
     def get_download_issues(self, _):
         return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=18.7)]

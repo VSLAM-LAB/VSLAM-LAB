@@ -29,6 +29,15 @@ from utilities import decompressFile, downloadFile, write_csv_rows
 class MadmaxDataset(DatasetVSLAMLAB):
     """MADMAX Mars rover navigation dataset helper for VSLAM-LAB benchmark."""
 
+    _SEQUENCE_FILE_IDS = {
+        "A-0": [223, 224, 417, 335, 491],
+        "A-1": [18, 19, 417, 336, 492],
+        "B-0": [62, 63, 425, 371, 483],
+        "C-0": [54, 55, 418, 350, 480],
+        "D-0": [115, 116, 420, 353, 475],
+        "E-0": [145, 146, 421, 358, 472],
+    }
+
     def __init__(self, dataset_name: str = "madmax") -> None:
         super().__init__(dataset_name)
 
@@ -270,17 +279,5 @@ class MadmaxDataset(DatasetVSLAMLAB):
 
     def _get_file_url(self, sequence_name):
         base_url = "file?attachment=true&pid=b1584010878"
-        if sequence_name == "A-0":
-            ids = [223, 224, 417, 335, 491]
-        if sequence_name == "A-1":
-            ids = [18, 19, 417, 336, 492]
-        if sequence_name == "B-0":
-            ids = [62, 63, 425, 371, 483]
-        if sequence_name == "C-0":
-            ids = [54, 55, 418, 350, 480]
-        if sequence_name == "D-0":
-            ids = [115, 116, 420, 353, 475]
-        if sequence_name == "E-0":
-            ids = [145, 146, 421, 358, 472]
-
+        ids = self._SEQUENCE_FILE_IDS[sequence_name]
         return [f"{base_url}.{id}&access_token={self.api_token}" for id in ids]

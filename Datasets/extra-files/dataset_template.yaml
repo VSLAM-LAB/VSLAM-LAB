@@ -26,7 +26,11 @@ cam_models: ['pinhole']
 #                   dataset_s3li.yaml). This is also the right field for a *pre-resolved*
 #                   drive.usercontent.google.com direct-download URL - it downloads exactly like
 #                   any other website URL (plain utilities.downloadFile, no gdown), even though
-#                   it happens to be hosted on Google Drive - see dataset_tartanair.yaml.
+#                   it happens to be hosted on Google Drive - see dataset_tartanair.yaml. If
+#                   sequences share one of *several* group-level archives (not one shared root,
+#                   not one URL per sequence), url_download_root can instead be a dict keyed by
+#                   group prefix rather than full sequence_name - see dataset_euroc.yaml (MH_/V1_/
+#                   V2_ prefixes, each mapping to that group's archive URL).
 #   hugging-face -> hf_repo_id: "org/name" (see dataset_soneva.yaml/dataset_sweetcorals.yaml)
 #   google-drive -> google_drive_link: a real drive.google.com share link. Drive shows a
 #                   virus-scan interstitial for most files this size that a plain download can't

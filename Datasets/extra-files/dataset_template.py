@@ -185,6 +185,12 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                   Model: dataset_7scenes.py (constant CAMERA_PARAMS)
         #   per-sequence -> parse this sequence's own calibration file
         #                   Model: dataset_eth.py, dataset_kitti.py, dataset_euroc.py
+        # If the source is a raw text/CSV file (not already-typed YAML), cast every numeric value to
+        # float(...) before putting it in the calibration dict — write_calibration_yaml just
+        # f-string-embeds whatever type it's given, so an uncast string silently gets written into
+        # calibration.yaml as a quoted string (e.g. focal_length: ['718.856000', ...]), which then
+        # parses back as str, not float, with no error anywhere in the pipeline. dataset_kitti.py hit
+        # exactly this bug (fx/fy/cx/cy read via .split() and never cast) before it was caught.
         return
 
     def create_imu_csv(self, sequence_name: str) -> None:
@@ -248,6 +254,15 @@ class TemplateDataset(DatasetVSLAMLAB):
         # unlink(missing_ok=True) silently swallows the mismatch, so nothing ever actually got
         # deleted at MINIMAL retention and it went unnoticed until a later cleanup pass. Double-check
         # this path against the one download_sequence_data/download_process actually built.
+        #
+        # Two more variants of getting this wrong, both hit by dataset_euroc.py/dataset_kitti.py:
+        #   - Forgetting the retention gate entirely: a STANDARD-tier delete with no
+        #     `if BENCHMARK_RETENTION != Retention.FULL:` around it runs unconditionally, deleting
+        #     files even at Retention.FULL, which must delete nothing.
+        #   - Calling unlink() on a path that's actually a directory raises IsADirectoryError - use
+        #     shutil.rmtree(path, ignore_errors=True) instead. This compounds with the wrong-path bug
+        #     above: while the path is wrong, missing_ok=True masks the mistake as a silent no-op;
+        #     the moment the path gets fixed, it becomes a hard crash instead.
         #
         # An archive shared across multiple sequences needs different handling depending on scope:
         #   whole-dataset -> if the source can't be split into per-sequence downloads at all
