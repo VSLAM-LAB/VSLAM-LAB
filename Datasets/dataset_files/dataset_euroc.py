@@ -24,7 +24,7 @@ import yaml
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile, make_printers
+from utilities import decompressFile, downloadFile, make_printers, write_csv_rows
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 print_info, print_warning = make_printers(SCRIPT_LABEL)
@@ -90,8 +90,7 @@ class EurocDataset(DatasetVSLAMLAB):
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        for cam in (0, 1):
-            target = sequence_path / f"rgb_{cam}"
+        for cam, target in ((0, self.rgb_path(sequence_name)), (1, sequence_path / "rgb_1")):
             if target.exists():
                 continue
             target.mkdir(parents=True, exist_ok=True)
@@ -99,7 +98,7 @@ class EurocDataset(DatasetVSLAMLAB):
             if not src_dir.is_dir():
                 continue
             for png in sorted(src_dir.glob("*.png")):
-                shutil.move(png , target / png.name)
+                shutil.move(png, target / png.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -116,28 +115,16 @@ class EurocDataset(DatasetVSLAMLAB):
         df0 = pd.read_csv(cam0_csv, comment="#", header=None, usecols=[0, 1], names=["ts_ns", "name0"])
         df1 = pd.read_csv(cam1_csv, comment="#", header=None, usecols=[0, 1], names=["ts_ns", "name1"])
 
-        # Ensure equal length & alignment by index (EUROC is aligned across cams)
+        # Ensure equal length & alignment by index (EuRoC is aligned across cams)
         n = min(len(df0), len(df1))
         df0, df1 = df0.iloc[:n], df1.iloc[:n]
 
-        # Convert ns -> seconds
-        ts0 = df0["ts_ns"].astype(np.int64)
-        ts1 = df1["ts_ns"].astype(np.int64)
-
-        out = pd.DataFrame({
-            "ts_rgb_0 (ns)": ts0,
-            "path_rgb_0": "rgb_0/" + df0["name0"].astype(str),
-            "ts_rgb_1 (ns)": ts1,
-            "path_rgb_1": "rgb_1/" + df1["name1"].astype(str),
-        })
-
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(rgb_csv)
-        finally:
-            with suppress(FileNotFoundError):
-                tmp.unlink()
+        header = ["ts_rgb_0 (ns)", "path_rgb_0", "ts_rgb_1 (ns)", "path_rgb_1"]
+        rows = [
+            [int(ts0), f"rgb_0/{name0}", int(ts1), f"rgb_1/{name1}"]
+            for ts0, name0, ts1, name1 in zip(df0["ts_ns"], df0["name0"], df1["ts_ns"], df1["name1"])
+        ]
+        write_csv_rows(rgb_csv, header, rows)
 
     def create_imu_csv(self, sequence_name: str) -> None:
         seq = self.sequence_path(sequence_name)

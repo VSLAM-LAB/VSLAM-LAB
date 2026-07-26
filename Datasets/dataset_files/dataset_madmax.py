@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_madmax.py
 
 from __future__ import annotations
 
-import csv
 import os
 import re
 import shutil
@@ -24,7 +23,7 @@ from scipy.spatial.transform import Rotation as R
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 
 class MadmaxDataset(DatasetVSLAMLAB):
@@ -73,28 +72,23 @@ class MadmaxDataset(DatasetVSLAMLAB):
         if rgb_csv.exists():
             return
 
-        rgb_0_path = sequence_path / "rgb_0"
-        rgb_0_files_cam = [f for f in os.listdir(rgb_0_path) if (rgb_0_path / f).is_file()]
-        rgb_0_files_cam.sort()
+        rgb_0_path = self.rgb_path(sequence_name)
+        rgb_0_files = sorted(f for f in os.listdir(rgb_0_path) if (rgb_0_path / f).is_file())
 
         rgb_1_path = sequence_path / "rgb_1"
-        rgb_1_files_cam = [f for f in os.listdir(rgb_1_path) if (rgb_1_path / f).is_file()]
-        rgb_1_files_cam.sort()
+        rgb_1_files = sorted(f for f in os.listdir(rgb_1_path) if (rgb_1_path / f).is_file())
 
-        with open(rgb_csv, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_rgb_1 (ns)", "path_rgb_1"])
-
-            for filename_0, filename_1 in zip(rgb_0_files_cam, rgb_1_files_cam):
-                name_0, _ = os.path.splitext(filename_0)
-                name_1, _ = os.path.splitext(filename_1)
-                name_0 = name_0.replace("img_rect_left_", "")
-                name_1 = name_1.replace("img_rect_right_", "")
-                ts_0 = float(name_0)
-                ts_1 = float(name_1)
-                ts_ns_0 = int(ts_0)
-                ts_ns_1 = int(ts_1)
-                writer.writerow([ts_ns_0, f"rgb_0/{filename_0}", ts_ns_1, f"rgb_1/{filename_1}"])
+        header = ["ts_rgb_0 (ns)", "path_rgb_0", "ts_rgb_1 (ns)", "path_rgb_1"]
+        rows = []
+        for filename_0, filename_1 in zip(rgb_0_files, rgb_1_files):
+            name_0, _ = os.path.splitext(filename_0)
+            name_1, _ = os.path.splitext(filename_1)
+            name_0 = name_0.replace("img_rect_left_", "")
+            name_1 = name_1.replace("img_rect_right_", "")
+            ts_ns_0 = int(float(name_0))
+            ts_ns_1 = int(float(name_1))
+            rows.append([ts_ns_0, f"rgb_0/{filename_0}", ts_ns_1, f"rgb_1/{filename_1}"])
+        write_csv_rows(rgb_csv, header, rows)
 
     def create_imu_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

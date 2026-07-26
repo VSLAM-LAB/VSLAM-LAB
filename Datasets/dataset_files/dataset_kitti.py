@@ -21,7 +21,7 @@ from scipy.spatial.transform import Rotation as R
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 
 class KittiDataset(DatasetVSLAMLAB):
@@ -58,23 +58,21 @@ class KittiDataset(DatasetVSLAMLAB):
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        for rgb_i, image in zip(['rgb_0', 'rgb_1'], ['image_0', 'image_1']):    
-            rgb_path = sequence_path / rgb_i
-            if not rgb_path.exists():
-                os.makedirs(rgb_path)
+        for target, image in ((self.rgb_path(sequence_name), 'image_0'), (sequence_path / 'rgb_1', 'image_1')):
+            if not target.exists():
+                os.makedirs(target)
 
-            rgb_path_raw = self.dataset_path / 'dataset' / 'sequences' / sequence_name / image
-            if not rgb_path_raw.exists():
+            raw_dir = self.dataset_path / 'dataset' / 'sequences' / sequence_name / image
+            if not raw_dir.exists():
                 return
 
-            for png_file in os.listdir(rgb_path_raw):
+            for png_file in os.listdir(raw_dir):
                 if png_file.endswith(".png"):
-                    shutil.move(rgb_path_raw / png_file, rgb_path / png_file)
+                    shutil.move(raw_dir / png_file, target / png_file)
 
-            shutil.rmtree(rgb_path_raw)
+            shutil.rmtree(raw_dir)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_csv = self.rgb_csv_path(sequence_name)
         times_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'times.txt'
 
@@ -88,16 +86,14 @@ class KittiDataset(DatasetVSLAMLAB):
 
         # Collect and sort image filenames
         rgb_path = self.rgb_path(sequence_name)
-        rgb_files = [f for f in os.listdir(rgb_path) if (rgb_path / f).is_file()]
-        rgb_files.sort()
+        rgb_files = sorted(f for f in os.listdir(rgb_path) if (rgb_path / f).is_file())
 
-        # Write CSV with header
-        with open(rgb_csv, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['ts_rgb_0 (ns)', 'path_rgb_0', 'ts_rgb_1 (ns)', 'path_rgb_1']) 	
-            for t, fname in zip(times, rgb_files):  # pairs safely to the shorter list
-                t_ns = int(float(t) * 1e9)
-                writer.writerow([t_ns, f"rgb_0/{fname}", t_ns, f"rgb_1/{fname}"])
+        header = ['ts_rgb_0 (ns)', 'path_rgb_0', 'ts_rgb_1 (ns)', 'path_rgb_1']
+        rows = []
+        for t, fname in zip(times, rgb_files):  # pairs safely to the shorter list
+            t_ns = int(float(t) * 1e9)
+            rows.append([t_ns, f"rgb_0/{fname}", t_ns, f"rgb_1/{fname}"])
+        write_csv_rows(rgb_csv, header, rows)
         
     def create_calibration_yaml(self, sequence_name: str) -> None:
         calibration_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'calib.txt'
