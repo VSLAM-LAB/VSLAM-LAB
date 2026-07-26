@@ -5,7 +5,7 @@ modes: ['mono']
 cam_models: ['unknown']
 
 url_download_root: "https://squidle.org"
-api_token: "54198b8ada2f96907e257016c2b31796d333e3e566ed07a80a61e93f"
+api_token: "not_set"
 target_resolution: [640, 480]
 
 sequence_names:

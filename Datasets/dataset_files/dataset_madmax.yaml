@@ -5,7 +5,7 @@ modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['pinhole']
 
 url_download_root: "https://my.hidrive.com/api"
-api_token: "0i0PgRIzgOtYsjYUDRsU"
+api_token: "not_set"
 
 sequence_names:
   - A-0
