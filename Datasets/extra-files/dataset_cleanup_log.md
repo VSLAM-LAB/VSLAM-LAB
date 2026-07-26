@@ -510,3 +510,13 @@ Asked (same as after the #78 pass) whether anything from the pass above should b
 `CLAUDE.md` checked, no gap found (same conclusion as after #78 — it stays intentionally high-level). `utilities.py` checked too: the `df[cols].astype(object).values.tolist()` pattern used 3x this session (to stop pandas from upcasting mixed int64/float64 columns and corrupting the ns timestamp) is a real repeated pattern and a plausible future helper, but was explicitly not added — user's call to keep this pass scoped to euroc/kitti/madmax plus doc updates, not a new shared utility.
 
 Commit: `c4cd54f` (bundled with the final re-read pass above — both landed in one commit)
+
+### 2026-07-26 — Post-pass sanity check: regenerated `dataset_table.md`
+
+Files: `Datasets/extra-files/dataset_table.md` (checked, not modified — see below).
+
+Per checklist item 10's "regenerate before trusting `dataset_table.md`-derived facts" rule, re-ran `python3 Datasets/extra-files/generate_dataset_table.py` after the euroc/kitti/madmax pass (and its template/SKILL.md follow-up) to confirm the script still runs clean against the changed files and the table is accurate.
+
+Result: exit code 0, "Wrote 34 dataset rows", **zero diff** against the already-committed `dataset_table.md` — it had already been kept in sync via the regenerations run mid-pass for verification (see the `url_download_root` redesign entry above), so nothing was stale. Specifically confirmed `euroc`'s row still correctly shows `website` in the Download column: `_download_labels()`'s `any([cfg.get("url_download_root"), cfg.get("url_download_sequences")])` check is satisfied by truthiness, so euroc's new dict-keyed-by-group-prefix shape for `url_download_root` (3 entries, not a plain string) doesn't trip up the script — a non-empty dict is still truthy. `kitti`/`madmax` rows also spot-checked (modes, cam_models, license, download issues, maintainer, AI-assisted all correct).
+
+No commit — no file changed.
