@@ -104,8 +104,7 @@ class MadmaxDataset(DatasetVSLAMLAB):
             "field.linear_acceleration.y",
             "field.linear_acceleration.z",
         ]
-        df_selected = df[selected_columns]
-        df_selected.columns = [
+        header = [
             "ts (ns)",
             "wx (rad s^-1)",
             "wy (rad s^-1)",
@@ -114,10 +113,11 @@ class MadmaxDataset(DatasetVSLAMLAB):
             "ay (m s^-2)",
             "az (m s^-2)",
         ]
-        df_selected.to_csv(imu_csv, index=False)
+        rows = df[selected_columns].astype(object).values.tolist()
+        write_csv_rows(imu_csv, header, rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        calibration_folder = self.dataset_path / sequence_name / "calibration" / "calibration"
+        calibration_folder = self.sequence_path(sequence_name) / "calibration" / "calibration"
         intrinsics_0_txt = calibration_folder / "camera_rect_left_info.txt"
         intrinsics_1_txt = calibration_folder / "camera_rect_right_info.txt"
 

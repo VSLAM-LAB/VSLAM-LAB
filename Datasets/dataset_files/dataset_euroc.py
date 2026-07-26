@@ -142,49 +142,59 @@ class EurocDataset(DatasetVSLAMLAB):
         if df.empty:
             return
 
-        new_cols = ["ts (ns)", "wx (rad s^-1)", "wy (rad s^-1)", "wz (rad s^-1)", "ax (m s^-2)", "ay (m s^-2)", "az (m s^-2)"]
-        df.columns = new_cols
-        out = df[new_cols]
-
-        tmp = dst.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(dst)
-        finally:
-            try:
-                tmp.unlink()
-            except FileNotFoundError:
-                pass
+        header = ["ts (ns)", "wx (rad s^-1)", "wy (rad s^-1)", "wz (rad s^-1)", "ax (m s^-2)", "ay (m s^-2)", "az (m s^-2)"]
+        df["timestamp [ns]"] = df["timestamp [ns]"].astype("int64")
+        rows = df[raw_cols].astype(object).values.tolist()
+        write_csv_rows(dst, header, rows)
         
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         cam0_yaml = sequence_path / "mav0" / "cam0" / "sensor.yaml"
         cam1_yaml = sequence_path / "mav0" / "cam1" / "sensor.yaml"
-        imu_yaml  = sequence_path / "mav0" / "imu0" / "sensor.yaml"
-        with open(cam0_yaml, "r", encoding="utf-8") as f: cam0 = yaml.safe_load(f)
-        with open(cam1_yaml, "r", encoding="utf-8") as f: cam1 = yaml.safe_load(f)
-        with open(imu_yaml,  "r", encoding="utf-8") as f: imu  = yaml.safe_load(f)
+        with open(cam0_yaml, "r", encoding="utf-8") as f:
+            cam0 = yaml.safe_load(f)
+        with open(cam1_yaml, "r", encoding="utf-8") as f:
+            cam1 = yaml.safe_load(f)
 
-        rgb0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "gray",
-                "cam_model": "pinhole", "focal_length": cam0["intrinsics"][0:2], "principal_point": cam0["intrinsics"][2:4],
-                "distortion_type": "radtan4", "distortion_coefficients": cam0["distortion_coefficients"],
-                "fps": cam0["rate_hz"],
-                "T_BS": np.array(cam0["T_BS"]['data']).reshape((4, 4))}
-        rgb1: dict[str, Any] = {"cam_name": "rgb_1", "cam_type": "gray",
-                "cam_model": "pinhole", "focal_length": cam1["intrinsics"][0:2], "principal_point": cam1["intrinsics"][2:4],
-                "distortion_type": "radtan4", "distortion_coefficients": cam1["distortion_coefficients"],
-                "fps": cam1["rate_hz"],
-                "T_BS": np.array(cam1["T_BS"]['data']).reshape((4, 4))}
-        
-        imu: dict[str, Any] = {"imu_name": "imu_0",
-            "a_max":  176.0, "g_max": 7.8,
-            "sigma_g_c":  20.0e-4, "sigma_a_c": 20.0e-3,
-            "sigma_bg":  0.01, "sigma_ba":  0.1,
-            "sigma_gw_c":  20.0e-5, "sigma_aw_c": 20.0e-3,
-            "g":  9.81007, "g0": [ 0.0, 0.0, 0.0 ], "a0": [ -0.05, 0.09, 0.01 ],
-            "s_a":  [ 1.0,  1.0, 1.0 ],
+        rgb0: dict[str, Any] = {
+            "cam_name": "rgb_0",
+            "cam_type": "gray",
+            "cam_model": "pinhole",
+            "focal_length": cam0["intrinsics"][0:2],
+            "principal_point": cam0["intrinsics"][2:4],
+            "distortion_type": "radtan4",
+            "distortion_coefficients": cam0["distortion_coefficients"],
+            "fps": cam0["rate_hz"],
+            "T_BS": np.array(cam0["T_BS"]["data"]).reshape((4, 4)),
+        }
+        rgb1: dict[str, Any] = {
+            "cam_name": "rgb_1",
+            "cam_type": "gray",
+            "cam_model": "pinhole",
+            "focal_length": cam1["intrinsics"][0:2],
+            "principal_point": cam1["intrinsics"][2:4],
+            "distortion_type": "radtan4",
+            "distortion_coefficients": cam1["distortion_coefficients"],
+            "fps": cam1["rate_hz"],
+            "T_BS": np.array(cam1["T_BS"]["data"]).reshape((4, 4)),
+        }
+        imu: dict[str, Any] = {
+            "imu_name": "imu_0",
+            "a_max": 176.0,
+            "g_max": 7.8,
+            "sigma_g_c": 20.0e-4,
+            "sigma_a_c": 20.0e-3,
+            "sigma_bg": 0.01,
+            "sigma_ba": 0.1,
+            "sigma_gw_c": 20.0e-5,
+            "sigma_aw_c": 20.0e-3,
+            "g": 9.81007,
+            "g0": [0.0, 0.0, 0.0],
+            "a0": [-0.05, 0.09, 0.01],
+            "s_a": [1.0, 1.0, 1.0],
             "fps": 200.0,
-            "T_BS": np.array(np.eye(4)).reshape((4, 4))}
+            "T_BS": np.array(np.eye(4)).reshape((4, 4)),
+        }
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:

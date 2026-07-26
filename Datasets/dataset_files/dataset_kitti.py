@@ -99,22 +99,34 @@ class KittiDataset(DatasetVSLAMLAB):
         calibration_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'calib.txt'
 
         with open(calibration_txt, 'r') as file:
-            calibration_0 = [value for value in file.readline().split()]
-            fx_0, fy_0, cx_0, cy_0 = calibration_0[1], calibration_0[6], calibration_0[3], calibration_0[7]
-            calibration_1 = [value for value in file.readline().split()]
-            fx_1, fy_1, cx_1, cy_1 = calibration_1[1], calibration_1[6], calibration_1[3], calibration_1[7]
+            calibration_0 = file.readline().split()
+            fx_0, fy_0, cx_0, cy_0 = (float(calibration_0[1]), float(calibration_0[6]),
+                                       float(calibration_0[3]), float(calibration_0[7]))
+            calibration_1 = file.readline().split()
+            fx_1, fy_1, cx_1, cy_1 = (float(calibration_1[1]), float(calibration_1[6]),
+                                       float(calibration_1[3]), float(calibration_1[7]))
 
-        rgb0: dict[str, Any] = {"cam_name": "rgb_0", "cam_type": "gray",
-                "cam_model": "pinhole", "focal_length": [fx_0, fy_0], "principal_point": [cx_0, cy_0],
-                "fps": self.rgb_hz,
-                "T_BS": np.eye(4)}
-        
+        rgb0: dict[str, Any] = {
+            "cam_name": "rgb_0",
+            "cam_type": "gray",
+            "cam_model": "pinhole",
+            "focal_length": [fx_0, fy_0],
+            "principal_point": [cx_0, cy_0],
+            "fps": self.rgb_hz,
+            "T_BS": np.eye(4),
+        }
+
         T_BS_1 = np.eye(4)
-        T_BS_1[0, 3] = -float(calibration_1[4]) / float(fx_0)
-        rgb1: dict[str, Any] = {"cam_name": "rgb_1", "cam_type": "gray",
-                "cam_model": "pinhole", "focal_length": [fx_1, fy_1], "principal_point": [cx_1, cy_1],
-                "fps": self.rgb_hz,
-                "T_BS": T_BS_1}
+        T_BS_1[0, 3] = -float(calibration_1[4]) / fx_0
+        rgb1: dict[str, Any] = {
+            "cam_name": "rgb_1",
+            "cam_type": "gray",
+            "cam_model": "pinhole",
+            "focal_length": [fx_1, fy_1],
+            "principal_point": [cx_1, cy_1],
+            "fps": self.rgb_hz,
+            "T_BS": T_BS_1,
+        }
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
