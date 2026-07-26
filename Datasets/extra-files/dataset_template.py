@@ -34,14 +34,14 @@ class TemplateDataset(DatasetVSLAMLAB):
         # self.cfg (set by DatasetVSLAMLAB.__init__ above) is this dataset's already-parsed yaml —
         # don't reopen self.yaml_file here, just pull whichever source-specific field(s) it carries:
         #   website      -> self.url_download_root = self.cfg["url_download_root"]  (a root + filename
-        #                   pattern serving a .zip/.tar/.7z); if each sequence has its own unrelated
-        #                   URL instead of a shared root, use self.url_download_sequences =
-        #                   self.cfg["url_download_sequences"]  (a dict keyed by sequence_name), Model:
-        #                   dataset_s3li.py — keyed lookup, not a positionally-indexed list. Also the
-        #                   right field for a *pre-resolved* drive.usercontent.google.com
-        #                   direct-download URL — downloads exactly like any other website URL (plain
-        #                   downloadFile, no gdown) even though it's hosted on Google Drive, Model:
-        #                   dataset_tartanair.py
+        #                   pattern serving a .zip/.tar/.7z, or a dict — keyed by group prefix when
+        #                   several sequences share one of a few group-level archives, Model:
+        #                   dataset_euroc.py's MH_/V1_/V2_ prefixes; keyed by full sequence_name when
+        #                   every sequence has its own genuinely unrelated URL and there's no sharing
+        #                   at all, i.e. group size 1). Also the right field for a *pre-resolved*
+        #                   drive.usercontent.google.com direct-download URL — downloads exactly like
+        #                   any other website URL (plain downloadFile, no gdown) even though it's
+        #                   hosted on Google Drive, Model: dataset_tartanair.py
         #   hugging-face -> self.hf_repo_id = self.cfg["hf_repo_id"]; if the repo is gated it needs a
         #                   token — see HUGGINGFACE_TOKEN in path_constants.py (falls back to the
         #                   HF_TOKEN env var)
@@ -52,12 +52,16 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                   gdown.download_folder instead), Model: dataset_hilti2026.py,
         #                   dataset_drunkards.py. Don't confuse with the pre-resolved-link case above.
         #   local        -> nothing to pull here; affected sequences carry sequence_location: local instead
+        #   api          -> self.url_download_root = self.cfg["url_download_root"] (the API's base URL -
+        #                   same field as website, reused since it genuinely is one), plus
+        #                   self.api_token = self.cfg.get("api_token", "not_set") if the API needs auth
+        #                   (never cfg["api_token"] - see get_download_issues below). Model:
+        #                   dataset_squidle.py (shared by dataset_sesoko.py's registered SesokoDataset).
         # A dataset can mix patterns per sequence (see dataset_strayscanner.py: HF-backed, with
         # local overrides for sequences the user must place manually).
         # Also pull any mode-specific fields a sibling YAML of the same modes carries (e.g.
-        # depth_factor for rgbd, url_download_root_gt for a separate groundtruth archive, or
-        # further url_download_<what-it-is> fields for extra assets the source splits into
-        # separate downloads, e.g. url_download_timestamps in dataset_caves.py).
+        # depth_factor for rgbd, or url_download_root_gt for a separate groundtruth archive shipped
+        # apart from the main sequence data, Model: dataset_euroc.py, dataset_kitti.py).
         self.url_download_root: str = self.cfg["url_download_root"]
 
         # self.target_resolution is already set by DatasetVSLAMLAB.__init__ (super().__init__()
@@ -87,7 +91,11 @@ class TemplateDataset(DatasetVSLAMLAB):
         # Fetch the raw sequence data and leave it under self.dataset_path / sequence_name,
         # in whatever shape the source ships it — the create_* hooks below normalize it into
         # VSLAM-LAB's standard layout. Skip re-downloading/re-decompressing if the target
-        # already exists (see check_sequence_availability in DatasetVSLAMLAB.py).
+        # already exists (see check_sequence_availability in DatasetVSLAMLAB.py). A plain
+        # rgb_path.exists() check can't tell "fully downloaded" apart from "crashed partway
+        # through, folder exists but is incomplete" - a completion marker file (e.g.
+        # rgb_path / ".download_complete", touched only after every output file is written) is a
+        # more robust alternative worth considering, Model: dataset_squidle.py.
         # Pick the implementation matching this dataset's download pattern:
         #   website      -> utilities.downloadFile(url, self.dataset_path) + decompressFile(...)
         #                   Model: dataset_7scenes.py. This also covers a *pre-resolved*
@@ -115,7 +123,15 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                   local, `sequence_location` is a YAML list (one entry per sequence_name)
         #                   read into self.sequence_location and indexed by sequence_name to decide
         #                   per sequence, Model: dataset_strayscanner.py.
-        # Always pin down one of these four real patterns — don't leave the source undetermined.
+        #   api          -> paginated JSON requests against self.url_download_root, not
+        #                   downloadFile/decompressFile. Per-item metadata (pose/timestamp) often
+        #                   lives only in the API response, with no raw sidecar file to persist it in
+        #                   - if so, fetch/parse/write rgb.csv and groundtruth.csv directly here
+        #                   rather than leaving that job for create_rgb_csv/create_groundtruth_csv,
+        #                   which can then legitimately stay no-ops. Guard each per-item parse in its
+        #                   own try/except - a single item with malformed metadata should be skipped
+        #                   with a warning, not crash the whole sequence. Model: dataset_squidle.py.
+        # Always pin down one of these five real patterns — don't leave the source undetermined.
         # "other" is not one to implement against; it's just what generate_dataset_table.py reports
         # when a dataset's source isn't declared through any of the YAML fields above (e.g. a URL
         # hardcoded in the .py file, as in dataset_euroc.py).
@@ -135,7 +151,9 @@ class TemplateDataset(DatasetVSLAMLAB):
         #               never round-trip it through PIL just to leave it the same size.
         #   not None -> scale the image down to match self.target_resolution's pixel area while
         #               preserving aspect ratio via utilities.compute_scaled_size(img.size,
-        #               self.target_resolution), then save into rgb_0/.
+        #               self.target_resolution), then img.resize(target_size,
+        #               Image.Resampling.LANCZOS) (the modern, non-deprecated Pillow API - avoid
+        #               the legacy Image.LANCZOS alias) and save into rgb_0/.
         # rgbd modes also need depth_0/, following the same self.target_resolution branch as
         # rgb_0/rgb_1 above when the source needs resizing — but never resize a depth map with
         # PIL's LANCZOS (or any interpolating resample); that blends depth values across object
@@ -185,6 +203,18 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                   Model: dataset_7scenes.py (constant CAMERA_PARAMS)
         #   per-sequence -> parse this sequence's own calibration file
         #                   Model: dataset_eth.py, dataset_kitti.py, dataset_euroc.py
+        # The cam_model you write must match the yaml's cam_models value, and both must describe
+        # what's actually being written, not just "this is a perspective camera":
+        #   pinhole             -> zero distortion - omit distortion_type/distortion_coefficients
+        #                          entirely. Model: dataset_eth.py.
+        #   radtan4/radtan5/    -> pinhole + that distortion model's real, trusted
+        #   equid4                 distortion_coefficients. Model: dataset_eiffel_tower.py (radtan4).
+        #   unknown             -> no verified calibration exists at all - zero focal_length/
+        #                          principal_point, no distortion fields. Model: dataset_sweetcorals.py's
+        #                          non-pinhole branch.
+        # Get this wrong and dataset_table.md's Camera Models column silently misreports the
+        # calibration's actual trustworthiness - dataset_sesoko.yaml once declared pinhole while
+        # writing real radtan4 distortion coefficients, caught only in a later cleanup pass.
         # If the source is a raw text/CSV file (not already-typed YAML), cast every numeric value to
         # float(...) before putting it in the calibration dict — write_calibration_yaml just
         # f-string-embeds whatever type it's given, so an uncast string silently gets written into
@@ -203,7 +233,8 @@ class TemplateDataset(DatasetVSLAMLAB):
         # Write groundtruth.csv: ts (ns), tx (m), ty (m), tz (m), qx, qy, qz, qw — one row per pose.
         # Always create this file, even when groundtruth_available (SKILL.md step 1) is false for
         # this dataset — write just the header row with no data rows (an empty groundtruth.csv)
-        # rather than deleting the method / leaving no file at all. Model: dataset_videos.py.
+        # rather than deleting the method / leaving no file at all. Model: dataset_rgbdtum.py
+        # (TUM's "validation" sequences ship no public groundtruth).
         sequence_path = self.dataset_path / sequence_name
         groundtruth_csv = sequence_path / "groundtruth.csv"
         tmp = groundtruth_csv.with_suffix(".csv.tmp")
@@ -296,6 +327,6 @@ class TemplateDataset(DatasetVSLAMLAB):
         # cfg.get("api_token", "not_set") — never cfg["api_token"], a missing token must produce
         # this reported issue, not a KeyError crash at load time. Don't exit()/crash in __init__
         # either if it's missing; report it here (return the issue below) and let the pipeline
-        # continue and warn, Model: dataset_madmax.py, dataset_squidle.py.
+        # continue and warn, Model: dataset_madmax.py.
         # Return a list of dicts built via _get_dataset_issue(issue_id=..., dataset_name=self.dataset_name, ...).
         return
