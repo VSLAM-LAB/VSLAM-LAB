@@ -193,10 +193,11 @@ class MadmaxDataset(DatasetVSLAMLAB):
             " orientation.z",
             " orientation.w",
         ]
-        df_selected = df[selected_columns]
-        df_selected["% UNIX time"] = (df_selected["% UNIX time"] * 1e9).astype("int64")
-        df_selected.columns = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
-        df_selected.to_csv(groundtruth_csv, index=False)
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
+        df = df[selected_columns].copy()
+        df["% UNIX time"] = (df["% UNIX time"] * 1e9).astype("int64")
+        rows = df.astype(object).values.tolist()
+        write_csv_rows(groundtruth_csv, header, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)

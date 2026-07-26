@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_kitti.py
 
 from __future__ import annotations
 
-import csv
 import os
 import shutil
 from typing import Any
@@ -130,14 +129,14 @@ class KittiDataset(DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         out_csv = self.groundtruth_csv_path(sequence_name)
-        # Keep your original guard
-        sequence_name_int = int(sequence_name)
-        if sequence_name_int > 10:
+        header = ['ts (ns)', 'tx (m)', 'ty (m)', 'tz (m)', 'qx', 'qy', 'qz', 'qw']
+
+        # Sequences 11-21 are KITTI's held-out benchmark test set; ground-truth poses were never published.
+        if int(sequence_name) > 10:
+            write_csv_rows(out_csv, header, [])
             return
 
-        # Read timestamps
         times_txt = self.dataset_path / 'dataset' / 'sequences' / sequence_name / 'times.txt'
         times = []
         with open(times_txt, 'r') as f:
@@ -146,12 +145,9 @@ class KittiDataset(DatasetVSLAMLAB):
                 if line:
                     times.append(float(line))
 
-        # Read trajectory and write CSV
         poses_txt = self.dataset_path / 'dataset' / 'poses' / (sequence_name + '.txt')
-        with open(poses_txt, 'r') as src, open(out_csv, 'w', newline='') as dst:
-            writer = csv.writer(dst)
-            writer.writerow(['ts (ns)', 'tx (m)', 'ty (m)', 'tz (m)', 'qx', 'qy', 'qz', 'qw'])
-
+        rows = []
+        with open(poses_txt, 'r') as src:
             for idx, line in enumerate(src):
                 if idx >= len(times):
                     break  # avoid index error if poses has extra lines
@@ -162,9 +158,9 @@ class KittiDataset(DatasetVSLAMLAB):
                             [vals[8], vals[9], vals[10]]], dtype=float)
                 tx, ty, tz = vals[3], vals[7], vals[11]
                 qx, qy, qz, qw = R.from_matrix(Rm).as_quat()  # [x, y, z, w]
-                ts = times[idx]
-                ts_ns = int(float(ts)*1e9)
-                writer.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+                ts_ns = int(times[idx] * 1e9)
+                rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+        write_csv_rows(out_csv, header, rows)
 
     def get_download_issues(self, _):
         return [_get_dataset_issue(issue_id="complete_dataset", dataset_name=self.dataset_name, size_gb=23.2)]

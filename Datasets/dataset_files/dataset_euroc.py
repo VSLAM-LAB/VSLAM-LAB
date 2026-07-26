@@ -10,7 +10,6 @@ Module: VSLAM-LAB - Datasets - dataset_euroc.py
 
 from __future__ import annotations
 
-import csv
 import os
 import shutil
 from contextlib import suppress
@@ -198,22 +197,18 @@ class EurocDataset(DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        """
-        Write groundtruth.csv from TUM 'supp_v2/gtFiles/mav_<sequence>.txt'.
-        """
-        seq = self.sequence_path(sequence_name)
+        """Write groundtruth.csv from TUM 'supp_v2/gtFiles/mav_<sequence>.txt'."""
         src = self.dataset_path / "supp_v2" / "gtFiles" / f"mav_{sequence_name}.txt"
         dst = self.groundtruth_csv_path(sequence_name)
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
         if not src.exists():
+            write_csv_rows(dst, header, [])
             return
         if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime:
             return
 
-        tmp = dst.with_suffix(".csv.tmp")
-        with open(src, "r", encoding="utf-8") as fin, open(tmp, "w", encoding="utf-8", newline="") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)","tx (m)","ty (m)","tz (m)","qx","qy","qz","qw"])
-
+        rows = []
+        with open(src, "r", encoding="utf-8") as fin:
             for line in fin:
                 s = line.strip()
                 if not s or "NaN" in s:
@@ -223,11 +218,8 @@ class EurocDataset(DatasetVSLAMLAB):
                     continue
                 ts_s, tx, ty, tz, qx, qy, qz, qw = parts[:8]
                 ts_ns = int(Decimal(ts_s) * Decimal(10**9))
-                w.writerow([ts_ns, tx, ty, tz, qx, qy, qz, qw])
-
-        tmp.replace(dst)
-        with suppress(FileNotFoundError):
-            tmp.unlink()
+                rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+        write_csv_rows(dst, header, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         seq = self.sequence_path(sequence_name)
