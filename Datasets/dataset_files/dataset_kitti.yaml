@@ -1,10 +1,11 @@
 dataset_name: kitti
 
 rgb_hz: 10.0
-url_download_root: "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_odometry_gray.zip"
-url_download_root_gt: "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_odometry_poses.zip"
 modes: ['mono', 'stereo']
 cam_models: ['pinhole']
+
+url_download_root: "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_odometry_gray.zip"
+url_download_root_gt: "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_odometry_poses.zip"
 
 sequence_names:
   - '00'
@@ -14,7 +15,7 @@ sequence_names:
   - '04'
   - '05'
   - '06'
-  - '07'  
+  - '07'
   - '08'
   - '09'
   - '10'
@@ -24,7 +25,7 @@ sequence_names:
   - '14'
   - '15'
   - '16'
-  - '17'  
+  - '17'
   - '18'
   - '19'
   - '20'
