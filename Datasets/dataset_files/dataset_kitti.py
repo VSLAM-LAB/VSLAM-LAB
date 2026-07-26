@@ -19,7 +19,7 @@ from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
-from path_constants import BENCHMARK_RETENTION, Retention, VSLAMLAB_BENCHMARK
+from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile, write_csv_rows
 
 
@@ -170,8 +170,8 @@ class KittiDataset(DatasetVSLAMLAB):
             super().download_process(sequence_name)
 
         if BENCHMARK_RETENTION != Retention.FULL:
-            (VSLAMLAB_BENCHMARK / f"dataset").unlink(missing_ok=True)
+            shutil.rmtree(self.dataset_path / "dataset", ignore_errors=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            (VSLAMLAB_BENCHMARK / f"data_odometry_gray.zip").unlink(missing_ok=True)
-            (VSLAMLAB_BENCHMARK / f"data_odometry_poses.zip").unlink(missing_ok=True)
+            (self.dataset_path / "data_odometry_gray.zip").unlink(missing_ok=True)
+            (self.dataset_path / "data_odometry_poses.zip").unlink(missing_ok=True)

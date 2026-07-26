@@ -223,9 +223,10 @@ class EurocDataset(DatasetVSLAMLAB):
 
     def remove_unused_files(self, sequence_name: str) -> None:
         seq = self.sequence_path(sequence_name)
-        for rel in ("mav0", "__MACOSX"):
-            with suppress(FileNotFoundError):
-                shutil.rmtree(seq / rel)
+        if BENCHMARK_RETENTION != Retention.FULL:
+            for rel in ("mav0", "__MACOSX"):
+                with suppress(FileNotFoundError):
+                    shutil.rmtree(seq / rel)
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             (self.dataset_path / "machine_hall.zip").unlink(missing_ok=True)
             (self.dataset_path / "vicon_room1.zip").unlink(missing_ok=True)

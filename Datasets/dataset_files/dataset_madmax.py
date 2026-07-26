@@ -202,12 +202,13 @@ class MadmaxDataset(DatasetVSLAMLAB):
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
-            for zip_file in sequence_path.rglob("*.zip"):
-                zip_file.unlink(missing_ok=True)
-
-        if BENCHMARK_RETENTION == Retention.MINIMAL:
             shutil.rmtree(sequence_path / "calibration", ignore_errors=True)
             shutil.rmtree(sequence_path / "groundtruth", ignore_errors=True)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            for zip_file in sequence_path.rglob("*.zip"):
+                zip_file.unlink(missing_ok=True)
+            (sequence_path / "imu_raw.csv").unlink(missing_ok=True)
 
     def get_download_issues(self, _):
         if self.api_token == "not_set":
