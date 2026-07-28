@@ -1,53 +1,66 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_msd.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2025-11-06
+- Updated: 2026-07-28
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
-import csv
-import yaml
 import json
 import shutil
+from typing import Any
+from zipfile import ZipFile
+
 import numpy as np
 import pandas as pd
-from typing import  Any
-from contextlib import suppress
-from zipfile import ZipFile
 from huggingface_hub import hf_hub_download
 from scipy.spatial.transform import Rotation as R
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from path_constants import Retention, BENCHMARK_RETENTION
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import hf_token, write_csv_rows
 
 
 class MsdDataset(DatasetVSLAMLAB):
-    """MSD dataset helper for VSLAM-LAB benchmark."""
+    """Monado SLAM Dataset (MSD) helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, dataset_name: str = "msd") -> None:    
+    def __init__(self, dataset_name: str = "msd") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
         # Get download url
-        self.repo_id: str = cfg["repo_id"]
-        self.huggingface_subfolder: str = cfg["huggingface_subfolder"]
-        self.calibration_file: str = cfg["calibration_file"]
+        self.hf_repo_id: str = self.cfg["hf_repo_id"]
+        self.huggingface_subfolder: str = self.cfg["huggingface_subfolder"]
+        self.calibration_file: str = self.cfg["calibration_file"]
 
         # Sequence nicknames
         self.sequence_nicknames = [s.split("_")[0] for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
+        # A plain sequence_path.exists() check can't tell "fully downloaded" apart from "crashed
+        # between extracting the zip and copying the calibration file" - a completion marker
+        # (touched only once both fetches have finished) makes a retry after a crash actually
+        # re-run instead of being silently treated as already done.
         sequence_path = self.sequence_path(sequence_name)
-        if not sequence_path.exists():
-            compressed_name_ext = sequence_name + '.zip'
-            file_path = hf_hub_download(repo_id=self.repo_id, 
-                                        subfolder=self.get_huggingface_subfolder(sequence_name, self.huggingface_subfolder),
-                                        filename=compressed_name_ext, repo_type='dataset')
-            with ZipFile(file_path, 'r') as zip_ref:
-                zip_ref.extractall(self.dataset_path)
+        marker = sequence_path / ".download_complete"
+        if marker.exists():
+            return
 
-            file_path = hf_hub_download(repo_id=self.repo_id, subfolder=self.huggingface_subfolder + "/extras", 
-                                        filename=self.calibration_file, repo_type='dataset')
+        compressed_name_ext = sequence_name + '.zip'
+        file_path = hf_hub_download(repo_id=self.hf_repo_id,
+                                    subfolder=self.get_huggingface_subfolder(sequence_name, self.huggingface_subfolder),
+                                    filename=compressed_name_ext, repo_type='dataset', token=hf_token())
+        with ZipFile(file_path, 'r') as zip_ref:
+            zip_ref.extractall(self.dataset_path)
 
-            shutil.copy2(file_path, sequence_path / self.calibration_file)
+        file_path = hf_hub_download(repo_id=self.hf_repo_id, subfolder=self.huggingface_subfolder + "/extras",
+                                    filename=self.calibration_file, repo_type='dataset', token=hf_token())
+
+        shutil.copy2(file_path, sequence_path / self.calibration_file)
+        marker.touch()
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         # Create symlinks for each camera folder
@@ -55,7 +68,7 @@ class MsdDataset(DatasetVSLAMLAB):
         cam_count = len(list((sequence_path / "mav0").glob("cam*/data")))
         
         for cam in range(cam_count):
-            target = sequence_path / f"rgb_{cam}"
+            target = self.rgb_path(sequence_name) if cam == 0 else sequence_path / f"rgb_{cam}"
             if target.exists():
                 continue
             src_dir = sequence_path / "mav0" / f"cam{cam}" / "data"
@@ -84,13 +97,7 @@ class MsdDataset(DatasetVSLAMLAB):
             out[f"ts_rgb_{i} (ns)"] = df["ts_ns"].astype(np.int64)
             out[f"path_rgb_{i}"] = "rgb_" + str(i) + "/" + df["name"].astype(str)
 
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(rgb_csv)
-        finally:
-            with suppress(FileNotFoundError):
-                tmp.unlink()
+        write_csv_rows(rgb_csv, list(out.columns), out.values.tolist())
 
     def create_imu_csv(self, sequence_name: str) -> None:
         seq = self.sequence_path(sequence_name)
@@ -112,15 +119,10 @@ class MsdDataset(DatasetVSLAMLAB):
         df.columns = new_cols
         out = df[new_cols]
 
-        tmp = dst.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(dst)
-        finally:
-            try:
-                tmp.unlink()
-            except FileNotFoundError:
-                pass
+        # .astype(object) before .values - the ns timestamp column is int64 and every other
+        # column is float64; a plain .values would upcast the whole array to float64, silently
+        # losing precision past 2^53 in the timestamp (same bug class fixed for euroc/madmax).
+        write_csv_rows(dst, new_cols, out.astype(object).values.tolist())
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -147,51 +149,57 @@ class MsdDataset(DatasetVSLAMLAB):
                 "fps": float(self.rgb_hz),
                 "T_BS": T_BS,
                 "distortion_type": "equid4",
-                "distortion_coefficients": [params[f"k{j}"] for j in range(1, 5)]
+                "distortion_coefficients": [params[f"k{j}"] for j in range(1, 5)],
             }
             cams.append(cam)
 
         imu_hz = json_content["value0"]["imu_update_rate"]
-        imu = {"imu_name": "imu_0",
-            "a_max":  176.0, "g_max": 7.8,
-            "sigma_g_c": json_content["value0"]["gyro_noise_std"][0] / np.sqrt(imu_hz), 
-            "sigma_a_c": json_content["value0"]["accel_noise_std"][0] / np.sqrt(imu_hz), 
-            "sigma_bg":  json_content["value0"]["calib_gyro_bias"][0], 
-            "sigma_ba":  json_content["value0"]["calib_accel_bias"][0], 
-            "sigma_gw_c": json_content["value0"]["gyro_bias_std"][0] / np.sqrt(imu_hz), 
-            "sigma_aw_c": json_content["value0"]["accel_bias_std"][0] / np.sqrt(imu_hz), 
-            "g":  9.81007, "g0": [ 0.0, 0.0, 0.0 ], "a0": [ 0.0, 0.0, 0.0 ],
-            "s_a":  [ 1.0,  1.0, 1.0 ],
-            "fps": json_content["value0"]["imu_update_rate"],
-            "T_BS": np.array(np.eye(4)).reshape((4, 4))
-            }
+        imu: dict[str, Any] = {
+            "imu_name": "imu_0",
+            "a_max": 176.0,
+            "g_max": 7.8,
+            "sigma_g_c": json_content["value0"]["gyro_noise_std"][0] / np.sqrt(imu_hz),
+            "sigma_a_c": json_content["value0"]["accel_noise_std"][0] / np.sqrt(imu_hz),
+            "sigma_bg": json_content["value0"]["calib_gyro_bias"][0],
+            "sigma_ba": json_content["value0"]["calib_accel_bias"][0],
+            "sigma_gw_c": json_content["value0"]["gyro_bias_std"][0] / np.sqrt(imu_hz),
+            "sigma_aw_c": json_content["value0"]["accel_bias_std"][0] / np.sqrt(imu_hz),
+            "g": 9.81007,
+            "g0": [0.0, 0.0, 0.0],
+            "a0": [0.0, 0.0, 0.0],
+            "s_a": [1.0, 1.0, 1.0],
+            "fps": float(imu_hz),
+            "T_BS": np.eye(4),
+        }
 
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=cams, imu=[imu])
     
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         gt_csv = sequence_path / "mav0" / "gt" / "data.csv"
-        newgt_csv = self.groundtruth_csv_path(sequence_name)
-        if not gt_csv.exists():
-            return
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
 
-        with open(gt_csv, "r", encoding="utf-8") as incsv, \
-            open(newgt_csv, "w", encoding="utf-8", newline="") as outcsv:
-            
-            w = csv.writer(outcsv)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
-            
-            for line in incsv:
-                if line.startswith("#") or not line.strip():
-                    continue
-                
-                parts = [p.strip() for p in line.split(",")]
-                if len(parts) < 8:
-                    continue
+        rows = []
+        if gt_csv.exists():
+            with open(gt_csv, "r", encoding="utf-8") as incsv:
+                for line in incsv:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
 
-                ts_ns = int(float(parts[0]))
-                px, py, pz, qw, qx, qy, qz = parts[1:8]
-                w.writerow([ts_ns, px, py, pz, qx, qy, qz, qw])
+                    parts = [p.strip() for p in line.split(",")]
+                    if len(parts) < 8:
+                        continue
+
+                    # Raw timestamps are already integer nanoseconds (same EuRoC-style mav0
+                    # convention as imu0/cam*/data.csv elsewhere in this file) - int(parts[0])
+                    # directly, not int(float(parts[0])), which would risk float64 precision
+                    # loss past 2^53 on a realistic ns timestamp.
+                    ts_ns = int(parts[0])
+                    px, py, pz, qw, qx, qy, qz = parts[1:8]
+                    rows.append([ts_ns, px, py, pz, qx, qy, qz, qw])
+
+        write_csv_rows(self.groundtruth_csv_path(sequence_name), header, rows)
 
     def get_huggingface_subfolder(self, sequence_name: str, base_path: str) -> str:
         msdmi_subdirs = {
@@ -208,5 +216,19 @@ class MsdDataset(DatasetVSLAMLAB):
     
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
+
+        if BENCHMARK_RETENTION != Retention.FULL:
+            # Pure reformats already captured in rgb.csv/imu_0.csv/groundtruth.csv - safe to
+            # delete without touching mav0/cam*/data/, which rgb_N symlinks directly onto and
+            # must never be deleted at any tier. Unlike ROVER, each MSD sequence is downloaded
+            # independently (its own named .zip per sequence_name) - no sibling sequence shares
+            # any of these files, so there's no cross-sequence risk here.
+            for csv_path in (
+                *(sequence_path / "mav0").glob("cam*/data.csv"),
+                sequence_path / "mav0" / "imu0" / "data.csv",
+                sequence_path / "mav0" / "gt" / "data.csv",
+            ):
+                csv_path.unlink(missing_ok=True)
+
         if BENCHMARK_RETENTION == Retention.MINIMAL:
-            (sequence_path / "calibration.json").unlink(missing_ok=True)
+            (sequence_path / self.calibration_file).unlink(missing_ok=True)

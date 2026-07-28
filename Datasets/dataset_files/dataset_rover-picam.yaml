@@ -1,9 +1,10 @@
 dataset_name: rover-picam
 
 rgb_hz: 30.0
-url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 modes: ['mono']
 cam_models: ['equid4']
+
+url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 
 sequence_names:
   - campus_small_autumn_picam
@@ -44,3 +45,17 @@ sequence_names:
   - park_dusk_picam
   - park_night_picam
   - park_night-light_picam
+
+about:
+  license: MIT
+  summary: 'ROVER: A Multiseason Dataset for Visual SLAM'
+  homepage: https://iis-esslingen.github.io/rover/
+  authors:
+    - Fabian Schmidt
+    - Others
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-09-05

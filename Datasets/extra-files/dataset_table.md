@@ -14,15 +14,15 @@
 | [**KITTI Odometry Benchmark with stereo image sequences and ground-truth poses for visual odometry/SLAM**](https://www.cvlibs.net/datasets/kitti/) | 📸🏞️🚗 | `kitti` | `mono` `stereo` | `pinhole` | CC BY-NC-SA 3.0 | `website` | `complete_dataset` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**The MADMAX data set for visual-inertial rover navigation on Mars**](https://datasets.arches-projekt.de/morocco2018/) | 📸🏞️🤳 | `madmax` | `mono` `mono-vi` `stereo` `stereo-vi` | `pinhole` | Academic use only (registration required) | `website` | `api_token` | Alejandro Fontan | Claude (Sonnet 5) |
 |  |  | `monotum` | `mono` | `radtan5` |  | `website` |  |  |  |
-|  | 📸🏠🥽 | `msd` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `hugging-face` |  |  |  |
+| [**Monado SLAM Dataset - Valve Index**](https://huggingface.co/datasets/collabora/monado-slam-datasets) | 📸🏠🥽 | `msd` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` | CC-BY 4.0 | `hugging-face` |  | Alejandro Fontan | Claude (Sonnet 5) |
 | [**ICL-NUIM RGB-D benchmark with ground-truth trajectories and 3D models for SLAM/odometry evaluation**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html) | 💻🏠🤳 | `nuim` | `mono` `rgbd` | `pinhole` | CC BY 3.0 | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
-|  | 📸🏠🤳 | `openloris-d400` | `mono` `rgbd` `mono-vi` `rgbd-vi` | `pinhole` |  | `hugging-face` |  |  |  |
-|  | 📸🏠🤳 | `openloris-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `hugging-face` |  |  |  |
+| [**OpenLORIS-Scene - real-world lifelong SLAM dataset from real robots in real scenes**](https://lifelong-robotic-vision.github.io/dataset/scene.html) | 📸🏠🤳 | `openloris-d400` | `mono` `rgbd` `mono-vi` `rgbd-vi` | `pinhole` | CC BY-ND 4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
+| [**OpenLORIS-Scene - real-world lifelong SLAM dataset from real robots in real scenes**](https://lifelong-robotic-vision.github.io/dataset/scene.html) | 📸🏠🤳 | `openloris-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` | CC BY-ND 4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**Photorealistic 3D indoor scene reconstructions (Replica), with RGB-D SLAM trajectories rendered by iMAP**](https://github.com/facebookresearch/Replica-Dataset) | 💻🏠🤳 | `replica` | `mono` `rgbd` | `pinhole` | Replica Dataset Research Terms (non-commercial research use) | `website` | `complete_dataset` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**RGB-D SLAM benchmark with motion-capture ground-truth trajectories**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset) | 📸🏠🤳 | `rgbdtum` | `mono` `rgbd` | `radtan5` | CC BY 4.0 | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
-|  | 📸🏞️🚗 | `rover-d435i` | `mono` `rgbd` `rgbd-vi` | `radtan4` |  | `website` |  |  |  |
-|  | 📸🏞️🚗 | `rover-picam` | `mono` | `equid4` |  | `website` |  |  |  |
-|  | 📸🏞️🚗 | `rover-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` |  | `website` |  |  |  |
+| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/) | 📸🏞️🚗 | `rover-d435i` | `mono` `rgbd` `rgbd-vi` | `radtan4` | MIT | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
+| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/) | 📸🏞️🚗 | `rover-picam` | `mono` | `equid4` | MIT | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
+| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/) | 📸🏞️🚗 | `rover-t265` | `mono` `stereo` `mono-vi` `stereo-vi` | `equid4` | MIT | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
 | [**The S3LI Vulcano Dataset A Dataset for Multi-Modal SLAM in Unstructured Planetary Environments**](https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets) |  | `s3li` | `mono` `stereo` `mono-vi` `stereo-vi` | `pinhole` | License | `website` |  | Alejandro Fontan |  |
 |  | 📸🏠🤳 | `scannetplusplus` | `mono` | `radtan5` |  | `local` |  |  |  |
 | [**AUV (TUNA-SAND) coral-reef mapping surveys off Sesoko Island, Okinawa, Japan (2016-2018 campaigns), served via the SQUIDLE+ marine imagery platform**](https://squidle.org/) | 📸🏞️🌊 | `sesoko` | `mono` | `unknown` | No explicit license stated by SQUIDLE+ or the source surveys; imagery served via the SQUIDLE+ platform (squidle.org) | `website` | `api_token` | Alejandro Fontan | Claude (Sonnet 5) |
@@ -30,7 +30,7 @@
 | [**An app for collecting raw RGB-D scans on iOS devices.**](https://docs.strayrobots.io/) | 📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` | MIT | `hugging-face` `local` |  | Nicolas Marticorena |  |
 | [**Coral reef 3D photogrammetry (Indonesia), from Wildflow**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊🤳 | `sweetcorals` | `mono` | `pinhole` `unknown` | CC-BY-4.0 | `hugging-face` | `huggingface_token` | Alejandro Fontan | Claude (Sonnet 5) |
 | [**Large-scale photorealistic simulation dataset with multimodal ground truth for SLAM under challenging conditions**](https://theairlab.org/tartanair-dataset/) | 💻🏞️🤳 | `tartanair` | `mono` | `pinhole` | CC BY 4.0 | `website` | `complete_dataset` | Alejandro Fontan | Claude (Sonnet 5) |
-|  | 📸🏞️🤖 | `ut-coda` | `mono` `stereo` | `radtan5` |  | `website` |  |  |  |
+| [**The UT Campus Object Dataset (CODa) - egocentric robot perception dataset collected on the UT Austin campus**](https://amrl.cs.utexas.edu/coda/) | 📸🏞️🤖 | `ut-coda` | `mono` `stereo` | `radtan5` | CC BY-NC-SA 4.0 | `website` |  | Alejandro Fontan | Claude (Sonnet 5) |
 | [**Videos recorded for VSLAM-LAB**](https://huggingface.co/datasets/vslamlab/videos) |  | `videos` | `mono` | `unknown` `pinhole` `radtan4` | License | `hugging-face` |  | Alejandro Fontan |  |
 | [**The TUM VI Benchmark for Evaluating Visual-Inertial Odometry**](https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset) | 📸🏠🤳 | `vitum` | `mono` `mono-vi` `stereo` `stereo-vi` | `equid4` | CC BY 4.0 | `website` |  | Alejandro Fontan |  |
 | Youtube videos of VSLAM sequences. |  | `youtube` | `mono` | `pinhole` `radtan4` | License | `website` |  | Alejandro Fontan |  |

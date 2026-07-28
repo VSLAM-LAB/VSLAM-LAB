@@ -95,7 +95,19 @@ class TemplateDataset(DatasetVSLAMLAB):
         # rgb_path.exists() check can't tell "fully downloaded" apart from "crashed partway
         # through, folder exists but is incomplete" - a completion marker file (e.g.
         # rgb_path / ".download_complete", touched only after every output file is written) is a
-        # more robust alternative worth considering, Model: dataset_squidle.py.
+        # more robust alternative worth considering, Model: dataset_squidle.py (api pattern);
+        # dataset_rover.py's _ensure_data_exists (website pattern) and dataset_msd.py's
+        # download_sequence_data (hugging-face, single-named-file pattern) apply the same marker
+        # outside the api case too.
+        #
+        # Don't stash per-sequence derived state on self here for a *different* hook to read
+        # later (e.g. a parsed sub-path some other create_* hook needs) - each hook must be
+        # independently callable (SKILL.md step 8 tests them one at a time) and there's no
+        # guarantee about which hook ran first on a given instance. If a later hook needs the
+        # same derived value, give it its own small helper that recomputes it from sequence_name
+        # instead. dataset_rover.py's RoverDataset used to cache a computed sequence_group_path
+        # in a class-level dict just for create_groundtruth_csv to read - removed in favor of a
+        # _sequence_group_path(sequence_name) helper both hooks call independently.
         # Pick the implementation matching this dataset's download pattern:
         #   website      -> utilities.downloadFile(url, self.dataset_path) + decompressFile(...)
         #                   Model: dataset_7scenes.py. This also covers a *pre-resolved*
@@ -332,6 +344,27 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                      the same group are downloaded) *if* download_sequence_data
         #                      re-downloads it on demand when a later sequence needs it again - check
         #                      that fallback exists before relying on it. Model: dataset_7scenes.py.
+        #                      Caveat, hit by dataset_rover.py's shared groundtruth.txt (one per
+        #                      location+date group, read by every sensor-class sub-sequence in
+        #                      that group): the "re-downloads it on demand" fallback usually only
+        #                      covers the whole group folder (plus its completion marker) being
+        #                      gone entirely - it does *not* cover a single file being deleted
+        #                      from an otherwise-intact group folder, since a still-present
+        #                      completion marker short-circuits re-extraction. If you can't tell
+        #                      whether every sibling sequence sharing that file has already
+        #                      consumed it, don't delete it at all - leaving one small shared
+        #                      file behind is safer than silently corrupting a not-yet-processed
+        #                      sibling's output.
+        #   dataset-wide,   -> some shared resources aren't scoped to one download batch at all -
+        #   indefinitely       e.g. a small reference/calibration file every future sequence's
+        #   reused             create_calibration_yaml re-reads on every call (Model:
+        #                      dataset_rover.py's master_calibration_path). Deleting the
+        #                      *decompressed* resource here would just force a wasteful
+        #                      re-download for the very next sequence that needs it (self-healing,
+        #                      but not a real "cleanup"). The archive that produced it is still
+        #                      safe to delete once extracted, by the same one-time-read reasoning
+        #                      as above - just never delete the decompressed resource itself, at
+        #                      any retention tier.
         return
 
     def get_download_issues(self, _):
@@ -352,5 +385,16 @@ class TemplateDataset(DatasetVSLAMLAB):
         # here: `if hf_token() is not None: return []`, else return the issue below. Model:
         # HFColmapDatasetMixin.get_download_issues (dataset_soneva.py, shared by
         # dataset_sweetcorals.py), dataset_openloris.py.
+        # Verify the constraint actually exists before implementing this rather than copying it
+        # from a sibling that happens to share the same download pattern - dataset_msd.py's
+        # Hugging Face repo turned out to be fully public (confirmed via
+        # huggingface_hub.HfApi().dataset_info(repo_id, token=None).gated == False, plus an
+        # anonymous list_repo_files() call succeeding), so no huggingface_token issue was added
+        # for it. Note this check is currently unresolved even for the cited models above -
+        # soneva/sweetcorals/openloris's own repos also came back gated=False on the same live
+        # check, despite all three reporting this issue - see #91 before trusting any of them as
+        # a "this one's definitely right" reference. Test the real access requirement directly
+        # (an anonymous API call, or a plain curl against a website URL) rather than assuming
+        # from the download pattern or a sibling's existing code alone.
         # Return a list of dicts built via _get_dataset_issue(issue_id=..., dataset_name=self.dataset_name, ...).
         return

@@ -1,9 +1,10 @@
 dataset_name: rover-t265
 
 rgb_hz: 30.0
-url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['equid4']
+
+url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 
 sequence_names:
   - campus_small_autumn_t265
@@ -45,3 +46,17 @@ sequence_names:
   - park_dusk_t265
   - park_night_t265
   - park_night-light_t265
+
+about:
+  license: MIT
+  summary: 'ROVER: A Multiseason Dataset for Visual SLAM'
+  homepage: https://iis-esslingen.github.io/rover/
+  authors:
+    - Fabian Schmidt
+    - Others
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-09-05

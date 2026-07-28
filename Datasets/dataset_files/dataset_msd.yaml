@@ -2,13 +2,12 @@ dataset_name: msd
 
 rgb_hz: 54.0
 imu_hz: 1000.0
-
-repo_id: "collabora/monado-slam-datasets"
-huggingface_subfolder: "M_monado_datasets/MI_valve_index"
-calibration_file: "calibration.json"
-
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['equid4']
+
+hf_repo_id: "collabora/monado-slam-datasets"
+huggingface_subfolder: "M_monado_datasets/MI_valve_index"
+calibration_file: "calibration.json"
 
 sequence_names:
   - MIO01_hand_puncher_1
@@ -44,3 +43,18 @@ sequence_names:
   - MIPT01_thrillofthefight_setup
   - MIPT02_thrillofthefight_fight_1
   - MIPT03_thrillofthefight_fight_2
+
+about:
+  license: CC-BY 4.0
+  summary: Monado SLAM Dataset - Valve Index
+  homepage: https://huggingface.co/datasets/collabora/monado-slam-datasets
+  authors:
+    - Mateo de Mayo
+    - Daniel Cremers
+    - Taihú Pire
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-11-06
