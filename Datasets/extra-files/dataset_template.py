@@ -103,11 +103,21 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                   (...?...&confirm=t&...) — it already bypasses Drive's virus-scan
         #                   interstitial, so a plain downloadFile works, no gdown needed. Model:
         #                   dataset_tartanair.py
-        #   hugging-face -> use utilities.py's hf_token() / ensure_hf_sequence_download() (which
-        #                   wraps download_hf_snapshot()) against self.hf_repo_id — resumable,
-        #                   idempotent per-sequence fetch+flatten, don't hand-roll this with
-        #                   HfApi/HfFileSystem/snapshot_download directly. Model:
-        #                   dataset_soneva.py, dataset_sweetcorals.py
+        #   hugging-face -> two sub-cases depending on what this fetch actually needs, both
+        #                   authenticated via utilities.py's hf_token():
+        #                     directory of many ready-to-use files -> ensure_hf_sequence_download()
+        #                       (wraps download_hf_snapshot()) against self.hf_repo_id — resumable,
+        #                       idempotent per-sequence fetch+flatten. Model: dataset_soneva.py,
+        #                       dataset_sweetcorals.py (their main download_sequence_data).
+        #                     one specific named file (e.g. a compressed archive needing further
+        #                       decompression, or a single metadata/calibration file) ->
+        #                       huggingface_hub.hf_hub_download(repo_id=self.hf_repo_id,
+        #                       filename=..., repo_type='dataset', token=hf_token()) directly —
+        #                       ensure_hf_sequence_download()'s directory-snapshot+flatten
+        #                       machinery doesn't fit a single file. Model: dataset_soneva.py's own
+        #                       _fetch_colmap_file, dataset_openloris.py.
+        #                   Don't hand-roll either case with HfApi/HfFileSystem/snapshot_download
+        #                   directly.
         #   google-drive -> a real share link (drive.google.com/...) needs gdown.download /
         #                   gdown.download_folder with a file/folder id, since Drive shows a
         #                   virus-scan interstitial for most files this size that a plain download
@@ -272,6 +282,15 @@ class TemplateDataset(DatasetVSLAMLAB):
         #                         standardized layout remains: smallest footprint, but not
         #                         reprocessable without a fresh download.
         #
+        # Caveat on MINIMAL's "un-resized raw images" clause above: it only applies when
+        # create_rgb_folder copied those images into place (e.g. HFColmapDatasetMixin's
+        # rgb_0_raw/, disposable precisely because it's a copy). If create_rgb_folder instead
+        # symlinks rgb_0/depth_0/rgb_1 directly onto the raw source folder (Model:
+        # dataset_openloris.py, dataset_ut_coda.py's 2d_rect/), that raw folder must never be
+        # deleted at *any* retention tier, including MINIMAL - doing so leaves the standardized
+        # layout's own rgb_0/depth_0 symlinks dangling. Check which one your create_rgb_folder
+        # actually does before writing this method.
+        #
         # In code this is almost always exactly two checks:
         #   if BENCHMARK_RETENTION != Retention.FULL: <delete STANDARD-tier files>
         #   if BENCHMARK_RETENTION == Retention.MINIMAL: <delete MINIMAL-tier files too>
@@ -323,10 +342,15 @@ class TemplateDataset(DatasetVSLAMLAB):
         #   "huggingface_token" -> requires a Hugging Face token (pass website, yaml_file)
         #   "license_required"  -> requires accepting license terms on the dataset's page first
         # Otherwise leave unimplemented — it inherits the base class's no-op default (no issues).
-        # For "api_token"/"huggingface_token": read it in __init__ as self.api_token =
-        # cfg.get("api_token", "not_set") — never cfg["api_token"], a missing token must produce
-        # this reported issue, not a KeyError crash at load time. Don't exit()/crash in __init__
-        # either if it's missing; report it here (return the issue below) and let the pipeline
-        # continue and warn, Model: dataset_madmax.py.
+        # For "api_token": read it in __init__ as self.api_token = cfg.get("api_token", "not_set")
+        # — never cfg["api_token"], a missing token must produce this reported issue, not a
+        # KeyError crash at load time. Don't exit()/crash in __init__ either if it's missing;
+        # report it here (return the issue below) and let the pipeline continue and warn, Model:
+        # dataset_madmax.py.
+        # For "huggingface_token": there's no yaml field to read — check utilities.hf_token()
+        # (HUGGINGFACE_TOKEN in path_constants.py, falling back to the HF_TOKEN env var) directly
+        # here: `if hf_token() is not None: return []`, else return the issue below. Model:
+        # HFColmapDatasetMixin.get_download_issues (dataset_soneva.py, shared by
+        # dataset_sweetcorals.py), dataset_openloris.py.
         # Return a list of dicts built via _get_dataset_issue(issue_id=..., dataset_name=self.dataset_name, ...).
         return

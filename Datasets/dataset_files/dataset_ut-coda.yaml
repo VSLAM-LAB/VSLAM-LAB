@@ -12,7 +12,7 @@ sequence_names:
   - '3'
   - '4'
   - '5'
-  - '6 '
+  - '6'
   - '7'
   - '8'
   - '9'
@@ -29,3 +29,18 @@ sequence_names:
   - '20'
   - '21'
   - '22'
+
+about:
+  license: CC BY-NC-SA 4.0
+  summary: The UT Campus Object Dataset (CODa) - egocentric robot perception dataset collected on the UT Austin campus
+  homepage: https://amrl.cs.utexas.edu/coda/
+  authors:
+    - Arthur Zhang
+    - Joydeep Biswas
+    - Others
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-05-25
