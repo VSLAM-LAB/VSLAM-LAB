@@ -23,11 +23,8 @@ class HamlynDataset(DatasetVSLAMLAB):
         with open(self.yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
-        # Get download url
-        self.repo_id = cfg['repo_id']
-
-        # Sequence nicknames
-        self.sequence_nicknames = [s.replace('_', ' ') for s in self.sequence_names]
+        # Get Hugging Face repo id
+        self.hf_repo_id = cfg['hf_repo_id']
 
         # Depth factor
         self.depth_factor = cfg["depth_factor"]
@@ -41,21 +38,21 @@ class HamlynDataset(DatasetVSLAMLAB):
         # Variables
         compressed_name = sequence_name
         compressed_name_ext = compressed_name + '.zip'
-        repo_id = self.repo_id
+        hf_repo_id = self.hf_repo_id
 
         if HUGGINGFACE_TOKEN is not None:
             login(token=HUGGINGFACE_TOKEN) 
         
         # Download the compressed file
         if not (self.dataset_path / compressed_name_ext).exists():
-            file_path = hf_hub_download(repo_id=repo_id, filename=compressed_name_ext, repo_type='dataset')
+            file_path = hf_hub_download(repo_id=hf_repo_id, filename=compressed_name_ext, repo_type='dataset')
             with ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(self.dataset_path)
 
         # Download instrinsics file
         intrinsics_file = f"intrinsics_{sequence_name}.txt"
         if not (sequence_path / intrinsics_file).exists():
-            file_path = hf_hub_download(repo_id=repo_id, filename=intrinsics_file, repo_type='dataset')
+            file_path = hf_hub_download(repo_id=hf_repo_id, filename=intrinsics_file, repo_type='dataset')
             intrinsics_txt = sequence_path / intrinsics_file
             with open(file_path, 'rb') as f_src, open(intrinsics_txt, 'wb') as f_dest:
                 f_dest.write(f_src.read())

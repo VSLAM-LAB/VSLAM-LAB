@@ -31,7 +31,7 @@ class StrayscannerDataset(VideosDataset):
             cfg = yaml.safe_load(f) or {}
 
         # Get download url
-        self.repo_id = cfg["repo_id"]
+        self.hf_repo_id = cfg["hf_repo_id"]
 
         # Sequence nicknames
         self.sequence_nicknames = self.sequence_names
@@ -72,7 +72,7 @@ class StrayscannerDataset(VideosDataset):
                 with open(cache_file, "r", encoding="utf-8") as f:
                     all_files = json.load(f)
             else:
-                all_files = api.list_repo_files(repo_id=self.repo_id, repo_type="dataset")
+                all_files = api.list_repo_files(repo_id=self.hf_repo_id, repo_type="dataset")
                 with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(all_files, f, indent=2)
                 print(f"Fetched and cached {len(all_files)} files")
@@ -81,7 +81,7 @@ class StrayscannerDataset(VideosDataset):
                 if sequence_name in f:
                     local_file = self.dataset_path / f
                     if not local_file.exists():
-                        fs.get_file(f"datasets/{self.repo_id}/{f}", str(local_file))
+                        fs.get_file(f"datasets/{self.hf_repo_id}/{f}", str(local_file))
                     break
 
         if not sequence_path.exists():

@@ -28,11 +28,8 @@ class ArielDataset(DatasetVSLAMLAB):
         with open(self.yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
-        # Get download url
-        self.repo_id = cfg["repo_id"]
-
-        # Create sequence_nicknames
-        self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
+        # Get Hugging Face repo id
+        self.hf_repo_id = cfg["hf_repo_id"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -55,7 +52,7 @@ class ArielDataset(DatasetVSLAMLAB):
             with open(cache_file, "r", encoding="utf-8") as f:
                 all_files = json.load(f)
         else:
-            all_files = api.list_repo_files(repo_id=self.repo_id, repo_type="dataset")
+            all_files = api.list_repo_files(repo_id=self.hf_repo_id, repo_type="dataset")
             with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(all_files, f, indent=2)
             print(f"Fetched and cached {len(all_files)} files")
@@ -66,7 +63,7 @@ class ArielDataset(DatasetVSLAMLAB):
             files = [f for f in all_files if f.startswith(remote_folder + "/")]
             for remote_file in tqdm(files, desc="Downloading calibration files", unit="file"):
                 local_file = self.dataset_path / remote_file
-                fs.get_file(f"datasets/{self.repo_id}/{remote_file}", str(local_file))
+                fs.get_file(f"datasets/{self.hf_repo_id}/{remote_file}", str(local_file))
 
         # Download rosbag
         if rosbag.exists():
@@ -76,7 +73,7 @@ class ArielDataset(DatasetVSLAMLAB):
         files = [f for f in all_files if f.startswith(remote_folder + "/")]
         for remote_file in tqdm(files, desc="Downloading rosbag files", unit="file"):
             local_file = sequence_path / Path(remote_file).name
-            fs.get_file(f"datasets/{self.repo_id}/{remote_file}", str(local_file))
+            fs.get_file(f"datasets/{self.hf_repo_id}/{remote_file}", str(local_file))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
