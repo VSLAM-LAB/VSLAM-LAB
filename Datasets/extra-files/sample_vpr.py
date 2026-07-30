@@ -41,7 +41,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -81,6 +80,15 @@ def sweep_thresholds(D: np.ndarray, max_threshold: float, n_thresholds: int, ver
             print_info(f"  th={th:.4f} -> {len(indexes)} images")
         sweep.append((float(th), indexes))
     return sweep
+
+
+def select_for_target(sweep: list[tuple[float, list[int]]], max_images: int) -> tuple[float, list[int]]:
+    """The "just exceeds" match from a sweep_thresholds() sweep: the smallest frame count still
+    >= max_images (minimizing overshoot), ties broken by the smallest (least aggressive)
+    threshold. Assumes at least one candidate reaches max_images - guaranteed for a sweep whose
+    th=0 entry covers every frame, as long as max_images doesn't exceed that count."""
+    candidates = [(th, indexes) for th, indexes in sweep if len(indexes) >= max_images]
+    return min(candidates, key=lambda pair: (len(pair[1]), pair[0]))
 
 
 def load_D_matrix(dataset_name: str, sequence_name: str, d_matrix_path: Path, n_available: int) -> np.ndarray | None:
@@ -155,11 +163,7 @@ def sample_pair(
     # th=0.0 always yields the full n_available count (D[i,i]=0 never exceeds a 0 threshold on
     # its own row), and n_available > max_images is already guaranteed above, so at least one
     # candidate with count >= max_images always exists - no "unreachable" fallback needed.
-    candidates = [(th, indexes) for th, indexes in sweep if len(indexes) >= max_images]
-
-    # The "just exceeds" match: smallest count still >= max_images, i.e. minimal overshoot;
-    # ties broken by the smallest (least aggressive) threshold.
-    chosen_th, chosen_indexes = min(candidates, key=lambda pair: (len(pair[1]), pair[0]))
+    chosen_th, chosen_indexes = select_for_target(sweep, max_images)
 
     new_rows = selected_rows(rows, chosen_indexes)
 
@@ -188,6 +192,7 @@ def launch_interactive(
     that each click both updates the heatmap in place (rather than opening a new comparison
     window) and immediately rewrites rgb.csv for that threshold (rather than needing a separate
     Save button)."""
+    import matplotlib.pyplot as plt
     ths = [th for th, _ in sweep]
     lengths = [len(idx) for _, idx in sweep]
     sweep_by_th = {th: idx for th, idx in sweep}

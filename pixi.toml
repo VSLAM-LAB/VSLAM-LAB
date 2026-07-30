@@ -1096,7 +1096,8 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.vpr-lab.tasks]
-git-clone = 'git clone https://github.com/VSLAM-LAB/VPR-LAB Baselines/VPR-LAB'
+git-clone.cmd = "./git-clone.sh VSLAM-LAB VPR-LAB VPR-LAB"
+git-clone.outputs = ["Baselines/VPR-LAB"]
 
 setup.cmd = "pixi run setup"
 setup.cwd = "Baselines/VPR-LAB"
@@ -1110,3 +1111,11 @@ vpr.depends-on = ["setup"]
 pixi = "*"
 python = "*"
 pyyaml = "*"
+numpy = "*"
+pandas = "*"
+scipy = "*"
+pillow = "*"
+colorama = "*"
+cryptography = "*"
+huggingface_hub = "*"
+py7zr = "*"

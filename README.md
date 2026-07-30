@@ -111,19 +111,20 @@ exp_demo_colmap:
   Parameters: {verbose: 1, rgb_idx: [0,250], matcher_type: exhaustive}
   Module: colmap
 ```
-**Frame selection:** `Parameters` also accepts three optional flags to control which RGB frames of a sequence are fed to the baseline. They are independent and stack in this order — `rgb_idx` slices the frame range first, `rgb_step` then keeps 1 frame every *n* of what remains, and `rgb_max` truncates the result to at most that many frames. If none are set, every frame of the sequence is used.
+**Frame selection:** `Parameters` also accepts four optional flags to control which RGB frames of a sequence are fed to the baseline. They are independent and stack in this order — `rgb_idx` slices the frame range first, `rgb_step` then keeps 1 frame every *n* of what remains, `rgb_max` truncates that result to at most that many frames, and `rgb_vpr` finally downsamples to at most that many frames by visual dissimilarity (VPR) rather than a fixed stride, so visually redundant frames are dropped preferentially. If none are set, every frame of the sequence is used.
 
 | Parameter | Effect |
 |:----------|:-------|
 | `rgb_idx: [start, end]` | Keep only frames `start..end` (inclusive) |
 | `rgb_step: n` | Keep 1 frame every `n` frames of what remains |
 | `rgb_max: n` | Truncate the result to at most `n` frames |
+| `rgb_vpr: n` | Downsample the result to at most `n` frames, chosen by VPR dissimilarity - computes the sequence's VPR distance matrix via `pixi run vpr <dataset> <sequence>` first if it isn't already cached |
 
 ```yaml
 exp_vslamlab:
   Config: config_vslamlab.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, rgb_idx: [0, 250], rgb_step: 3, rgb_max: 50}
+  Parameters: {verbose: 1, rgb_idx: [0, 250], rgb_step: 3, rgb_max: 50, rgb_vpr: 30}
   Module: droidslam
 ```
 **Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_vslamlab.yaml**):
