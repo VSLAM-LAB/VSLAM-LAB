@@ -9,7 +9,7 @@ class VGGT_baseline(BaselineVSLAMLAB):
     """vggt helper for VSLAM-LAB Baselines."""
     def __init__(self, baseline_name='vggt', baseline_folder='VGGT'):
 
-        default_parameters = {'verbose': 1, 'mode': 'mono', 'max_rgb': 40}
+        default_parameters = {'verbose': 1, 'mode': 'mono', 'rgb_max': 40}
         
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)

@@ -136,8 +136,8 @@
 #   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
 #   Module: colmap
 
-exp_orbslam3:
+exp_debug_colmap:
   Config: config_debug.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, mode: stereo-vi}
-  Module: orbslam3
+  Parameters: {verbose: 1, rgb_idx: [9000, 10000], rgb_step: 3, rgb_max: 100}
+  Module: colmap

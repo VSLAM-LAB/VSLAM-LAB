@@ -1,5 +1,5 @@
-# eth:
-#   - 'table_3'
+eth:
+  - 'table_3'
 # rgbdtum:
 #   - 'rgbd_dataset_freiburg1_xyz'
 # kitti:
@@ -9,7 +9,7 @@
 # replica:
 #   - 'office0'
 # tartanair:
-#   - 'ME000' 
+#   - 'ME000'
 # nuim:
 #   - 'traj0_frei_png'
 # 7scenes:
@@ -52,9 +52,9 @@
 # - 'indonesia_watudodol_p5'
 # - 'indonesia_watudodol_p6'
 
-hilti2022:
+# hilti2022:
   #- exp04_construction_upper_level
-  - exp14_basement_2
+  # - exp14_basement_2
 # madmax:
 #   - A-0
 

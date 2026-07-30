@@ -1,11 +1,11 @@
 test_exp_soneva_droidslam:
   Config: test_config_soneva.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, mode: mono, max_rgb: 200, step_size: 3}
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
   Module: droidslam
 
 test_exp_soneva_colmap:
   Config: test_config_soneva.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, mode: mono, max_rgb: 200, step_size: 3}
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
   Module: colmap

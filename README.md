@@ -93,26 +93,46 @@ pixi run vslamlab configs/exp_vslamlab.yaml (--overwrite)
 
 Experiments in **VSLAM-LAB** are sequences of entries in a YAML file (see example **~/VSLAM-LAB/configs/exp_vslamlab.yaml**):
 ```yaml
+exp_demo_droidslam:
+  Config: config_vslamlab.yaml               # YAML file containing the sequences to be run
+  NumRuns: 1                                 # Maximum number of executions per sequence
+  Parameters: {verbose: 1, rgb_idx: [0,250]} # Vector with parameters that will be input to the baseline executable
+  Module: droidslam                          # droidslam/monogs/orbslam2/mast3rslam/dpvo/...
+
+exp_demo_orbslam2:
+  Config: config_vslamlab.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,250]}
+  Module: orbslam2
+
+exp_demo_colmap:
+  Config: config_vslamlab.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,250], matcher_type: exhaustive}
+  Module: colmap
+```
+**Frame selection:** `Parameters` also accepts three optional flags to control which RGB frames of a sequence are fed to the baseline. They are independent and stack in this order — `rgb_idx` slices the frame range first, `rgb_step` then keeps 1 frame every *n* of what remains, and `rgb_max` truncates the result to at most that many frames. If none are set, every frame of the sequence is used.
+
+| Parameter | Effect |
+|:----------|:-------|
+| `rgb_idx: [start, end]` | Keep only frames `start..end` (inclusive) |
+| `rgb_step: n` | Keep 1 frame every `n` frames of what remains |
+| `rgb_max: n` | Truncate the result to at most `n` frames |
+
+```yaml
 exp_vslamlab:
-  Config: config_vslamlab.yaml  # YAML file containing the sequences to be run
-  NumRuns: 1                    # Maximum number of executions per sequence
-  Parameters: {verbose: 1}      # Vector with parameters that will be input to the baseline executable
-  Module: droidslam             # droidslam/monogs/orbslam2/mast3rslam/dpvo/...
+  Config: config_vslamlab.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0, 250], rgb_step: 3, rgb_max: 50}
+  Module: droidslam
 ```
 **Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_vslamlab.yaml**):
 ```yaml
-rgbdtum:
-  - 'rgbd_dataset_freiburg1_xyz'
-hamlyn:
-  - 'rectified01'
-7scenes:
-  - 'chess_seq-01'
 eth:
-  - 'table_3'
-euroc:
-  - 'MH_01_easy'
-monotum:
-  - 'sequence_01'
+- table_3
+
+rgbdtum:
+- 'rgbd_dataset_freiburg1_xyz'
 ```
 For a full list of available VSLAM systems and datasets, refer to the section [VSLAM-LAB Supported Baselines and Datasets](#vslam-lab-supported-baselines-and-datasets).
 
