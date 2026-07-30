@@ -94,13 +94,20 @@ class OpenlorisDataset(DatasetVSLAMLAB):
         sequence_raw_path = self.dataset_path_raw / sequence_name
 
         if BENCHMARK_RETENTION != Retention.FULL:
-            (sequence_raw_path / 'groundtruth.txt').unlink(missing_ok=True)
             (sequence_raw_path / f'{self.camera_name}_accelerometer.txt').unlink(missing_ok=True)
             (sequence_raw_path / f'{self.camera_name}_gyroscope.txt').unlink(missing_ok=True)
-            (sequence_raw_path / 'sensors.yaml').unlink(missing_ok=True)
-            (sequence_raw_path / 'trans_matrix.yaml').unlink(missing_ok=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
+            # groundtruth.txt/sensors.yaml/trans_matrix.yaml are shared raw files: openloris,
+            # openloris-d400 and openloris-t265 all read them from the same dataset_path_raw for a
+            # given sequence. They must only be removed together with the .7z sentinel below - if
+            # one sibling dataset deletes them while the .7z marker survives, the next sibling to
+            # process this sequence sees the marker, skips re-extraction, and crashes with the raw
+            # files gone (see issue where openloris-d400:cafe1-1 broke after openloris-t265:cafe1-1
+            # had already run its cleanup).
+            (sequence_raw_path / 'groundtruth.txt').unlink(missing_ok=True)
+            (sequence_raw_path / 'sensors.yaml').unlink(missing_ok=True)
+            (sequence_raw_path / 'trans_matrix.yaml').unlink(missing_ok=True)
             # Safe even for the sequences whose .7z is shared with sibling sequences in the same
             # group (e.g. cafe1-1/cafe1-2): download_sequence_data re-fetches and re-extracts the
             # shared group tar on demand if this file is missing again. For corridor1-1

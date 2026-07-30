@@ -3,7 +3,7 @@ Module: VSLAM-LAB - utilities.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2024-07-13
-- Updated: 2026-07-25
+- Updated: 2026-07-28
 - License: GPLv3 License
 
 Shared helpers used across VSLAM-LAB's dataset/baseline/evaluation code - see the block-summary
@@ -12,23 +12,32 @@ comment below for what's in this file and where each block is used.
 
 import argparse
 import csv
+import http.client
 import os
 import re
 import shutil
+import socket
+import ssl
 import struct
 import subprocess
 import sys
 import tarfile
+import time
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
+from urllib.parse import urlparse
 
 import numpy as np
 import pandas as pd
 import py7zr
 import yaml
 from colorama import Fore, Style
+from cryptography import x509
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.x509.oid import AuthorityInformationAccessOID
 from huggingface_hub import login, snapshot_download
 from PIL import Image
 from scipy.spatial.transform import Rotation
@@ -115,7 +124,7 @@ def load_yaml_file(yaml_file: str | Path) -> Any:
     if not yaml_path.is_file():
         print_msg(SCRIPT_LABEL, f"Error: The file '{yaml_file}' is not a yaml file.", flag="error", verb='NONE')
         sys.exit(1)
-    
+
     # Extension check
     if yaml_path.suffix.lower() not in {".yaml", ".yml"}:
         print_msg(SCRIPT_LABEL, f"The file '{yaml_path}' is not a YAML file.", flag="error", verb='NONE')
@@ -131,7 +140,7 @@ def load_yaml_file(yaml_file: str | Path) -> Any:
     except OSError as e:
         # File I/O issues (permissions, etc.)
         raise OSError(f"Error reading '{yaml_path}': {e}") from e
-    
+
     return yaml_data
 
 def find_common_sequences(experiments):
@@ -455,6 +464,68 @@ def resolve_sequence_targets_or_exit(args: argparse.Namespace, parser: argparse.
 # archive - used across most of Datasets/dataset_files/*.py (dataset_eth.py, dataset_kitti.py,
 # dataset_euroc.py, etc.), not something new that still needs integrating.
 ##################################################################################################################################################
+def _fetch_missing_intermediate_context(url: str) -> ssl.SSLContext | None:
+    """Some hosts (e.g. dataset_rover.py's fdm.hs-esslingen.de) send only their leaf certificate,
+    omitting the intermediate CA a client needs to complete the trust chain to an otherwise-
+    trusted root - a server misconfiguration, not a local/environment issue (reproduced
+    identically with both urllib and requests, on multiple independent machines). Browsers paper
+    over this via "AIA chasing" - fetching the missing intermediate from a URL embedded in the
+    leaf cert's Authority Information Access extension - but urllib/requests don't do this
+    automatically. Fetches that intermediate and returns an SSLContext trusting it (layered on
+    top of the default trust store, which already has the matching root CA - only the
+    intermediate link is missing), or None if the leaf cert has no AIA "CA Issuers" URL or
+    anything about the fetch fails, so the caller can fall back to raising the original error."""
+    hostname = urlparse(url).hostname
+    try:
+        unverified_ctx = ssl.create_default_context()
+        unverified_ctx.check_hostname = False
+        unverified_ctx.verify_mode = ssl.CERT_NONE
+        with socket.create_connection((hostname, 443), timeout=15) as sock:
+            with unverified_ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
+                leaf_der = ssock.getpeercert(binary_form=True)
+
+        leaf_cert = x509.load_der_x509_certificate(leaf_der)
+        aia = leaf_cert.extensions.get_extension_for_class(x509.AuthorityInformationAccess).value
+        issuer_url = next(
+            (d.access_location.value for d in aia
+             if d.access_method == AuthorityInformationAccessOID.CA_ISSUERS),
+            None,
+        )
+        if not issuer_url:
+            return None
+
+        intermediate_der = urllib.request.urlopen(issuer_url, timeout=15).read()
+        intermediate_pem = x509.load_der_x509_certificate(intermediate_der).public_bytes(Encoding.PEM).decode("ascii")
+
+        retry_ctx = ssl.create_default_context()
+        retry_ctx.load_verify_locations(cadata=intermediate_pem)
+        return retry_ctx
+    except Exception:
+        return None
+
+
+_MAX_DOWNLOAD_ATTEMPTS: Final = 10
+_DOWNLOAD_RETRY_DELAY_S: Final = 3.0
+
+
+def _open_download(url: str, resume_from: int = 0):
+    """Opens url via urllib.request, optionally resuming from byte offset resume_from via a
+    Range request. Also handles the missing-intermediate-cert retry (see
+    _fetch_missing_intermediate_context's docstring)."""
+    headers = {"User-Agent": "Mozilla/5.0"}  # some hosts (e.g. ETH's research-collection) 403
+    if resume_from:                          # urllib's default "Python-urllib/x.y" User-Agent
+        headers["Range"] = f"bytes={resume_from}-"
+    request = urllib.request.Request(url, headers=headers)
+    try:
+        return urllib.request.urlopen(request)
+    except urllib.error.URLError as e:
+        if not isinstance(e.reason, ssl.SSLCertVerificationError):
+            raise
+        retry_ctx = _fetch_missing_intermediate_context(url)
+        if retry_ctx is None:
+            raise
+        return urllib.request.urlopen(request, context=retry_ctx)
+
 def downloadFile(url, dest_dir_path, file_size=None):
     file_name = url.split('/')[-1]
     dest_file_path = os.path.join(dest_dir_path, file_name)
@@ -492,8 +563,83 @@ def downloadFile(url, dest_dir_path, file_size=None):
                     file_size_downloaded, file_size, file_size_downloaded * 100. / file_size))
             else:
                 sys.stdout.write("        %d bytes downloaded\r" % file_size_downloaded)
-            
+
             sys.stdout.flush()
+
+    return dest_file_path
+    
+def downloadFile(url, dest_dir_path, file_size=None):
+    file_name = url.split('/')[-1]
+    dest_file_path = os.path.join(dest_dir_path, file_name)
+
+    url_object = _open_download(url)
+    length = url_object.info().get("Content-Length")
+    if length:
+        file_size = int(length)
+
+    if file_size:
+        print("    Downloading: %s (size [bytes]: %s)" % (url, file_size))
+    else:
+        print("    Downloading: %s (size: unknown)" % url)
+
+    file_size_downloaded = 0
+    block_size = 8192
+    mode = 'wb'
+
+    for attempt in range(1, _MAX_DOWNLOAD_ATTEMPTS + 1):
+        try:
+            with open(dest_file_path, mode) as outfile:
+                while True:
+                    buffer = url_object.read(block_size)
+                    if not buffer:
+                        break
+
+                    file_size_downloaded += len(buffer)
+                    outfile.write(buffer)
+
+                    if file_size:
+                        sys.stdout.write("        %d / %d  (%3f%%)\r" % (
+                            file_size_downloaded, file_size, file_size_downloaded * 100. / file_size))
+                    else:
+                        sys.stdout.write("        %d bytes downloaded\r" % file_size_downloaded)
+
+                    sys.stdout.flush()
+        except (OSError, http.client.HTTPException):
+            # A dropped connection surfaces either as an exception here or (more often, for
+            # url_object.read(block_size) specifically) as a clean-looking empty read well
+            # before file_size bytes have arrived - both are handled the same way below.
+            pass
+        finally:
+            url_object.close()
+        print()
+
+        if not file_size or file_size_downloaded >= file_size:
+            break  # done, or size unknown up front so we trust EOF as completion
+
+        if attempt == _MAX_DOWNLOAD_ATTEMPTS:
+            # Previously this silently returned a truncated file as if the download had
+            # succeeded - it would only fail much later (e.g. a confusing zipfile.BadZipFile
+            # from decompressFile) and, worse, the partial file would look "already downloaded"
+            # to any caller checking archive_path.exists(), permanently blocking a retry. Delete
+            # it and fail loudly here instead, the moment truncation is detected.
+            os.remove(dest_file_path)
+            raise ConnectionError(
+                f"Incomplete download after {attempt} attempts: got {file_size_downloaded} of "
+                f"{file_size} expected bytes from {url} - deleted the partial file so a retry "
+                f"doesn't mistake it for a completed download."
+            )
+
+        print("        Connection dropped at %d / %d bytes - resuming (attempt %d/%d)..." % (
+            file_size_downloaded, file_size, attempt + 1, _MAX_DOWNLOAD_ATTEMPTS))
+        time.sleep(_DOWNLOAD_RETRY_DELAY_S)
+        url_object = _open_download(url, resume_from=file_size_downloaded)
+        if url_object.status == 206:
+            mode = 'ab'
+        else:
+            # Server ignored the Range request - nothing to do but restart this file from
+            # scratch, so make sure not to append fresh full content onto the partial write.
+            mode = 'wb'
+            file_size_downloaded = 0
 
     return dest_file_path
 
@@ -502,7 +648,7 @@ def decompressFile(filepath, extract_to=None):
     Decompress a .zip, .tar.gz, .tar, or .7z file and return the extraction directory.
     """
     filepath = str(filepath)
-    
+
     if not extract_to:
         extract_to = os.path.dirname(filepath)
 
@@ -524,7 +670,7 @@ def decompressFile(filepath, extract_to=None):
                 subprocess.check_call([seven_zip_cmd, "x", filepath, f"-o{extract_to}", "-y"])
             except subprocess.CalledProcessError as e:
                 with py7zr.SevenZipFile(filepath, mode='r') as z:
-                    z.extractall(path=extract_to)    
+                    z.extractall(path=extract_to)
         else:
             with py7zr.SevenZipFile(filepath, mode='r') as z:
                 z.extractall(path=extract_to)

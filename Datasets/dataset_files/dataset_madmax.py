@@ -18,12 +18,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import yaml
+from PIL import Image
 from scipy.spatial.transform import Rotation as R
+from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile, write_csv_rows
+from utilities import compute_scaled_size, decompressFile, downloadFile, write_csv_rows
 
 
 class MadmaxDataset(DatasetVSLAMLAB):
@@ -55,7 +57,7 @@ class MadmaxDataset(DatasetVSLAMLAB):
         sequence_path.mkdir(parents=True, exist_ok=True)
 
         remote_file_urls = self._get_file_url(sequence_name)
-        folders = ["rgb_0", "rgb_1", "calibration", "imu_raw.csv", "groundtruth", "depth_0"]
+        folders = ["rgb_0_raw", "rgb_1_raw", "calibration", "imu_raw.csv", "groundtruth", "depth_0"]
         for url, folder in zip(remote_file_urls, folders):
             download_url = f"{self.url_download_root}/{url}"
             downloaded_file = sequence_path / url
@@ -73,7 +75,29 @@ class MadmaxDataset(DatasetVSLAMLAB):
                 decompressFile(compressed_file, folder_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        pass
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path_0 = self.rgb_path(sequence_name)
+        rgb_path_1 = sequence_path / "rgb_1"
+        rgb_path_0_raw = sequence_path / "rgb_0_raw"
+        rgb_path_1_raw = sequence_path / "rgb_1_raw"
+
+        for raw_path, rgb_path in ((rgb_path_0_raw, rgb_path_0), (rgb_path_1_raw, rgb_path_1)):
+            if rgb_path.exists():
+                continue
+
+            if self.target_resolution is None:
+                shutil.copytree(raw_path, rgb_path)
+                continue
+
+            rgb_path.mkdir(parents=True, exist_ok=True)
+            target_size = None
+            for file_path in tqdm(sorted(raw_path.glob("*.png")), desc="    resizing images"):
+                with Image.open(file_path) as img:
+                    img.load()
+                    if target_size is None:
+                        target_size = compute_scaled_size(img.size, self.target_resolution)
+                    resized_img = img.resize(target_size, Image.Resampling.LANCZOS)
+                    resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -126,7 +150,8 @@ class MadmaxDataset(DatasetVSLAMLAB):
         write_csv_rows(imu_csv, header, rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        calibration_folder = self.sequence_path(sequence_name) / "calibration" / "calibration"
+        sequence_path = self.sequence_path(sequence_name)
+        calibration_folder = sequence_path / "calibration" / "calibration"
         intrinsics_0_txt = calibration_folder / "camera_rect_left_info.txt"
         intrinsics_1_txt = calibration_folder / "camera_rect_right_info.txt"
 
@@ -145,12 +170,16 @@ class MadmaxDataset(DatasetVSLAMLAB):
         T_cam0_1, data_ext_0_1 = self._load_extrinsics_matrix(extrinsics_0_1_csv)
         T_cam1_imu = np.linalg.inv(T_cam0_1) @ T_cam0_imu
 
+        # Rescale intrinsics from the raw rgb_*_raw reference size to the resized rgb_0/rgb_1.
+        scale_x_0, scale_y_0 = self._raw_to_resized_scale(sequence_path / "rgb_0_raw", self.rgb_path(sequence_name))
+        scale_x_1, scale_y_1 = self._raw_to_resized_scale(sequence_path / "rgb_1_raw", sequence_path / "rgb_1")
+
         rgb0: dict[str, Any] = {
             "cam_name": "rgb_0",
             "cam_type": "gray",
             "cam_model": "pinhole",
-            "focal_length": [P_0[0][0], P_0[1][1]],
-            "principal_point": [P_0[0][2], P_0[1][2]],
+            "focal_length": [P_0[0][0] * scale_x_0, P_0[1][1] * scale_y_0],
+            "principal_point": [P_0[0][2] * scale_x_0, P_0[1][2] * scale_y_0],
             "fps": self.rgb_hz,
             "T_BS": np.linalg.inv(T_cam0_imu),
         }
@@ -159,8 +188,8 @@ class MadmaxDataset(DatasetVSLAMLAB):
             "cam_name": "rgb_1",
             "cam_type": "gray",
             "cam_model": "pinhole",
-            "focal_length": [P_1[0][0], P_1[1][1]],
-            "principal_point": [P_1[0][2], P_1[1][2]],
+            "focal_length": [P_1[0][0] * scale_x_1, P_1[1][1] * scale_y_1],
+            "principal_point": [P_1[0][2] * scale_x_1, P_1[1][2] * scale_y_1],
             "fps": self.rgb_hz,
             "T_BS": np.linalg.inv(T_cam1_imu),
         }
@@ -213,6 +242,8 @@ class MadmaxDataset(DatasetVSLAMLAB):
         if BENCHMARK_RETENTION != Retention.FULL:
             shutil.rmtree(sequence_path / "calibration", ignore_errors=True)
             shutil.rmtree(sequence_path / "groundtruth", ignore_errors=True)
+            shutil.rmtree(sequence_path / "rgb_0_raw", ignore_errors=True)
+            shutil.rmtree(sequence_path / "rgb_1_raw", ignore_errors=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             for zip_file in sequence_path.rglob("*.zip"):
@@ -230,6 +261,14 @@ class MadmaxDataset(DatasetVSLAMLAB):
                 )
             ]
         return []
+
+    @staticmethod
+    def _raw_to_resized_scale(raw_path, resized_path):
+        with Image.open(next(raw_path.glob("*.png"))) as raw_img:
+            raw_w, raw_h = raw_img.size
+        with Image.open(next(resized_path.glob("*.png"))) as resized_img:
+            resized_w, resized_h = resized_img.size
+        return resized_w / raw_w, resized_h / raw_h
 
     def _load_extrinsics_matrix(self, path):
         with path.open("r", encoding="utf-8") as f:

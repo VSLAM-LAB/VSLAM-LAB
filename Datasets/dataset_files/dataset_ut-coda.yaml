@@ -4,6 +4,7 @@ rgb_hz: 10.0
 url_download_root: "https://web.corral.tacc.utexas.edu/texasrobotics/web_CODa/CODa_vslam/"
 modes: ['mono', 'stereo']
 cam_models: ['radtan5']
+target_resolution: [640, 480]
 
 sequence_names:
   - '0'

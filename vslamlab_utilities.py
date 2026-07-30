@@ -329,21 +329,20 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
     for _, settings in exp_data.items():
         configs.add(settings.get('Config'))
 
-    sequences : dict[str, str] = {}
+    sequences : set[tuple[str, str]] = set()
     for config_yaml in configs:
         config_file = os.path.join(VSLAM_LAB_DIR, 'configs', config_yaml)
         with open(config_file, 'r') as file:
             config_file_data = yaml.safe_load(file)
             for dataset_name, sequence_names in config_file_data.items():
-                dataset = get_dataset(dataset_name)
-                for sequence_name in sequence_names: 
-                    sequences[sequence_name] = dataset_name
-    
+                for sequence_name in sequence_names:
+                    sequences.add((dataset_name, sequence_name))
+
     # Check sequence availability
     sequences_to_download = {}
     num_total_sequences = len(sequences)
     num_available_sequences = 0
-    for sequence_name, dataset_name in sequences.items():
+    for dataset_name, sequence_name in sequences:
         dataset = get_dataset(dataset_name)
         if dataset_name not in sequences_to_download:
             sequences_to_download[dataset_name] = []

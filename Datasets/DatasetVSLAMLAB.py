@@ -76,11 +76,11 @@ class DatasetVSLAMLAB(ABC):
         pass
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         pass
-    def remove_unused_files(self, sequence_name: str) -> None: 
+    def remove_unused_files(self, sequence_name: str) -> None:
         pass
     def get_download_issues(self, sequence_names: List[str]) -> List[dict]:
         return []
-    
+
     ####################################################################################################################
     # Download methods
     def download_sequence(self, sequence_name: str) -> None:
@@ -139,7 +139,7 @@ class DatasetVSLAMLAB(ABC):
 
         yaml_content_lines = ["%YAML 1.2", "---",]
 
-        if rgb or rgbd:    
+        if rgb or rgbd:
             yaml_content_lines.extend(["cameras:"])
             if rgb:
                 for rgb_i in rgb:

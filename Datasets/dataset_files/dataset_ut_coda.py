@@ -20,11 +20,13 @@ from urllib.parse import urljoin
 import numpy as np
 import pandas as pd
 import yaml
+from PIL import Image
 from scipy.spatial.transform import Rotation as R
+from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile, write_csv_rows
+from utilities import compute_scaled_size, decompressFile, downloadFile, write_csv_rows
 
 
 class UtCodaDataset(DatasetVSLAMLAB):
@@ -63,9 +65,23 @@ class UtCodaDataset(DatasetVSLAMLAB):
         rgb_path_0_raw = sequence_path / '2d_rect' / 'cam0' / sequence_name
         rgb_path_1_raw = sequence_path / '2d_rect' / 'cam1' / sequence_name
 
-        for src, tgt in ((rgb_path_0_raw, rgb_path_0), (rgb_path_1_raw, rgb_path_1)):
-            if src.is_dir() and not tgt.exists():
-                os.symlink(src, tgt)
+        for raw_path, rgb_path in ((rgb_path_0_raw, rgb_path_0), (rgb_path_1_raw, rgb_path_1)):
+            if not raw_path.is_dir() or rgb_path.exists():
+                continue
+
+            if self.target_resolution is None:
+                os.symlink(raw_path, rgb_path)
+                continue
+
+            rgb_path.mkdir(parents=True, exist_ok=True)
+            target_size = None
+            for file_path in tqdm(sorted(raw_path.glob("*.jpg")), desc="    resizing images"):
+                with Image.open(file_path) as img:
+                    img.load()
+                    if target_size is None:
+                        target_size = compute_scaled_size(img.size, self.target_resolution)
+                    resized_img = img.resize(target_size, Image.Resampling.LANCZOS)
+                    resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
         sequence_path: Path = self.sequence_path(sequence_name)
@@ -105,12 +121,21 @@ class UtCodaDataset(DatasetVSLAMLAB):
             intrinsics = data['projection_matrix']['data']
             fx, fy, cx, cy = intrinsics[0], intrinsics[5], intrinsics[2], intrinsics[6]
 
+            # Rescale intrinsics from the raw 2d_rect reference size to the resized rgb_{cam_idx}.
+            raw_path = sequence_path / '2d_rect' / f'cam{cam_idx}' / sequence_name
+            rgb_path = self.rgb_path(sequence_name) if cam_idx == 0 else sequence_path / 'rgb_1'
+            with Image.open(next(raw_path.glob('*.jpg'))) as raw_img:
+                raw_w, raw_h = raw_img.size
+            with Image.open(next(rgb_path.glob('*.jpg'))) as resized_img:
+                resized_w, resized_h = resized_img.size
+            scale_x, scale_y = resized_w / raw_w, resized_h / raw_h
+
             rgb: dict[str, Any] = {
                 "cam_name": f"rgb_{cam_idx}",
                 "cam_type": "rgb",
                 "cam_model": "pinhole",
-                "focal_length": [fx, fy],
-                "principal_point": [cx, cy],
+                "focal_length": [fx * scale_x, fy * scale_y],
+                "principal_point": [cx * scale_x, cy * scale_y],
                 "fps": self.rgb_hz,
                 "T_BS": np.eye(4),
             }
@@ -155,12 +180,17 @@ class UtCodaDataset(DatasetVSLAMLAB):
         metadata_folder: Path = sequence_path / "metadata"
         timestamps_folder: Path = sequence_path / "timestamps"
         poses_folder: Path = sequence_path / "poses"
+        raw_2d_rect_folder: Path = sequence_path / "2d_rect"
         compressed_file: Path = self.dataset_path / (sequence_name + '.zip')
 
         if BENCHMARK_RETENTION != Retention.FULL:
             shutil.rmtree(calibration_folder, ignore_errors=True)
             shutil.rmtree(timestamps_folder, ignore_errors=True)
             shutil.rmtree(poses_folder, ignore_errors=True)
+            # 2d_rect is the raw source create_rgb_folder resizes from; only safe to drop once
+            # rgb_0/rgb_1 hold real (resized) copies rather than symlinks into it.
+            if self.target_resolution is not None:
+                shutil.rmtree(raw_2d_rect_folder, ignore_errors=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
             shutil.rmtree(metadata_folder, ignore_errors=True)

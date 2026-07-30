@@ -161,6 +161,7 @@ viser = "*"
 open3d = "*"
 gdown = "*"
 yt-dlp = "*"
+cryptography = "*"
 
 [feature.development.tasks]
 validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'
