@@ -220,6 +220,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Soneva Corals**](https://huggingface.co/datasets/wildflow/soneva-corals) | 📸🏞️🌊🤳 |    `soneva`    |`mono` | `pinhole` |
 | [**Sweet Corals**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊🤳 |    `sweetcorals`    |`mono` | `pinhole` `unknown` |
 | [**Eiffel Tower: A Deep-Sea Underwater Dataset for Long-Term Visual Localization**](https://www.seanoe.org/data/00810/92226/) | 📸🏞️🌊🤖 |    `eiffel-tower`    |`mono` | `radtan4` |
+| [**Novel Sensors for Autonomous Vehicle Perception**](https://umautobots.github.io/nsavp) | 📸🏞️🚗 |    `nsavp`    |`mono` `stereo` | `radtan4` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|

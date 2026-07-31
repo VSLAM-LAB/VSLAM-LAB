@@ -27,6 +27,7 @@ from Datasets.dataset_files.dataset_drunkards import DrunkardsDataset
 from Datasets.dataset_files.dataset_kitti import KittiDataset
 from Datasets.dataset_files.dataset_ut_coda import UtCodaDataset
 from Datasets.dataset_files.dataset_ariel import ArielDataset
+from Datasets.dataset_files.dataset_nsavp import NsavpDataset
 
 # Stereo-VI datasets
 from Datasets.dataset_files.dataset_euroc import EurocDataset
@@ -61,6 +62,7 @@ def get_dataset(dataset_name):
         "nuim": lambda: NuimDataset(),
         "kitti": lambda: KittiDataset(),
         "ut-coda": lambda: UtCodaDataset(),
+        "nsavp": lambda: NsavpDataset(),
         "euroc": lambda: EurocDataset(),
         "rover-t265": lambda: RoverT265Dataset(),
         "rover-d435i": lambda: RoverD435iDataset(),

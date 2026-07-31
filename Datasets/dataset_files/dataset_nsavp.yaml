@@ -1,0 +1,37 @@
+dataset_name: nsavp
+
+rgb_hz: 20.14
+modes: ['mono', 'stereo']
+cam_models: ['radtan4']
+
+# NSAVP is published per-sequence on University of Michigan's Deep Blue Data, each sequence
+# behind its own Globus HTTPS share link with a per-DOI path segment that can't be derived from
+# sequence_name alone (unlike a single templated URL pattern) - a new entry must be added here
+# by hand for every additional sequence, after locating its own share link on the collection
+# page (https://deepblue.lib.umich.edu/data/collections/v118rf157). Only R0_FA0 is implemented
+# for now; see the filed follow-up issue for extending this to further sequences/routes.
+url_download_root:
+  R0_FA0: "https://g-51c139.9601a.bd7c.data.globus.org/ff/36/55/85/p/"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - R0_FA0
+
+about:
+  license: CC-BY-4.0
+  summary: Novel Sensors for Autonomous Vehicle Perception - stereo thermal, event, monochrome and RGB cameras time-synchronized with high-precision navigation ground truth, collected from a Ford Fusion driving repeated ~8km urban routes
+  homepage: https://umautobots.github.io/nsavp
+  authors:
+    - Katherine A. Skinner
+    - Ram Vasudevan
+    - Manikandasriram S. Ramanagopal
+    - Radhika Ravi
+    - Spencer Carmichael
+    - Austin D. Buchan
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: fontanvillacampa@gmail.com
+  date: 2026-07-31

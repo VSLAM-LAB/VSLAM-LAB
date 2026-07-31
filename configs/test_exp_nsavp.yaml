@@ -1,0 +1,17 @@
+test_exp_nsavp_dpvo:
+  Config: test_config_nsavp.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: dpvo
+
+test_exp_nsavp_orbslam3:
+  Config: test_config_nsavp.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_nsavp_droidslam:
+  Config: test_config_nsavp.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: droidslam
