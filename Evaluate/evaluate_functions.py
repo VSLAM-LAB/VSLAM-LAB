@@ -19,7 +19,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     METRIC = 'ate'
-    
+
     # Define input paths
     trajectories_path = exp.folder / dataset.dataset_folder / sequence_name
     groundtruth_csv = exp.folder / dataset.dataset_folder / sequence_name /  GROUNTRUTH_FILE
@@ -40,8 +40,9 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     # Find runs to evaluate
     runs_to_evaluate = []
     for _, row in exp_log.iterrows():
+        print(row["SUCCESS"],row["EVALUATION"] == 'none',row["dataset_name"] == dataset.dataset_name, row["sequence_name"] == sequence_name)
         if row["SUCCESS"] and (row["EVALUATION"] == 'none') and (row["dataset_name"] == dataset.dataset_name) and (row["sequence_name"] == sequence_name):
-            exp_it = str(row["exp_it"]).zfill(5) 
+            exp_it = str(row["exp_it"]).zfill(5)
             runs_to_evaluate.append(exp_it)
 
     print_msg(
@@ -51,7 +52,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     if len(runs_to_evaluate) == 0:
         exp_log.to_csv(exp.log_csv, index=False)
         return
-    
+
     # Evaluate runs
     zip_files = []
     for exp_it in tqdm(runs_to_evaluate):
@@ -64,8 +65,8 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
             tqdm.write(format_msg(ws(8), f"{success[1]}", "error"))
     if len(zip_files) == 0:
         exp_log.to_csv(exp.log_csv, index=False)
-        return   
-    
+        return
+
     # Retrieve accuracies
     evo_get_accuracy(zip_files, accuracy_csv)
 
@@ -73,7 +74,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     if not os.path.exists(accuracy_csv):
         exp_log.to_csv(exp.log_csv, index=False)
         return
-    
+
     accuracy = pd.read_csv(accuracy_csv)
     for evaluated_run in runs_to_evaluate:
         if exp_log.loc[(exp_log["exp_it"] == int(exp_it)) & (exp_log["dataset_name"] == dataset.dataset_name) & (exp_log["sequence_name"] == sequence_name),"EVALUATION"].any() == 'failed':
@@ -98,7 +99,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
                 continue
             with open(trajectory_file_txt, "r") as file:
                 num_tracked_frames = sum(1 for _ in file)
-            accuracy.loc[accuracy["traj_name"] == trajectory_name_txt,"num_tracked_frames"] = num_tracked_frames    
+            accuracy.loc[accuracy["traj_name"] == trajectory_name_txt,"num_tracked_frames"] = num_tracked_frames
             exp_log.loc[run_mask, "num_tracked_frames"] = num_tracked_frames
 
             # Find number of evaluated frames
@@ -108,8 +109,8 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
                 continue
             with open(trajectory_file_tum, "r") as file:
                 num_evaluated_frames = sum(1 for _ in file) - 1
-            accuracy.loc[accuracy["traj_name"] == trajectory_name_txt,"num_evaluated_frames"] = num_evaluated_frames   
-            exp_log.loc[run_mask, "num_evaluated_frames"] = num_evaluated_frames 
+            accuracy.loc[accuracy["traj_name"] == trajectory_name_txt,"num_evaluated_frames"] = num_evaluated_frames
+            exp_log.loc[run_mask, "num_evaluated_frames"] = num_evaluated_frames
         else:
             exp_log.loc[(exp_log["exp_it"] == int(evaluated_run)) & (exp_log["dataset_name"] == dataset.dataset_name) & (exp_log["sequence_name"] == sequence_name),"EVALUATION"] = 'failed'
 

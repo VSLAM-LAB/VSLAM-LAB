@@ -52,7 +52,43 @@ logging.getLogger('matplotlib').setLevel(logging.ERROR)
 def robustMedian(arr):
     return np.nanmedian(arr) if np.isfinite(arr).any() else np.nan
 
-def plot_trajectories(dataset_sequences, exp_names, 
+def _shade_color(rgb, factor):
+    """Tint (factor > 0, toward white) or shade (factor < 0, toward black) an RGB color."""
+    r, g, b = rgb
+    if factor >= 0:
+        r, g, b = (r + (1 - r) * factor, g + (1 - g) * factor, b + (1 - b) * factor)
+    else:
+        r, g, b = (r * (1 + factor), g * (1 + factor), b * (1 + factor))
+    return (min(max(r, 0.0), 1.0), min(max(g, 0.0), 1.0), min(max(b, 0.0), 1.0))
+
+def get_experiment_colors(experiments, exp_names=None):
+    """
+    Maps each experiment name to a color derived from its baseline's color, spreading
+    experiments that share the same underlying baseline into distinguishable shades
+    (darker to brighter) instead of reusing the exact same color for all of them.
+    """
+    if exp_names is None:
+        exp_names = list(experiments.keys())
+
+    groups = {}
+    baseline_by_exp = {}
+    for exp_name in exp_names:
+        baseline_by_exp[exp_name] = get_baseline(experiments[exp_name].module)
+        groups.setdefault(experiments[exp_name].module, []).append(exp_name)
+
+    exp_colors = {}
+    for module, names in groups.items():
+        base_rgb = mcolors.to_rgb(baseline_by_exp[names[0]].color)
+        if len(names) == 1:
+            exp_colors[names[0]] = base_rgb
+            continue
+        shades = np.linspace(-0.4, 0.4, len(names))
+        for exp_name, factor in zip(names, shades):
+            exp_colors[exp_name] = _shade_color(base_rgb, factor)
+
+    return exp_colors
+
+def plot_trajectories(dataset_sequences, exp_names,
                       dataset_nicknames, experiments,
                         accuracies, comparison_path):
     num_trajectories = 0
@@ -88,10 +124,10 @@ def plot_trajectories(dataset_sequences, exp_names,
 
                 if accuracies[dataset_name][sequence_name][exp_name].empty:
                     continue
-                
+
                 accu = accuracies[dataset_name][sequence_name][exp_name]['rmse'] / accuracies[dataset_name][sequence_name][exp_name]['num_tracked_frames']
                 idx = accu.idxmin()
-                if not aligment_with_gt:                   
+                if not aligment_with_gt:
 
                     gt_file = os.path.join(vslam_lab_evaluation_folder_seq, f'{idx:05d}_gt.tum')
                     gt_file_complete = os.path.join(experiments[exp_name].folder, dataset_name.upper(),
@@ -100,7 +136,7 @@ def plot_trajectories(dataset_sequences, exp_names,
                     if os.path.exists(gt_file):
                         there_is_gt = True
                         gt_traj = pd.read_csv(gt_file, delimiter=' ')
-                        
+
                         pca_df = pd.DataFrame(gt_traj, columns=['tx', 'ty', 'tz'])
                         pca = PCA(n_components=2)
                         pca.fit(pca_df)
@@ -109,7 +145,7 @@ def plot_trajectories(dataset_sequences, exp_names,
                         y_shift = 1.2* gt_transformed[:, 1].min()
                         x_max = 1.2* gt_transformed[:, 0].max() - x_shift
                         y_max = 1.2* gt_transformed[:, 1].max() - y_shift
-                                           
+
                         gt_file_complete = pd.read_csv(gt_file_complete)
                         gt_file_complete = gt_file_complete.rename(columns={
                         "ts (ns)": "ts", "tx (m)": "tx", "ty (m)": "ty", "tz (m)": "tz"})
@@ -118,7 +154,7 @@ def plot_trajectories(dataset_sequences, exp_names,
 
                         axs[i_traj].plot(gt_file_complete_transformed[:, 0]-x_shift, gt_file_complete_transformed[:, 1]-y_shift, label='gt',
                                           linestyle='-', color='green', linewidth=2)
-                        axs[i_traj].plot(gt_transformed[:, 0]-x_shift, gt_transformed[:, 1]-y_shift, 
+                        axs[i_traj].plot(gt_transformed[:, 0]-x_shift, gt_transformed[:, 1]-y_shift,
                                          label='gt', marker='o', color='palegreen',  markersize=6, alpha=1)
                         aligment_with_gt = True
                     else:
@@ -165,13 +201,13 @@ def plot_trajectories(dataset_sequences, exp_names,
 
             # Hide minor tick labels while keeping the minor grid lines
             axs[i_traj].tick_params(axis='both', which='minor', labelbottom=False, labelleft=False)
-            axs[i_traj].tick_params(axis='y', labelsize=15, rotation=90) 
-            axs[i_traj].tick_params(axis='x', labelsize=15, rotation=0) 
+            axs[i_traj].tick_params(axis='y', labelsize=15, rotation=90)
+            axs[i_traj].tick_params(axis='x', labelsize=15, rotation=0)
 
-            axs[i_traj].tick_params(axis='x', pad=10) 
-            axs[i_traj].set_xticklabels([f"{x_ticks[0]:.2f}"], ha='right')  
-            axs[i_traj].set_yticklabels([f"{y_ticks[0]:.0f}",f"{y_ticks[1]:.2f}"])  
-            
+            axs[i_traj].tick_params(axis='x', pad=10)
+            axs[i_traj].set_xticklabels([f"{x_ticks[0]:.2f}"], ha='right')
+            axs[i_traj].set_yticklabels([f"{y_ticks[0]:.0f}",f"{y_ticks[1]:.2f}"])
+
             i_traj = i_traj + 1
 
 
@@ -183,7 +219,7 @@ def plot_trajectories(dataset_sequences, exp_names,
         for i_sequence, sequence_name in enumerate(sequence_names):
             for i_exp, exp_name in enumerate(exp_names):
                 axs[i_traj].set_title(dataset_nicknames[dataset_name][i_sequence], fontsize=15)
-            i_traj = i_traj + 1    
+            i_traj = i_traj + 1
     #fig.legend(handles=legend_handles, loc='lower center', ncol=len(legend_handles))
     plt.subplots_adjust(bottom=0.3)
     plt.show(block=False)
@@ -226,10 +262,10 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
     legend_handles = []
     colors = {}
     for i_exp, exp_name in enumerate(exp_names):
-        baseline = get_baseline(experiments[exp_name].module)   
+        baseline = get_baseline(experiments[exp_name].module)
         colors[exp_name] = baseline.color
         legend_handles.append(Patch(color=colors[exp_name], label=exp_names[i_exp]))
-        
+
     # Plot boxplots
     whisker_min = {}
     whisker_max = {}
@@ -238,17 +274,17 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
         for i_exp, exp_name in enumerate(exp_names):
 
             baseline = get_baseline(experiments[exp_name].module)
-            
+
             median_ate = BM().get_median_ate(baseline.baseline_name, splts[sequence_name]['dataset_name'], sequence_name)
             if median_ate > 0:
                 axs[splt['id']].axhline(y=median_ate, linestyle='--', linewidth=2, color=baseline.color, alpha=0.7, zorder=0)
-            
+
             values_seq_exp = values[splt['dataset_name']][sequence_name][exp_name]
             if values_seq_exp.empty:
                 continue
             boxprops = medianprops = whiskerprops = capprops = dict(color=colors[exp_name])
             flierprops = dict(marker='o', color=colors[exp_name], alpha=1.0)
-            positions = [i_exp * WIDTH_PER_SERIES]   
+            positions = [i_exp * WIDTH_PER_SERIES]
             boxplot_accuracy = axs[splt['id']].boxplot(
                 values_seq_exp[metric_name],
                 positions=positions, widths=WIDTH_PER_SERIES,
@@ -269,11 +305,11 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
             whisker_min[sequence_name] = np.nan
         else:
             whisker_max[sequence_name] = whisker_max_seq + width
-            if(whisker_min_seq - width < 0):    
+            if(whisker_min_seq - width < 0):
                 whisker_min[sequence_name] = whisker_min_seq / 2
             else:
                 whisker_min[sequence_name] = whisker_min_seq - width
-                         
+
     # Adjust plot properties for paper
     max_value, min_value = max(whisker_max.values()), min(whisker_min.values())
 
@@ -291,21 +327,21 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
 
         whisker_max_seq = whisker_max[sequence_name]
         whisker_min_seq = whisker_min[sequence_name]
-       
+
         yticks = [whisker_min_seq, whisker_max_seq]
 
         axs[splt['id']].grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
         axs[splt['id']].set_xticklabels([])
         axs[splt['id']].set_ylim(yticks)
-        axs[splt['id']].tick_params(axis='y', labelsize=FONT_SIZE) 
+        axs[splt['id']].tick_params(axis='y', labelsize=FONT_SIZE)
         axs[splt['id']].yaxis.set_minor_locator(ticker.MultipleLocator((whisker_max_seq - whisker_min_seq) / 4))
-        if not shared_scale:    
+        if not shared_scale:
             axs[splt['id']].set_yticks(yticks)
             tick_labels = axs[splt['id']].get_yticklabels()
             if whisker_max_seq == max_value:
-                tick_labels[1].set_color("#CD3232")  
+                tick_labels[1].set_color("#CD3232")
             if whisker_min_seq == min_value:
-                tick_labels[0].set_color("#32CD32")      
+                tick_labels[0].set_color("#32CD32")
             tick_labels[0].set_transform(tick_labels[0].get_transform() + ScaledTranslation(0.9, -0.15, fig.dpi_scale_trans))
             tick_labels[1].set_transform(tick_labels[1].get_transform() + ScaledTranslation(0.9, +0.15, fig.dpi_scale_trans))
             axs[splt['id']].set_yticklabels([set_format(tick) for tick in yticks])
@@ -316,9 +352,9 @@ def boxplot_exp_seq(values, dataset_sequences, metric_name, comparison_path, exp
                 axs[splt['id']].tick_params(axis="y", rotation=90)
                 axs[splt['id']].set_yticklabels([set_format(tick) for tick in yticks])
             else:
-                axs[splt['id']].set_yticks([])   
+                axs[splt['id']].set_yticks([])
 
-        
+
     plt.tight_layout()
     plot_name = os.path.join(comparison_path, f"{metric_name}_boxplot_paper.pdf")
     if shared_scale:
@@ -357,7 +393,7 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
     TRAJ_UNIT = 100.0
     SEC_VALUE = MAX_VALUE * 0.95
     STEP_VALUE = MAX_VALUE / 5
-    
+
     # Create legend handles
     legend_handles = []
     common = os.path.commonprefix(exp_names)
@@ -368,7 +404,7 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
 
     fig, ax = plt.subplots(figsize=(8, 8*1.05),subplot_kw=dict(polar=True), constrained_layout=False)
     all_sequence_names = []
-    
+
     median_sequence = {}
     median_num_tracked_frames_sequence = {}
     median_num_frames_sequence = {}
@@ -393,12 +429,12 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
                 values_dataset_sequence_exp = values[dataset_name][sequence_name][exp_name].copy()
                 data_empty = values_dataset_sequence_exp.empty
                 if data_empty:
-                    medians[dataset_name][sequence_name][exp_name] = np.nan                  
-                    medians_num_tracked_frames[dataset_name][sequence_name][exp_name] = np.nan   
+                    medians[dataset_name][sequence_name][exp_name] = np.nan
+                    medians_num_tracked_frames[dataset_name][sequence_name][exp_name] = np.nan
                     medians_num_frames[dataset_name][sequence_name][exp_name] = 0
                 else:
-                    medians[dataset_name][sequence_name][exp_name] = robustMedian(values_dataset_sequence_exp['rmse'])                  
-                    medians_num_tracked_frames[dataset_name][sequence_name][exp_name] = robustMedian(values_dataset_sequence_exp['num_tracked_frames'])   
+                    medians[dataset_name][sequence_name][exp_name] = robustMedian(values_dataset_sequence_exp['rmse'])
+                    medians_num_tracked_frames[dataset_name][sequence_name][exp_name] = robustMedian(values_dataset_sequence_exp['num_tracked_frames'])
                     medians_num_frames[dataset_name][sequence_name][exp_name] = int(robustMedian(values_dataset_sequence_exp['num_frames'])) + 1
 
                 if data_empty:
@@ -410,14 +446,14 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
                     values_sequence[sequence_name] = pd.concat([values_sequence[sequence_name],
                                                                 values_dataset_sequence_exp['rmse']],
                                                                ignore_index=True)
-  
+
             if values_sequence[sequence_name].empty:
                 median_sequence[sequence_name] = np.nan
             else:
                 arr = values_sequence[sequence_name].to_numpy(dtype=float, na_value=np.nan)
                 median_sequence[sequence_name] = robustMedian(arr)
 
-            
+
 
     num_vars = len(all_sequence_names)
     iExp = 0
@@ -434,7 +470,7 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
                 den = pd.to_numeric(den, errors="coerce")
 
                 if pd.isna(num) or pd.isna(den) or den == 0:
-                    perc_traj = np.nan 
+                    perc_traj = np.nan
                 else:
                     perc_traj = float(num) / float(den)
 
@@ -446,7 +482,7 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
                     else:
                         y[experiment_name].append(
                             medians[dataset_name][sequence_name][experiment_name])
- 
+
         # for i,yi in enumerate(y[experiment_name]): #INVERT ACCURACY
         #     y[experiment_name][i] = 1/yi
 
@@ -468,19 +504,19 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
         plt.xticks(angles[:-1], all_sequence_names)
 
 
-        yticks = np.arange(STEP_VALUE, MAX_VALUE+STEP_VALUE, STEP_VALUE)  
+        yticks = np.arange(STEP_VALUE, MAX_VALUE+STEP_VALUE, STEP_VALUE)
         if NORMALIZE_METRIC:
             tick_labels = ['' for _ in yticks]
         else:
-            tick_labels = [str(v*100) + " cm" for v in yticks] 
+            tick_labels = [str(v*100) + " cm" for v in yticks]
 
         ax.set_yticks(yticks)
         ax.set_yticklabels(tick_labels, fontsize=24)
-        
+
         ax.set_xticks(angles[:-1], all_sequence_names)
 
-        ax.tick_params(labelsize=10) 
-        ax.tick_params(axis='x', pad=25)  
+        ax.tick_params(labelsize=10)
+        ax.tick_params(axis='x', pad=25)
 
         ax.set_xticklabels(all_sequence_names, fontsize=20, fontweight='bold')
 
@@ -488,14 +524,14 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
         iExp = iExp + 1
 
     ax.xaxis.grid(True, linestyle=(0, (1, 4)), linewidth=1.0, alpha=1)   # dot, gap
-    ax.yaxis.grid(True, linestyle=(0, (12, 6)), linewidth=0.8, alpha=1)  
+    ax.yaxis.grid(True, linestyle=(0, (12, 6)), linewidth=0.8, alpha=1)
     ax.spines['polar'].set_linewidth(1.0)   # adjust thickness
     ax.spines['polar'].set_alpha(1.0)
     # optional: ensure it's above the bands
     ax.spines['polar'].set_zorder(10)
 
     # Add colored bands
-    rmax = MAX_VALUE        
+    rmax = MAX_VALUE
     ax.set_ylim(0, rmax)
     #step = 0.5
     edges = np.arange(0.0, rmax + STEP_VALUE, STEP_VALUE)
@@ -523,7 +559,7 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
         )
 
     ax.set_position([0.12, 0.0, 0.76, 0.76])  # [left, bottom, width, height]
-    ax.set_anchor('C')   
+    ax.set_anchor('C')
 
     plt.tight_layout()
     plot_name = os.path.join(comparison_path, f"{metric_name}_radar.pdf")
@@ -541,91 +577,64 @@ def radar_seq(values, dataset_sequences, exp_names, dataset_nicknames, metric_na
     plt.show(block=False)
 
 
-def plot_cum_error(values, dataset_sequences, exp_names, dataset_nicknames, metric_name, comparison_path, experiments):
-    num_sequences = 0
-    for dataset_name, sequence_names in dataset_sequences.items():
-        num_sequences += len(sequence_names)
+def plot_cum_error(values, dataset_sequences, exp_names, metric_name, comparison_path, experiments, num_fractions=10):
+    fractions = [(i + 1) / num_fractions for i in range(num_fractions)]
 
-    num_cols = 5
-    num_rows = math.ceil(num_sequences / num_cols)
-    x_size = 12
-    y_size = num_rows * 2
+    num_cols = min(5, num_fractions)
+    num_rows = math.ceil(num_fractions / num_cols)
+    fig, axs = plt.subplots(num_rows, num_cols, figsize=(8 * num_cols, 6 * num_rows))
+    axs = np.atleast_1d(axs).flatten()
 
-    fig, axs = plt.subplots(num_rows, num_cols, figsize=(x_size, y_size))
-    axs = axs.flatten()
+    exp_colors = get_experiment_colors(experiments, exp_names)
+    legend_handles = [Patch(color=exp_colors[experiment_name], label=experiment_name) for experiment_name in exp_names]
 
-    # Create legend handles
-    legend_handles = []
-    for i_exp, exp_name in enumerate(exp_names):
-        legend_handles.append(Patch(color=colors[i_exp], label=exp_names[i_exp]), )
+    sorted_errors = {}
+    for experiment_name in exp_names:
+        all_errors = []
+        for dataset_name, sequence_names in dataset_sequences.items():
+            for sequence_name in sequence_names:
+                all_errors.extend(values[dataset_name][sequence_name][experiment_name][metric_name].tolist())
+        sorted_errors[experiment_name] = sorted(all_errors)
 
-    j_seq = 0
-    for dataset_name, sequence_names in dataset_sequences.items():
-        for i_seq, sequence_name in enumerate(sequence_names):
-            min_x = float('inf')
-            max_x = float('-inf')
-            for i_exp, experiment_name in enumerate(exp_names):
-                baseline = get_baseline(experiments[experiment_name].module)
-                data = values[dataset_name][sequence_name][experiment_name]['rmse'].tolist()
-                sorted_data = sorted(data)
-                cumulated_vector = []
-                for data_i in sorted_data:
-                    count_smaller = bisect_left(sorted_data, 1.00001*data_i)
-                    cumulated_vector.append(count_smaller)
-                
-                axs[j_seq].plot(sorted_data, cumulated_vector, marker='o', linestyle='-', color=baseline.color)
-                min_x = min(min_x, min(sorted_data))
-                max_x = max(max_x, max(sorted_data))
+    for ax, fraction in zip(axs, fractions):
+        max_x = float('-inf')
+        max_y = float('-inf')
+        for experiment_name in exp_names:
+            color = exp_colors[experiment_name]
+            full_sorted_data = sorted_errors[experiment_name]
+            subset = full_sorted_data[:math.ceil(fraction * len(full_sorted_data))]
 
-            y_max = experiments[exp_name].num_runs
-            y_ticks = [0, y_max]
+            cumulated_vector = []
+            for data_i in subset:
+                count_smaller = bisect_left(subset, 1.00001 * data_i)
+                cumulated_vector.append(count_smaller)
 
-            width_x = 0.1*(max_x - min_x)
-            min_x = 0# max(min_x - width_x,0)
-            max_x = max_x + width_x
-            x_ticks = [min_x, max_x]
+            ax.plot(subset, cumulated_vector, marker='o', linestyle='-', color=color)
 
-            axs[j_seq].set_xticks(x_ticks)
-            if j_seq == 0:
-                axs[j_seq].set_yticks(y_ticks)
-            else:
-                axs[j_seq].set_yticklabels([])
-            
-            # Add minor ticks for the grid (every 10% of the axis range)
-            axs[j_seq].xaxis.set_minor_locator(ticker.MultipleLocator(max_x / 4))
-            axs[j_seq].yaxis.set_minor_locator(ticker.MultipleLocator(y_max / 4))
+            if subset:
+                max_x = max(max_x, max(subset))
+                max_y = max(max_y, max(cumulated_vector))
 
-            axs[j_seq].grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
-            axs[j_seq].spines['top'].set_visible(False)   # Remove top border
-            axs[j_seq].spines['right'].set_visible(False) # Remove right border
-            axs[j_seq].tick_params(axis='both', which='minor', labelbottom=False, labelleft=False)
-            axs[j_seq].tick_params(axis='y', labelsize=20, rotation=90) 
-            axs[j_seq].tick_params(axis='x', labelsize=20, rotation=0)            
-            axs[j_seq].set_xlim(x_ticks)
-            axs[j_seq].set_ylim(y_ticks)
+        max_x = 0 if max_x == float('-inf') else max_x
+        max_y = 0 if max_y == float('-inf') else max_y
 
-            axs[j_seq].tick_params(axis='x', pad=10) 
-            axs[j_seq].set_xticklabels([f"{x_ticks[0]:.2f}", f"{x_ticks[1]:.2f}"], ha='right')  
+        ax.set_xlim(0, max_x * 1.1 if max_x > 0 else 1)
+        ax.set_ylim(0, max_y * 1.1 if max_y > 0 else 1)
+        ax.set_xlabel(metric_name.upper())
+        ax.set_ylabel('Cumulative count')
+        ax.set_title(f"Smallest {int(fraction * 100)}% of errors")
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
 
-            def set_format(tick):
-                if tick == 0:
-                    return f"0"
-                return f"{tick:.1e}"
-            
-            axs[j_seq].set_xticklabels([set_format(tick) for tick in x_ticks])
-            j_seq = j_seq + 1
-
-    plot_name = os.path.join(comparison_path, f"{metric_name}_cummulated_error.pdf")
-    plt.tight_layout()
-    plt.savefig(plot_name, format='pdf')
-
-    j_seq = 0
-    for dataset_name, sequence_names in dataset_sequences.items():
-        for i_seq, sequence_name in enumerate(sequence_names):
-            axs[j_seq].set_title(dataset_nicknames[dataset_name][i_seq])
+    for ax in axs[num_fractions:]:
+        ax.axis('off')
 
     fig.legend(handles=legend_handles, loc='lower center', ncol=len(legend_handles))
-    plt.subplots_adjust(top=0.9, bottom=0.25)  # Adjust the top and bottom to make space for the legend
+    plt.tight_layout(rect=[0, 0.08, 1, 1])
+
+    plot_name = os.path.join(comparison_path, f"{metric_name}_cummulated_error.pdf")
+    plt.savefig(plot_name, format='pdf')
     plt.show(block=False)
 
 def create_and_show_canvas(dataset_sequences, VSLAMLAB_BENCHMARK, comparison_path, padding=10):
@@ -701,12 +710,12 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
     legend_handles = []
     colors = {}
     for i_exp, exp_name in enumerate(exp_names):
-        baseline = get_baseline(experiments[exp_name].module)   
+        baseline = get_baseline(experiments[exp_name].module)
         colors[exp_name] = baseline.color
         legend_handles.append(Patch(color=colors[exp_name], label=exp_names[i_exp]))
 
-    # Plot boxplots        
-    max_rgb = {}      
+    # Plot boxplots
+    max_rgb = {}
     for sequence_name, splt in splts.items():
         max_rgb[sequence_name] = 0
         for i_exp, exp_name in enumerate(exp_names):
@@ -717,14 +726,14 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
                 ################################################################################
     for sequence_name, splt in splts.items():
         for i_exp, exp_name in enumerate(exp_names):
-            values_seq_exp = values[splt['dataset_name']][sequence_name][exp_name]    
+            values_seq_exp = values[splt['dataset_name']][sequence_name][exp_name]
             if values_seq_exp.empty:
                 continue
 
             num_frames = [int(value) for value in values_seq_exp['num_frames']]
-            num_tracked_frames = values_seq_exp['num_tracked_frames'] 
-            num_evaluated_frames = values_seq_exp['num_evaluated_frames']   
-         
+            num_tracked_frames = values_seq_exp['num_tracked_frames']
+            num_evaluated_frames = values_seq_exp['num_evaluated_frames']
+
             if shared_scale:
                 num_frames /= max_rgb[sequence_name]
                 num_tracked_frames /= max_rgb[sequence_name]
@@ -733,16 +742,16 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
             median_num_frames = np.median(num_frames)
             median_num_tracked_frames = np.median(num_tracked_frames)
             median_num_evaluated_frames = np.median(num_evaluated_frames)
-           
+
             positions = np.array([3 * i_exp, 3 * i_exp + 1, 3 * i_exp + 2]) * WIDTH_PER_SERIES
             axs[splt['id']].bar(
-            positions, 
-            [median_num_frames, median_num_tracked_frames, median_num_evaluated_frames], 
+            positions,
+            [median_num_frames, median_num_tracked_frames, median_num_evaluated_frames],
             color=colors[exp_name], alpha=0.3, width=WIDTH_PER_SERIES*0.9)
-            
+
             metrics = [num_frames, num_tracked_frames, num_evaluated_frames]
             boxprops = medianprops = whiskerprops = capprops = dict(color=colors[exp_name])
-            flierprops = dict(marker='o', color=colors[exp_name], alpha=1.0)    
+            flierprops = dict(marker='o', color=colors[exp_name], alpha=1.0)
             for i, metric in enumerate(metrics):
                 positions = [(3 * i_exp + i) * WIDTH_PER_SERIES]
                 boxplot_accuracy = axs[splt['id']].boxplot(
@@ -760,19 +769,19 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
         axs[splt['id']].grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
         axs[splt['id']].set_xticklabels([])
         axs[splt['id']].set_ylim(yticks)
-        axs[splt['id']].tick_params(axis='y', labelsize=FONT_SIZE) 
+        axs[splt['id']].tick_params(axis='y', labelsize=FONT_SIZE)
         axs[splt['id']].yaxis.set_minor_locator(ticker.MultipleLocator(max_rgb[sequence_name] / 4))
         axs[splt['id']].set_yticks(yticks)
-        if not shared_scale:    
+        if not shared_scale:
             axs[splt['id']].set_yticks(yticks)
-            tick_labels = axs[splt['id']].get_yticklabels() 
+            tick_labels = axs[splt['id']].get_yticklabels()
             tick_labels[0].set_transform(tick_labels[0].get_transform() + ScaledTranslation(0.2, -0.15, fig.dpi_scale_trans))
             tick_labels[1].set_transform(tick_labels[1].get_transform() + ScaledTranslation(0.5, +0.15, fig.dpi_scale_trans))
         else:
             if splt['id'] == 0:
                 axs[splt['id']].set_yticks(yticks)
             else:
-                axs[splt['id']].set_yticks([])   
+                axs[splt['id']].set_yticks([])
 
     plt.tight_layout()
     plot_name = os.path.join(figures_path, f"num_frames_boxplot_paper.pdf")
@@ -788,7 +797,7 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
             axs[splt['id']].set_title(splt['nickname'], fontsize=FONT_SIZE, fontweight='bold', pad=30)
 
     fig.legend(handles=legend_handles, loc='lower center', ncol=len(legend_handles), fontsize=FONT_SIZE)
-    
+
     if shared_scale:
         plt.tight_layout(rect=[0, 0.15, 1, 0.95])
     else:
@@ -809,9 +818,9 @@ import matplotlib.pyplot as plt
 def plot_table(ax, experiments, label, norm_label, sequence_nicknames, title = '', unit_factor = 1, figures_path = ''):
     colors = {}
     for exp_name, exp in experiments.items():
-        baseline = get_baseline(experiments[exp_name].module)   
-        colors[experiments[exp_name].module] = baseline.color     
-        
+        baseline = get_baseline(experiments[exp_name].module)
+        colors[experiments[exp_name].module] = baseline.color
+
     colors['Sequence'] = 'black'
 
     all_logs = []
@@ -821,7 +830,7 @@ def plot_table(ax, experiments, label, norm_label, sequence_nicknames, title = '
         (exp_log['STATUS'] == 'completed') &
         (exp_log['SUCCESS'] == True) &
         (exp_log['EVALUATION'] != 'none')]
-        
+
         if norm_label is None:
             exp_log['__norm__'] = 1.0
             exp_log['label_per_norm_label'] = unit_factor * exp_log[label] / exp_log['__norm__']
@@ -829,18 +838,18 @@ def plot_table(ax, experiments, label, norm_label, sequence_nicknames, title = '
             exp_log['label_per_norm_label'] = unit_factor * exp_log[label] / exp_log[norm_label]
 
         all_logs.append(exp_log)
-    
+
     df = pd.concat(all_logs, ignore_index=True)
 
     # Per-sequence mean ± std
     summary = df.groupby(['method_name', 'sequence_name'])['label_per_norm_label'].agg(['mean', 'std']).reset_index()
     if norm_label == None:
-        summary['LABEL'] = summary.apply(lambda row: f"{row['mean']:.2f} ± {row['std']:.2f}" 
-                                            if not pd.isna(row['std']) 
+        summary['LABEL'] = summary.apply(lambda row: f"{row['mean']:.2f} ± {row['std']:.2f}"
+                                            if not pd.isna(row['std'])
                                             else f"{row['mean']:.2f} ± 0.00", axis=1)
     else:
         summary['LABEL'] = summary.apply(lambda row: f"{row['mean']:.2f}", axis=1)
-        
+
     summary['sequence_name'] = summary['sequence_name'].map(sequence_nicknames).fillna(summary['sequence_name'])
     pivot = summary.pivot(index='sequence_name', columns='method_name', values='LABEL').fillna('-')
     pivot = pivot.reset_index()
@@ -849,14 +858,14 @@ def plot_table(ax, experiments, label, norm_label, sequence_nicknames, title = '
     # Overall mean ± std per method
     overall = df.groupby('method_name')['label_per_norm_label'].agg(['mean', 'std']).reset_index()
     overall['LABEL'] = overall.apply(lambda row: f"{row['mean']:.2f} ± {row['std']:.2f}"
-                                     if not pd.isna(row['std']) 
+                                     if not pd.isna(row['std'])
                                     else f"{row['mean']:.2f} ± 0.00", axis=1)
-    
+
     if norm_label != None:
         overall_row = {'Sequence': 'Overall'}
         overall_row.update(dict(zip(overall['method_name'], overall['LABEL'])))
         pivot = pd.concat([pivot, pd.DataFrame([overall_row])], ignore_index=True)
-    
+
     # Plot the visual table
     ax.axis('off')
     table = ax.table(cellText=pivot.values, colLabels=pivot.columns, loc='center', cellLoc='center')
@@ -904,27 +913,27 @@ def plot_table(ax, experiments, label, norm_label, sequence_nicknames, title = '
 
     if title:
         ax.set_title(title, pad=10)
-    
+
     latex_path = os.path.join(figures_path, f"{label}_{norm_label}_label_table.tex")
     latex_code = pivot.to_latex(index=False, escape=False, column_format='l' + 'c' * (pivot.shape[1] - 1))
 
-    latex_code = latex_code.replace('±', r'$\pm$') 
-    latex_code = latex_code.replace('_', r'\_') 
-    latex_code = latex_code.replace(r'\bottomrule', '') 
-    latex_code = latex_code.replace(r'\toprule', '') 
-    latex_code = latex_code.replace('Overall', r'\textbf{Overall}') 
-    latex_code = latex_code.replace('Sequence', '') 
+    latex_code = latex_code.replace('±', r'$\pm$')
+    latex_code = latex_code.replace('_', r'\_')
+    latex_code = latex_code.replace(r'\bottomrule', '')
+    latex_code = latex_code.replace(r'\toprule', '')
+    latex_code = latex_code.replace('Overall', r'\textbf{Overall}')
+    latex_code = latex_code.replace('Sequence', '')
 
     for exp_name, exp in experiments.items():
-        baseline = get_baseline(experiments[exp_name].module)   
+        baseline = get_baseline(experiments[exp_name].module)
         baseline_name = experiments[exp_name].module
-        color_hex = to_hex(baseline.color)  
+        color_hex = to_hex(baseline.color)
         #latex_col = rf'\textcolor[HTML]{{{color_hex[1:].upper()}}}{rf'\\textbf{'{baseline_name}'}'}'
         latex_col = rf'\textbf{{\textcolor[HTML]{{{color_hex[1:].upper()}}}{{{baseline_name}}}}}'
 
         latex_code = latex_code.replace(baseline_name, latex_col)
-        # colors[experiments[exp_name].module] = baseline.color     
-        # color_hex = to_hex(colors[col])  
+        # colors[experiments[exp_name].module] = baseline.color
+        # color_hex = to_hex(colors[col])
         # latex_col = rf'\textcolor[HTML]{{{color_hex[1:].upper()}}}{{{col}}}'
         # colored_columns_latex[experiments[exp_name].module] = latex_col
 
@@ -941,17 +950,17 @@ def plot_table(ax, experiments, label, norm_label, sequence_nicknames, title = '
 def get_baseline_colors(experiments):
     colors = {}
     for exp_name, _ in experiments.items():
-        baseline = get_baseline(experiments[exp_name].module)   
-        colors[baseline.name_label] = baseline.color     
+        baseline = get_baseline(experiments[exp_name].module)
+        colors[baseline.name_label] = baseline.color
     colors['Sequence'] = 'black'
     return colors
 
 def get_baseline_labels(experiments):
     baseline_labels = {}
     for exp_name, _ in experiments.items():
-        baseline = get_baseline(experiments[exp_name].module)   
-        baseline_labels[baseline.baseline_name] = baseline.name_label     
-    return baseline_labels    
+        baseline = get_baseline(experiments[exp_name].module)
+        baseline_labels[baseline.baseline_name] = baseline.name_label
+    return baseline_labels
 
 def combine_exp_log(experiments, label, norm_label, unit_factor):
     all_logs = []
@@ -961,7 +970,7 @@ def combine_exp_log(experiments, label, norm_label, unit_factor):
         (exp_log['STATUS'] == 'completed') &
         (exp_log['SUCCESS'] == True) &
         (exp_log['EVALUATION'] != 'none')]
-        
+
         if norm_label is None:
             exp_log['__norm__'] = 1.0
             exp_log['label_per_norm_label'] = unit_factor * exp_log[label] / exp_log['__norm__']
@@ -969,7 +978,7 @@ def combine_exp_log(experiments, label, norm_label, unit_factor):
             exp_log['label_per_norm_label'] = unit_factor * exp_log[label] / exp_log[norm_label]
 
         all_logs.append(exp_log)
-    
+
     df = pd.concat(all_logs, ignore_index=True)
     return df
 
@@ -996,9 +1005,9 @@ def plot_table_memory_per_frame(ax, experiments, sequence_nicknames, title = '',
         (exp_log['EVALUATION'] != 'none')]
         dfs.append(exp_log)
     df_all = pd.concat(dfs, ignore_index=True)
-    df_all['GPU'] *= unit_factor/df_all['num_frames'] 
-    df_all['SWAP'] *= unit_factor/df_all['num_frames'] 
-    df_all['RAM'] *= unit_factor/df_all['num_frames'] 
+    df_all['GPU'] *= unit_factor/df_all['num_frames']
+    df_all['SWAP'] *= unit_factor/df_all['num_frames']
+    df_all['RAM'] *= unit_factor/df_all['num_frames']
 
     metrics = ['GPU', 'RAM', 'SWAP']
     # Compute both mean and std
@@ -1019,15 +1028,15 @@ def plot_table_memory_per_frame(ax, experiments, sequence_nicknames, title = '',
         names=['Baseline', 'Metric']
     )
     table = table.sort_index(axis=1, level=0)
-    
+
     # Add 'Sequence' column with value 'Average'
     top_row = [baseline_labels.get(col[0], col[0]) if col[1] == 'RAM' else '' for col in table.columns]
     bottom_row = [col[1] for col in table.columns]
     # Compute average (mean) across sequences for each method and metric
- 
+
     full_table = pd.DataFrame([top_row, bottom_row], columns=table.columns)
     data_rows = pd.DataFrame(table.values, columns=table.columns, index=table.index)
-    
+
     full_matrix = pd.concat([full_table, data_rows])
 
     ax.axis('tight')
@@ -1048,9 +1057,9 @@ def plot_table_memory_per_frame(ax, experiments, sequence_nicknames, title = '',
     # Format borders
     for (row, col), cell in table_plot.get_celld().items():
         cell.set_linewidth(1)
-        cell.visible_edges = '' 
+        cell.visible_edges = ''
         if row == 0 or row == 1:
-            cell.visible_edges = 'B' 
+            cell.visible_edges = 'B'
 
     # Apply colors only to the top header row (row index 0)
     for col_idx, col in enumerate(table.columns):
@@ -1062,7 +1071,7 @@ def plot_table_memory_per_frame(ax, experiments, sequence_nicknames, title = '',
 
     ax.set_title(title, pad=10)
     #ax.tight_layout()
-   
+
     import os
 
     # Prepare data for LaTeX export
@@ -1086,7 +1095,7 @@ def plot_table_memory_per_frame(ax, experiments, sequence_nicknames, title = '',
     for baseline_name, count in baseline_counts.items():
         label = baseline_labels.get(baseline_name, baseline_name)
         color = baseline_colors.get(label, '#FFFFFF').lstrip('#')
-        color_hex = to_hex(color)  
+        color_hex = to_hex(color)
         header_row_1.append(
             rf"\multicolumn{{{3}}}{{c}}{{\textbf{{\textcolor[HTML]{{{color_hex[1:].upper()}}}{{{baseline_labels[baseline_name]}}}}}}}"
         )
@@ -1103,7 +1112,7 @@ def plot_table_memory_per_frame(ax, experiments, sequence_nicknames, title = '',
     col_format = 'l' + 'c' * ncols
     lines = [
         f"\\begin{{tabular}}{{{col_format}}}",
-        " & ".join(header_row_1) + " \\\\", 
+        " & ".join(header_row_1) + " \\\\",
         " & ".join(header_row_2) + " \\\\ \\midrule"
     ] + body_lines + [
         "\\bottomrule",
@@ -1179,9 +1188,9 @@ def plot_table_memory_total(ax, experiments, sequence_nicknames, title = '', uni
     # Format borders
     for (row, col), cell in table_plot.get_celld().items():
         cell.set_linewidth(1)
-        cell.visible_edges = '' 
+        cell.visible_edges = ''
         if row == 0 or row == 1:
-            cell.visible_edges = 'B' 
+            cell.visible_edges = 'B'
 
     # Apply colors only to the top header row (row index 0)
     for col_idx, col in enumerate(table.columns):
@@ -1216,7 +1225,7 @@ def plot_table_memory_total(ax, experiments, sequence_nicknames, title = '', uni
     for baseline_name, count in baseline_counts.items():
         label = baseline_labels.get(baseline_name, baseline_name)
         color = baseline_colors.get(label, '#FFFFFF').lstrip('#')
-        color_hex = to_hex(color)  
+        color_hex = to_hex(color)
         header_row_1.append(
             rf"\multicolumn{{{3}}}{{c}}{{\textbf{{\textcolor[HTML]{{{color_hex[1:].upper()}}}{{{baseline_labels[baseline_name]}}}}}}}"
         )
@@ -1233,7 +1242,7 @@ def plot_table_memory_total(ax, experiments, sequence_nicknames, title = '', uni
     col_format = 'l' + 'c' * ncols
     lines = [
         f"\\begin{{tabular}}{{{col_format}}}",
-        " & ".join(header_row_1) + " \\\\", 
+        " & ".join(header_row_1) + " \\\\",
         " & ".join(header_row_2) + " \\\\ \\midrule"
     ] + body_lines + [
         "\\bottomrule",
@@ -1249,11 +1258,11 @@ def plot_table_time_total(ax, experiments, label, sequence_nicknames, title = ''
     baseline_colors = get_baseline_colors(experiments)
     baseline_labels = get_baseline_labels(experiments)
     df = combine_exp_log(experiments, label, None, unit_factor)
-        
+
     # Per-sequence mean ± std
     summary = df.groupby(['method_name', 'sequence_name'])['label_per_norm_label'].agg(['mean', 'std']).reset_index()
     summary['LABEL'] = summary.apply(lambda row: f"{row['mean']:.2f} ± {row['std']:.2f}"
-                                    if not pd.isna(row['std']) 
+                                    if not pd.isna(row['std'])
                                     else f"{row['mean']:.2f} ± 0.00", axis=1)
 
     summary['sequence_name'] = summary['sequence_name'].map(sequence_nicknames).fillna(summary['sequence_name'])
@@ -1294,22 +1303,22 @@ def plot_table_time_total(ax, experiments, label, sequence_nicknames, title = ''
 
     if title:
         ax.set_title(title, pad=10)
-    
+
     # Save latex code
     latex_path = os.path.join(figures_path, f"{label}_total_table.tex")
     latex_code = pivot.to_latex(index=False, escape=False, column_format='l' + 'c' * (pivot.shape[1] - 1))
 
-    latex_code = latex_code.replace('±', r'$\pm$') 
-    latex_code = latex_code.replace('_', r'\_') 
-    latex_code = latex_code.replace(r'\bottomrule', '') 
-    latex_code = latex_code.replace(r'\toprule', '') 
-    latex_code = latex_code.replace('Overall', r'\textbf{Overall}') 
-    latex_code = latex_code.replace('Sequence', '') 
+    latex_code = latex_code.replace('±', r'$\pm$')
+    latex_code = latex_code.replace('_', r'\_')
+    latex_code = latex_code.replace(r'\bottomrule', '')
+    latex_code = latex_code.replace(r'\toprule', '')
+    latex_code = latex_code.replace('Overall', r'\textbf{Overall}')
+    latex_code = latex_code.replace('Sequence', '')
 
     for exp_name, _ in experiments.items():
-        baseline = get_baseline(experiments[exp_name].module)   
+        baseline = get_baseline(experiments[exp_name].module)
         baseline_name = experiments[exp_name].module
-        color_hex = to_hex(baseline.color)  
+        color_hex = to_hex(baseline.color)
         latex_col = rf'\textbf{{\textcolor[HTML]{{{color_hex[1:].upper()}}}{{{baseline_labels[baseline_name]}}}}}'
         latex_code = latex_code.replace(baseline_labels[baseline_name], latex_col)
 
@@ -1333,7 +1342,7 @@ def plot_table_time_per_frame(ax, experiments, label, norm_label, sequence_nickn
     # Per-sequence mean
     summary = df.groupby(['method_name', 'sequence_name'])['label_per_norm_label'].agg(['mean']).reset_index()
     summary['LABEL'] = summary.apply(lambda row: f"{row['mean']:.2f}", axis=1)
-        
+
     summary['sequence_name'] = summary['sequence_name'].map(sequence_nicknames).fillna(summary['sequence_name'])
     pivot = summary.pivot(index='sequence_name', columns='method_name', values='LABEL').fillna('-')
     pivot = pivot.reset_index()
@@ -1342,14 +1351,14 @@ def plot_table_time_per_frame(ax, experiments, label, norm_label, sequence_nickn
     # Overall mean ± std per method
     overall = df.groupby('method_name')['label_per_norm_label'].agg(['mean', 'std']).reset_index()
     overall['LABEL'] = overall.apply(lambda row: f"{row['mean']:.2f} ± {row['std']:.2f}"
-                                     if not pd.isna(row['std']) 
+                                     if not pd.isna(row['std'])
                                     else f"{row['mean']:.2f} ± 0.00", axis=1)
     overall_row = {'Sequence': 'Overall'}
     overall_row.update(dict(zip(overall['method_name'], overall['LABEL'])))
     pivot = pd.concat([pivot, pd.DataFrame([overall_row])], ignore_index=True)
 
     pivot = pivot.rename(columns=baseline_labels)
-    
+
     # Plot the visual table
     ax.axis('off')
     table = ax.table(cellText=pivot.values, colLabels=pivot.columns, loc='center', cellLoc='center')
@@ -1382,22 +1391,22 @@ def plot_table_time_per_frame(ax, experiments, label, norm_label, sequence_nickn
     table =  apply_colors([0, len(pivot)], table, baseline_colors)
     if title:
         ax.set_title(title, pad=10)
-    
+
     # Save latex code
     latex_path = os.path.join(figures_path, f"{label}_{norm_label}_table.tex")
     latex_code = pivot.to_latex(index=False, escape=False, column_format='l' + 'c' * (pivot.shape[1] - 1))
 
-    latex_code = latex_code.replace('±', r'$\pm$') 
-    latex_code = latex_code.replace('_', r'\_') 
-    latex_code = latex_code.replace(r'\bottomrule', '') 
-    latex_code = latex_code.replace(r'\toprule', '') 
-    latex_code = latex_code.replace('Overall', r'\textbf{Overall}') 
-    latex_code = latex_code.replace('Sequence', '') 
+    latex_code = latex_code.replace('±', r'$\pm$')
+    latex_code = latex_code.replace('_', r'\_')
+    latex_code = latex_code.replace(r'\bottomrule', '')
+    latex_code = latex_code.replace(r'\toprule', '')
+    latex_code = latex_code.replace('Overall', r'\textbf{Overall}')
+    latex_code = latex_code.replace('Sequence', '')
 
     for exp_name, _ in experiments.items():
-        baseline = get_baseline(experiments[exp_name].module)   
+        baseline = get_baseline(experiments[exp_name].module)
         baseline_name = experiments[exp_name].module
-        color_hex = to_hex(baseline.color)  
+        color_hex = to_hex(baseline.color)
         latex_col = rf'\textbf{{\textcolor[HTML]{{{color_hex[1:].upper()}}}{{{baseline_labels[baseline_name]}}}}}'
         latex_code = latex_code.replace(baseline_labels[baseline_name], latex_col)
 
@@ -1414,41 +1423,41 @@ def plot_table_time_per_frame(ax, experiments, label, norm_label, sequence_nickn
 
 def running_time(figures_path, experiments, sequence_nicknames):
     fig, axs = plt.subplots(2, 1, figsize=(7, 6))
-    plot_table_time_per_frame(axs[0], experiments, 'TIME', 'num_frames', title='Processing Time (ms / frame)', unit_factor=1e3, 
+    plot_table_time_per_frame(axs[0], experiments, 'TIME', 'num_frames', title='Processing Time (ms / frame)', unit_factor=1e3,
                figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    plot_table_time_total(axs[1], experiments, 'TIME', title='Total Processing Time (s)', 
+    plot_table_time_total(axs[1], experiments, 'TIME', title='Total Processing Time (s)',
                figures_path=figures_path, sequence_nicknames= sequence_nicknames)
     plt.tight_layout()
     plt.show()
     #table = axs[0].table(cellText=pivot.values, colLabels=pivot.columns, loc='center', cellLoc='center')
     ...
-    
+
     #plot_table(experiments, 'TIME','num_frames')
 
 def plot_memory(figures_path, experiments, sequence_nicknames):
     fig, axs = plt.subplots(2, 1, figsize=(3 + 2*len(experiments), 6))
     #axs = axs.flatten()
 
-    plot_table_memory_per_frame(axs[0], experiments, title='GPU Memory (MB / frame)', unit_factor=1e3, 
+    plot_table_memory_per_frame(axs[0], experiments, title='GPU Memory (MB / frame)', unit_factor=1e3,
                figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    plot_table_memory_total(axs[1], experiments, title='GPU Memory (GB)', unit_factor=1e0, 
+    plot_table_memory_total(axs[1], experiments, title='GPU Memory (GB)', unit_factor=1e0,
                figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    # plot_table(axs[1], experiments, 'RAM', 'num_frames', title='RAM Memory (MB / frame)', unit_factor=1e3, 
+    # plot_table(axs[1], experiments, 'RAM', 'num_frames', title='RAM Memory (MB / frame)', unit_factor=1e3,
     #            figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    # plot_table(axs[2], experiments, 'SWAP', 'num_frames', title='SWAP Memory (MB / frame)', unit_factor=1e3, 
+    # plot_table(axs[2], experiments, 'SWAP', 'num_frames', title='SWAP Memory (MB / frame)', unit_factor=1e3,
     #            figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    # plot_table(axs[3], experiments, 'GPU', None, title='Total GPU Memory (GB)', 
+    # plot_table(axs[3], experiments, 'GPU', None, title='Total GPU Memory (GB)',
     #            figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    # plot_table(axs[4], experiments, 'RAM', None, title='Total RAM Memory (GB)', 
+    # plot_table(axs[4], experiments, 'RAM', None, title='Total RAM Memory (GB)',
     #            figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    # plot_table(axs[5], experiments, 'SWAP', None, title='Total SWAP Memory (GB)', 
+    # plot_table(axs[5], experiments, 'SWAP', None, title='Total SWAP Memory (GB)',
     #            figures_path=figures_path, sequence_nicknames= sequence_nicknames)
-    
+
     plt.tight_layout()
     plt.show()
     #table = axs[0].table(cellText=pivot.values, colLabels=pivot.columns, loc='center', cellLoc='center')
     ...
-    
+
     #plot_table(experiments, 'TIME','num_frames')
 
 
