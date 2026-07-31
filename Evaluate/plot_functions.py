@@ -17,6 +17,7 @@ from path_constants import VSLAM_LAB_EVALUATION_FOLDER, VSLAMLAB_EVALUATION
 from Baselines.get_baseline import get_baseline
 from Datasets.get_dataset import get_dataset
 from utilities import read_csv
+from Evaluate.plot_utilities import get_experiment_colors, style_axis, get_legend_handles, style_figure
 
 import matplotlib.ticker as ticker
 from matplotlib.transforms import ScaledTranslation
@@ -51,42 +52,6 @@ logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
 def robustMedian(arr):
     return np.nanmedian(arr) if np.isfinite(arr).any() else np.nan
-
-def _shade_color(rgb, factor):
-    """Tint (factor > 0, toward white) or shade (factor < 0, toward black) an RGB color."""
-    r, g, b = rgb
-    if factor >= 0:
-        r, g, b = (r + (1 - r) * factor, g + (1 - g) * factor, b + (1 - b) * factor)
-    else:
-        r, g, b = (r * (1 + factor), g * (1 + factor), b * (1 + factor))
-    return (min(max(r, 0.0), 1.0), min(max(g, 0.0), 1.0), min(max(b, 0.0), 1.0))
-
-def get_experiment_colors(experiments, exp_names=None):
-    """
-    Maps each experiment name to a color derived from its baseline's color, spreading
-    experiments that share the same underlying baseline into distinguishable shades
-    (darker to brighter) instead of reusing the exact same color for all of them.
-    """
-    if exp_names is None:
-        exp_names = list(experiments.keys())
-
-    groups = {}
-    baseline_by_exp = {}
-    for exp_name in exp_names:
-        baseline_by_exp[exp_name] = get_baseline(experiments[exp_name].module)
-        groups.setdefault(experiments[exp_name].module, []).append(exp_name)
-
-    exp_colors = {}
-    for module, names in groups.items():
-        base_rgb = mcolors.to_rgb(baseline_by_exp[names[0]].color)
-        if len(names) == 1:
-            exp_colors[names[0]] = base_rgb
-            continue
-        shades = np.linspace(-0.4, 0.4, len(names))
-        for exp_name, factor in zip(names, shades):
-            exp_colors[exp_name] = _shade_color(base_rgb, factor)
-
-    return exp_colors
 
 def plot_trajectories(dataset_sequences, exp_names,
                       dataset_nicknames, experiments,
@@ -582,11 +547,11 @@ def plot_cum_error(values, dataset_sequences, exp_names, metric_name, comparison
 
     num_cols = min(5, num_fractions)
     num_rows = math.ceil(num_fractions / num_cols)
-    fig, axs = plt.subplots(num_rows, num_cols, figsize=(8 * num_cols, 6 * num_rows))
+    fig, axs = plt.subplots(num_rows, num_cols, figsize=(4.5 * num_cols, 4 * num_rows))
     axs = np.atleast_1d(axs).flatten()
 
     exp_colors = get_experiment_colors(experiments, exp_names)
-    legend_handles = [Patch(color=exp_colors[experiment_name], label=experiment_name) for experiment_name in exp_names]
+    legend_handles = get_legend_handles(exp_colors, exp_names)
 
     sorted_errors = {}
     for experiment_name in exp_names:
@@ -609,7 +574,9 @@ def plot_cum_error(values, dataset_sequences, exp_names, metric_name, comparison
                 count_smaller = bisect_left(subset, 1.00001 * data_i)
                 cumulated_vector.append(count_smaller)
 
-            ax.plot(subset, cumulated_vector, marker='o', linestyle='-', color=color)
+            # Step function: cumulative count only changes at each observed error.
+            ax.step(subset, cumulated_vector, where='post', linewidth=2, color=color,
+                    solid_capstyle='round', zorder=3)
 
             if subset:
                 max_x = max(max_x, max(subset))
@@ -620,21 +587,17 @@ def plot_cum_error(values, dataset_sequences, exp_names, metric_name, comparison
 
         ax.set_xlim(0, max_x * 1.1 if max_x > 0 else 1)
         ax.set_ylim(0, max_y * 1.1 if max_y > 0 else 1)
-        ax.set_xlabel(metric_name.upper())
-        ax.set_ylabel('Cumulative count')
-        ax.set_title(f"Smallest {int(fraction * 100)}% of errors")
-        ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        style_axis(ax, xlabel=metric_name.upper(), ylabel='Cumulative count',
+                   title=f"Smallest {round(fraction * 100)}% of errors")
 
     for ax in axs[num_fractions:]:
         ax.axis('off')
 
-    fig.legend(handles=legend_handles, loc='lower center', ncol=len(legend_handles))
-    plt.tight_layout(rect=[0, 0.08, 1, 1])
+    style_figure(fig, f"Cumulative {metric_name.upper()} Error", legend_handles)
+    plt.tight_layout(rect=[0, 0.08, 1, 0.95])
 
     plot_name = os.path.join(comparison_path, f"{metric_name}_cummulated_error.pdf")
-    plt.savefig(plot_name, format='pdf')
+    plt.savefig(plot_name, format='pdf', bbox_inches='tight')
     plt.show(block=False)
 
 def create_and_show_canvas(dataset_sequences, VSLAMLAB_BENCHMARK, comparison_path, padding=10):
