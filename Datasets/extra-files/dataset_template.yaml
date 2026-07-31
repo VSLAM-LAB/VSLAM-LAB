@@ -15,45 +15,28 @@ modes: ['mono', 'rgbd']
 
 # Closed list (SKILL.md step 1) - every value must already appear in the Camera Models column of
 # Datasets/extra-files/dataset_table.md (same regenerate-first, read-live rule as modes above -
-# as of this writing: equid4, pinhole, radtan4, radtan5, unknown). The value describes the actual
-# calibration create_calibration_yaml writes, not just "this is a perspective camera":
-#   pinhole             -> zero distortion - focal_length/principal_point only, no distortion_type/
-#                          distortion_coefficients fields at all. Model: dataset_eth.yaml.
-#   radtan4/radtan5/    -> pinhole + that distortion model's real, trusted distortion_coefficients.
-#   equid4                 Model: dataset_eiffel-tower.yaml (radtan4).
-#   unknown             -> no verified calibration exists at all - zero focal_length/
-#                          principal_point, no distortion fields. Model: dataset_sweetcorals.yaml's
-#                          non-pinhole sequences.
-# Get this wrong and dataset_table.md's Camera Models column (and anything relying on it) silently
-# misreports the calibration's actual trustworthiness - dataset_sesoko.yaml once declared
-# cam_models: ['pinhole'] while its create_calibration_yaml wrote real radtan4 distortion
-# coefficients, caught and fixed only in a later cleanup pass.
+# as of this writing: equid4, pinhole, radtan4, radtan5, unknown). The value must describe what
+# create_calibration_yaml actually writes, not just "this is a perspective camera" - the
+# pinhole/radtan/unknown mapping, per-value Model: citations, and gotchas (including why getting
+# this wrong is dangerous) are canonical in dataset_template.py's create_calibration_yaml comment,
+# not repeated here.
 cam_models: ['pinhole']
 
 # The field below is for the "website"/"google-drive"/"api" download patterns (SKILL.md step 1) -
-# replace it entirely with whichever field matches this dataset's actual source:
-#   website      -> url_download_root: a root URL + filename pattern serving a .zip/.tar/.7z. This
-#                   is also the right field for a *pre-resolved* drive.usercontent.google.com
-#                   direct-download URL - it downloads exactly like any other website URL (plain
-#                   utilities.downloadFile, no gdown), even though it happens to be hosted on
-#                   Google Drive - see dataset_tartanair.yaml. Can also be a dict instead of a
-#                   plain string, keyed by whichever granularity actually applies: by group prefix
-#                   when several sequences share one of a few group-level archives - see
-#                   dataset_euroc.yaml (MH_/V1_/V2_ prefixes, each mapping to that group's archive
-#                   URL); by full sequence_name when every sequence has its own genuinely unrelated
-#                   URL and there's no sharing at all (i.e. the group-prefix case with group size 1).
+# replace it entirely with whichever field matches this dataset's actual source. Field name/shape
+# per pattern (canonical here - the fetch mechanism, gotchas, and Model: citations are canonical in
+# dataset_template.py's download_sequence_data comment instead, not repeated here):
+#   website      -> url_download_root: a root URL + filename pattern serving a .zip/.tar/.7z, or a
+#                   dict keyed by group prefix when several sequences share one of a few group-level
+#                   archives (see dataset_euroc.yaml's MH_/V1_/V2_ prefixes), or by full
+#                   sequence_name when there's no sharing at all. Also the right field for a
+#                   *pre-resolved* drive.usercontent.google.com direct-download URL (see
+#                   dataset_tartanair.yaml) - don't confuse with the google-drive case below.
 #   hugging-face -> hf_repo_id: "org/name" (see dataset_soneva.yaml/dataset_sweetcorals.yaml)
-#   google-drive -> google_drive_link: a real drive.google.com share link. Drive shows a
-#                   virus-scan interstitial for most files this size that a plain download can't
-#                   click through - download_sequence_data must use gdown.download/
-#                   gdown.download_folder against this field instead, see
-#                   dataset_hilti2026.yaml/dataset_drunkards.yaml. Don't confuse this with the
-#                   pre-resolved-link case above - if in doubt, try the URL with a plain HTTP GET
-#                   first; if that works, it's website (url_download_root), not this.
-#   api          -> url_download_root: the API's base URL (same field as website, reused since it
-#                   genuinely is one) - see api_token below if the API needs auth. Unlike website,
-#                   download_sequence_data fetches via paginated JSON requests, not
-#                   downloadFile/decompressFile - see dataset_sesoko.yaml/dataset_squidle.py.
+#   google-drive -> google_drive_link: a real drive.google.com share link - if a plain HTTP GET
+#                   works on the URL instead, it's website (url_download_root), not this.
+#   api          -> url_download_root: the API's base URL (same field as website) - see api_token
+#                   below if the API needs auth.
 #   local        -> no field here; affected sequences carry sequence_location: local instead
 #                   (a list with one entry per sequence_names, same order, if only some
 #                   sequences are local; a single scalar if all are - see

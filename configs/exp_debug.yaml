@@ -139,5 +139,8 @@
 exp_debug_colmap:
   Config: config_debug.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, rgb_idx: [9000, 10000], rgb_step: 3, rgb_max: 100}
+  #Parameters: {verbose: 1, rgb_idx: [0, 2000], rgb_step: 10, rgb_max: 300, 'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+  #Parameters: {verbose: 1, rgb_step: 10, rgb_max: 300, 'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+  Parameters: {verbose: 1, rgb_vpr: 350, 'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+  #Parameters: {verbose: 1}
   Module: colmap

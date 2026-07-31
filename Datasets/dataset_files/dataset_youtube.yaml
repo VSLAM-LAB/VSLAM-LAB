@@ -2,27 +2,64 @@ dataset_name: youtube
 
 rgb_hz: 30.0
 modes: ['mono']
-cam_models: ['pinhole', 'radtan4']
+cam_models: ['radtan4', 'unknown']
 target_resolution: [640, 480]
 
 url_download_sequences:
   fpv-drone-iceland-00: "https://youtu.be/kcfs1-ryKWE"
   fpv-drone-iceland-01: "https://youtu.be/kcfs1-ryKWE"
+  centum-cellas: "https://www.youtube.com/watch?v=V0bc6dg6OL4"
+  acinipo: "https://youtu.be/22Xkid5kqgo"
 
 sequence_names:
   - fpv-drone-iceland-00
   - fpv-drone-iceland-01
+  - centum-cellas
+  - acinipo
 
+# [ti, tf] seconds to extract from each sequence's video. Sparse dict, keyed by sequence name -
+# any sequence not listed here defaults to [0, None] (the whole video).
 time_windows:
-  - [2, 14]
-  - [24, 33]
+  fpv-drone-iceland-00: [2, 14]
+  fpv-drone-iceland-01: [24, 33]
+  centum-cellas: [900, 1100]
+  acinipo: [206, 300]
+
+# [top, bottom, left, right] pixels to trim from each edge, before target_resolution resizing.
+# Only sequences needing a crop are listed here.
+crop_settings:
+  centum-cellas: [0, 0, 0, 1340]  # trims ~30% off the right (source is 3840x2160)
+  acinipo: [0, 0, 0, 1340]
+
+# Sparse dict, keyed by sequence name - only sequences with real, trusted calibration are listed.
+# Any sequence not listed here defaults to cam_model: unknown with zeroed focal_length/
+# principal_point and no distortion fields (see SKILL.md's cam_models note).
+calibration_parameters:
+  fpv-drone-iceland-00:
+    cam_model: radtan4
+    focal_length: [231.7, 229.7]
+    principal_point: [369.5, 207.5]
+    distortion_coefficients: [-0.004616, 0.000414, 0.001282, 0.001458]
+  fpv-drone-iceland-01:
+    cam_model: radtan4
+    focal_length: [231.7, 229.7]
+    principal_point: [369.5, 207.5]
+    distortion_coefficients: [-0.004616, 0.000414, 0.001282, 0.001458]
+  acinipo:
+    cam_model: radtan4
+    focal_length: [672.38888467636275, 664.6804732859847]
+    principal_point: [459.59993879844711, 248.50345664083795]
+    distortion_coefficients: [0.079361873488694584, -0.074088873413200543, -0.00046769674532058387, 0.00026470652066722182]
 
 about:
-  license: License
+  license: Standard YouTube License
   summary: Youtube videos of VSLAM sequences.
-  description: This dataset contains a collection of Youtube videos that can be used for VSLAM
+  homepage: https://youtu.be/kcfs1-ryKWE
+  authors:
+    - Unknown uploader
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: None
   email: alejandro.fontan@qut.edu.au
   date: 2026-04-11

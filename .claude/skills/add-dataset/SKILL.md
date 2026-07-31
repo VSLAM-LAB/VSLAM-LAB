@@ -1,200 +1,274 @@
 ---
 name: add-dataset
-description: Add a new dataset to VSLAM-LAB. Use when the user asks to add/integrate a new benchmark dataset, wire up a dataset for download/evaluation, or asks "how do I add a dataset". Requires a dataset name and a source location.
+description: Add a new dataset to VSLAM-LAB — a benchmark dataset (local or remote), a data-capture tool, a set of videos, a set of images, or an API-backed collection. Use when the user asks to add/integrate a new dataset or tool, integrate their own data (e.g. "integrate my data", "I want to benchmark on my own images/video"), wire up a dataset for download/evaluation, or asks "how do I add a dataset". Requires a dataset name and a source location to start; the rest of the dataset's fields are gathered interactively (step 1).
 ---
 
-Usage: `/add-dataset <name> <source>` — e.g. `/add-dataset soneva https://example.com/soneva-dataset`, or `/add-dataset soneva /mnt/data/soneva` for a local path. `<source>` maps to one of six download labels: `website` → URL, `hugging-face` → repo URL or `org/name`, `google-drive` → shared link, `local` → filesystem path, `api` → a queryable REST/JSON API endpoint, `other` → anything else (ask the user).
+## Usage
 
-Both `<name>` and `<source>` are required — parse them from `$ARGUMENTS` (or from however the user phrased the request, if invoked without the slash command). If either is missing or ambiguous, stop and ask the user rather than guessing a dataset name or searching for a source yourself.
+`/add-dataset <name> <source>` — e.g. `/add-dataset soneva https://example.com/soneva-dataset`, or `/add-dataset soneva /mnt/data/soneva` for a local path.
 
-Adding a dataset means creating a `DatasetVSLAMLAB` subclass plus a settings YAML, registering it in `Datasets/get_dataset.py`, adding a smoke-test config/experiment pair under `configs/`, actually running that smoke test end to end, and committing the result. **The skill is not complete until step 9 (the commit) has run.** Steps 1–7 produce files that look correct by inspection; step 8 is what actually proves the dataset works, and it has been skipped in past runs because step 7 (the README row) feels like a natural stopping point — it is not. Do not report the dataset as done, and do not stop, until you have executed step 8's simulation and step 9's commit, in order.
+`<source>` maps to one of these download labels: `website` · `hugging-face` · `google-drive` · `local` · `api` · `other` (anything else — ask the user). Step 1's "From `<source>`" resolution rule (item 2 below) classifies `<source>` against these for real — not restated here.
 
-**Hard constraint — file scope.** The only files this skill may create or modify are:
+Both `<name>` and `<source>` are required. Parse them from `$ARGUMENTS` (or from the request, if invoked without the slash command). If either is missing or ambiguous, stop and ask — don't guess a name or search for a source yourself.
 
-- `Datasets/dataset_files/dataset_<name>.py` — new dataset class, created in step 4.
-- `Datasets/dataset_files/dataset_<name>.yaml` — new dataset settings file, created in step 3.
-- `Datasets/get_dataset.py` — only step 5's two edits (the import line and the `switcher` dict entry), nothing else in the file.
-- `configs/test_config_<name>.yaml` — new smoke-test sequence list, created in step 6.
-- `configs/test_exp_<name>.yaml` — new smoke-test experiment config, created in step 6.
-- `README.md` — only the new row appended to the Datasets table in step 7, nothing else in the file.
-- `Datasets/extra-files/dataset_table.md` — regenerated (never hand-edited) via the script in step 0, since it's generated output.
+## What "done" means
 
-Everything else — `Datasets/DatasetVSLAMLAB.py`, `Datasets/DatasetVSLAMLAB_calibration.py`, `Datasets/DatasetVSLAMLAB_issues.py`, any other dataset's `.py`/`.yaml`, any other `configs/*.yaml` (including a non-`test_`-prefixed `config_<name>.yaml`/`exp_<name>.yaml`, which is a production config outside this skill's scope), the templates in `Datasets/extra-files/`, any part of `README.md` outside the single new table row, etc. — is read-only reference material, even when it would be convenient to tweak (e.g. to add a shared helper, fix something noticed in passing, or relax a base-class check). If something outside this scope genuinely needs to change, stop and flag it to the user instead of editing it directly. This scope covers the repo only. Outside the repo, the one place this skill may touch is `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` (the downloaded benchmark data for this dataset, `<DATASET_FOLDER>` matching what this dataset's YAML/class designate) — freely creating, removing, or recreating files and folders anywhere inside it is expected and fine, that's exactly what steps 6/8's test runs are for. Nothing outside `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` may be touched — not other datasets' folders under `VSLAM-LAB-Benchmark/`, not `VSLAM-LAB-Evaluation/`, nothing else.
+Adding a dataset = a `DatasetVSLAMLAB` subclass + settings YAML, registered in `Datasets/get_dataset.py`, plus a smoke-test config/experiment pair that has actually been **run end to end**, then committed.
 
-The one exception to "create or modify" above is git itself: step 9 stages and commits the files in this list (nothing else) as a single local commit. That's the only git write this skill performs — never `git push`, never amend or rewrite an existing commit, never touch branches.
+**Not done until step 9 (commit) has run.** Steps 1–7 produce files that look correct by inspection; step 8 is what proves the dataset works. In past runs step 8/9 got skipped because step 7 (the README row) feels like a natural stopping point — it isn't.
 
-0. **Refresh the dataset table first.** Run `python3 Datasets/extra-files/generate_dataset_table.py` to regenerate `Datasets/extra-files/dataset_table.md` from the current `Datasets/dataset_files/*.yaml`/`.py` — steps 1 and 2 below both read from it, so it must reflect the repo's current state before anything else.
+## File scope (hard constraint)
+
+The only files this skill may create or modify:
+
+| File | Written in | Notes |
+|---|---|---|
+| `Datasets/dataset_files/dataset_<name>.py` | Step 4 | new dataset class |
+| `Datasets/dataset_files/dataset_<name>.yaml` | Step 3 | new dataset settings |
+| `Datasets/get_dataset.py` | Step 5 | only the import line + `switcher` dict entry — nothing else in the file |
+| `configs/test_config_<name>.yaml` | Step 6 | smoke-test sequence list |
+| `configs/test_exp_<name>.yaml` | Step 6 | smoke-test experiment config |
+| `README.md` | Step 7 | only the new Datasets- or Tools-table row — nothing else in the file |
+| `Datasets/extra-files/dataset_table.md` | Step 0 | regenerated only, never hand-edited |
+
+- Everything else in the repo — base classes, other datasets' files, other `configs/*.yaml`, the templates themselves, the rest of `README.md` — is **read-only reference material**, even when editing it would be convenient. If working through this skill turns up a bug, inconsistency, or improvement outside this scope, don't edit it — find a way to finish the dataset without that change, and file it instead (see the issue exception below).
+- Outside the repo, the only path this skill may touch is `VSLAM-LAB-Benchmark/<DATASET_FOLDER>/` (this dataset's downloaded benchmark data) — freely create/remove/recreate anything inside it, that's what steps 6/8's test runs are for. Nothing else outside the repo.
+- **Git exception**: step 9 stages and commits exactly the files listed above, as one local commit. Never `push`, amend, rewrite, or touch branches.
+- **Issue exception**: an out-of-scope finding gets filed as a GitHub issue, not silently worked around and not left for the user to notice on their own — `gh issue create --label <label> ...` (see CLAUDE.md's Issue Labels for which one fits). Include what was found, where, and how this run worked around it. This is the only other out-of-scope write this skill may perform, alongside step 9's commit — the file itself still never gets edited.
+
+## Workflow
+
+### Step 0 — Refresh the dataset table
+
+Run `python3 Datasets/extra-files/generate_dataset_table.py` to regenerate `Datasets/extra-files/dataset_table.md` from the current `Datasets/dataset_files/*.yaml`/`.py`. Steps 1 and 2 both read from it, so it must reflect current repo state first.
 
 @../../../Datasets/extra-files/dataset_table.md
 
-1. **Gather the required fields, then report them before writing anything.**
+### Step 1 — Gather the required fields, then report them
 
-   - `dataset_name` — lowercase slug reused everywhere: `dataset_<name>.py`/`.yaml`, the class prefix, the `get_dataset.py` switcher key.
-   - `sequence_names` — the list of sequence IDs this dataset ships. Keep each name descriptive but simple — drop redundant prefixes shared by every sequence (e.g. a repeated dataset/location prefix). For `soneva`, `hb_20250710` would have been simpler than `maldives_soneva_hb_20250710`.
-   - `cam_models` — closed list; every value must already appear in the **Camera Models** column of `Datasets/extra-files/dataset_table.md` (currently `pinhole`, `radtan4`, `radtan5`, `equid4`, `unknown` — read live, the list can grow). The value must describe the actual calibration `create_calibration_yaml` writes, not just "this is a perspective camera": `pinhole` means *zero* distortion (no `distortion_type`/`distortion_coefficients` at all); `radtan4`/`radtan5`/`equid4` mean pinhole *plus* that distortion model's real, trusted coefficients; `unknown` means no verified calibration exists at all (zeroed `focal_length`/`principal_point`, no distortion fields). Getting this wrong silently misreports the calibration's trustworthiness in `dataset_table.md` — `dataset_sesoko.yaml` once declared `pinhole` while writing real `radtan4` coefficients, caught only in a later cleanup pass.
-   - `modes` — closed list; every value must already appear in the **Modes** column of `Datasets/extra-files/dataset_table.md` (currently `mono`, `mono-vi`, `rgbd`, `rgbd-vi`, `stereo`, `stereo-vi`). Include the native mode(s) *and* every mode derivable by dropping a channel:
-     - `stereo`/`rgbd` → `mono` (one image of the pair / drop depth) — `stereo` and `rgbd` don't reduce to each other.
-     - `-vi` → non-`-vi` (drop the IMU stream) — one-way only, never invent IMU data that isn't in the source.
-     - e.g. native `stereo-vi` → `{mono, mono-vi, stereo, stereo-vi}`; `rgbd-vi` → `{mono, mono-vi, rgbd, rgbd-vi}`; plain `stereo` → `{mono, stereo}`; plain `mono` → `{mono}`. Each derived mode still needs its own implementation (e.g. a `mono` path that reads only the LHS image).
-   - `resize` — true/false; true if this dataset's source images are bigger than 640×480 (by pixel area) and need downscaling, false if they're already at or below that. This only decides whether to *populate* the YAML's `target_resolution: [640, 480]` field by default (see `dataset_sweetcorals.py`/`.yaml`) — the implementation itself is always the same, uniform code (see step 4c): `create_rgb_folder` checks `self.target_resolution` at runtime (`None` if the YAML field is absent) and downscales to match its pixel area while preserving aspect ratio when set, or copies the raw image unresized when not. This means a user (now or later) can delete `target_resolution` from the YAML to fall back to original-resolution images without touching any code — build the class to support that from the start, don't hardcode a resize-or-don't branch based on the step-1 answer.
-   - `groundtruth_available` — true/false; if false, `create_groundtruth_csv` has nothing to write.
-   - `calibration_type` — `global` (same values for every sequence, e.g. `dataset_7scenes.py`'s fixed `CAMERA_PARAMS`) or `per-sequence` (locate and parse each sequence's own calibration file, e.g. `dataset_eth.py`/`dataset_kitti.py`/`dataset_euroc.py`) — determines whether `create_calibration_yaml` reuses one value set or parses per sequence.
-   - `download` — one of `website`/`hugging-face`/`google-drive`/`local`/`api`, resolved from `<source>` per step (b) below.
-   - `download_issues` — any known constraint blocking *automatic* download apparent from `<source>` (`complete_dataset`/`api_token`/`huggingface_token`/`license_required`, see step 4); leave blank if none.
+Resolve each field in this order — don't skip ahead:
+1. **From the prompt** — whatever the user already gave beyond `<name>`/`<source>` (modes, sequence names, etc.).
+2. **From `<source>`** — inspect it to fill whatever the prompt didn't; this also reveals which of the five download patterns fits (see `download_sequence_data`'s comment in `Datasets/extra-files/dataset_template.py` for the per-pattern breakdown). A dataset can mix patterns per sequence. Always pin down a real pattern — `other` isn't one to implement against.
+3. **Ask the user** — for anything still unresolved. Don't fill gaps with a guess or plausible default.
 
-   If the prompt, `<source>`, or the user names a mode or camera model outside the current `dataset_table.md` set, don't add it as new — flag it in the Notes column of the table below and ask the user how to proceed (map to the closest existing value, or treat as a genuinely new category worth discussing separately).
+| Field | Meaning |
+|---|---|
+| `dataset_name` | lowercase slug, reused everywhere: file names, class prefix, switcher key |
+| `sequence_names` | sequence IDs shipped; drop redundant shared prefixes (e.g. `hb_20250710`, not `maldives_soneva_hb_20250710`) |
+| `cam_models` | closed list — see below |
+| `modes` | closed list — see below |
+| `resize` | true if source images are bigger than 640×480 by pixel area, else false — see below |
+| `groundtruth_available` | true/false; false → `create_groundtruth_csv` writes header only |
+| `calibration_type` | `global` (same values every sequence) or `per-sequence` (parsed per sequence) |
+| `download` | one of `website`/`hugging-face`/`google-drive`/`local`/`api` |
+| `download_issues` | known constraint blocking *automatic* download — `complete_dataset`/`api_token`/`huggingface_token`/`license_required`, or blank |
 
-   Resolve each field in this order, don't skip ahead:
-   a. **From the prompt** — whatever the user already gave in `$ARGUMENTS`/the request beyond just `<name>` and `<source>` (e.g. they may state modes or sequence names directly).
-   b. **From `<source>`** — inspect it to fill in whatever the prompt didn't. Visiting/browsing `<source>` also tells you which download pattern (`website`/`hugging-face`/`google-drive`/`local`/`api`) this dataset fits — see the `__init__`/`download_sequence_data` comments in `Datasets/extra-files/dataset_template.py` for the exact YAML field and model file to follow per pattern. A dataset can mix patterns per sequence. Always pin down one of these five real patterns; `other` isn't one to implement against. `api` (a queryable REST/JSON endpoint rather than an archive/repo/share-link download) is a real but less common pattern — Model: `dataset_squidle.py`/`dataset_sesoko.yaml`.
-   c. **Ask the user** — for any field still unresolved after (a) and (b), ask directly. Keep asking until every field has a value; don't fill gaps with a guess or a plausible-looking default.
+**`cam_models`** — closed list, must already appear in `dataset_table.md`'s Camera Models column (read live: currently `pinhole`, `radtan4`, `radtan5`, `equid4`, `unknown`). Each value must describe what `create_calibration_yaml` actually writes, not just "this is a perspective camera" — the exact mapping, per-value `Model:` citations, and detailed gotchas are defined once in `dataset_template.py`'s `create_calibration_yaml` comment (live-included in step 4 — read it now rather than waiting, the same way step 1's "From `<source>`" resolution rule above sends you into the template early for the download pattern). Not restated here.
 
-   **Before moving to step 2**, print a table of all nine fields with how each was resolved, then a notes line for anything worth flagging — most importantly any inconsistency between what the user said and what `<source>` actually shows (e.g. user said mono-only but the data also has depth frames; user gave 12 sequence names but the source lists 15). `download` and `download_issues` feed step 2's cross-check, so resolve them here even though they're not written to the YAML as single fields:
+**`modes`** — closed list, must already appear in `dataset_table.md`'s Modes column (read live: currently `mono`, `mono-vi`, `rgbd`, `rgbd-vi`, `stereo`, `stereo-vi`). Include the native mode(s) *and* every mode derivable by dropping a channel (`stereo`/`rgbd` → `mono`, `-vi` → non-`-vi`) — the exact derivation rule and examples are defined once in `dataset_template.yaml`'s `modes` comment (live-included in step 3). Not restated here.
 
-   | Field | Value | Source | Notes |
-   |---|---|---|---|
-   | dataset_name | ... | prompt / url / asked | |
-   | sequence_names | ... | prompt / url / asked | |
-   | cam_models | ... | prompt / url / asked | |
-   | modes | ... | prompt / url / asked | |
-   | resize | ... | prompt / url / asked | |
-   | groundtruth_available | ... | prompt / url / asked | |
-   | calibration_type | ... | prompt / url / asked | |
-   | download | ... | prompt / url / asked | |
-   | download_issues | ... | prompt / url / asked | |
+**`resize`** — true if source images are bigger than 640×480 by pixel area, else false. Only decides the YAML's initial `target_resolution` value; the field is safely removable later with no code change (`create_rgb_folder`'s uniform runtime branch on `self.target_resolution` — step 4c below). Full detail: `dataset_template.yaml`'s `target_resolution` comment.
 
-   If a note flags an unresolved inconsistency, stop and confirm with the user before proceeding — don't silently pick one side of a contradiction.
+If the prompt/source/user names a mode or camera model outside the current closed lists, don't add it as new — flag it in step 2's Notes and ask the user how to proceed.
 
-2. **Cross-check against similar existing datasets, and confirm the match with the user.** Using `Datasets/extra-files/dataset_table.md` (regenerated in step 0) — a table of every existing dataset's `Camera Models`, `Modes`, `Download` source, and `Download Issues` — search for datasets sharing at least one label with the step-1 table (same camera model, same mode, same download source, or same download issue) and show the user a comparison table of just those overlaps, e.g.:
+**Before moving to step 2**, print this table plus a Notes line for anything worth flagging (most importantly any inconsistency between what the user said and what `<source>` shows — e.g. user said mono-only but the source also has depth frames):
 
-   | Dataset | Shared Camera Model | Shared Modes | Shared Download | Shared Download Issues |
-   |---|---|---|---|---|
-   | kitti | pinhole | mono | website | complete_dataset |
-   | ariel | | mono-vi stereo-vi | hugging-face | |
+| Field | Value | Source | Notes |
+|---|---|---|---|
+| dataset_name | | prompt / url / asked | |
+| sequence_names | | prompt / url / asked | |
+| cam_models | | prompt / url / asked | |
+| modes | | prompt / url / asked | |
+| resize | | prompt / url / asked | |
+| groundtruth_available | | prompt / url / asked | |
+| calibration_type | | prompt / url / asked | |
+| download | | prompt / url / asked | |
+| download_issues | | prompt / url / asked | |
 
-   **Ask the user if this list looks right** (anything obviously missing or wrongly matched?) before going further — don't silently proceed on a bad match.
+If a note flags an unresolved inconsistency, stop and confirm with the user before proceeding.
 
-   Once confirmed, read the `.py` and `.yaml` files of those matched datasets to learn the concrete implementation and stay consistent with it, rather than inventing a new shape. Which function(s) to study depends on *which* label matched, since each label maps to a different part of the implementation:
-   - Shared **Camera Model** → study `create_calibration_yaml` (how intrinsics/distortion for that model are structured and written).
-   - Shared **Modes** → study `create_rgb_folder`/`create_rgb_csv`/`create_groundtruth_csv` and the folder layout (`rgb_0`/`rgb_1`, `imu_0.csv`, etc.) for that mode.
-   - Shared **Download** source → study `__init__` and `download_sequence_data`, and the corresponding YAML field (`hf_repo_id`, `url_download_root`, `sequence_location`).
-   - Shared **Download Issues** → study `get_download_issues` and the exact `_get_dataset_issue(issue_id=...)` call.
+### Step 2 — Cross-check against similar datasets, confirm with the user
 
-   A dataset can match on more than one label (e.g. same camera model *and* same download source) — in that case it's worth studying more closely than a single-label match.
+Using `Datasets/extra-files/dataset_table.md`, find datasets sharing at least one label with the step-1 table (camera model, mode, download source, or download issue) and show the user a comparison table of just the overlaps:
 
-   **Important: when several matched datasets are candidates to study for the same label, trust them in this order** (check each candidate's `vslamlab_maintainer`/`about.authors` in its `.yaml`):
-   1. Datasets whose `vslamlab_maintainer.name` is Alejandro Fontan.
-   2. Datasets whose `vslamlab_maintainer.name` also appears in that same dataset's `about.authors` (the VSLAM-LAB integrator was one of the dataset's original creators, so the integration reflects first-hand knowledge of the source).
-   3. Any other dataset.
-   Prefer the highest-priority candidate available; only fall back to a lower tier if nothing higher matches the label in question.
+| Dataset | Shared Camera Model | Shared Modes | Shared Download | Shared Download Issues |
+|---|---|---|---|---|
+| kitti | pinhole | mono | website | complete_dataset |
+| ariel | | mono-vi stereo-vi | hugging-face | |
 
-3. **Write the dataset YAML.** Copy `Datasets/extra-files/dataset_template.yaml` to `Datasets/dataset_files/dataset_<name>.yaml` and populate it directly from the step-1 table — this produces the real, final YAML, not a placeholder:
-   - `dataset_name`, `sequence_names` (the confirmed list).
-   - `rgb_hz` — the RGB capture rate in Hz; required by the base class (`cfg["rgb_hz"]`, no default) even though it isn't one of the step-1 fields — get it from `<source>` (spec sheet, README, or metadata file) or ask.
-   - `cam_models`, `modes` (both as YAML lists, e.g. `['pinhole']`, `['mono', 'stereo']`).
-   - The YAML field for the `download` pattern resolved in step 1: `url_download_root` for `website` — this also covers a *pre-resolved* `drive.usercontent.google.com` direct-download URL, which downloads exactly like any other website URL (no `gdown`) even though it's hosted on Google Drive, see `dataset_tartanair.yaml`; `google_drive_link` for a real `drive.google.com` share link that needs `gdown` to get past Drive's virus-scan interstitial, see `dataset_hilti2026.yaml`/`dataset_drunkards.yaml` — don't confuse the two, if the URL works with a plain HTTP GET it's the `website` case, not this one; `hf_repo_id` for `hugging-face`; `sequence_location: local` per affected sequence for `local` (see `dataset_strayscanner.yaml`); for `api`, `url_download_root` again (the API's base URL, reused since it genuinely is a URL) plus an `api_token` field if the API needs auth (see `dataset_sesoko.yaml`/`dataset_madmax.yaml`) — the difference from `website` is entirely in `download_sequence_data`'s fetch mechanism (paginated JSON requests, not `downloadFile`/`decompressFile`), not the YAML shape. `url_download_root` can also be a dict keyed by group prefix (not full `sequence_name`) when sequences share one of several group-level archives rather than one shared root or one URL per sequence — see `dataset_euroc.yaml` (`MH_`/`V1_`/`V2_` prefixes).
-   - If `resize` (step 1) is true, add `target_resolution: [640, 480]` — see `dataset_sweetcorals.yaml`. Omit it entirely if `resize` is false. Either way this is just the *initial* value: the field is meant to be safely removable later (falls back to original-resolution images, no code change needed) — see step 4c.
-   - Any mode-specific fields a sibling YAML of the same modes/source-pattern carries (e.g. `depth_factor` for `rgbd`, `url_download_root_gt` when groundtruth ships as a separate archive like `dataset_kitti.yaml`) — check the closest model file from step 1 for what it reads.
-   - An `about:` block (license, summary, homepage, authors) and a `vslamlab_maintainer:` block, following the shape already used in every existing dataset YAML (see `dataset_eth.yaml` for the full shape).
-   `calibration_type` and `download_issues` aren't YAML fields themselves — they inform how `create_calibration_yaml` and `get_download_issues` get implemented in step 4.
+**Ask the user if this list looks right** before going further.
 
-4. **Copy the Python template and implement the class**: start from `Datasets/extra-files/dataset_template.py`, save as `Datasets/dataset_files/dataset_<name>.py`, subclass `DatasetVSLAMLAB` (`Datasets/DatasetVSLAMLAB.py`), name it `<Name>Dataset` in PEP 8 CapWords (e.g. `soneva` -> `SonevaDataset`, `eiffel_tower` -> `EiffelTowerDataset`, `hilti2022` -> `Hilti2022Dataset` — capitalize each underscore-separated token of `dataset_name`, no acronym exceptions) — study the source-pattern model from step 1 (and a sibling of the same mode: monocular/RGBD/stereo/stereo-VI, see the section comments in `get_dataset.py`) rather than writing from scratch.
+Once confirmed, read the matched datasets' `.py`/`.yaml` — which function(s) to study depends on which label matched:
 
-   @../../../Datasets/extra-files/dataset_template.py
+| Shared label | Study |
+|---|---|
+| Camera Model | `create_calibration_yaml` (intrinsics/distortion structure) |
+| Modes | `create_rgb_folder`/`create_rgb_csv`/`create_groundtruth_csv` + folder layout |
+| Download | `__init__` + `download_sequence_data` + the YAML field (`hf_repo_id`, `url_download_root`, ...) |
+| Download Issues | `get_download_issues` + the `_get_dataset_issue(issue_id=...)` call |
 
-   Fill in the module header at the top of the file (`Author`/`Assisted by`/`Version: 1.0`/`Created`/`License`) from the same values as the YAML's `vslamlab_maintainer:` block written in step 3 — `Author` = `vslamlab_maintainer.name`, `Assisted by` = `vslamlab_maintainer.assisted_by` (write `None` if absent), `Created` = `vslamlab_maintainer.date`. Every dataset file's header and its YAML's maintainer block should always agree.
+A dataset matching on more than one label is worth studying more closely.
 
-   Give the class a one-line docstring, `"""<Display Name> dataset helper for VSLAM-LAB benchmark."""`, where `<Display Name>` is the dataset's proper/brand name in natural Title Case (from the YAML's `about.summary`/`about.homepage`) — never the internal `<Name>Dataset` class spelling or the lowercase `dataset_name` slug. A few extra descriptive words are fine if they add real disambiguating context (see `dataset_madmax.py`: `"""MADMAX Mars rover navigation dataset helper for VSLAM-LAB benchmark."""`).
+**When several matches are candidates for the same label, trust them in this order** (check `vslamlab_maintainer`/`about.authors` in each `.yaml`):
+1. `vslamlab_maintainer.name` is Alejandro Fontan.
+2. `vslamlab_maintainer.name` also appears in that dataset's own `about.authors` (integrator was an original creator).
+3. Any other dataset.
 
-   Keep the template's import grouping as you fill the file in: `from __future__ import annotations` first, then up to three blank-line-separated groups (stdlib, third-party, project-local), each with plain `import x` lines before `from x import y` lines, alphabetical case-insensitive within each — see `dataset_soneva.py` for a fully-worked example. No linter enforces this yet (see CLAUDE.md), so this is manual discipline, not something a tool will catch.
+Prefer the highest-priority candidate available.
 
-   Each hook in the template carries an inline comment on what it's responsible for and which model file(s) to study for that download/calibration pattern — read those before writing real logic, and delete a hook entirely (rather than leaving a hollow stub) if it doesn't apply to this dataset: `create_imu_csv` for a non-`-vi` dataset, `create_groundtruth_csv` if `groundtruth_available` is false, `get_download_issues` if `download_issues` from step 1 is blank.
+### Step 3 — Write the dataset YAML
 
-   **Scaffold before implementing anything for real.** Add every hook from the template as a placeholder (e.g. `pass`, or a `print("TODO: ...")` + `pass`) so the class is concrete and importable/instantiable immediately — this catches import errors, signature mismatches, and ABC/abstract-method gaps before any real logic exists to hide behind.
+Copy `Datasets/extra-files/dataset_template.yaml` → `Datasets/dataset_files/dataset_<name>.yaml` and populate it directly from the step-1 table — this is the real, final YAML, not a placeholder. The template's own inline comments are the canonical reference for each field's exact shape and gotchas (the index below just points into them — don't re-derive or re-explain a pattern that's already documented there):
 
-   **Important: prefer `utilities.py` functions over hand-rolled logic, but never add to `utilities.py` itself.** Before writing any hook's real logic, check whether `utilities.py` already has a function for it (path helpers, CSV read/write, `downloadFile`/`decompressFile`, the Hugging Face helpers, the COLMAP helpers, `make_printers`, etc. — read the block-summary comment near the top of the file) and use it rather than reimplementing the same thing inline. `utilities.py` is not in this skill's file-scope (see the hard constraint above) — if something genuinely reusable is missing from it, do not add it yourself; tell the user what's missing and suggest it as a follow-up, the same way this skill flags any other out-of-scope need.
+@../../../Datasets/extra-files/dataset_template.yaml
 
-   Then implement each hook for real, in this order:
-   a. **`__init__`**: call `super().__init__(...)`, then pull out the source-specific field from step 3 (`self.url_download_root` / `self.hf_repo_id`) and any mode-specific fields the YAML carries from `self.cfg` (the already-parsed yaml `DatasetVSLAMLAB.__init__` stored during the `super().__init__(...)` call above — don't reopen `self.yaml_file` and re-parse it yourself). `self.target_resolution` is likewise already set by `DatasetVSLAMLAB.__init__` directly from `self.cfg`'s `target_resolution` field — don't re-read it here, see `dataset_soneva.py`/`dataset_sweetcorals.py`. `self.sequence_nicknames` is also already set to a reasonable default (`utilities.default_sequence_nicknames()`: underscore → space) — only assign it yourself if `sequence_names` genuinely needs something fancier (truncation, dropping a shared prefix, per-sequence renaming); don't add a no-op override that just reproduces what the default already does (`dataset_tartanair.py` once had `self.sequence_nicknames = self.sequence_names` for exactly this reason — removed once spotted, since tartanair's names have no underscores to swap). When something fancier *is* needed and involves matching a substring that itself contains an underscore (e.g. TUM's `"rgbd_dataset_freiburg"` → `"fr"`, or 7-Scenes' `"_seq-"` → `" "`), build the transform from `self.sequence_names` (the raw names), not `self.sequence_nicknames` — by the time the base class's default has run, the underscore your match depends on is already gone. See `dataset_rgbdtum.py`/`dataset_7scenes.py`.
-   b. **`download_sequence_data(sequence_name)`** — fetch and decompress raw sequence data per the `download` pattern from step 1 (or, for `local` sequences, point the user at where to place it; for `api`, paginated JSON requests rather than an archive download — Model: `dataset_squidle.py`). Skip re-fetching if already done — a plain `<output>.exists()` check can't distinguish "fully downloaded" from "crashed partway through," so a completion marker file (touched only after every output is written) is a more robust option worth considering, Model: `dataset_squidle.py` (`api`), `dataset_rover.py`'s `_ensure_data_exists` (`website`), `dataset_msd.py`'s `download_sequence_data` (`hugging-face`, single-named-file). Don't stash per-sequence derived state on `self` here for a *different* hook to read later — each hook must be independently callable (step 8 tests them one at a time), and there's no guarantee which hook ran first on a given instance; give a later hook needing the same value its own helper that recomputes it from `sequence_name` instead. `dataset_rover.py`'s `RoverDataset` used to cache a computed group path in a class-level dict just for `create_groundtruth_csv` to read — removed in favor of a small helper both hooks call independently.
-   c. `create_rgb_folder` — build the destination folder paths via `self.rgb_path(sequence_name)`/`self.depth_path(sequence_name)` (`DatasetVSLAMLAB` base-class helpers), never by hardcoding the `'rgb_0'`/`'depth_0'` string literals yourself, even though that's what those helpers resolve to. Branch per image on `self.target_resolution`, not a separate resize flag: if `None`, copy/link the raw image unresized (e.g. `shutil.copy2` — never round-trip an unresized image through PIL, which would needlessly re-encode/strip metadata); otherwise scale it down to match `self.target_resolution`'s pixel area while preserving aspect ratio via `utilities.compute_scaled_size(img.size, self.target_resolution)`, then resize via `img.resize(target_size, Image.Resampling.LANCZOS)` — the modern, non-deprecated Pillow API; avoid the legacy `Image.LANCZOS` alias. See `dataset_soneva.py`/`dataset_sweetcorals.py` (`HFColmapDatasetMixin.create_rgb_folder`).
-   d. `create_rgb_csv`. For `rgbd` modes specifically, check whether the source's RGB/depth pair is a single hardware-synchronized capture (the common case — list `rgb_0`/`depth_0`, sort each, zip the two sorted filename lists by index; Model: `dataset_eth.py`, `dataset_nuim.py`, `dataset_replica.py`, `dataset_7scenes.py`) or two independently-timestamped streams from separate sensors (a naive index-zip would silently pair frames from different moments — instead read each stream's own timestamps and associate by nearest-timestamp match within a tolerance, e.g. `pandas.merge_asof(..., direction="nearest", tolerance=...)`, dropping any frame with no match close enough in time; Model: `dataset_rgbdtum.py`, the first dataset in this repo needing this).
-   e. `create_calibration_yaml` (and `create_imu_csv` if applicable). The `cam_model` you write must match the step-1 `cam_models` value and describe what's actually being written (see step 1's `cam_models` note above): `pinhole` → omit `distortion_type`/`distortion_coefficients` entirely; `radtan4`/`radtan5`/`equid4` → pinhole plus that model's real, trusted `distortion_coefficients`; `unknown` → zeroed `focal_length`/`principal_point`, no distortion fields, when no verified calibration exists at all (Model: `dataset_sweetcorals.py`'s non-pinhole branch). If parsing values from a raw text/CSV calibration file (not already-typed YAML), cast every numeric value to `float(...)` before building the calibration dict — `write_calibration_yaml` f-string-embeds whatever type it's given, so an uncast string silently gets written into `calibration.yaml` as a quoted string instead of a number, with no error anywhere in the pipeline. `dataset_kitti.py` hit exactly this (fx/fy/cx/cy read via `.split()`, never cast) before it was caught.
-   f. `create_groundtruth_csv`, if `groundtruth_available`.
-   g. `remove_unused_files` — whatever path you `unlink()` at `MINIMAL` retention must be *exactly* where `download_sequence_data` actually wrote the file; `dataset_tartanair.py`/`dataset_nuim.py` both once checked `VSLAMLAB_BENCHMARK / <archive>` when the archive actually lived one level deeper at `self.dataset_path / <archive>` — `unlink(missing_ok=True)` silently swallowed the mismatch, so nothing was ever deleted. If an archive is shared across multiple sequences: for a whole-dataset-only download (`get_download_issues`' `"complete_dataset"` case), do the shared cleanup in an overridden `download_process` after the loop over every sequence, not in `remove_unused_files` itself (Model: `dataset_tartanair.py`, `dataset_replica.py`); for a scene/group-scoped share where sequences are still independently downloadable (e.g. 7-Scenes' `chess.zip` shared by `chess_seq-01..06`), delete only this sequence's own exclusive sub-file in `remove_unused_files`, and it's fine to also delete the shared file itself even before sibling sequences are downloaded *if* `download_sequence_data` re-downloads it on demand (Model: `dataset_7scenes.py`) — but check that fallback actually covers what you're deleting: `dataset_rover.py`'s shared `groundtruth.txt` (one per location+date group, read by every sensor-class sub-sequence in that group) showed the fallback usually only covers the *whole group folder* (plus its completion marker) being gone entirely, not a single file deleted from an otherwise-intact group folder, since a still-present marker short-circuits re-extraction — if you can't tell whether every sibling has already consumed a shared file, don't delete it at all. A related but distinct case: a shared resource that isn't scoped to one download batch at all, but is re-read indefinitely by every future sequence (e.g. `dataset_rover.py`'s `master_calibration_path`, re-read by every sequence's `create_calibration_yaml`) — never delete the *decompressed* resource at any tier (only the archive that produced it, once extracted), since re-fetching it per sequence would be wasteful even though technically self-healing. Two more ways to get this wrong, both hit by `dataset_euroc.py`/`dataset_kitti.py`: a STANDARD-tier delete with no `if BENCHMARK_RETENTION != Retention.FULL:` guard at all runs unconditionally, deleting files even at `Retention.FULL` (which must delete nothing); and calling `.unlink()` on a path that's actually a directory raises `IsADirectoryError` — use `shutil.rmtree(path, ignore_errors=True)` instead. One more distinction: `MINIMAL`'s "delete the un-resized raw images too" only holds when `create_rgb_folder` *copied* those images into place (e.g. `HFColmapDatasetMixin`'s `rgb_0_raw/`) — if it instead symlinks `rgb_0`/`depth_0`/`rgb_1` directly onto the raw source folder (Model: `dataset_openloris.py`, `dataset_ut_coda.py`'s `2d_rect/`, `dataset_rover.py`, `dataset_msd.py`), that raw folder must never be deleted at *any* retention tier, since doing so leaves the standardized layout's own symlinks dangling.
-   h. `get_download_issues`, if `download_issues` is non-blank — built via `_get_dataset_issue(issue_id=..., dataset_name=self.dataset_name, ...)` in `Datasets/DatasetVSLAMLAB_issues.py`. Verify the constraint actually exists before implementing this rather than copying it from a sibling that happens to share the same download pattern — `dataset_msd.py`'s Hugging Face repo turned out to be fully public (confirmed via `huggingface_hub.HfApi().dataset_info(repo_id, token=None).gated == False`, plus an anonymous `list_repo_files()` call succeeding), so no `huggingface_token` issue was added for it, even though `dataset_soneva.py`/`dataset_sweetcorals.py`/`dataset_openloris.py` (same pattern, different repos) do report one for theirs — and per [#91](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/91), that trio's own repos also came back `gated: False` on the same live check despite all three reporting the issue, so don't treat any of them as a "this one's definitely right" reference either. Test the real access requirement directly (an anonymous API call, or a plain HTTP request against a website URL) rather than assuming from the download pattern or a sibling's existing code alone.
+- `dataset_name`, `sequence_names` (confirmed list).
+- `rgb_hz` — RGB capture rate in Hz; required by the base class (`cfg["rgb_hz"]`, no default), not a step-1 field — get it from `<source>` or ask.
+- `cam_models`, `modes` — as YAML lists, e.g. `['pinhole']`, `['mono', 'stereo']`. The template above lists the closed-list values; the full mapping/gotchas for `cam_models` are canonical in step 4's template (`create_calibration_yaml`), for `modes` canonical right here in this template.
+- The download field for the step-1 `download` pattern — the template above lists the exact field name/shape; the fetch mechanism and gotchas are canonical in step 4's template (`download_sequence_data`).
 
-5. **Register it** in `Datasets/get_dataset.py`:
-   - Add `from Datasets.dataset_files.dataset_<name> import <Name>Dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
-   - Add an entry to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <Name>Dataset(),`.
+- If `resize` is true, add `target_resolution: [640, 480]`; omit entirely if false — see step 1's `resize` field above for why this is just an initial value, safely changed later with no code change.
+- Any mode-specific fields a sibling YAML of the same modes/source carries (e.g. `depth_factor` for `rgbd`, `url_download_root_gt` for a separate groundtruth archive like `dataset_kitti.yaml`).
+- An `about:` block (license, summary, homepage, authors) and `vslamlab_maintainer:` block, matching the shape in `dataset_eth.yaml`.
 
-6. **Create a smoke-test config + experiment pair** under `configs/`. The current reference example is `test_config_eth.yaml`/`test_exp_eth.yaml` — eth is a `mono`+`rgbd` dataset with 97 sequences, and its smoke-test pair demonstrates both rules below at once: a small representative sequence subsample, and one experiment per supported mode. Follow it (or another sibling from step 2 if a closer match) rather than inventing the shape:
-   - `configs/test_config_<name>.yaml` — a single `<dataset_name>:` key with a small, representative sequence subsample, not the whole dataset:
-     ```yaml
-     <dataset_name>:
-       - sequence_01
-       - sequence_02
-     ```
-     Representative means picking sequences that exercise different sizes/conditions if the dataset is heterogeneous, not just the first N alphabetically — see `test_config_eth.yaml` (2 of eth's 97 sequences, one from a different scene category each) and `test_config_sweetcorals.yaml` (4 of 13, one per site group, including `tabuhan_p1` specifically since it's the only sequence with real calibration/groundtruth — every other sweetcorals sequence is raw uncalibrated fisheye). Always trim to a subset, even for a small dataset — don't list every sequence just because the dataset itself is small.
-   - `configs/test_exp_<name>.yaml` — **one `test_exp_<name>_<baseline>:` block per mode this dataset supports** (the step-1 `modes` list), not just one experiment total:
-     ```yaml
-     test_exp_<name>_<baseline>:
-       Config: test_config_<name>.yaml
-       NumRuns: 1
-       Parameters: {verbose: 1, mode: <one of this dataset's modes>, rgb_idx: [0,2000]}
-       Module: <baseline>
-     ```
-     See `test_exp_eth.yaml`: two blocks, `mode: rgbd` via `droidslam` and `mode: mono` via `colmap`, since eth supports both — the minimum for a single-mode dataset is one block (the mode-coverage rule is already satisfied), but testing a second baseline for the same mode is also worth doing when convenient, not just when a second mode forces it: `test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` (both `mono`-only) each have two blocks, `droidslam` and `colmap`, purely for baseline diversity. Pick `<baseline>` (the `Module`) matching what the closest sibling's `test_exp_*.yaml` uses where possible (`droidslam` and `dpvo` are common lightweight choices for `mono`/`rgbd`) — it must be a pixi environment name from `pixi.toml`'s `[environments]` table; different modes can use different baselines if that fits better (as `test_exp_eth.yaml` does). Cap the run so the smoke test stays quick: `rgb_idx: [0,2000]` (first ~2000 frames) is the default — omit it if the matched sibling's convention doesn't use it (see `test_exp_videos.yaml`/`test_exp_strayscanner.yaml`). `test_exp_eth.yaml`/`test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml` instead use `max_rgb`/`step_size`, which spreads a fixed frame count across the *whole* sequence rather than truncating to an early window — a deliberate choice when content late in the run (e.g. loop closures) matters for a meaningful smoke test, not the default to copy elsewhere without the same reason.
+`calibration_type` and `download_issues` aren't YAML fields — they inform `create_calibration_yaml`/`get_download_issues` in step 4.
 
-7. **Add the dataset to the README table.** In `README.md`, under the "VSLAM-LAB Supported Baselines and Datasets" section, add one new row to the **Datasets** table (the table headed `| Datasets | Features | Label | Modes | Camera Models |`) — append it as the last real row, immediately above the commented-out placeholder rows at the bottom of that table (the `<!-- | [**Sweet Corals**]... -->`-style rows for datasets not yet implemented). Match the exact shape of existing rows:
-   ```
-   | [**<Display Name>**](<homepage URL>) | <feature emoji(s)> | `<dataset_name>` | <modes> | <cam_models> |
-   ```
-   - `<Display Name>` and `<homepage URL>` — from the `about:` block written into the YAML in step 3.
-   - `<feature emoji(s)>` — pick from the legend printed just below the table (Real 📸 / Synthetic 💻; Indoor 🏠 / Outdoor 🏞️ / Underwater 🌊 / Intracorporeal 🫀; Handheld 🤳 / Headmounted 🥽 / Vehicle 🚗 / UAV 🚁 / Robot 🤖), based on what's known about the dataset from step 1/2. If it's unclear which apply, ask the user rather than guessing.
-   - `<modes>` — the confirmed step-1 `modes` list, formatted like existing rows: a mode and its `-vi` variant collapse to one entry with the suffix in parentheses (e.g. `mono` + `mono-vi` → `` `mono(-vi)` ``), each mode backticked and space-separated.
-   - `<cam_models>` — the confirmed step-1 `cam_models` list, backticked and space-separated, in the same style as existing rows.
+### Step 4 — Implement the Python class
 
-8. **(Required — do not skip.) Simulate `pixi run download-sequence <dataset_name> <sequence_name>` function-by-function**, using the **first sequence** in `sequence_names`. This step is mandatory even when steps 1–7 already look correct on inspection — code that imports cleanly and reads right can still fail the first time it actually runs (wrong URL, a path typo, a malformed calibration field), and that's only caught by running it. `download-sequence` (`vslamlab_gui.py download_sequence` → `dataset.download_sequence(sequence_name)`) ultimately just calls `download_process`, which runs these hooks in order:
+Copy `Datasets/extra-files/dataset_template.py` → `Datasets/dataset_files/dataset_<name>.py`, subclass `DatasetVSLAMLAB`, name it `<Name>Dataset` in PEP 8 CapWords — capitalize each underscore-separated token of `dataset_name`, no acronym exceptions (`soneva` → `SonevaDataset`, `eiffel_tower` → `EiffelTowerDataset`, `hilti2022` → `Hilti2022Dataset`). Study the source-pattern model from step 1 and a same-mode sibling rather than writing from scratch.
 
-   1. `download_sequence_data`
-   2. `create_rgb_folder`
-   3. `create_rgb_csv`
-   4. `create_imu_csv`
-   5. `create_calibration_yaml`
-   6. `create_groundtruth_csv`
-   7. `remove_unused_files`
+@../../../Datasets/extra-files/dataset_template.py
 
-   (Drop rows 4/6 if `create_imu_csv`/`create_groundtruth_csv` were deleted in step 4 because they don't apply to this dataset.) Instead of invoking the CLI as one opaque call, drive the same sequence yourself one hook at a time (e.g. `dataset = get_dataset(dataset_name)` then call each method directly in the order above) so every stage's inputs and outputs can be inspected before moving to the next.
+**Before any real logic:**
+- Module header (`Author`/`Assisted by`/`Version: 1.0`/`Created`/`License`) must match the YAML's `vslamlab_maintainer:` block exactly (`Author` = `.name`, `Assisted by` = `.assisted_by` or `None`, `Created` = `.date`).
+- Class docstring: `"""<Display Name> dataset helper for VSLAM-LAB benchmark."""` — `<Display Name>` is the proper/brand name from `about.summary`/`about.homepage` (natural Title Case), never the class name or the lowercase slug. A few disambiguating words are fine (`"""MADMAX Mars rover navigation dataset helper..."""`).
+- Import grouping: `from __future__ import annotations` first, then up to three blank-line-separated groups (stdlib, third-party, project-local), plain `import x` before `from x import y` within each, alphabetical case-insensitive. No linter enforces this — see `dataset_soneva.py`. Manual discipline only.
+- **Scaffold first**: add every template hook as a placeholder (`pass` or `print("TODO")` + `pass`) so the class is importable/instantiable immediately, before any real logic exists to hide import/signature/ABC errors behind.
+- **Prefer `utilities.py` over hand-rolled logic** (path helpers, CSV read/write, `downloadFile`/`decompressFile`, HF/COLMAP helpers, `make_printers`, ...) — but `utilities.py` is out of scope for this skill. If something reusable is genuinely missing, tell the user and suggest it as a follow-up; don't add it yourself.
+- Delete a hook entirely (not a hollow stub) if it doesn't apply: `create_imu_csv` for non-`-vi`, `get_download_issues` if `download_issues` is blank.
 
-   Keep the list above visible as a running checklist, updating each row's state as you go (`to be run` → `running` → `processed`), e.g.:
+**Then implement each hook for real, in order:**
 
-   | # | Function | State |
-   |---|---|---|
-   | 1 | `download_sequence_data` | processed |
-   | 2 | `create_rgb_folder` | running |
-   | 3 | `create_rgb_csv` | to be run |
-   | 4 | `create_calibration_yaml` | to be run |
-   | 5 | `create_groundtruth_csv` | to be run |
-   | 6 | `remove_unused_files` | to be run |
+| # | Hook | Responsibility | Model |
+|---|---|---|---|
+| a | `__init__` | call `super().__init__(...)`, pull the source field (`self.url_download_root`/`self.hf_repo_id`) and mode-specific fields from `self.cfg` | — |
+| b | `download_sequence_data` | fetch + decompress per pattern; skip if already done | `dataset_squidle.py` (api), `dataset_rover.py` (website), `dataset_msd.py` (hf) |
+| c | `create_rgb_folder` | normalize into `rgb_0`/`rgb_1`/`depth_0` via `self.rgb_path()`/`self.depth_path()` | `dataset_soneva.py`, `dataset_sweetcorals.py`, `dataset_eth.py` |
+| d | `create_rgb_csv` | write `rgb.csv`, ns timestamps | `dataset_rgbdtum.py` (async rgbd) |
+| e | `create_calibration_yaml` | write via `self.write_calibration_yaml(...)` | `dataset_7scenes.py` (global), `dataset_eth.py`/`kitti`/`euroc` (per-sequence) |
+| f | `create_imu_csv` | only for `-vi` modes | — |
+| g | `create_groundtruth_csv` | write `groundtruth.csv` | `dataset_rgbdtum.py` |
+| h | `remove_unused_files` | delete per `BENCHMARK_RETENTION` tier | `dataset_eth.py`, `HFColmapDatasetMixin` |
+| i | `get_download_issues` | only if `download_issues` non-blank | `Datasets/DatasetVSLAMLAB_issues.py` |
 
-   After each function returns, report in detail — not just that it ran:
-   - **Inputs**: `sequence_name`, plus whatever state/files it consumed (`self.hf_repo_id`/`self.url_download_root`, the folder(s) the previous hook produced).
-   - **Output generated**: exact paths created, file/image counts, folder sizes; for `create_rgb_csv`/`create_groundtruth_csv` the row count and first couple of rows; for `create_calibration_yaml` the actual `focal_length`/`principal_point`/`image_dimension` values written; for `remove_unused_files` which paths it actually deleted.
+**Gotchas, per hook.** The template included above already carries the full explanation for each one — this table is only an index of what to double-check and where it's demonstrated, not a restatement:
 
-   This is slower than letting the whole pipeline run silently, but it pinpoints exactly which stage produced bad output (wrong image count, zeroed calibration, empty groundtruth) instead of only learning after the fact that the sequence failed (or silently passed with wrong data).
+| Hook | Watch for | Model |
+|---|---|---|
+| a. `__init__` | Override `sequence_nicknames` only when genuinely needed; if the transform matches an underscore-containing substring, build it from `self.sequence_names` (raw), not the already-transformed nicknames | `dataset_rgbdtum.py`, `dataset_7scenes.py` |
+| b. `download_sequence_data` | A completion marker beats a plain `.exists()` check; exclude marker-suffixed names from any later substring scan; never stash per-sequence state on `self` for another hook to read | `dataset_videos.py`/`dataset_youtube.py`, `dataset_rover.py` |
+| c. `create_rgb_folder` | Branch on `self.target_resolution` (`None` → unresized copy, set → `compute_scaled_size` + LANCZOS); depth maps get nearest-neighbor only, never LANCZOS | `dataset_soneva.py`, `dataset_eth.py` |
+| d. `create_rgb_csv` | Hardware-synchronized RGB/depth → sort + index-zip; independently-timestamped streams → `pandas.merge_asof(..., direction="nearest")` | `dataset_eth.py` vs. `dataset_rgbdtum.py` |
+| e. `create_calibration_yaml` | The written `cam_model` must equal step 1's resolved value, as one indivisible choice (never two separately-returned values that can diverge); cast parsed numerics to `float(...)` before writing | `dataset_youtube.py`, `dataset_kitti.py` |
+| g. `create_groundtruth_csv` | Always write the file, even when `groundtruth_available` is false — header row only, never a missing file | `dataset_rgbdtum.py` |
+| h. `remove_unused_files` | Retention-tier gating + shared-archive scoping — the hairiest hook; see the dedicated pointer below | `dataset_eth.py` |
+| i. `get_download_issues` | Confirm the constraint with a live check (e.g. an anonymous API call) rather than copying it from a same-pattern sibling | `dataset_msd.py`, [#91](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/91) |
 
-   Only move on to step 9 once every row in the checklist reads `processed`. If any hook fails, fix the underlying code in `dataset_<name>.py`/`.yaml` and re-run from that hook (or from the top, if the fix touches `download_sequence_data`/`__init__`) — don't proceed to commit a dataset that hasn't been proven to run.
+**`remove_unused_files` — retention tiers.** Gated by `BENCHMARK_RETENTION` (`path_constants.py`, default `Retention.STANDARD`): `FULL` deletes nothing, `STANDARD` also deletes reformatted intermediates already captured in the standardized layout, `MINIMAL` also deletes the original source downloads. The full per-tier definitions, the `if BENCHMARK_RETENTION != Retention.FULL` / `== Retention.MINIMAL` code shape, and every scoping gotcha (unlink-path mismatches, missing guards, symlinked raw folders, and the four shared-archive scopes — whole-dataset-only, scene/group-scoped, dataset-wide indefinitely reused, exact-file share) are canonical in `dataset_template.py`'s `remove_unused_files` comment (included above). Not restated here.
 
-9. **Commit the new dataset.** Stage exactly the files this skill created or modified, by name — never `git add -A`/`git add .`, which could sweep in unrelated in-progress work elsewhere in the repo:
-   - `Datasets/dataset_files/dataset_<name>.py`
-   - `Datasets/dataset_files/dataset_<name>.yaml`
-   - `Datasets/get_dataset.py`
-   - `configs/test_config_<name>.yaml`
-   - `configs/test_exp_<name>.yaml`
-   - `README.md`
-   - `Datasets/extra-files/dataset_table.md` (regenerated in step 0 — include it so the repo isn't left with a stray uncommitted diff)
+### Step 5 — Register it
 
-   Run `git status` first and confirm the staged set matches this list exactly (nothing more, nothing less) before committing. Commit with a concise message such as `Add <name> dataset` (following the repo's existing commit-message style — check `git log --oneline -10` if unsure). This step only creates a local commit: never push, force-push, or amend an existing commit as part of this skill.
+In `Datasets/get_dataset.py`:
+- Add `from Datasets.dataset_files.dataset_<name> import <Name>Dataset` under the correct mode section comment (Monocular / RGBD / Stereo / Stereo-VI / Development).
+- Add to the `switcher` dict in `get_dataset()`: `"<name>": lambda: <Name>Dataset(),`.
+
+### Step 6 — Smoke-test config + experiment pair
+
+Reference: `test_config_eth.yaml`/`test_exp_eth.yaml` (eth is `mono`+`rgbd`, 97 sequences) — demonstrates both rules below. Follow it, or a closer step-2 sibling, rather than inventing the shape.
+
+**`configs/test_config_<name>.yaml`** — a small, representative subsample, never the whole dataset (even for a small dataset):
+```yaml
+<dataset_name>:
+  - sequence_01
+  - sequence_02
+```
+Representative = sequences exercising different sizes/conditions if heterogeneous, not just the first N alphabetically. See `test_config_eth.yaml` (2 of 97, different scene categories) and `test_config_sweetcorals.yaml` (4 of 13, one per site group, including the one sequence with real calibration/groundtruth).
+
+**`configs/test_exp_<name>.yaml`** — **one block per mode this dataset supports** (step-1 `modes`), not just one total:
+```yaml
+test_exp_<name>_<baseline>:
+  Config: test_config_<name>.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: <one of this dataset's modes>, rgb_idx: [0,2000]}
+  Module: <baseline>
+```
+- `<baseline>` (`Module`) must be a pixi environment name from `pixi.toml`'s `[environments]` table — match the closest sibling's choice where possible (`droidslam`/`dpvo` are common lightweight picks for `mono`/`rgbd`); different modes can use different baselines (`test_exp_eth.yaml` does).
+- A second baseline for the same mode is worth adding when convenient, not just when a second mode forces it (`test_exp_soneva.yaml`/`test_exp_sweetcorals.yaml`, both `mono`-only, each run two).
+- `rgb_idx: [0,2000]` caps the smoke test to the first ~2000 frames — omit only if the matched sibling's convention doesn't use it (`test_exp_videos.yaml`/`test_exp_strayscanner.yaml`). Some siblings (`eth`/`soneva`/`sweetcorals`) instead use `max_rgb`/`step_size` to spread a fixed frame count across the *whole* sequence — a deliberate choice when late-sequence content (e.g. loop closures) matters, not the default to copy elsewhere.
+
+### Step 7 — Add the README row
+
+**Pick the table first.** `README.md` has two same-shaped tables for this mechanism:
+- **Datasets** — a fixed, published benchmark with its own sequences (groundtruth typically shipped or derivable).
+- **Tools** — a data-capture app/format whose sequences the user brings themselves (e.g. `strayscanner`; no fixed published sequence set).
+
+Both register through the identical `DatasetVSLAMLAB` subclass + YAML + `get_dataset.py` mechanism — the table choice is a README categorization only. If it's unclear which fits, ask the user rather than guessing.
+
+In the chosen table (`| Datasets | Features | Label | Modes | Camera Models |` or `| Tools | Features | Label | Modes | Camera Models |`), append one row as the last real entry — immediately above that table's commented-out placeholder rows for not-yet-implemented entries:
+```
+| [**<Display Name>**](<homepage URL>) | <feature emoji(s)> | `<dataset_name>` | <modes> | <cam_models> |
+```
+- `<Display Name>`/`<homepage URL>` — from the YAML's `about:` block.
+- `<feature emoji(s)>` — from the legend below the table (Real 📸/Synthetic 💻; Indoor 🏠/Outdoor 🏞️/Underwater 🌊/Intracorporeal 🫀; Handheld 🤳/Headmounted 🥽/Vehicle 🚗/UAV 🚁/Robot 🤖). Ask the user if unclear, don't guess.
+- `<modes>` — step-1 list; a mode + its `-vi` variant collapse to one entry (`` `mono(-vi)` ``), backticked, space-separated.
+- `<cam_models>` — step-1 list, backticked, space-separated.
+
+### Step 8 — Simulate the download, function by function (required — do not skip)
+
+Even when steps 1–7 look correct on inspection, only running the code catches a wrong URL, a path typo, or a malformed calibration field. Using the **first sequence** in `sequence_names`, drive `download_process`'s hooks yourself, one at a time (`dataset = get_dataset(dataset_name)`, call each method directly) instead of one opaque CLI call:
+
+1. `download_sequence_data`
+2. `create_rgb_folder`
+3. `create_rgb_csv`
+4. `create_calibration_yaml`
+5. `create_imu_csv` *(skip if deleted in step 4)*
+6. `create_groundtruth_csv`
+7. `remove_unused_files`
+
+Track state as you go — this example illustrates a non-`-vi` dataset (`create_imu_csv` already deleted in step 4, so it's skipped and everything renumbers accordingly); include it as its own row, between `create_calibration_yaml` and `create_groundtruth_csv`, if your dataset has it:
+
+| # | Function | State |
+|---|---|---|
+| 1 | `download_sequence_data` | processed |
+| 2 | `create_rgb_folder` | running |
+| 3 | `create_rgb_csv` | to be run |
+| 4 | `create_calibration_yaml` | to be run |
+| 5 | `create_groundtruth_csv` | to be run |
+| 6 | `remove_unused_files` | to be run |
+
+After each function, report in detail:
+- **Inputs**: `sequence_name` + state/files it consumed.
+- **Output**: exact paths created, file/image counts, folder sizes; row counts + first rows for `create_rgb_csv`/`create_groundtruth_csv`; actual `focal_length`/`principal_point`/`image_dimension` values for `create_calibration_yaml`; paths actually deleted for `remove_unused_files`.
+
+This is slower than letting the pipeline run silently, but it pinpoints which stage produced bad output instead of only learning after the fact.
+
+Only move to step 9 once every row reads `processed`. If a hook fails, fix `dataset_<name>.py`/`.yaml` and re-run from that hook (or from the top if the fix touches `download_sequence_data`/`__init__`) — don't commit an unproven dataset.
+
+### Step 9 — Commit
+
+**Before staging, check whether this run surfaced anything new** — a download sub-pattern, a mode/camera-model nuance, a gotcha, a stale or missing `Model:` citation — that isn't already covered by `SKILL.md`, `CLAUDE.md`, `dataset_template.py`, or `dataset_template.yaml`. All four are out of this skill's file scope (per the hard constraint above), so don't edit them directly — use the Issue exception to file it (`improvement` label) so a future doc pass can fold it in. This is the same final-sweep habit `Datasets/extra-files/dataset_cleanup_log.md` (checklist item 16) codifies for cleanup passes, applied here so it isn't only ad hoc.
+
+Stage exactly the files this skill created/modified, by name — never `git add -A`/`git add .`:
+- `Datasets/dataset_files/dataset_<name>.py`
+- `Datasets/dataset_files/dataset_<name>.yaml`
+- `Datasets/get_dataset.py`
+- `configs/test_config_<name>.yaml`
+- `configs/test_exp_<name>.yaml`
+- `README.md`
+- `Datasets/extra-files/dataset_table.md`
+
+Run `git status` first and confirm the staged set matches this list exactly. Commit with a concise message like `Add <name> dataset` (check `git log --oneline -10` for style). Local commit only — never push, force-push, or amend.
+
+---
 
 Full reference docs live on the project's GitHub Wiki if more detail is needed.

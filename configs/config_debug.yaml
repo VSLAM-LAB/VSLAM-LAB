@@ -1,5 +1,5 @@
-eth:
-  - 'table_3'
+# eth:
+#   - 'table_3'
 # rgbdtum:
 #   - 'rgbd_dataset_freiburg1_xyz'
 # kitti:
@@ -79,3 +79,6 @@ eth:
 
 #monotum:
 #  - 'sequence_01'
+youtube:
+ #- centum-cellas
+ - acinipo

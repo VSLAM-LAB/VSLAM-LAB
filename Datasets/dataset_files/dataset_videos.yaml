@@ -2,20 +2,20 @@ dataset_name: videos
 
 rgb_hz: 30.0
 modes: ['mono']
-cam_models: ['unknown', 'pinhole', 'radtan4']
+cam_models: ['unknown', 'pinhole']
 
 hf_repo_id: vslamlab/videos
 target_resolution: [640, 480]
 
 sequence_names:
-- GX010213
-- GX010214
-- GX010215
-- GX010216
-- GX010217
+  - GX010213
+  - GX010214
+  - GX010215
+  - GX010216
+  - GX010217
 
 about:
-  license: License
+  license: GPLv3 License
   summary: Videos recorded for VSLAM-LAB
   homepage: https://huggingface.co/datasets/vslamlab/videos
   authors:
@@ -23,5 +23,6 @@ about:
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: None
   email: alejandro.fontan@qut.edu.au
-  date: 2026-03-13
+  date: 2026-02-14

@@ -139,7 +139,7 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
                 filter_info.append(f"rgb_vpr={rgb_vpr_num} -> {len(rows)} frames (already <= target)")
             else:
                 D = np.load(d_matrix_path)[np.ix_(orig_idx, orig_idx)]
-                sweep = sweep_thresholds(D, max_threshold=0.6, n_thresholds=50, verbose=False)
+                sweep = sweep_thresholds(D, max_threshold=0.6, n_thresholds=200, verbose=False)
                 chosen_th, chosen_indexes = select_for_target(sweep, rgb_vpr_num)
                 rows = selected_rows(rows, chosen_indexes)
                 filter_info.append(f"rgb_vpr={rgb_vpr_num} -> {len(rows)} frames (threshold={chosen_th:.4f})")

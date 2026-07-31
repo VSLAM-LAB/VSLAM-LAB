@@ -1,100 +1,106 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_videos.py
+- Author: Alejandro Fontan
+- Assisted by: None
+- Version: 1.0
+- Created: 2026-02-14
+- Updated: 2026-07-30
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
-import csv
 import json
-import os
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
-import yaml
-from huggingface_hub import HfApi, HfFileSystem, login
+from huggingface_hub import HfApi, HfFileSystem
 from huggingface_hub.utils import disable_progress_bars
+from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from path_constants import HUGGINGFACE_TOKEN, VSLAMLAB_VIDEOS
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import compute_scaled_size, hf_token, make_printers, write_csv_rows
+
+SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
+print_info, print_warning = make_printers(SCRIPT_LABEL)
 
 
 class VideosDataset(DatasetVSLAMLAB):
-    """VIDEOS dataset helper for VSLAM-LAB benchmark."""
+    """Videos dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "videos") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        # Get videso path
-        self.videos_path = VSLAMLAB_VIDEOS
-
         # Get download url
-        self.hf_repo_id = cfg["hf_repo_id"]
-
-        # Create sequence_nicknames
-        self.sequence_nicknames = self.sequence_names
-
-        # Get resolution size
-        self.target_resolution = cfg.get("target_resolution", None)
+        self.hf_repo_id = self.cfg["hf_repo_id"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        if HUGGINGFACE_TOKEN is not None:
-            login(token=HUGGINGFACE_TOKEN)
-            token = HUGGINGFACE_TOKEN
-        else:
-            token = os.environ.get("HF_TOKEN")
-
+        token = hf_token()
         api = HfApi(token=token)
         fs = HfFileSystem(token=token)
         disable_progress_bars()
 
+        remote_file = self._find_remote_file(sequence_name, api)
+        if remote_file is None:
+            raise FileNotFoundError(
+                f"No file matching sequence '{sequence_name}' found in Hugging Face repo '{self.hf_repo_id}'."
+            )
+
+        local_file = self.dataset_path / remote_file
+        marker = local_file.with_name(local_file.name + ".download_complete")
+        if marker.exists():
+            return
+
+        fs.get_file(f"datasets/{self.hf_repo_id}/{remote_file}", str(local_file))
+        marker.touch()
+
+    def _find_remote_file(self, sequence_name: str, api: HfApi) -> str | None:
+        # Cached listing of the repo's files, refreshed on a cache miss (rather than trusted
+        # forever) so a file/sequence added to the repo after the cache was written is still found.
         cache_file = self.dataset_path / "all_files_cache.json"
         if cache_file.exists():
             with open(cache_file, "r", encoding="utf-8") as f:
-                all_files = json.load(f)
-        else:
-            all_files = api.list_repo_files(repo_id=self.hf_repo_id, repo_type="dataset")
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump(all_files, f, indent=2)
-            print(f"Fetched and cached {len(all_files)} files")
+                cached_files = json.load(f)
+            match = next((f for f in cached_files if sequence_name in f), None)
+            if match is not None:
+                return match
 
-        for f in all_files:
-            if sequence_name in f:
-                local_file = self.dataset_path / f
-                if not local_file.exists():
-                    fs.get_file(f"datasets/{self.hf_repo_id}/{f}", str(local_file))
-                break
+        all_files = api.list_repo_files(repo_id=self.hf_repo_id, repo_type="dataset")
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(all_files, f, indent=2)
+        print_info(f"Fetched and cached {len(all_files)} files")
+
+        return next((f for f in all_files if sequence_name in f), None)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
-        for p in self.videos_path.iterdir():
-            if p.is_file() and sequence_name in p.name:
-                video_path = p
-                break
+        if rgb_path.exists():
+            return
 
-        if not rgb_path.exists():
-            self.extract_png_frames(video_path=video_path, output_dir=rgb_path, target_resolution=self.target_resolution)  # extract at 30Hz
+        video_path = next(
+            (p for p in self.dataset_path.iterdir()
+             if p.is_file() and sequence_name in p.name and not p.name.endswith(".download_complete")),
+            None,
+        )
+        if video_path is None:
+            raise FileNotFoundError(f"No downloaded video file found for sequence '{sequence_name}' in {self.dataset_path}")
+
+        self.extract_png_frames(video_path=video_path, output_dir=rgb_path, target_resolution=self.target_resolution)  # extract at 30Hz
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         rgb_path = self.rgb_path(sequence_name)
         rgb_csv = self.rgb_csv_path(sequence_name)
-        rgb_files = [f for f in os.listdir(rgb_path) if os.path.isfile(rgb_path / f)]
-        rgb_files.sort()
+        rgb_files = sorted(p.name for p in rgb_path.iterdir() if p.is_file())
 
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0"])
-            idx = 0
-            for filename in rgb_files:
-                path_r0 = "rgb_0/" + filename
-                ts_r0_ns = int(float(idx) / self.rgb_hz * 1e9)
-                w.writerow([ts_r0_ns, path_r0])
-                idx += 1
-        tmp.replace(rgb_csv)
+        header = ["ts_rgb_0 (ns)", "path_rgb_0"]
+        rows = [
+            [int(idx / self.rgb_hz * 1e9), f"rgb_0/{filename}"]
+            for idx, filename in enumerate(rgb_files)
+        ]
+        write_csv_rows(rgb_csv, header, rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         model, fx, fy, cx, cy = self._get_calibration_parameters(sequence_name)
@@ -110,26 +116,42 @@ class VideosDataset(DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.sequence_path(sequence_name)
         groundtruth_csv = self.groundtruth_csv_path(sequence_name)
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
+        write_csv_rows(groundtruth_csv, header, [])
 
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
-        tmp.replace(groundtruth_csv)
+    def remove_unused_files(self, sequence_name: str) -> None:
+        # Each sequence's downloaded video file is exclusively its own (unlike youtube, where two
+        # sequences can share one physical video) - safe to delete at MINIMAL retention once the
+        # standardized rgb_0/ layout already has what it needs. all_files_cache.json is left alone
+        # at every tier - it's a dataset-wide resource every future sequence's download_sequence_data
+        # re-reads, not something scoped to this one sequence.
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            video_path = next(
+                (p for p in self.dataset_path.iterdir()
+                 if p.is_file() and sequence_name in p.name and not p.name.endswith(".download_complete")
+                 and p.name != "all_files_cache.json"),
+                None,
+            )
+            if video_path is not None:
+                marker = video_path.with_name(video_path.name + ".download_complete")
+                video_path.unlink(missing_ok=True)
+                marker.unlink(missing_ok=True)
 
     def estimate_new_resolution(self, original_width: int, original_height: int, target_resolution: list[int] | None = None) -> tuple[int, int]:
-        if target_resolution is None:
-            return original_width, original_height
-
-        scaled_height = np.sqrt(
-            target_resolution[0] * target_resolution[1] * original_height / original_width
+        return compute_scaled_size(
+            (original_width, original_height), tuple(target_resolution) if target_resolution else None
         )
-        scaled_width = target_resolution[0] * target_resolution[1] / scaled_height
-        return int(scaled_width), int(scaled_height)
 
-    def extract_png_frames(self, video_path: Path, output_dir: Path, target_resolution: list[int] | None = None, ti: float = 0.0, tf: float = None):
+    def extract_png_frames(
+        self,
+        video_path: Path,
+        output_dir: Path,
+        target_resolution: list[int] | None = None,
+        ti: float = 0.0,
+        tf: float = None,
+        crop: list[int] | None = None,
+    ):
         """
         Extract frames from a video based on a frequency in Hertz (frames per second) and save as PNG images.
         Also creates an rgb.txt file with timestamps and image paths.
@@ -139,6 +161,8 @@ class VideosDataset(DatasetVSLAMLAB):
             target_resolution (list[int] | None): Target resolution for the output frames.
             ti (float): Start time in seconds. Defaults to 0.
             tf (float): End time in seconds. Defaults to end of video.
+            crop (list[int] | None): [top, bottom, left, right] pixels to trim from each edge of
+                the raw frame, applied before target_resolution resizing. Defaults to no crop.
         """
         output_dir.mkdir(parents=True, exist_ok=True)
         cap = cv2.VideoCapture(video_path)
@@ -158,27 +182,40 @@ class VideosDataset(DatasetVSLAMLAB):
         if ti >= tf:
             raise ValueError(f"ti ({ti}s) must be less than tf ({tf}s).")
 
+        # Validate crop against the video's actual frame size up front, before processing any
+        # frames, rather than failing deep inside the per-frame loop.
+        if crop is not None:
+            crop_top, crop_bottom, crop_left, crop_right = crop
+            frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            if crop_top + crop_bottom >= frame_height or crop_left + crop_right >= frame_width:
+                raise ValueError(
+                    f"crop {crop} leaves no pixels for a {frame_width}x{frame_height} frame."
+                )
+
         # Seek to start frame
         start_frame = int(round(ti * fps))
         end_frame = int(round(tf * fps))
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
         frame_interval = int(round(fps / self.rgb_hz))
-        print(f"Video opened: {video_path}")
-        print(f"Video FPS: {fps:.2f}")
-        print(f"Extracting {self.rgb_hz} frames per second (every {frame_interval} frames).")
-        print(f"Time range: {ti:.2f}s to {tf:.2f}s (frames {start_frame} to {end_frame})")
+        print_info(f"Video opened: {video_path}")
+        print_info(f"Video FPS: {fps:.2f}")
+        print_info(f"Extracting {self.rgb_hz} frames per second (every {frame_interval} frames).")
+        print_info(f"Time range: {ti:.2f}s to {tf:.2f}s (frames {start_frame} to {end_frame})")
 
         frame_idx = start_frame
         saved_idx = 0
         timestamp_list = []
         scale_image = target_resolution is not None
-        estimate_new_resolution = True
+        needs_scaled_size = True
 
+        pbar = tqdm(total=end_frame - start_frame + 1, desc="    extracting frames", unit="frame")
         while frame_idx <= end_frame:
             ret, frame = cap.read()
             if not ret:
                 break
+            pbar.update(1)
 
             if (frame_idx - start_frame) % frame_interval == 0:
                 # Compute timestamp from the beginning of the video
@@ -187,15 +224,16 @@ class VideosDataset(DatasetVSLAMLAB):
                 # Convert to RGB
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-                if estimate_new_resolution and scale_image:
+                if crop is not None:
+                    h, w = rgb_frame.shape[:2]
+                    rgb_frame = rgb_frame[crop_top:h - crop_bottom, crop_left:w - crop_right]
+
+                if needs_scaled_size and scale_image:
                     rgb_frame_height, rgb_frame_width = rgb_frame.shape[:2]
-                    scaled_height = np.sqrt(
-                        target_resolution[0] * target_resolution[1] * rgb_frame_height / rgb_frame_width
+                    scaled_width, scaled_height = compute_scaled_size(
+                        (rgb_frame_width, rgb_frame_height), tuple(target_resolution)
                     )
-                    scaled_width = target_resolution[0] * target_resolution[1] / scaled_height
-                    scaled_height = int(scaled_height)
-                    scaled_width = int(scaled_width)
-                    estimate_new_resolution = False
+                    needs_scaled_size = False
                 if scale_image:
                     resized_img = cv2.resize(rgb_frame, (scaled_width, scaled_height), interpolation=cv2.INTER_LANCZOS4)
                 else:
@@ -212,6 +250,7 @@ class VideosDataset(DatasetVSLAMLAB):
 
             frame_idx += 1
 
+        pbar.close()
         cap.release()
 
     def _get_calibration_parameters(self, sequence_name: str) -> tuple[str, float, float, float, float]:

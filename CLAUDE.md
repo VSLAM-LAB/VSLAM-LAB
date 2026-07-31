@@ -57,6 +57,16 @@ Don't hand-roll this per script — call `utilities.add_sequence_target_args(par
 
 - Feature branches off `main`, PRs into `main`. All GitHub PRs (including from forks) target `main` — it's the repo's default/integration branch.
 - `dev` is a personal working branch, not a shared integration branch — it isn't a PR target on GitHub. Don't assume work should branch off `dev` or merge into it; treat it like any other local/scratch branch.
-- Work items are tracked as GitHub issues, labeled `baseline` / `dataset` / `capability` / `improvement` / `bug` (the last reuses GitHub's stock `bug` label). Use `gh issue list --label <label>` to browse by category, `gh issue create --label <label> ...` to file new ones.
+- Work items are tracked as GitHub issues — see Issue Labels below.
 - Logging uses a per-file `SCRIPT_LABEL` ANSI-colored prefix pattern — follow existing baseline/dataset files for style when adding new ones.
 - Newer files (e.g. `BaselineVSLAMLAB.py`, `baseline_orbslam2.py`) are fully type-hinted with module header docstrings (Author/Version/Created/Updated) — match this style in new files rather than older untyped ones.
+
+## Issue Labels
+
+`gh issue list --label <label>` to browse by category, `gh issue create --label <label> ...` to file new ones. Skills that hit an out-of-scope bug/inconsistency/improvement (e.g. `add-dataset`'s Issue exception) file it here instead of editing outside their scope.
+
+- `baseline` — a specific SLAM baseline's integration (`Baselines/baseline_files/*.py`) — e.g. a crash or missing mode in one baseline.
+- `dataset` — a specific dataset's integration (`Datasets/dataset_files/*.py`/`.yaml`) — e.g. a cleanup pass or a wrong field on one dataset.
+- `capability` — a new framework-level capability, not tied to one baseline or dataset — e.g. moving `rgb_hz` from dataset-level YAML into per-sequence calibration.
+- `improvement` — a non-bug improvement to existing code, docs, or tooling — e.g. an audit for staleness, a new output option on a script, a naming-convention cleanup.
+- `bug` (GitHub's stock label) — something that should work but doesn't — e.g. a crash, a stale field check, a false-positive.
