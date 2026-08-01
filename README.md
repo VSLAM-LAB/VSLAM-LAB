@@ -221,6 +221,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Sweet Corals**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊🤳 |    `sweetcorals`    |`mono` | `pinhole` `unknown` |
 | [**Eiffel Tower: A Deep-Sea Underwater Dataset for Long-Term Visual Localization**](https://www.seanoe.org/data/00810/92226/) | 📸🏞️🌊🤖 |    `eiffel-tower`    |`mono` | `radtan4` |
 | [**Novel Sensors for Autonomous Vehicle Perception**](https://umautobots.github.io/nsavp) | 📸🏞️🚗 |    `nsavp`    |`mono` `stereo` | `radtan4` |
+| [**Pamir Shipwreck Visual-Inertial Dataset**](https://huggingface.co/datasets/afrl-uw/Pamir_Visual-Inertial_Data) | 📸🌊🤳 |    `pamir/pamir-rig`    |`mono(-vi)` `stereo(-vi)` | `unknown` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|

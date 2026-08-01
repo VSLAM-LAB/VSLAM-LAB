@@ -42,6 +42,8 @@ from Datasets.dataset_files.dataset_hilti2022 import Hilti2022Dataset
 from Datasets.dataset_files.dataset_madmax import MadmaxDataset
 from Datasets.dataset_files.dataset_hilti2026 import Hilti2026Dataset
 from Datasets.dataset_files.dataset_vitum import VitumDataset
+from Datasets.dataset_files.dataset_pamir_rig import PamirRigDataset
+from Datasets.dataset_files.dataset_pamir import PamirDataset
 
 # Development
 from Datasets.dataset_files.dataset_videos import VideosDataset
@@ -86,6 +88,8 @@ def get_dataset(dataset_name):
         "caves": lambda: CavesDataset(),
         "vitum": lambda: VitumDataset(),
         "eiffel-tower": lambda: EiffelTowerDataset(),
+        "pamir-rig": lambda: PamirRigDataset(),
+        "pamir": lambda: PamirDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),

@@ -1062,6 +1062,7 @@ extract-ros2bag-imu = "python Datasets/extra-files/extract_ros2bag_imu.py"
 
 [feature.ros2.dependencies]
 ros-humble-desktop = "*"
+ros-humble-rosbag2-storage-mcap = "*"
 colcon-common-extensions = "*"
 tqdm = "*"
 pandas = "*"

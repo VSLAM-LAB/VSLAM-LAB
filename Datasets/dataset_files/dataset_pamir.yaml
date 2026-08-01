@@ -1,0 +1,40 @@
+dataset_name: pamir
+
+rgb_hz: 30.0
+modes: ['mono', 'mono-vi']
+cam_models: ['unknown']
+
+hf_repo_id: "afrl-uw/Pamir_Visual-Inertial_Data"
+
+target_resolution: [640, 480]
+
+# Each of these is a genuine single-camera dive - mono(-vi) only. The source's first dive used a
+# two-camera rig instead (stereo(-vi)-capable) - that one is the separate pamir-rig dataset
+# (2024_OnRig), kept apart because VSLAM-LAB's modes: list applies dataset-wide (every sequence
+# must satisfy every listed mode's requirements), so a stereo-capable sequence can't share a
+# dataset with these mono-only ones without permanently failing their integrity check. Same
+# reasoning as dataset_rover.py's split into rover-t265/rover-d435i/rover-picam by rig capability.
+sequence_names:
+  - 2025_Pamir_1
+  - 2025_Pamir_2
+
+about:
+  license: License
+  summary: Multi-session visual-inertial SLAM dataset of the Pamir shipwreck (Barbados), captured with action cameras and IMU across three scuba dives
+  homepage: https://huggingface.co/datasets/afrl-uw/Pamir_Visual-Inertial_Data
+  authors:
+    - Michalis Chatzispyrou
+    - Luke Horgan
+    - Hyunkil Hwang
+    - Harish Sathishchandra
+    - Chinmay Burgul
+    - Monika Roznere
+    - Alberto Quattrini Li
+    - Philippos Mordohai
+    - Ioannis Rekleitis
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: fontanvillacampa@gmail.com
+  date: 2026-08-01
