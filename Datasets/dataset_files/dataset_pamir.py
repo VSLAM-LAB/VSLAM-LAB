@@ -9,7 +9,6 @@ Module: VSLAM-LAB - Datasets - dataset_pamir.py
 
 from __future__ import annotations
 
-import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -21,18 +20,10 @@ from PIL import Image
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, hf_token, write_csv_rows
+from utilities import compute_scaled_size, hf_token, patch_ros2_qos_profiles_metadata, run_rosbag_frame_extraction, write_csv_rows
 
 IMAGE_TOPIC = "/gopro/image_raw/compressed"
 IMU_TOPIC = "/gopro/imu"
-
-# The source's bags were recorded with ROS2 Jazzy (metadata.yaml's ros_distro field), which
-# serializes each topic's offered_qos_profiles as a YAML sequence ("[]" when empty). This repo's
-# ros2 pixi environment is Humble, whose rosbag2_storage metadata parser still expects the older
-# string encoding and raises "yaml-cpp: error ...: bad conversion" on the sequence form -
-# confirmed by opening the real bag both ways. Patched to the empty-string form Humble expects.
-_QOS_PROFILES_PATTERN = re.compile(r"offered_qos_profiles:\s*\n\s*\[\]")
-_QOS_PROFILES_REPLACEMENT = 'offered_qos_profiles: ""'
 
 
 class PamirBagsMixin:
@@ -62,15 +53,7 @@ class PamirBagsMixin:
         # download_sequence_data/create_imu_csv, which also call this method), and would either
         # ignore or overwrite an in-place edit.
         patched_dir = local_root.parent / "bags_patched" / bag_name
-        patched_metadata = patched_dir / "metadata.yaml"
-        if not patched_metadata.exists():
-            patched_dir.mkdir(parents=True, exist_ok=True)
-            mcap_link = patched_dir / f"{bag_name}.mcap"
-            if not mcap_link.exists():
-                mcap_link.symlink_to((hf_bag_dir / f"{bag_name}.mcap").resolve())
-            raw = (hf_bag_dir / "metadata.yaml").read_text()
-            patched_metadata.write_text(_QOS_PROFILES_PATTERN.sub(_QOS_PROFILES_REPLACEMENT, raw))
-        return patched_dir
+        return patch_ros2_qos_profiles_metadata(hf_bag_dir, patched_dir)
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
@@ -92,22 +75,9 @@ class PamirBagsMixin:
         # extract-ros2bag-frames has no notion of self.target_resolution - it always writes at
         # the bag's native resolution. Extract into a throwaway raw_path first, then resize into
         # the real rgb_0/rgb_1 below (same rgb_0_raw/-then-resize shape as HFColmapDatasetMixin).
-        #
-        # extract_ros2bag_frames.py never creates its own output directory (cv2.imwrite silently
-        # no-ops if the parent is missing) - pre-create it here. A marker (not the directory's
-        # mere existence) records completion, since a crashed/interrupted extraction would
-        # otherwise leave an existing-but-incomplete directory that a plain .exists() check can't
-        # tell apart from a finished one.
         for cam, bag_name in enumerate(bag_names):
-            marker = raw_path / f".extract_complete_{cam}"
-            if marker.exists():
-                continue
-            (raw_path / f"rgb_{cam}").mkdir(parents=True, exist_ok=True)
             bag_dir = self._bag_dir(sequence_name, bag_name)
-            inputs = (f"--rosbag_path {bag_dir} --sequence_path {raw_path} "
-                      f"--image_topic {IMAGE_TOPIC} --cam {cam} --storage_id mcap")
-            subprocess.run(f"pixi run -e ros2 extract-ros2bag-frames {inputs}", shell=True)
-            marker.touch()
+            run_rosbag_frame_extraction("ros2", bag_dir, raw_path, IMAGE_TOPIC, cam, storage_id="mcap")
 
         for cam in range(len(bag_names)):
             final_path = self.rgb_path(sequence_name) if cam == 0 else sequence_path / f"rgb_{cam}"

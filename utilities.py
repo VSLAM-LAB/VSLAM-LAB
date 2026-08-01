@@ -63,6 +63,12 @@ from path_constants import (
 #   Hugging Face download helpers   - hf_token / download_hf_snapshot / ensure_hf_sequence_download,
 #                                      used by dataset_soneva.py and dataset_sweetcorals.py; other
 #                                      HF-based datasets (e.g. dataset_ariel.py) not yet migrated
+#   ROS bag helpers                 - patch_ros2_qos_profiles_metadata / run_rosbag_frame_extraction,
+#                                      pulled out of dataset_pamir.py while fixing VSLAM-LAB issue
+#                                      #95; not yet adopted by dataset_ariel.py/dataset_hilti2022.py/
+#                                      dataset_hilti2026.py, which each still have their own
+#                                      pre-existing (and, for the frame-extraction idempotency
+#                                      check, buggy) inline version of this logic
 #   COLMAP helpers                  - read_colmap_cameras / read_colmap_images /
 #                                      world_to_camera_to_pose, used by dataset_soneva.py and
 #                                      dataset_sweetcorals.py; generic COLMAP binary-format parsing,
@@ -752,6 +758,105 @@ def ensure_hf_sequence_download(
     for remote_dir in remote_dirs:
         download_hf_snapshot(repo_id, remote_dir, local_dir, pattern=pattern, token=token, max_workers=max_workers)
 
+    marker.touch()
+    return True
+##################################################################################################################################################
+
+
+##################################################################################################################################################
+# ROS bag helpers
+#
+# Pulled out of dataset_pamir.py's PamirBagsMixin while fixing VSLAM-LAB issue #95 (see below).
+# dataset_ariel.py/dataset_hilti2022.py (ROS1) and dataset_hilti2026.py (ROS2) each still have
+# their own inline version of the frame-extraction call - not yet migrated onto
+# run_rosbag_frame_extraction(), which fixes a real idempotency bug present in all three (see its
+# docstring). patch_ros2_qos_profiles_metadata() is untested against hilti2026 specifically - it's
+# only confirmed necessary for bags recorded with a post-Humble ROS2 distro (dataset_pamir.py's
+# source bags were Jazzy); whether hilti2026's own bags need it depends on what ROS2 distro
+# recorded them, which hasn't been checked.
+##################################################################################################################################################
+
+# ROS2 distros newer than Humble (e.g. Jazzy) serialize each topic's offered_qos_profiles as a
+# YAML sequence ("[]" when empty); Humble's rosbag2_storage metadata parser (this repo's ros2 pixi
+# environment) still expects the older string encoding and raises "yaml-cpp: error ...: bad
+# conversion" on the sequence form - confirmed by opening a real Jazzy-recorded bag both ways
+# while building dataset_pamir.py.
+_ROS2_QOS_PROFILES_PATTERN = re.compile(r"offered_qos_profiles:\s*\n\s*\[\]")
+_ROS2_QOS_PROFILES_REPLACEMENT = 'offered_qos_profiles: ""'
+
+
+def patch_ros2_qos_profiles_metadata(source_bag_dir: str | Path, patched_bag_dir: str | Path) -> Path:
+    """Copies a ROS2 bag directory (source_bag_dir - metadata.yaml plus one or more data files, as
+    named in metadata.yaml's own relative_file_paths) into patched_bag_dir, rewriting
+    offered_qos_profiles into the pre-Humble string encoding a Humble-based rosbag2_py reader
+    expects (see the module-level comment above) - the data file(s) are symlinked rather than
+    copied, since they're typically multi-GB. Idempotent: returns patched_bag_dir immediately if
+    it was already patched by a previous call. Only meaningful for ROS2 bags - ROS1's .bag format
+    has no separate metadata.yaml sidecar and isn't affected by this at all.
+    """
+    source_bag_dir = Path(source_bag_dir)
+    patched_bag_dir = Path(patched_bag_dir)
+    patched_metadata = patched_bag_dir / "metadata.yaml"
+    if patched_metadata.exists():
+        return patched_bag_dir
+
+    patched_bag_dir.mkdir(parents=True, exist_ok=True)
+    raw_metadata = (source_bag_dir / "metadata.yaml").read_text()
+
+    relative_file_paths = yaml.safe_load(raw_metadata)["rosbag2_bagfile_information"]["relative_file_paths"]
+    for relative_file_path in relative_file_paths:
+        link = patched_bag_dir / relative_file_path
+        if not link.exists():
+            link.symlink_to((source_bag_dir / relative_file_path).resolve())
+
+    patched_metadata.write_text(_ROS2_QOS_PROFILES_PATTERN.sub(_ROS2_QOS_PROFILES_REPLACEMENT, raw_metadata))
+    return patched_bag_dir
+
+
+_ROSBAG_FRAME_EXTRACTION_TASK: Final[dict[str, str]] = {
+    "ros1": "extract-rosbag-frames",
+    "ros2": "extract-ros2bag-frames",
+}
+
+
+def run_rosbag_frame_extraction(
+    ros_env: str, rosbag_path: str | Path, sequence_path: str | Path,
+    image_topic: str, cam: str | int, *, storage_id: str | None = None,
+) -> bool:
+    """Runs the rosbag-frame-extraction pixi task (extract-rosbag-frames for ros_env="ros1",
+    extract-ros2bag-frames for ros_env="ros2") for one camera, guarding against two issues in
+    Datasets/extra-files/extract_ro(s2)?bag_frames.py (VSLAM-LAB issue #95):
+      - Neither script creates its own rgb_{cam}/ output directory - cv2.imwrite silently no-ops
+        without it, extracting zero frames with no visible error.
+      - dataset_ariel.py/dataset_hilti2022.py/dataset_hilti2026.py all guard against that missing
+        directory the same (buggy) way: `if rgb_path.exists(): continue` immediately followed by
+        `rgb_path.mkdir(...)`. Since the directory is what gets created (nothing about whether
+        extraction actually finished), a crash partway through leaves it existing-but-incomplete -
+        a later re-run's .exists() check then sees it and skips re-extraction forever.
+    This creates rgb_{cam}/ itself before invoking the task, and uses a `.extract_complete_{cam}`
+    marker file (touched only after the subprocess call returns successfully) as the idempotency
+    guard instead. Unlike the existing call sites, this also passes check=True - a failed
+    extraction now raises immediately rather than silently leaving a corrupt/empty rgb_{cam}/ for
+    some later check_sequence_integrity() call to eventually flag with no clear root cause.
+
+    storage_id is only meaningful for ros_env="ros2" (ros1's script has no such argument at all -
+    rosbag1 has no storage-plugin concept); pass None (the default) to omit the flag and let the
+    ros2 script's own default (sqlite3) apply - only pass an explicit value for a non-sqlite3
+    backend (e.g. "mcap", as dataset_pamir.py needs).
+
+    Returns True if extraction ran, False if a previous call already completed it.
+    """
+    sequence_path = Path(sequence_path)
+    marker = sequence_path / f".extract_complete_{cam}"
+    if marker.exists():
+        return False
+
+    (sequence_path / f"rgb_{cam}").mkdir(parents=True, exist_ok=True)
+    task = _ROSBAG_FRAME_EXTRACTION_TASK[ros_env]
+    inputs = f"--rosbag_path {rosbag_path} --sequence_path {sequence_path} --image_topic {image_topic} --cam {cam}"
+    if storage_id:
+        inputs += f" --storage_id {storage_id}"
+    subprocess.run(f"pixi run -e {ros_env} {task} {inputs}", shell=True, check=True)
     marker.touch()
     return True
 ##################################################################################################################################################
