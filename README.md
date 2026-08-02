@@ -223,12 +223,12 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Novel Sensors for Autonomous Vehicle Perception**](https://umautobots.github.io/nsavp) | 📸🏞️🚗 |    `nsavp`    |`mono` `stereo` | `radtan4` |
 | [**Pamir Shipwreck Visual-Inertial Dataset**](https://huggingface.co/datasets/afrl-uw/Pamir_Visual-Inertial_Data) | 📸🌊🤳 |    `pamir/pamir-rig`    |`mono(-vi)` `stereo(-vi)` | `unknown` |
 | [**Hilti-Oxford SLAM Challenge 2022**](https://hilti-challenge.com/dataset-2022) | 📸🏠🏞️🤳 |    `hilti2022`    |`mono(-vi)` `stereo(-vi)` | `equid4` |
+| [**Hilti x Trimble 360 Visual-Inertial SLAM Challenge 2026**](https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026) | 📸🏠🏞️🤳 |    `hilti2026`    |`mono(-vi)` | `equid4` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
 | [**Stray Scanner App**](https://github.com/strayrobots/scanner) |  📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` |
 <!-- | [**Ariel**](https://huggingface.co/datasets/ntnu-arl/underwater-datasets) | 📸🏞️🌊 |    `ariel`    |`mono(-vi)` `stereo(-vi)`  | `equid4` | -->
-<!-- | [**HILTI Challenge Dataset 2026**](https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026) | 📸🏠🏞️🤳 |    `hilti2026`    |`mono(-vi)` | `equid4` | -->
 <!-- | [**The Drunkard's Dataset**](https://davidrecasens.github.io/TheDrunkard%27sOdometry/#download-dataset)                                    |  💻🏠🤳 |   `drunkards`    | `mono` `rgbd`  | `pinhole` | -->
 <!-- | [**Underwater caves sonar and vision data set**](https://cirs.udg.edu/caves-dataset/)  |  📸🏞️🌊 |   `caves`  | `mono` | `pinhole` | -->
 <!-- | [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/) |   📸🫀🤳 |  `hamlyn`   | `mono` `rgbd` | `pinhole` | -->

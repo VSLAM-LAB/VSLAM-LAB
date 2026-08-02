@@ -5,50 +5,67 @@ modes: ['mono', 'mono-vi']
 cam_models: ['equid4']
 raw_formats: ['ros2']
 
-google_drive_link: "https://drive.google.com/drive/folders"
+# Root of the official challenge dataset folder (confirmed via the challenge repo's own
+# challenge_tools_ros/download_data/download_drive.py, DEFAULT_FOLDER_ID). Individual sequences
+# are resolved from a cached manifest crawled from this folder in __init__/download_sequence_data
+# - not a hand-maintained per-sequence folder-ID map (the old implementation's map was checked
+# against the 5 sequence folder links the README itself publishes and matched 0 of 5 - it looked
+# fabricated/stale).
+google_drive_link: "https://drive.google.com/drive/folders/1BWFIfEL40Nvj-yeyre5O9dOiYCTWatv5"
+
+target_resolution: [640, 480]
 
 sequence_names:
-  - 'floor_1_2025_05_05'
-  - 'floor_1_2025_07_07'
-  - 'floor_1_2025_12_02'
-  - 'floor_2_2025_05_05'
-  - 'floor_2_2025_10_28_run_1'
-  - 'floor_2_2025_10_28_run_2'
-  - 'floor_2_2025_12_02'
-  - 'floor_2_2025_12_03'
-  - 'floor_3_2025_05_19'
-  - 'floor_3_2025_12_02'
-  - 'floor_4_2025_05_19'
-  - 'floor_4_2025_12_02'
-  - 'floor_5_2025_12_02'
-  - 'floor_6_2025_06_18'
-  - 'floor_6_2025_07_07'
-  - 'floor_6_2025_12_02_run_1'
-  - 'floor_6_2025_12_02_run_2'
-  - 'floor_7_2025_12_02_run_1'
-  - 'floor_7_2025_12_02_run_2'
-  - 'floor_7_2025_12_03'
-  - 'floor_EG_2025_10_16'
-  - 'floor_EG_2025_12_02_run_1'
-  - 'floor_EG_2025_12_02_run_2'
-  - 'floor_UG1_2025_05_19'
-  - 'floor_UG1_2025_06_18'
-  - 'floor_UG1_2025_10_16'
-  - 'floor_UG1_2025_12_02_run_1'
-  - 'floor_UG1_2025_12_02_run_2'
-  - 'floor_UG1_2025_12_03'
-  - 'floor_UG2_2025_12_02'
+  - floor_1_2025_05_05_run_1
+  - floor_1_2025_07_07_run_1
+  - floor_1_2025_12_02_run_1
+  - floor_2_2025_05_05_run_1
+  - floor_2_2025_10_28_run_1
+  - floor_2_2025_10_28_run_2
+  - floor_2_2025_12_02_run_1
+  - floor_2_2025_12_03_run_1
+  - floor_3_2025_05_19_run_1
+  - floor_3_2025_12_02_run_1
+  - floor_4_2025_05_19_run_1
+  - floor_4_2025_12_02_run_1
+  - floor_5_2025_12_02_run_1
+  - floor_6_2025_06_18_run_1
+  - floor_6_2025_07_07_run_1
+  - floor_6_2025_12_02_run_1
+  - floor_6_2025_12_02_run_2
+  - floor_7_2025_12_02_run_1
+  - floor_7_2025_12_02_run_2
+  - floor_7_2025_12_03_run_1
+  - floor_EG_2025_10_16_run_1
+  - floor_EG_2025_12_02_run_1
+  - floor_EG_2025_12_02_run_2
+  - floor_UG1_2025_05_19_run_1
+  - floor_UG1_2025_06_18_run_1
+  - floor_UG1_2025_10_16_run_1
+  - floor_UG1_2025_12_02_run_1
+  - floor_UG1_2025_12_02_run_2
+  - floor_UG1_2025_12_03_run_1
+  - floor_UG2_2025_12_02_run_1
 
 about:
-  license: License
-  summary: Hilti Trimble 360 Visual-Inertial SLAM Challenge 2026
+  license: CC BY-NC-SA 3.0
+  summary: Hilti x Trimble 360 Visual-Inertial SLAM Challenge 2026 - construction-site benchmark with floor plan priors, captured with a dual-fisheye 360 camera and LiDAR-based ground truth
   homepage: https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026
   authors:
     - Samuele Centanni
     - Yuhao Zhang
-    - Others
+    - Yifu Tao
+    - Julien Kindle
+    - Frank Neuhaus
+    - Tilman Koß
+    - Aryaman Patel
+    - Michael Helmberger
+    - Emilia Szymańska
+    - Torben Gräber
+    - Maurice Fallon
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
-  date: 2026-03-07
+  date: 2026-08-02
