@@ -55,6 +55,8 @@ Don't hand-roll this per script — call `utilities.add_sequence_target_args(par
 
 ## Conventions
 
+- **Never run `git push` (or any variant: `--force`, a remote-mutating `gh pr merge`, etc.) under any circumstances — not even to ask the user for permission to do it.** Don't offer, don't prompt, don't run it "just to check" — treat pushing as entirely outside your reach; if a push is ever needed, tell the user and let them run it themselves. This holds even though `.claude/settings.json` grants broad Bash permissions including unrestricted `python3 -c`/`pixi run ... python3 -c`, which could otherwise invoke `git push` via `subprocess` without the literal text ever appearing in a Bash tool call the permission system can see — `Bash(git push *)` is in `deny` for direct invocations, but that deny cannot see inside a `-c` string, so this instruction is the actual backstop and applies regardless of what the settings file technically allows.
+- **Never read, write, execute, or delete anything outside `VSLAM-LAB` (this repo) or its sibling `VSLAM-LAB-Benchmark`/`VSLAM-LAB-Evaluation` directories** — same reasoning: broad `python3 -c` permission means the permission system can't restrict this by path, so it's on the instructions, not the settings file.
 - Feature branches off `main`, PRs into `main`. All GitHub PRs (including from forks) target `main` — it's the repo's default/integration branch.
 - `dev` is a personal working branch, not a shared integration branch — it isn't a PR target on GitHub. Don't assume work should branch off `dev` or merge into it; treat it like any other local/scratch branch.
 - Work items are tracked as GitHub issues — see Issue Labels below.
