@@ -3,6 +3,7 @@ dataset_name: strayscanner
 rgb_hz: 30.0
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['zip', 'video', 'local']
 
 hf_repo_id: vslamlab/strayscanner
 target_resolution: [640, 480]

@@ -3,6 +3,7 @@ dataset_name: drunkards
 rgb_hz: 30.0
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 google_drive_link: 'https://drive.google.com/drive/folders'
 depth_factor: 2184.5 # Depth in meters = depth_value / depth_factor

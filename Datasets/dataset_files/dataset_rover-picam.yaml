@@ -3,6 +3,7 @@ dataset_name: rover-picam
 rgb_hz: 30.0
 modes: ['mono']
 cam_models: ['equid4']
+raw_formats: ['zip']
 
 url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 

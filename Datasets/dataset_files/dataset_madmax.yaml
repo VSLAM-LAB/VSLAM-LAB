@@ -3,6 +3,7 @@ dataset_name: madmax
 rgb_hz: 30.0
 modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_root: "https://my.hidrive.com/api"
 api_token: "not_set"

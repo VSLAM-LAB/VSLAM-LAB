@@ -3,6 +3,7 @@ dataset_name: hilti2022
 rgb_hz: 40.0
 modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['equid4']
+raw_formats: ['ros1', 'zip']
 
 url_download_root: "https://tp-public-facing.s3.eu-north-1.amazonaws.com/Challenges/2022"
 url_download_root_gt: "https://hilti-challenge.com/assets/2022/ground_truth"

@@ -3,16 +3,16 @@
 Module: generate_dataset_table.py
 Description: Scans Datasets/dataset_files/*.yaml (and, via get_dataset.py, the
              matching *.py) and writes a Markdown table (features | label |
-             modes | camera models | license | download source | download
-             issues | maintainer | AI-assisted). Features and License are
-             cross-referenced, not derived from the yaml alone: Features comes
-             from README.md's Datasets/Tools tables (including their
+             modes | camera models | raw format | license | download source |
+             download issues | maintainer | AI-assisted). Features and License
+             are cross-referenced, not derived from the yaml alone: Features
+             comes from README.md's Datasets/Tools tables (including their
              commented-out placeholder rows), License from each dataset's own
              yaml about.license field.
 Author: Alejandro Fontan Villacampa
-Version: 1.4
+Version: 1.5
 Created: 2026-07-19
-Updated: 2026-07-26
+Updated: 2026-08-02
 License: GPLv3
 List of Known Bugs: None
 """
@@ -27,6 +27,7 @@ import yaml
 
 DEFAULT_CAM_MODELS = ["pinhole"]
 DEFAULT_MODES = ["mono"]
+DEFAULT_RAW_FORMATS = ["other"]
 
 VSLAM_LAB_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET_FILES_DIR = VSLAM_LAB_DIR / "Datasets" / "dataset_files"
@@ -220,6 +221,7 @@ def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path, readme_
         dataset_name = str(cfg.get("dataset_name", yaml_file.stem.removeprefix("dataset_"))).strip()
         cam_models = cfg.get("cam_models", DEFAULT_CAM_MODELS)
         modes = cfg.get("modes", DEFAULT_MODES)
+        raw_formats = cfg.get("raw_formats", DEFAULT_RAW_FORMATS)
         about = cfg.get("about", {})
         license_ = str(about.get("license", "")).strip()
         display_name = str(about.get("summary", "")).strip()
@@ -239,6 +241,7 @@ def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path, readme_
                 "license": license_,
                 "cam_models": " ".join(f"`{m}`" for m in cam_models),
                 "modes": " ".join(f"`{m}`" for m in modes),
+                "raw_formats": " ".join(f"`{r}`" for r in raw_formats),
                 "download": " ".join(f"`{d}`" for d in download_labels),
                 "issues": " ".join(f"`{i}`" for i in issue_ids),
                 "maintainer": maintainer,
@@ -250,12 +253,12 @@ def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path, readme_
 
 def _render_markdown_table(entries: list[dict[str, str]]) -> str:
     lines = [
-        "| Datasets | Features | Label | Modes | Camera Models | License | Download | Download Issues | Maintainer | AI-Assisted |",
-        "|:---|:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|",
+        "| Datasets | Features | Label | Modes | Camera Models | Raw Format | License | Download | Download Issues | Maintainer | AI-Assisted |",
+        "|:---|:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|",
     ]
     for entry in entries:
         lines.append(
-            f"| {entry['dataset_link']} | {entry['features']} | `{entry['dataset_name']}` | {entry['modes']} | {entry['cam_models']} | "
+            f"| {entry['dataset_link']} | {entry['features']} | `{entry['dataset_name']}` | {entry['modes']} | {entry['cam_models']} | {entry['raw_formats']} | "
             f"{entry['license']} | {entry['download']} | {entry['issues']} | {entry['maintainer']} | {entry['assisted_by']} |"
         )
     return "\n".join(lines) + "\n"

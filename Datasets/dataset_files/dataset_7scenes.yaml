@@ -3,6 +3,7 @@ dataset_name: 7scenes
 rgb_hz: 30.0
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_root: "https://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8"
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor

@@ -4,6 +4,7 @@ rgb_hz: 20.0
 imu_hz: 200.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['radtan4']
+raw_formats: ['zip']
 
 # Shared per-group archive root, one URL per EuRoC sequence group (see dataset_euroc.py's
 # _GROUP_INFO, which maps the same prefixes to each group's subfolder name/download size).

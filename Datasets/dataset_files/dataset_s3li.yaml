@@ -4,6 +4,7 @@ rgb_hz: 10.0
 imu_hz: 200.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_sequences:
   # S3LI Vulcano sequences

@@ -4,6 +4,7 @@ rgb_hz: 30.0
 hf_repo_id: "shixuesong/openloris-scene"
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['equid4']
+raw_formats: ['tar', '7z']
 
 sequence_names:
   - cafe1-1

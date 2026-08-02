@@ -4,6 +4,7 @@ rgb_hz: 20.0
 imu_hz:: 200.0
 modes: ['mono',  'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['equid4']
+raw_formats: ['tar']
 
 url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/512_16/"
 

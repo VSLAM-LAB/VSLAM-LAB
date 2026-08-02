@@ -3,6 +3,7 @@ dataset_name : ariel
 rgb_hz: 20.0
 modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['equid4']
+raw_formats: ['ros1']
 
 hf_repo_id: "ntnu-arl/underwater-datasets"
 

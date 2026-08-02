@@ -4,6 +4,7 @@ rgb_hz: 30.0
 hf_repo_id: "shixuesong/openloris-scene"
 modes: ['mono', 'rgbd', 'mono-vi', 'rgbd-vi']
 cam_models: ['pinhole']
+raw_formats: ['tar', '7z']
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:

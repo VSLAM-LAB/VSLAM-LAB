@@ -3,6 +3,7 @@ dataset_name: caves
 rgb_hz: 5.0
 modes: ['mono']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_root: "https://zenodo.org/record/7828405/files/undistorted_frames.zip?download=1"
 url_download_timestamps: "https://zenodo.org/record/7828405/files/undistorted_frames_timestamps.txt?download=1"

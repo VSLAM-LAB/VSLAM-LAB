@@ -3,6 +3,7 @@ dataset_name: nsavp
 rgb_hz: 20.14
 modes: ['mono', 'stereo']
 cam_models: ['radtan4']
+raw_formats: ['hdf5']
 
 # NSAVP is published per-sequence on University of Michigan's Deep Blue Data, each sequence
 # behind its own Globus HTTPS share link with a per-DOI path segment that can't be derived from

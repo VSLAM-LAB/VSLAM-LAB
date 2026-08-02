@@ -56,6 +56,7 @@ Resolve each field in this order — don't skip ahead:
 | `dataset_name` | lowercase slug, reused everywhere: file names, class prefix, switcher key |
 | `sequence_names` | sequence IDs shipped; drop redundant shared prefixes (e.g. `hb_20250710`, not `maldives_soneva_hb_20250710`) |
 | `cam_models` | closed list — see below |
+| `raw_formats` | closed list — see below |
 | `modes` | closed list — see below |
 | `resize` | true if source images are bigger than 640×480 by pixel area, else false — see below |
 | `groundtruth_available` | true/false; false → `create_groundtruth_csv` writes header only |
@@ -65,13 +66,15 @@ Resolve each field in this order — don't skip ahead:
 
 **`cam_models`** — closed list, must already appear in `dataset_table.md`'s Camera Models column (read live: currently `pinhole`, `radtan4`, `radtan5`, `equid4`, `unknown`). Each value must describe what `create_calibration_yaml` actually writes, not just "this is a perspective camera" — the exact mapping, per-value `Model:` citations, and detailed gotchas are defined once in `dataset_template.py`'s `create_calibration_yaml` comment (live-included in step 4 — read it now rather than waiting, the same way step 1's "From `<source>`" resolution rule above sends you into the template early for the download pattern). Not restated here.
 
+**`raw_formats`** — closed list, must already appear in `dataset_table.md`'s Raw Format column (read live: currently `zip`, `tar`, `7z`, `ros1`, `ros2`, `images`, `video`, `colmap`, `hdf5`, `local`). Not the same axis as `download` below: `download` is the *transport* (website/hugging-face/google-drive/local/api), `raw_formats` is the *payload's packaging* once fetched — the two are independent (e.g. `pamir` is `hugging-face` + `ros2`; `hilti2022` is `website` + `ros1`+`zip`). A dataset commonly needs more than one value (`hilti2022`: a rosbag for the sequence data, a separate zip for calibration). Each value must describe what `create_rgb_folder` actually does to turn that raw shape into `rgb_0`/`rgb_1`/`depth_0` — the exact per-value breakdown and `Model:` citations are defined once in `dataset_template.py`'s `create_rgb_folder` comment (live-included in step 4). The one exception is `colmap`, which never produces rgb frames at all (it's a calibration/pose source) — defined instead in `create_calibration_yaml`'s comment, also live-included in step 4. Not restated here.
+
 **`modes`** — closed list, must already appear in `dataset_table.md`'s Modes column (read live: currently `mono`, `mono-vi`, `rgbd`, `rgbd-vi`, `stereo`, `stereo-vi`). Include the native mode(s) *and* every mode derivable by dropping a channel (`stereo`/`rgbd` → `mono`, `-vi` → non-`-vi`) — the exact derivation rule and examples are defined once in `dataset_template.yaml`'s `modes` comment (live-included in step 3). Not restated here.
 
 **`modes` applies dataset-wide, not per-sequence** — `DatasetVSLAMLAB.check_sequence_integrity()` requires *every* sequence to satisfy *every* listed mode's requirements (an `rgb_1` folder for every sequence if `stereo`/`stereo-vi` is listed, an `imu_0.csv` for every sequence if `mono-vi`/`stereo-vi`/`rgbd-vi` is listed), regardless of whether that particular sequence's own source data actually supports it. If the source's sequences have genuinely different capabilities (e.g. some are stereo-capable, others mono-only), don't force them into one `dataset_name` with the richest `modes` list — split into separate `dataset_name`s by capability instead, each with its own `modes` matching only what its own sequences support, and repeat steps 3–9 for each. Model: `dataset_rover.py`'s `rover-t265`/`rover-d435i`/`rover-picam` split (by rig/sensor type); `dataset_pamir.py`/`dataset_pamir_rig.py`'s `pamir`/`pamir-rig` split (2024 two-camera rig dive vs. 2025 single-camera dives) is a second real-world example — the split there was only caught in step 8, after a stereo-mode sequence had already been merged into a mono-only dataset and its sibling sequences started failing `check_sequence_availability`. Catch this here, in step 1, instead.
 
 **`resize`** — true if source images are bigger than 640×480 by pixel area, else false. Only decides the YAML's initial `target_resolution` value; the field is safely removable later with no code change (`create_rgb_folder`'s uniform runtime branch on `self.target_resolution` — step 4c below). Full detail: `dataset_template.yaml`'s `target_resolution` comment.
 
-If the prompt/source/user names a mode or camera model outside the current closed lists, don't add it as new — flag it in step 2's Notes and ask the user how to proceed.
+If the prompt/source/user names a mode, camera model, or raw format outside the current closed lists, don't add it as new — flag it in step 2's Notes and ask the user how to proceed.
 
 **Before moving to step 2**, print this table plus a Notes line for anything worth flagging (most importantly any inconsistency between what the user said and what `<source>` shows — e.g. user said mono-only but the source also has depth frames):
 
@@ -80,6 +83,7 @@ If the prompt/source/user names a mode or camera model outside the current close
 | dataset_name | | prompt / url / asked | |
 | sequence_names | | prompt / url / asked | |
 | cam_models | | prompt / url / asked | |
+| raw_formats | | prompt / url / asked | |
 | modes | | prompt / url / asked | |
 | resize | | prompt / url / asked | |
 | groundtruth_available | | prompt / url / asked | |
@@ -126,7 +130,7 @@ Copy `Datasets/extra-files/dataset_template.yaml` → `Datasets/dataset_files/da
 
 - `dataset_name`, `sequence_names` (confirmed list).
 - `rgb_hz` — RGB capture rate in Hz; required by the base class (`cfg["rgb_hz"]`, no default), not a step-1 field — get it from `<source>` or ask.
-- `cam_models`, `modes` — as YAML lists, e.g. `['pinhole']`, `['mono', 'stereo']`. The template above lists the closed-list values; the full mapping/gotchas for `cam_models` are canonical in step 4's template (`create_calibration_yaml`), for `modes` canonical right here in this template.
+- `cam_models`, `raw_formats`, `modes` — as YAML lists, e.g. `['pinhole']`, `['ros1', 'zip']`, `['mono', 'stereo']`. The template above lists the closed-list values; the full mapping/gotchas for `cam_models` are canonical in step 4's template (`create_calibration_yaml`), for `raw_formats` canonical in step 4's template (`create_rgb_folder`, with the `colmap` exception in `create_calibration_yaml`), for `modes` canonical right here in this template.
 - The download field for the step-1 `download` pattern — the template above lists the exact field name/shape; the fetch mechanism and gotchas are canonical in step 4's template (`download_sequence_data`).
 
 - If `resize` is true, add `target_resolution: [640, 480]`; omit entirely if false — see step 1's `resize` field above for why this is just an initial value, safely changed later with no code change.

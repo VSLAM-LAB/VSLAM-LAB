@@ -4,6 +4,7 @@ rgb_hz: 40.0
 url_download_root: "https://cvg.cit.tum.de/mono/dataset"
 modes: ['mono']
 cam_models: ['radtan5']
+raw_formats: ['zip']
 
 sequence_names: 
   - sequence_01

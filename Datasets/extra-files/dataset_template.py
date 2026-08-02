@@ -156,6 +156,40 @@ class TemplateDataset(DatasetVSLAMLAB):
         # 'rgb_0'/'depth_0' string literals yourself, even though that's what those helpers
         # resolve to under the hood.
         #
+        # raw_formats (SKILL.md step 1) is the closed list of shapes the source can ship its
+        # sequence data in - a dataset can list more than one (Model: dataset_hilti2022.py's
+        # ['ros1', 'zip']: a rosbag for the sequence data, a separate zip for calibration). This
+        # is the canonical definition of that closed list - what each value means for turning the
+        # raw download into rgb_0/rgb_1/depth_0 specifically, not just a label:
+        #   zip/tar/7z -> download_sequence_data already decompressed it into a plain folder of
+        #                 image files - locate them and copy/resize into rgb_0/rgb_1/depth_0.
+        #                 Model: dataset_eth.py, dataset_kitti.py.
+        #   ros1/ros2  -> utilities.run_rosbag_frame_extraction(ros_env, rosbag_path,
+        #                 sequence_path, image_topic, cam, ...) per camera - never hand-roll the
+        #                 pixi extract-rosbag-frames/extract-ros2bag-frames subprocess call
+        #                 yourself (see its docstring for the idempotency bug it fixes over a
+        #                 naive `if rgb_path.exists(): continue`). ros2 sources recorded on a
+        #                 post-Humble distro (e.g. Jazzy) also need
+        #                 utilities.patch_ros2_qos_profiles_metadata(...) first - see its
+        #                 docstring for when that applies. Model: dataset_hilti2022.py (ros1),
+        #                 dataset_pamir.py (ros2).
+        #   video      -> frame-extract via ffmpeg or cv2.VideoCapture, one image file per frame.
+        #                 Model: dataset_youtube.py, dataset_strayscanner.py,
+        #                 dataset_scannetplusplus.py.
+        #   images     -> the source already ships individual, already-decoded frame files (e.g.
+        #                 a Hugging Face snapshot of .jpg/.png, or per-item API image fetches) -
+        #                 no extraction step, only the copy/resize below. Model: dataset_soneva.py.
+        #   hdf5       -> parse the image arrays out of the .h5 file directly (e.g. h5py) - no
+        #                 extraction subprocess, similar in spirit to images above but read from
+        #                 a single binary container instead of loose files. Model: dataset_nsavp.py.
+        #   local      -> no-op; the sequence's rgb_0/(rgb_1/) is whatever the user already placed
+        #                 at self.sequence_path(sequence_name) - nothing to normalize here.
+        #   colmap     -> not a create_rgb_folder concern at all - colmap describes where
+        #                 calibration/pose data comes from (cameras.bin/images.bin), never the rgb
+        #                 frames themselves. See create_calibration_yaml/create_groundtruth_csv
+        #                 below instead; a dataset combining colmap with images (Model:
+        #                 dataset_soneva.py) still follows the images branch here.
+        #
         # Branch on self.target_resolution (not a separate resize flag) for every rgb_0/rgb_1
         # image:
         #   None     -> source images are already <= 640x480 (or the yaml's target_resolution was
@@ -240,6 +274,13 @@ class TemplateDataset(DatasetVSLAMLAB):
         # calibration.yaml as a quoted string (e.g. focal_length: ['718.856000', ...]), which then
         # parses back as str, not float, with no error anywhere in the pipeline. dataset_kitti.py hit
         # exactly this bug (fx/fy/cx/cy read via .split() and never cast) before it was caught.
+        #
+        # raw_formats (SKILL.md step 1): colmap -> parse cameras.bin here (read_colmap_cameras) for
+        # focal_length/principal_point/image dimensions - and images.bin in create_groundtruth_csv
+        # (read_colmap_images) for per-frame poses. This is the one raw_formats value that belongs
+        # here rather than in create_rgb_folder's per-value breakdown, since colmap describes the
+        # calibration/pose source, never the rgb frames themselves - the full raw_formats closed
+        # list is canonical in create_rgb_folder's comment above. Model: dataset_soneva.py.
         return
 
     def create_imu_csv(self, sequence_name: str) -> None:

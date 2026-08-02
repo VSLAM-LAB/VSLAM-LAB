@@ -3,6 +3,7 @@ dataset_name: rover-d435i
 rgb_hz: 30.0
 modes: ['mono', 'rgbd', 'rgbd-vi']
 cam_models: ['radtan4']
+raw_formats: ['zip']
 
 url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor

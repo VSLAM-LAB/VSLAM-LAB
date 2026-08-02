@@ -3,6 +3,7 @@ dataset_name: soneva
 rgb_hz: 2.0
 modes: ['mono']
 cam_models: ['pinhole']
+raw_formats: ['images', 'colmap']
 
 hf_repo_id: "wildflow/soneva-corals"
 target_resolution: [640, 480]

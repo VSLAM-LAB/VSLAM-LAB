@@ -3,6 +3,7 @@ dataset_name: sweetcorals
 rgb_hz: 2.0
 modes: ['mono']
 cam_models: ['pinhole', 'unknown']
+raw_formats: ['images', 'colmap']
 
 hf_repo_id: "wildflow/sweet-corals"
 target_resolution: [640, 480]

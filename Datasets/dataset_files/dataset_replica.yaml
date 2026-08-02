@@ -3,6 +3,7 @@ dataset_name: replica
 rgb_hz: 30.0
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_root: "https://cvg-data.inf.ethz.ch/nice-slam/data/Replica.zip"
 depth_factor: 6553.5 # Depth in meters = depth_value / depth_factor
