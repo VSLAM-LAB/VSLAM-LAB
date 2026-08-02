@@ -5,25 +5,42 @@ modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['equid4']
 
 url_download_root: "https://tp-public-facing.s3.eu-north-1.amazonaws.com/Challenges/2022"
+url_download_root_gt: "https://hilti-challenge.com/assets/2022/ground_truth"
+
+target_resolution: [640, 480]
 
 sequence_names:
+  - exp01_construction_ground_level
+  - exp02_construction_multilevel
+  - exp03_construction_stairs
   - exp04_construction_upper_level
   - exp05_construction_upper_level_2
   - exp06_construction_upper_level_3
+  - exp07_long_corridor
+  - exp09_cupola
+  - exp10_cupola_2
+  - exp11_lower_gallery
   - exp14_basement_2
+  - exp15_attic_to_upper_gallery
   - exp16_attic_to_upper_gallery_2
   - exp18_corridor_lower_gallery_2
+  - exp21_outside_building
 
 about:
-  license: License
-  summary: Hilti-SLAM-Challenge-2022
-  homepage: https://github.com/Hilti-Research/hilti-slam-challenge-2022
+  license: CC BY-NC-SA 3.0
+  summary: Hilti-Oxford SLAM Challenge 2022 - multi-camera, IMU and lidar dataset for SLAM benchmarking in construction and industrial environments
+  homepage: https://hilti-challenge.com/dataset-2022
   authors:
-    - Samuele Centanni
+    - Lintong Zhang
     - Michael Helmberger
-    - Others
+    - Lanke Frank Tarimo Fu
+    - David Wisth
+    - Marco Camurri
+    - Davide Scaramuzza
+    - Maurice Fallon
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
-  date: 2026-03-07
+  date: 2026-08-02

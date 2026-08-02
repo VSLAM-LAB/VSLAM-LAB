@@ -1,119 +1,130 @@
-import csv
-import os
+"""
+Module: VSLAM-LAB - Datasets - dataset_hilti2022.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2026-08-02
+- License: GPLv3 License
+"""
+
+from __future__ import annotations
+
+import shutil
 import subprocess
 from typing import Any
 
 import numpy as np
-import pandas as pd
 import yaml
+from PIL import Image
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import decompressFile, downloadFile
+from path_constants import BENCHMARK_RETENTION, Retention
+from utilities import compute_scaled_size, decompressFile, downloadFile, run_rosbag_frame_extraction, write_csv_rows
 
-SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
+IMAGE_TOPIC_TEMPLATE = "/alphasense/cam{cam}/image_raw"
+IMU_TOPIC = "/alphasense/imu"
+CALIBRATION_ARCHIVE = "2022322_calibration_files.zip"
+CALIBRATION_YAML = "calib_3_cam0-1-camchain-imucam.yaml"
+
+# Ground-truth availability, verified against https://hilti-challenge.com/assets/2022/ground_truth/:
+# only these three sequences have a dense, real 6DOF trajectory (an "_imu.txt" file, hundreds of
+# rows, genuine quaternions). Every other sequence with a public GT file (the bare "<name>.txt")
+# only has a handful of sparse waypoints with an identity-quaternion placeholder (0, 0, 0, 1) - not
+# a usable trajectory, but still real position data, so it's still written out.
+DENSE_GT_SEQUENCES = {"exp14_basement_2", "exp16_attic_to_upper_gallery_2", "exp18_corridor_lower_gallery_2"}
+# No public ground truth file exists at all for this sequence (confirmed via HTTP 404).
+NO_GT_SEQUENCES = {"exp10_cupola_2"}
+
+
+def _gt_name(sequence_name: str) -> str | None:
+    if sequence_name in NO_GT_SEQUENCES:
+        return None
+    if sequence_name in DENSE_GT_SEQUENCES:
+        return f"{sequence_name}_imu.txt"
+    return f"{sequence_name}.txt"
 
 
 class Hilti2022Dataset(DatasetVSLAMLAB):
-    """HILTI 2022 dataset helper for VSLAM-LAB benchmark."""
+    """Hilti-Oxford SLAM Challenge 2022 dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "hilti2022") -> None:
         super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
+        # Get download urls
+        self.url_download_root: str = self.cfg["url_download_root"]
+        self.url_download_root_gt: str = self.cfg["url_download_root_gt"]
 
-        # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-
-        # Create sequence_nicknames
+        # Sequence nicknames - drop the descriptive suffix, keep just "expNN"
         self.sequence_nicknames = [s.split("_", 1)[0] for s in self.sequence_names]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
         sequence_path.mkdir(parents=True, exist_ok=True)
 
-        # Download rosbag
-        rosbag = sequence_name + ".bag"
-        rosbag_path = sequence_path / rosbag
+        # Rosbag (one per sequence)
+        rosbag_path = sequence_path / f"{sequence_name}.bag"
         if not rosbag_path.exists():
-            download_url = f"{self.url_download_root}/{rosbag}"
-            downloadFile(download_url, sequence_path)
+            downloadFile(f"{self.url_download_root}/{sequence_name}.bag", str(sequence_path))
 
-        # Download calibration files
-        decompressed_folder = self.dataset_path / "calibration_files"
-        if not decompressed_folder.exists():
-            compressed_name_ext = "2022322_calibration_files.zip"
-            cal_url = f"{self.url_download_root}/{compressed_name_ext}"
-            compressed_file = self.dataset_path / compressed_name_ext
+        # Calibration (one shared rig for every sequence in the challenge)
+        calibration_folder = self.dataset_path / "calibration_files"
+        if not calibration_folder.exists():
+            compressed_file = self.dataset_path / CALIBRATION_ARCHIVE
+            downloadFile(f"{self.url_download_root}/{CALIBRATION_ARCHIVE}", str(self.dataset_path))
+            decompressFile(compressed_file, calibration_folder)
 
-            downloadFile(cal_url, self.dataset_path)
-            decompressFile(compressed_file, decompressed_folder)
-
-        # Download gt
-        gt_name = self.get_gt_name(sequence_name)
-        gt_txt = sequence_path / gt_name
-        if not gt_txt.exists():
-            gt_url = f"https://hilti-challenge.com/assets/2022/ground_truth/{gt_name}"
-            downloadFile(gt_url, sequence_path)
+        # Ground truth (not every sequence has one - see _gt_name)
+        gt_name = _gt_name(sequence_name)
+        if gt_name is not None:
+            gt_path = sequence_path / gt_name
+            if not gt_path.exists():
+                downloadFile(f"{self.url_download_root_gt}/{gt_name}", str(sequence_path))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        rosbag_name = f"{sequence_name}.bag"
-        rosbag = sequence_path / rosbag_name
-        for cam in ["0", "1"]:
-            image_topic = f"/alphasense/cam{cam}/image_raw"
-            rgb_path = sequence_path / f"rgb_{cam}"
-            if rgb_path.exists():
-                continue
-            rgb_path.mkdir(parents=True, exist_ok=True)
+        rosbag_path = sequence_path / f"{sequence_name}.bag"
+        raw_path = sequence_path / "rgb_raw"
 
-            inputs = f"--rosbag_path {rosbag} --sequence_path {sequence_path} --image_topic {image_topic} --cam {cam}"
-            command = f"pixi run -e ros1 extract-rosbag-frames {inputs}"
-            subprocess.run(command, shell=True)
+        # extract-rosbag-frames has no notion of self.target_resolution - it always writes at the
+        # bag's native 720x540. Extract into a throwaway raw_path first, then resize into the real
+        # rgb_0/rgb_1 below (same rgb_raw-then-resize shape as dataset_pamir.py).
+        for cam in ("0", "1"):
+            image_topic = IMAGE_TOPIC_TEMPLATE.format(cam=cam)
+            run_rosbag_frame_extraction("ros1", rosbag_path, raw_path, image_topic, cam)
+
+        for cam, final_path in (("0", self.rgb_path(sequence_name)), ("1", sequence_path / "rgb_1")):
+            if final_path.exists():
+                continue
+            final_path.mkdir(parents=True, exist_ok=True)
+            for raw_image in sorted((raw_path / f"rgb_{cam}").glob("*.png")):
+                with Image.open(raw_image) as img:
+                    target_size = compute_scaled_size(img.size, self.target_resolution)
+                    img.resize(target_size, Image.Resampling.LANCZOS).save(final_path / raw_image.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        pass
+        # extract-rosbag-frames already wrote rgb_raw/rgb.csv with paths like "rgb_0/<ts>.png" -
+        # identical to the final rgb_0/rgb_1 layout (same filenames, just resized in place above),
+        # so the raw csv is valid as-is.
+        raw_csv = self.sequence_path(sequence_name) / "rgb_raw" / "rgb.csv"
+        shutil.copy2(raw_csv, self.rgb_csv_path(sequence_name))
 
     def create_imu_csv(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        rosbag_name = f"{sequence_name}.bag"
-        rosbag = sequence_path / rosbag_name
-        imu_topic = "/alphasense/imu"
+        rosbag_path = sequence_path / f"{sequence_name}.bag"
         imu_csv = self.imu_csv_path(sequence_name)
         if imu_csv.exists():
             return
 
-        inputs = f"--rosbag_path {rosbag} --sequence_path {sequence_path} --imu_topic {imu_topic}"
-        command = f"pixi run -e ros1 extract-rosbag-imu {inputs}"
-        subprocess.run(command, shell=True)
-
-        rgb_csv = self.rgb_csv_path(sequence_name)
-        imu_csv = self.imu_csv_path(sequence_name)
-        rgb = pd.read_csv(rgb_csv)
-        imu = pd.read_csv(imu_csv)
-
-        rgb_0_ts_col = "ts_rgb_0 (ns)"
-        rgb_1_ts_col = "ts_rgb_1 (ns)"
-        imu_ts_col = "ts (ns)"
-
-        imu[imu_ts_col] = imu[imu_ts_col].astype("int64")
-        rgb[rgb_0_ts_col] = rgb[rgb_0_ts_col].astype("int64")
-        rgb[rgb_1_ts_col] = rgb[rgb_1_ts_col].astype("int64")
-
-        rgb.to_csv(rgb_csv, index=False)
-        imu.to_csv(imu_csv, index=False)
+        inputs = f"--rosbag_path {rosbag_path} --sequence_path {sequence_path} --imu_topic {IMU_TOPIC}"
+        subprocess.run(f"pixi run -e ros1 extract-rosbag-imu {inputs}", shell=True, check=True)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        calibration_folder = self.dataset_path / "calibration_files"
-        calibration_yaml = calibration_folder / "calib_3_cam0-1-camchain-imucam.yaml"
-
+        calibration_yaml = self.dataset_path / "calibration_files" / CALIBRATION_YAML
         with calibration_yaml.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         cam0 = data["cam0"]
         cam1 = data["cam1"]
-
         T_cam0_imu = np.array(cam0["T_cam_imu"], dtype=float).reshape(4, 4)
         T_cam1_imu = np.array(cam1["T_cam_imu"], dtype=float).reshape(4, 4)
 
@@ -125,7 +136,7 @@ class Hilti2022Dataset(DatasetVSLAMLAB):
             "principal_point": cam0["intrinsics"][2:4],
             "distortion_type": "equid4",
             "distortion_coefficients": cam0["distortion_coeffs"],
-            "fps": self.rgb_hz,
+            "fps": float(self.rgb_hz),
             "T_BS": np.linalg.inv(T_cam0_imu),
         }
 
@@ -137,71 +148,72 @@ class Hilti2022Dataset(DatasetVSLAMLAB):
             "principal_point": cam1["intrinsics"][2:4],
             "distortion_type": "equid4",
             "distortion_coefficients": cam1["distortion_coeffs"],
-            "fps": self.rgb_hz,
+            "fps": float(self.rgb_hz),
             "T_BS": np.linalg.inv(T_cam1_imu),
         }
 
+        # IMU noise-density spec for the real hardware (Sevensense Alphasense Core, confirmed via
+        # the bag's own /alphasense/imu topic and hardware_id) - taken from the manufacturer's own
+        # example calibration in sevensense-robotics/alphasense_core_manual (files/
+        # example_7s_sensors_dont_use.yaml), not a generic/copied-from-another-dataset default.
+        # fps is the real measured rate from the downloaded exp14_basement_2.bag (399.2 Hz).
         imu: dict[str, Any] = {
             "imu_name": "imu_0",
-            "a_max": 176.0,
-            "g_max": 7.8,
-            "sigma_g_c": 20.0e-4,
-            "sigma_a_c": 20.0e-3,
-            "sigma_bg": 0.01,
-            "sigma_ba": 0.1,
-            "sigma_gw_c": 20.0e-5,
-            "sigma_aw_c": 20.0e-3,
+            "a_max": 150.0,
+            "g_max": 7.5,
+            "sigma_g_c": 0.019,
+            "sigma_a_c": 0.019,
+            "sigma_bg": 0.0,
+            "sigma_ba": 0.0,
+            "sigma_gw_c": 0.000266,
+            "sigma_aw_c": 0.0043,
             "g": 9.81007,
             "g0": [0.0, 0.0, 0.0],
-            "a0": [0.1, 0.04, 0.15],
+            "a0": [0.0, 0.0, 0.0],
             "s_a": [1.0, 1.0, 1.0],
-            "fps": 200.0,
-            "T_BS": np.array(np.eye(4)).reshape((4, 4)),
+            "fps": 400.0,
+            "T_BS": np.eye(4),
         }
 
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
-    def create_groundtruth_csv(self, sequence_name):
-        sequence_path = self.sequence_path(sequence_name)
-        gt_name = self.get_gt_name(sequence_name)
-        groundtruth_txt = sequence_path / gt_name
+    def create_groundtruth_csv(self, sequence_name: str) -> None:
         groundtruth_csv = self.groundtruth_csv_path(sequence_name)
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
 
-        with (
-            open(groundtruth_txt, "r", encoding="utf-8") as fin,
-            open(tmp, "w", newline="", encoding="utf-8") as fout,
-        ):
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
-            for idx, line in enumerate(fin, start=0):
+        gt_name = _gt_name(sequence_name)
+        if gt_name is None:
+            write_csv_rows(groundtruth_csv, header, [])
+            return
+
+        gt_txt = self.sequence_path(sequence_name) / gt_name
+        rows = []
+        with open(gt_txt, "r", encoding="utf-8") as fin:
+            for line_num, line in enumerate(fin, start=1):
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
                 parts = line.split()
                 if len(parts) != 8:
                     raise ValueError(
-                        f"Invalid groundtruth line {idx + 1} in {groundtruth_txt}: expected 8 columns, got {len(parts)}"
+                        f"Invalid groundtruth line {line_num} in {gt_txt}: expected 8 columns, got {len(parts)}"
                     )
-
                 ts_s, tx, ty, tz, qx, qy, qz, qw = parts
                 ts_ns = int(round(float(ts_s) * 1e9))
-                w.writerow(
-                    [
-                        ts_ns,
-                        float(tx),
-                        float(ty),
-                        float(tz),
-                        float(qx),
-                        float(qy),
-                        float(qz),
-                        float(qw),
-                    ]
-                )
-        tmp.replace(groundtruth_csv)
+                rows.append([ts_ns, float(tx), float(ty), float(tz), float(qx), float(qy), float(qz), float(qw)])
+        write_csv_rows(groundtruth_csv, header, rows)
 
-    def get_gt_name(self, sequence_name):
-        if sequence_name == "exp04_construction_upper_level":
-            return "exp01_construction_ground_level.txt"
-        if sequence_name == "exp14_basement_2":
-            return "exp14_basement_2_imu.txt"
+    def remove_unused_files(self, sequence_name: str) -> None:
+        sequence_path = self.sequence_path(sequence_name)
+
+        if BENCHMARK_RETENTION != Retention.FULL:
+            shutil.rmtree(sequence_path / "rgb_raw", ignore_errors=True)
+            gt_name = _gt_name(sequence_name)
+            if gt_name is not None:
+                (sequence_path / gt_name).unlink(missing_ok=True)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            (sequence_path / f"{sequence_name}.bag").unlink(missing_ok=True)
+            # calibration_files/ itself is dataset-wide and re-read by every sequence's
+            # create_calibration_yaml - never delete it, only the archive that produced it.
+            (self.dataset_path / CALIBRATION_ARCHIVE).unlink(missing_ok=True)
