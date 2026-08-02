@@ -19,7 +19,10 @@ from PIL import Image
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, decompressFile, downloadFile, run_rosbag_frame_extraction, write_csv_rows
+from utilities import (
+    compute_scaled_size, decompressFile, downloadFile, run_rosbag_frame_extraction, scale_intrinsics,
+    write_csv_rows,
+)
 
 IMAGE_TOPIC_TEMPLATE = "/alphasense/cam{cam}/image_raw"
 IMU_TOPIC = "/alphasense/imu"
@@ -128,12 +131,22 @@ class Hilti2022Dataset(DatasetVSLAMLAB):
         T_cam0_imu = np.array(cam0["T_cam_imu"], dtype=float).reshape(4, 4)
         T_cam1_imu = np.array(cam1["T_cam_imu"], dtype=float).reshape(4, 4)
 
+        # Kalibr calibration intrinsics are computed at each camera's raw (pre-resize) resolution -
+        # rescale to match the actual images create_rgb_folder wrote into rgb_0/rgb_1 (VSLAM-LAB
+        # issue #99). Model: dataset_hilti2026.py.
+        focal_length_0, principal_point_0 = scale_intrinsics(
+            cam0["intrinsics"][0:2], cam0["intrinsics"][2:4], tuple(cam0["resolution"]), self.target_resolution
+        )
+        focal_length_1, principal_point_1 = scale_intrinsics(
+            cam1["intrinsics"][0:2], cam1["intrinsics"][2:4], tuple(cam1["resolution"]), self.target_resolution
+        )
+
         rgb0: dict[str, Any] = {
             "cam_name": "rgb_0",
             "cam_type": "gray",
             "cam_model": "pinhole",
-            "focal_length": cam0["intrinsics"][0:2],
-            "principal_point": cam0["intrinsics"][2:4],
+            "focal_length": focal_length_0,
+            "principal_point": principal_point_0,
             "distortion_type": "equid4",
             "distortion_coefficients": cam0["distortion_coeffs"],
             "fps": float(self.rgb_hz),
@@ -144,8 +157,8 @@ class Hilti2022Dataset(DatasetVSLAMLAB):
             "cam_name": "rgb_1",
             "cam_type": "gray",
             "cam_model": "pinhole",
-            "focal_length": cam1["intrinsics"][0:2],
-            "principal_point": cam1["intrinsics"][2:4],
+            "focal_length": focal_length_1,
+            "principal_point": principal_point_1,
             "distortion_type": "equid4",
             "distortion_coefficients": cam1["distortion_coeffs"],
             "fps": float(self.rgb_hz),

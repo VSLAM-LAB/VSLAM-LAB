@@ -145,6 +145,13 @@ class HFColmapDatasetMixin:
             fx, fy, cx, cy = params
 
         # Rescale intrinsics from COLMAP's reference image size to the resized rgb_0 image size.
+        # Deliberately NOT scale_intrinsics(..., (width, height), self.target_resolution): verified
+        # against a real downloaded sequence that COLMAP's declared camera (width, height) here
+        # (5456, 4082) does not equal rgb_0_raw's actual JPEG pixel size (5568, 4176) - COLMAP was
+        # evidently run against a resized copy of the originals. compute_scaled_size(width, height)
+        # would therefore predict a resize target (641, 479) that create_rgb_folder's real resize -
+        # driven by the raw JPEG's actual size - never produces (640, 480). Reading the real,
+        # already-resized rgb_0 image's size directly sidesteps that mismatch.
         rgb_path = self.rgb_path(sequence_name)
         with Image.open(next(rgb_path.iterdir())) as img:
             resized_w, resized_h = img.size

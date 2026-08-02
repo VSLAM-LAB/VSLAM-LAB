@@ -275,6 +275,26 @@ class TemplateDataset(DatasetVSLAMLAB):
         # parses back as str, not float, with no error anywhere in the pipeline. dataset_kitti.py hit
         # exactly this bug (fx/fy/cx/cy read via .split() and never cast) before it was caught.
         #
+        # If create_rgb_folder resizes images (self.target_resolution set), focal_length/
+        # principal_point read from the raw calibration source describe optics at that source's
+        # native resolution, not the resized rgb_0/rgb_1 written to disk — pass them through
+        # utilities.scale_intrinsics(focal_length, principal_point, native_size,
+        # self.target_resolution) before writing, where native_size is the (width, height) the raw
+        # calibration source's own values are defined at (a documented resolution field if the
+        # source has one, e.g. dataset_hilti2026.py's cam_cfg["resolution"]; otherwise whatever
+        # image create_rgb_folder actually resizes from, e.g. dataset_ut_coda.py opening the raw
+        # source image to read its size). scale_intrinsics is a no-op when self.target_resolution is
+        # None, so it's always safe to call unconditionally. Model: dataset_hilti2026.py.
+        # Caution: native_size must be the exact size create_rgb_folder's resize actually starts
+        # from — a calibration source's own declared width/height field is not always reliable for
+        # this (dataset_soneva.py/dataset_sweetcorals.py's COLMAP reconstruction declares a camera
+        # size that verifiably does not match the raw JPEGs' real pixel size, so scale_intrinsics
+        # would predict the wrong resized size there; they deliberately read the real resized rgb_0
+        # image's dimensions off disk instead — see HFColmapDatasetMixin._pinhole_rgb_calibration's
+        # comment for how this was caught). Verify native_size against the actual downloaded data
+        # before trusting a documented resolution field, don't just assume it agrees with the
+        # sensor/image that was actually resized (VSLAM-LAB issue #99).
+        #
         # raw_formats (SKILL.md step 1): colmap -> parse cameras.bin here (read_colmap_cameras) for
         # focal_length/principal_point/image dimensions - and images.bin in create_groundtruth_csv
         # (read_colmap_images) for per-frame poses. This is the one raw_formats value that belongs

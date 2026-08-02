@@ -68,6 +68,9 @@ url_download_root: ""
 # aspect ratio. Delete this line (now or later) to fall back to copying images at their original
 # resolution instead — no code change needed, __init__ reads this with .get(), defaulting to None.
 # See dataset_sweetcorals.yaml.
+# If this is set and the dataset writes real focal_length/principal_point, create_calibration_yaml
+# must rescale them to match — see dataset_template.py's create_calibration_yaml comment and
+# utilities.scale_intrinsics. Forgetting this was VSLAM-LAB issue #99.
 target_resolution: [640, 480]
 
 sequence_names:

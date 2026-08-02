@@ -78,7 +78,10 @@ from path_constants import (
 #                                      dataset_eiffel_tower.py; dataset_videos.py's
 #                                      estimate_new_resolution (inherited by dataset_strayscanner.py)
 #                                      does the same math with a different signature, not yet
-#                                      consolidated onto this
+#                                      consolidated onto this. scale_intrinsics, its companion, is
+#                                      the one shared way create_calibration_yaml hooks should scale
+#                                      focal_length/principal_point to match a resized image
+#                                      (VSLAM-LAB issue #99) - a no-op when target_resolution is None
 #   Printing helpers                - ws / show_time / format_msg / print_msg / make_printers (issue #68)
 #   Trajectory / pandas CSV helpers - read_trajectory_csv / read_trajectory_txt /
 #                                     save_trajectory_csv / read_csv (issue #67)
@@ -972,6 +975,31 @@ def compute_scaled_size(
     scaled_h = int(np.sqrt(target_area * orig_h / orig_w))
     scaled_w = int(target_area / scaled_h)
     return scaled_w, scaled_h
+
+
+# Companion to compute_scaled_size() above - used by dataset create_calibration_yaml hooks that
+# resize images in create_rgb_folder via compute_scaled_size, so the written focal_length/
+# principal_point match the resized image size rather than the raw calibration source's native
+# resolution (VSLAM-LAB issue #99). Computes the scale factor the same way compute_scaled_size
+# computes the resized image size, so callers don't need a resized image already on disk to get a
+# correct answer - just the native (pre-resize) calibration reference size.
+def scale_intrinsics(
+    focal_length: tuple[float, float],
+    principal_point: tuple[float, float],
+    native_size: tuple[int, int],
+    target_resolution: tuple[int, int] | None,
+) -> tuple[list[float], list[float]]:
+    """Scales focal_length (fx, fy) and principal_point (cx, cy), given at native_size (width,
+    height) resolution, to match the resolution create_rgb_folder actually resizes images to
+    (compute_scaled_size(native_size, target_resolution)). Returns focal_length/principal_point
+    unchanged (as plain lists) if target_resolution is None - no resize happened."""
+    scaled_w, scaled_h = compute_scaled_size(native_size, target_resolution)
+    native_w, native_h = native_size
+    scale_x, scale_y = scaled_w / native_w, scaled_h / native_h
+
+    fx, fy = focal_length
+    cx, cy = principal_point
+    return [float(fx) * scale_x, float(fy) * scale_y], [float(cx) * scale_x, float(cy) * scale_y]
 ##################################################################################################################################################
 
 

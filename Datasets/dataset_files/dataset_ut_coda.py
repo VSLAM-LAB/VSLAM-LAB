@@ -26,7 +26,7 @@ from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, decompressFile, downloadFile, write_csv_rows
+from utilities import compute_scaled_size, decompressFile, downloadFile, scale_intrinsics, write_csv_rows
 
 
 class UtCodaDataset(DatasetVSLAMLAB):
@@ -123,19 +123,16 @@ class UtCodaDataset(DatasetVSLAMLAB):
 
             # Rescale intrinsics from the raw 2d_rect reference size to the resized rgb_{cam_idx}.
             raw_path = sequence_path / '2d_rect' / f'cam{cam_idx}' / sequence_name
-            rgb_path = self.rgb_path(sequence_name) if cam_idx == 0 else sequence_path / 'rgb_1'
             with Image.open(next(raw_path.glob('*.jpg'))) as raw_img:
-                raw_w, raw_h = raw_img.size
-            with Image.open(next(rgb_path.glob('*.jpg'))) as resized_img:
-                resized_w, resized_h = resized_img.size
-            scale_x, scale_y = resized_w / raw_w, resized_h / raw_h
+                raw_size = raw_img.size
+            focal_length, principal_point = scale_intrinsics((fx, fy), (cx, cy), raw_size, self.target_resolution)
 
             rgb: dict[str, Any] = {
                 "cam_name": f"rgb_{cam_idx}",
                 "cam_type": "rgb",
                 "cam_model": "pinhole",
-                "focal_length": [fx * scale_x, fy * scale_y],
-                "principal_point": [cx * scale_x, cy * scale_y],
+                "focal_length": focal_length,
+                "principal_point": principal_point,
                 "fps": self.rgb_hz,
                 "T_BS": np.eye(4),
             }

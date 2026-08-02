@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, decompressFile, downloadFile, write_csv_rows
+from utilities import compute_scaled_size, decompressFile, downloadFile, scale_intrinsics, write_csv_rows
 
 # COLMAP's RADIAL camera model: f, cx, cy, k1, k2 (single focal length, purely radial distortion).
 # https://colmap.github.io/cameras.html
@@ -87,9 +87,7 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
         width, height, f, cx, cy, k1, k2 = self._read_colmap_camera(cameras_txt)
 
         # Rescale intrinsics from the raw COLMAP reference image size to the resized rgb_0 size.
-        with Image.open(next((sequence_path / "rgb_0").iterdir())) as img:
-            resized_w, resized_h = img.size
-        scale_x, scale_y = resized_w / width, resized_h / height
+        focal_length, principal_point = scale_intrinsics((f, f), (cx, cy), (width, height), self.target_resolution)
 
         rgb: dict[str, Any] = {
             "cam_name": "rgb_0",
@@ -97,8 +95,8 @@ class EiffelTowerDataset(DatasetVSLAMLAB):
             "cam_model": "pinhole",
             "distortion_type": "radtan4",
             "distortion_coefficients": [k1, k2, 0.0, 0.0],
-            "focal_length": [f * scale_x, f * scale_y],
-            "principal_point": [cx * scale_x, cy * scale_y],
+            "focal_length": focal_length,
+            "principal_point": principal_point,
             "fps": float(self.rgb_hz),
             "T_BS": np.eye(4),
         }

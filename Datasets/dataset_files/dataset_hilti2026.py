@@ -22,7 +22,10 @@ from PIL import Image
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, downloadFile, patch_ros2_qos_profiles_metadata, run_rosbag_frame_extraction, write_csv_rows
+from utilities import (
+    compute_scaled_size, downloadFile, patch_ros2_qos_profiles_metadata, run_rosbag_frame_extraction,
+    scale_intrinsics, write_csv_rows,
+)
 
 # Both cameras stream compressed RGB (README's own topic table: "Front/Back Camera data (RGB, ...)").
 IMAGE_TOPIC_TEMPLATE = "/cam{cam}/image_raw/compressed"
@@ -173,19 +176,18 @@ class Hilti2026Dataset(DatasetVSLAMLAB):
         rgb: list[dict[str, Any]] = []
         for cam, cam_name in (("0", "rgb_0"), ("1", "rgb_1")):
             cam_cfg = cam_data[f"cam{cam}"]
-            native_w, native_h = cam_cfg["resolution"]
-            resized_w, resized_h = compute_scaled_size((native_w, native_h), self.target_resolution)
-            scale_x, scale_y = resized_w / native_w, resized_h / native_h
-
             fx, fy, cx, cy = (float(v) for v in cam_cfg["intrinsics"])
+            focal_length, principal_point = scale_intrinsics(
+                (fx, fy), (cx, cy), tuple(cam_cfg["resolution"]), self.target_resolution
+            )
             T_cam_imu = np.array(cam_cfg["T_cam_imu"], dtype=float).reshape(4, 4)
 
             rgb.append({
                 "cam_name": cam_name,
                 "cam_type": "rgb",
                 "cam_model": "pinhole",
-                "focal_length": [fx * scale_x, fy * scale_y],
-                "principal_point": [cx * scale_x, cy * scale_y],
+                "focal_length": focal_length,
+                "principal_point": principal_point,
                 "distortion_type": "equid4",
                 "distortion_coefficients": [float(c) for c in cam_cfg["distortion_coeffs"]],
                 "fps": float(self.rgb_hz),

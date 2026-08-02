@@ -17,7 +17,7 @@ from huggingface_hub.utils import disable_progress_bars
 from Datasets.dataset_files.dataset_videos import VideosDataset
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, HUGGINGFACE_TOKEN, Retention
-from utilities import decompressFile
+from utilities import decompressFile, scale_intrinsics
 
 
 class StrayscannerDataset(VideosDataset):
@@ -146,22 +146,15 @@ class StrayscannerDataset(VideosDataset):
         cx = odometry_csv[" cx"].iloc[0].item()
         cy = odometry_csv[" cy"].iloc[0].item()
 
-        if self.target_resolution is not None:
-            video_path = sequence_path / "rgb.mp4"
-            cap = cv2.VideoCapture(video_path)
-            original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            cap.release()
+        video_path = sequence_path / "rgb.mp4"
+        cap = cv2.VideoCapture(video_path)
+        original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        cap.release()
 
-            scaled_width, scaled_height = self.estimate_new_resolution(
-                original_width, original_height, self.target_resolution
-            )
-            scale_factor_x = scaled_width / original_width
-            scale_factor_y = scaled_height / original_height
-            fx *= scale_factor_x
-            fy *= scale_factor_y
-            cx *= scale_factor_x
-            cy *= scale_factor_y
+        [fx, fy], [cx, cy] = scale_intrinsics(
+            (fx, fy), (cx, cy), (original_width, original_height), self.target_resolution
+        )
 
         rgbd0: dict[str, Any] = {
             "cam_name": "rgb_0",

@@ -9,7 +9,6 @@ Module: VSLAM-LAB - Datasets - dataset_nsavp.py
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any, Final
 from urllib.parse import urljoin
 
@@ -22,7 +21,7 @@ from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, downloadFile, write_csv_rows
+from utilities import compute_scaled_size, downloadFile, scale_intrinsics, write_csv_rows
 
 # Two mono cameras are triggered off the same hardware line (readme: TriggerMode On, shared
 # trigger source), but frame counts can still differ by a frame or two at sequence boundaries -
@@ -134,17 +133,13 @@ class NsavpDataset(DatasetVSLAMLAB):
 
         # Calibration intrinsics are computed at each camera's raw (pre-resize) resolution -
         # rescale to match the actual images written into rgb_0/rgb_1 (see create_rgb_folder's
-        # self.target_resolution downscale). Model: dataset_ut_coda.py.
-        def _scaled_intrinsics(cam: dict, rgb_path: Path) -> tuple[list[float], list[float]]:
-            raw_w, raw_h = cam["resolution"]
-            with Image.open(next(rgb_path.glob("*.png"))) as img:
-                resized_w, resized_h = img.size
-            scale_x, scale_y = resized_w / raw_w, resized_h / raw_h
+        # self.target_resolution downscale).
+        def _scaled_intrinsics(cam: dict) -> tuple[list[float], list[float]]:
             fx, fy, cx, cy = (float(v) for v in cam["intrinsics"])
-            return [fx * scale_x, fy * scale_y], [cx * scale_x, cy * scale_y]
+            return scale_intrinsics((fx, fy), (cx, cy), tuple(cam["resolution"]), self.target_resolution)
 
-        focal_length_0, principal_point_0 = _scaled_intrinsics(cam_left, self.rgb_path(sequence_name))
-        focal_length_1, principal_point_1 = _scaled_intrinsics(cam_right, sequence_path / "rgb_1")
+        focal_length_0, principal_point_0 = _scaled_intrinsics(cam_left)
+        focal_length_1, principal_point_1 = _scaled_intrinsics(cam_right)
 
         rgb0: dict[str, Any] = {
             "cam_name": "rgb_0",
