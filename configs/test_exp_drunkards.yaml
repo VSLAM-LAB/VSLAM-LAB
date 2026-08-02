@@ -1,5 +1,11 @@
-exp_drunkards_orbslam3:
+test_exp_drunkards_droidslam:
   Config: test_config_drunkards.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: rgbd, rgb_idx: [0,2000]}
-  Module: orbslam3
+  Module: droidslam
+
+test_exp_drunkards_dpvo:
+  Config: test_config_drunkards.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: dpvo

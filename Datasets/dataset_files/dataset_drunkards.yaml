@@ -1,0 +1,184 @@
+dataset_name: drunkards
+
+rgb_hz: 30.0
+modes: ['mono', 'rgbd']
+cam_models: ['pinhole']
+raw_formats: ['zip']
+
+google_drive_link: 'https://drive.google.com/drive/folders/1AZHUKMbe7bR1xwRmAAZ0AHgcEqRnNjms?usp=sharing'
+depth_factor: 2184.5 # Depth in meters = depth_value / depth_factor (pixel / (2**16 - 1) * 30, verified against a real downloaded depth frame)
+
+# Only the 1024x1024 sequences (bigger than 640x480 by pixel area) are actually resized to this -
+# the 320x320 sequences are already smaller and are copied unresized. See dataset_drunkards.py's
+# create_rgb_folder/create_calibration_yaml for the per-sequence resize decision.
+target_resolution: [640, 480]
+
+sequence_names:
+  - 00000_320_level0
+  - 00000_320_level1
+  - 00000_320_level2
+  - 00000_320_level3
+  - 00000_1024_level0
+  - 00000_1024_level1
+  - 00000_1024_level2
+  - 00000_1024_level3
+  - 00001_320_level0
+  - 00001_320_level1
+  - 00001_320_level2
+  - 00001_320_level3
+  - 00001_1024_level0
+  - 00001_1024_level1
+  - 00001_1024_level2
+  - 00001_1024_level3
+  - 00002_320_level0
+  - 00002_320_level1
+  - 00002_320_level2
+  - 00002_320_level3
+  - 00002_1024_level0
+  - 00002_1024_level1
+  - 00002_1024_level2
+  - 00002_1024_level3
+  - 00003_320_level0
+  - 00003_320_level1
+  - 00003_320_level2
+  - 00003_320_level3
+  - 00003_1024_level0
+  - 00003_1024_level1
+  - 00003_1024_level2
+  - 00003_1024_level3
+  - 00004_320_level0
+  - 00004_320_level1
+  - 00004_320_level2
+  - 00004_320_level3
+  - 00004_1024_level0
+  - 00004_1024_level1
+  - 00004_1024_level2
+  - 00004_1024_level3
+  - 00005_320_level0
+  - 00005_320_level1
+  - 00005_320_level2
+  - 00005_320_level3
+  - 00005_1024_level0
+  - 00005_1024_level1
+  - 00005_1024_level2
+  - 00005_1024_level3
+  - 00006_320_level0
+  - 00006_320_level1
+  - 00006_320_level2
+  - 00006_320_level3
+  - 00006_1024_level0
+  - 00006_1024_level1
+  - 00006_1024_level2
+  - 00006_1024_level3
+  - 00007_320_level0
+  - 00007_320_level1
+  - 00007_320_level2
+  - 00007_320_level3
+  - 00007_1024_level0
+  - 00007_1024_level1
+  - 00007_1024_level2
+  - 00007_1024_level3
+  - 00008_320_level0
+  - 00008_320_level1
+  - 00008_320_level2
+  - 00008_320_level3
+  - 00008_1024_level0
+  - 00008_1024_level1
+  - 00008_1024_level2
+  - 00008_1024_level3
+  - 00009_320_level0
+  - 00009_320_level1
+  - 00009_320_level2
+  - 00009_320_level3
+  - 00009_1024_level0
+  - 00009_1024_level1
+  - 00009_1024_level2
+  - 00009_1024_level3
+  - 00010_320_level0
+  - 00010_320_level1
+  - 00010_320_level2
+  - 00010_320_level3
+  - 00010_1024_level0
+  - 00010_1024_level1
+  - 00010_1024_level2
+  - 00010_1024_level3
+  - 00011_320_level0
+  - 00011_320_level1
+  - 00011_320_level2
+  - 00011_320_level3
+  - 00011_1024_level0
+  - 00011_1024_level1
+  - 00011_1024_level2
+  - 00011_1024_level3
+  - 00012_320_level0
+  - 00012_320_level1
+  - 00012_320_level2
+  - 00012_320_level3
+  - 00012_1024_level0
+  - 00012_1024_level1
+  - 00012_1024_level2
+  - 00012_1024_level3
+  - 00013_320_level0
+  - 00013_320_level1
+  - 00013_320_level2
+  - 00013_320_level3
+  - 00013_1024_level0
+  - 00013_1024_level1
+  - 00013_1024_level2
+  - 00013_1024_level3
+  - 00014_320_level0
+  - 00014_320_level1
+  - 00014_320_level2
+  - 00014_320_level3
+  - 00014_1024_level0
+  - 00014_1024_level1
+  - 00014_1024_level2
+  - 00014_1024_level3
+  - 00015_320_level0
+  - 00015_320_level1
+  - 00015_320_level2
+  - 00015_320_level3
+  - 00015_1024_level0
+  - 00015_1024_level1
+  - 00015_1024_level2
+  - 00015_1024_level3
+  - 00016_320_level0
+  - 00016_320_level1
+  - 00016_320_level2
+  - 00016_320_level3
+  - 00016_1024_level0
+  - 00016_1024_level1
+  - 00016_1024_level2
+  - 00016_1024_level3
+  - 00018_320_level0
+  - 00018_320_level1
+  - 00018_320_level2
+  - 00018_320_level3
+  - 00018_1024_level0
+  - 00018_1024_level1
+  - 00018_1024_level2
+  - 00018_1024_level3
+  - 00019_320_level0
+  - 00019_320_level1
+  - 00019_320_level2
+  - 00019_320_level3
+  - 00019_1024_level0
+  - 00019_1024_level1
+  - 00019_1024_level2
+  - 00019_1024_level3
+
+about:
+  license: MIT License (some components subject to their original licenses)
+  summary: The Drunkard's Dataset - synthetic RGB-D exploratory camera trajectories with ground truth in non-rigidly deforming indoor scenes
+  homepage: https://davidrecasens.github.io/TheDrunkard'sOdometry/
+  authors:
+    - David Recasens
+    - Martin R. Oswald
+    - Marc Pollefeys
+    - Javier Civera
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-02
