@@ -1,0 +1,50 @@
+dataset_name: hamlyn
+
+rgb_hz: 30.0
+modes: ['mono', 'rgbd', 'stereo']
+cam_models: ['pinhole']
+raw_formats: ['zip']
+
+hf_repo_id: 'Recasens/HamlynRectifiedDataset'
+depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
+
+sequence_names:
+  - rectified01
+  - rectified04
+  - rectified05
+  - rectified06
+  - rectified08
+  - rectified09
+  - rectified11
+  - rectified12
+  - rectified14
+  - rectified15
+  - rectified16
+  - rectified17
+  - rectified18
+  - rectified19
+  - rectified20
+  - rectified21
+  - rectified22
+  - rectified23
+  - rectified24
+  - rectified25
+  - rectified26
+  - rectified27
+
+about:
+  license: GPL-3.0 License
+  summary: Hamlyn rectified stereo endoscopy dataset with depth ground truth, from Endo-Depth-and-Motion
+  homepage: https://davidrecasens.github.io/EndoDepthAndMotion/
+  authors:
+    - David Recasens
+    - José Lamarca
+    - José M. Fácil
+    - J. M. M. Montiel
+    - Javier Civera
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-03
