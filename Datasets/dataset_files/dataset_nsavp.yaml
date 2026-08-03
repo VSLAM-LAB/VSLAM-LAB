@@ -13,11 +13,27 @@ raw_formats: ['hdf5']
 # for now; see the filed follow-up issue for extending this to further sequences/routes.
 url_download_root:
   R0_FA0: "https://g-51c139.9601a.bd7c.data.globus.org/ff/36/55/85/p/"
+  R0_FS0: "https://g-51c139.9601a.bd7c.data.globus.org/8g/84/mm/92/5/"
+  R0_FN0: "https://g-51c139.9601a.bd7c.data.globus.org/d7/91/sg/73/b/"
+  R0_RA0: "https://g-51c139.9601a.bd7c.data.globus.org/z0/29/p5/29/v/"
+  R0_RS0: "https://g-51c139.9601a.bd7c.data.globus.org/xs/55/mc/57/7/"
+  R0_RN0: "https://g-51c139.9601a.bd7c.data.globus.org/vq/27/zp/04/j/"
+  R1_DA0: "https://g-51c139.9601a.bd7c.data.globus.org/73/66/65/35/2/"
+  R1_FA0: "https://g-51c139.9601a.bd7c.data.globus.org/tm/70/mv/91/h/"
+  R1_RA0: "https://g-51c139.9601a.bd7c.data.globus.org/54/25/kb/57/g/"
 
 target_resolution: [640, 480]
 
 sequence_names:
   - R0_FA0
+  - R0_FS0
+  - R0_FN0
+  - R0_RA0
+  - R0_RS0
+  - R0_RN0
+  - R1_DA0
+  - R1_FA0
+  - R1_RA0
 
 about:
   license: CC-BY-4.0
