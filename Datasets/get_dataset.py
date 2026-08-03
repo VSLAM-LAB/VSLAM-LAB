@@ -27,6 +27,7 @@ from Datasets.dataset_files.dataset_nsavp import NsavpDataset
 from Datasets.dataset_files.dataset_hamlyn import HamlynDataset
 
 # Stereo-VI datasets
+from Datasets.dataset_files.dataset_ariel import ArielDataset
 from Datasets.dataset_files.dataset_euroc import EurocDataset
 from Datasets.dataset_files.dataset_rover import RoverT265Dataset
 from Datasets.dataset_files.dataset_rover import RoverD435iDataset
@@ -64,6 +65,7 @@ def get_dataset(dataset_name):
         "ut-coda": lambda: UtCodaDataset(),
         "nsavp": lambda: NsavpDataset(),
         "hamlyn": lambda: HamlynDataset(),
+        "ariel": lambda: ArielDataset(),
         "euroc": lambda: EurocDataset(),
         "rover-t265": lambda: RoverT265Dataset(),
         "rover-d435i": lambda: RoverD435iDataset(),

@@ -1,0 +1,35 @@
+dataset_name: ariel
+
+rgb_hz: 20.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['equid4']
+raw_formats: ['ros1']
+
+hf_repo_id: "ntnu-arl/underwater-datasets"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - fjord_1
+  - fjord_2
+  - fjord_3
+  - fjord_4
+  - fjord_5
+  - fjord_6
+  - mclab_1
+  - mclab_2
+
+about:
+  license: BSD-3-Clause
+  summary: Multi-Camera Underwater Visual-Inertial Dataset - a BlueROV2-based platform (Ariel) surveying a Norwegian fjord and an indoor test tank
+  homepage: https://huggingface.co/datasets/ntnu-arl/underwater-datasets
+  authors:
+    - Mohit Singh
+    - Mihir Dharmadhikari
+    - Kostas Alexis
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-03
