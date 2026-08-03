@@ -1,0 +1,56 @@
+dataset_name: vitum
+
+rgb_hz: 20.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['equid4']
+raw_formats: ['tar']
+
+url_download_root: "https://cvg.cit.tum.de/tumvi/exported/euroc/512_16"
+
+sequence_names:
+  - corridor1
+  - corridor2
+  - corridor3
+  - corridor4
+  - corridor5
+  - magistrale1
+  - magistrale2
+  - magistrale3
+  - magistrale4
+  - magistrale5
+  - magistrale6
+  - outdoors1
+  - outdoors2
+  - outdoors3
+  - outdoors4
+  - outdoors5
+  - outdoors6
+  - outdoors7
+  - outdoors8
+  - room1
+  - room2
+  - room3
+  - room4
+  - room5
+  - room6
+  - slides1
+  - slides2
+  - slides3
+
+about:
+  license: CC BY 4.0
+  summary: TUM Visual-Inertial Dataset - stereo fisheye and IMU sequences from a handheld rig, with motion-capture ground truth, for visual-inertial odometry/SLAM evaluation
+  homepage: https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset
+  authors:
+    - David Schubert
+    - Thore Goll
+    - Nikolaus Demmel
+    - Vladyslav Usenko
+    - Jörg Stückler
+    - Daniel Cremers
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-03
