@@ -9,8 +9,7 @@ raw_formats: ['hdf5']
 # behind its own Globus HTTPS share link with a per-DOI path segment that can't be derived from
 # sequence_name alone (unlike a single templated URL pattern) - a new entry must be added here
 # by hand for every additional sequence, after locating its own share link on the collection
-# page (https://deepblue.lib.umich.edu/data/collections/v118rf157). Only R0_FA0 is implemented
-# for now; see the filed follow-up issue for extending this to further sequences/routes.
+# page (https://deepblue.lib.umich.edu/data/collections/v118rf157).
 url_download_root:
   R0_FA0: "https://g-51c139.9601a.bd7c.data.globus.org/ff/36/55/85/p/"
   R0_FS0: "https://g-51c139.9601a.bd7c.data.globus.org/8g/84/mm/92/5/"
