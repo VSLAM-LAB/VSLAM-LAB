@@ -1,0 +1,45 @@
+dataset_name: s3li_etna
+
+rgb_hz: 30.0
+modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
+cam_models: ['pinhole']
+raw_formats: ['zip']
+target_resolution: [640, 480]
+
+# Keyed by full sequence_name - each sequence is a separate, unrelated HiDrive sharelink id with
+# no shared root/filename pattern to factor out. These links are not the DLR page's documented
+# access path (datasets.arches-projekt.de/s3li_dataset/ gates access behind a name/institution/
+# email form) - they are direct HiDrive sharelinks that happen to resolve without authentication.
+url_download_root:
+  landmarks: "https://my.hidrive.com/api/sharelink/download?id=e0Kl4Sbfs"
+  traverse_1: "https://my.hidrive.com/api/sharelink/download?id=XZEKZLP13"
+  traverse_2: "https://my.hidrive.com/api/sharelink/download?id=eUSnTThmA"
+  crater: "https://my.hidrive.com/api/sharelink/download?id=NhRilEiK1"
+  loops: "https://my.hidrive.com/api/sharelink/download?id=V8lhZLoiw"
+  crater_inout: "https://my.hidrive.com/api/sharelink/download?id=MUlyFZK8q"
+  mapping: "https://my.hidrive.com/api/sharelink/download?id=UtRMarPWr"
+
+sequence_names:
+  - landmarks
+  - traverse_1
+  - traverse_2
+  - crater
+  - loops
+  - crater_inout
+  - mapping
+
+about:
+  license: Not explicitly stated by DLR (research/academic use)
+  summary: S3LI Etna - the DLR Planetary Stereo, Solid-State LiDAR, Inertial dataset, recorded on the moon-like volcanic slopes of Mt. Etna, Sicily, for SLAM benchmarking in extremely unstructured environments
+  homepage: https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets
+  authors:
+    - Riccardo Giubilato
+    - Wolfgang Stürzl
+    - Armin Wedler
+    - Rudolph Triebel
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-03

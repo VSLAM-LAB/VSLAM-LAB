@@ -1,0 +1,44 @@
+dataset_name: s3li_vulcano
+
+rgb_hz: 10.0
+modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
+cam_models: ['pinhole']
+raw_formats: ['zip']
+
+# Keyed by full sequence_name - each sequence is a separate, unrelated HiDrive sharelink id with
+# no shared root/filename pattern to factor out.
+url_download_root:
+  vegetation: "https://my.hidrive.com/api/sharelink/download?id=I9ygsv4d9"
+  waterfront: "https://my.hidrive.com/api/sharelink/download?id=QsjbHlubU"
+  straight_path: "https://my.hidrive.com/api/sharelink/download?id=RLai8Tpvm"
+  moon_lake: "https://my.hidrive.com/api/sharelink/download?id=JYCpmNlbK"
+  lava_tunnel: "https://my.hidrive.com/api/sharelink/download?id=Yj7rAd8Er"
+  capo_grillo: "https://my.hidrive.com/api/sharelink/download?id=BXdsXjkut"
+  capo_grillo_2: "https://my.hidrive.com/api/sharelink/download?id=dIKEicHGb"
+
+sequence_names:
+  - vegetation
+  - lava_tunnel
+  - straight_path
+  - waterfront
+  - moon_lake
+  - capo_grillo_2
+  - capo_grillo
+
+about:
+  license: Not explicitly stated by DLR (research/academic use)
+  summary: S3LI Vulcano - a multi-modal (RGB stereo, solid-state LiDAR, inertial) dataset for SLAM and place recognition in unstructured planetary-analogue environments, recorded on the volcanic island of Vulcano, Sicily
+  homepage: https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets
+  authors:
+    - Riccardo Giubilato
+    - Marcus Gerhard Müller
+    - Marco Sewtz
+    - Laura Alejandra Encinar Gonzalez
+    - John Folkesson
+    - Rudolph Triebel
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-03

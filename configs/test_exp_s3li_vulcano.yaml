@@ -1,0 +1,29 @@
+test_exp_s3li_vulcano_mono_droidslam:
+  Config: test_config_s3li_vulcano.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: droidslam
+
+test_exp_s3li_vulcano_mono_orbslam3:
+  Config: test_config_s3li_vulcano.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_s3li_vulcano_monovi_okvis2:
+  Config: test_config_s3li_vulcano.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_idx: [0,2000]}
+  Module: okvis2
+
+test_exp_s3li_vulcano_stereo_orbslam3:
+  Config: test_config_s3li_vulcano.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_s3li_vulcano_stereovi_orbslam3:
+  Config: test_config_s3li_vulcano.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo-vi, rgb_idx: [0,2000]}
+  Module: orbslam3

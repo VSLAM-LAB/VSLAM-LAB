@@ -40,6 +40,8 @@ from Datasets.dataset_files.dataset_hilti2026 import Hilti2026Dataset
 from Datasets.dataset_files.dataset_pamir_rig import PamirRigDataset
 from Datasets.dataset_files.dataset_pamir import PamirDataset
 from Datasets.dataset_files.dataset_vitum import VitumDataset
+from Datasets.dataset_files.dataset_s3li_etna import S3liEtnaDataset
+from Datasets.dataset_files.dataset_s3li_vulcano import S3liVulcanoDataset
 
 # Development
 from Datasets.dataset_files.dataset_videos import VideosDataset
@@ -81,6 +83,8 @@ def get_dataset(dataset_name):
         "pamir-rig": lambda: PamirRigDataset(),
         "pamir": lambda: PamirDataset(),
         "vitum": lambda: VitumDataset(),
+        "s3li_etna": lambda: S3liEtnaDataset(),
+        "s3li_vulcano": lambda: S3liVulcanoDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),

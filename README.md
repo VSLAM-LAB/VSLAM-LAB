@@ -228,6 +228,8 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/) |   📸🫀🤳 |  `hamlyn`   | `mono` `rgbd` `stereo` | `pinhole` |
 | [**TUM monoVO Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset) |   📸🏠🏞️🤳 |  `monotum`   | `mono` | `pinhole` |
 | [**The TUM VI Benchmark for Evaluating Visual-Inertial Odometry**](https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset) |  📸🏠🏞️🤳 | `vitum` | `mono(-vi)` `stereo(-vi)` | `equid4` |
+| [**S3LI Etna - DLR Planetary Stereo, Solid-State LiDAR, Inertial Dataset**](https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets) | 📸🏞️🤳 | `s3li_etna` | `mono(-vi)` `stereo(-vi)` | `pinhole` |
+| [**S3LI Vulcano Dataset**](https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets) | 📸🏞️🤳 | `s3li_vulcano` | `mono(-vi)` `stereo(-vi)` | `pinhole` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
