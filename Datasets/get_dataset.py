@@ -44,6 +44,7 @@ from Datasets.dataset_files.dataset_pamir import PamirDataset
 from Datasets.dataset_files.dataset_vitum import VitumDataset
 from Datasets.dataset_files.dataset_s3li_etna import S3liEtnaDataset
 from Datasets.dataset_files.dataset_s3li_vulcano import S3liVulcanoDataset
+from Datasets.dataset_files.dataset_vector import VectorDataset
 
 # Development
 from Datasets.dataset_files.dataset_videos import VideosDataset
@@ -89,6 +90,7 @@ def get_dataset(dataset_name):
         "vitum": lambda: VitumDataset(),
         "s3li_etna": lambda: S3liEtnaDataset(),
         "s3li_vulcano": lambda: S3liVulcanoDataset(),
+        "vector": lambda: VectorDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),

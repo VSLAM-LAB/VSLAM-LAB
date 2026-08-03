@@ -1,0 +1,162 @@
+dataset_name: vector
+
+rgb_hz: 30.0
+imu_hz: 200.0
+modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
+cam_models: ['radtan4']
+raw_formats: ['zip']
+
+# Event-camera streams (Prophesee stereo), the RGB-D depth stream (Azure Kinect, small-scale
+# sequences only), and the LiDAR stream (Ouster, large-scale sequences only) are real parts of
+# this dataset but are permanently out of scope here: no VSLAM-LAB baseline consumes event/LiDAR
+# data, and a correct rgbd mode would require reprojecting the Kinect depth map into the left
+# camera's frame via its own extrinsics/intrinsics (backproject -> transform -> project ->
+# z-buffer) - no such reprojection utility exists anywhere in this repo, and building one was
+# judged out of scope for this integration (see issue filed in step 9). Only the two regular
+# (grayscale, global-shutter) stereo cameras, the IMU, and ground truth are fetched/used.
+
+# Present purely so generate_dataset_table.py's field-presence check (_download_labels) classifies
+# this dataset as google-drive rather than other - VECtor has no single shared root folder to crawl
+# (unlike dataset_hilti2026.py/dataset_drunkards.py), only individually-shared per-file links, so
+# google_drive_files below (not this field) is what dataset_vector.py's download_sequence_data
+# actually reads. Points at one real, live drive.google.com share link (board-slow's left_camera.zip).
+google_drive_link: "https://drive.google.com/file/d/1HBsDz7RrQFTGSHluQNsCjGlJHrhxoqXk/view?usp=sharing"
+
+# Per-sequence Google Drive file IDs (share links, not a crawlable folder - VECtor publishes each
+# stream of each sequence as an individually-shared Drive file). Extracted directly from the
+# official download page's rendered HTML (https://star-datasets.github.io/vector/download/), zip
+# variant (not rosbag) for left/right camera, txt variant (not rosbag) for imu/ground_truth - all
+# 72 ids cross-checked as unique. Confirmed against a live download (board-slow's imu/ground_truth)
+# that these ids resolve to the documented plain-text formats.
+google_drive_files:
+  board-slow:
+    left_camera: "1HBsDz7RrQFTGSHluQNsCjGlJHrhxoqXk"
+    right_camera: "12wc-NWZy3Cang5dRKFGSHvJOCZURjl_y"
+    imu: "1i7GGymqYegFPypgoBl-4mVxxnrt8BoXh"
+    ground_truth: "1ljAmoM12Tvioj7uDViKGha4V-0uPyLRm"
+  corner-slow:
+    left_camera: "16B5bP5gAy0IZy-fEIHIQHgdjqo5Otj0u"
+    right_camera: "1UyjvT58v8QDbBYFRscoH4AJmhkxKu39O"
+    imu: "1TdqLqMYNxTTAMJCs5YJspo_JrX6K2bl6"
+    ground_truth: "13tPiTXmWLIQNQUpXJX9cmXwT2WeTmTo6"
+  robot-normal:
+    left_camera: "1nTquSiGbNpQpV4UoIt5L8CHoXEKe4JmE"
+    right_camera: "1WZbeTIXR3PBiZAFD9RnC8AbYRyleie6k"
+    imu: "1UW1UdppCpMQTDDS08-sWFadgvKz8hsAv"
+    ground_truth: "1fWediptZN58MfljKzpjuHrFlXu-jRGD4"
+  robot-fast:
+    left_camera: "1njPRY4j_-o0sjK4hyhVPGMZTvDHtDXUQ"
+    right_camera: "1msa_c0Q2iKRmzkgNeJQ77Qg0zYjs_BrW"
+    imu: "1tcm3WYvfvIzFRb5v6uWEi--kr7hT0wiy"
+    ground_truth: "1djdE_fCk6_3ZHYt0FzZdJorrgWSEj6ns"
+  desk-normal:
+    left_camera: "1MJW2BSrsfdxYY1aN5KZ4fpqThALK_FGd"
+    right_camera: "1ksNGidGDwTS1DlcU0cjutMus8kGECoAb"
+    imu: "1gz3aaKaFME6SP58x8lPhx-qlJU0DaDrn"
+    ground_truth: "1Fccm8wuv3kgkSV-k03BIrcTqfj1O3POh"
+  desk-fast:
+    left_camera: "1flR4XVWOVH_cQj0FTPhMQS9QsWP7tzme"
+    right_camera: "1VMakh-wvn2PjmL3NNNrxSA7k0FdnGI61"
+    imu: "1Q6h8tMXuGxV3TAfDDPC0VDwjfRLEOIl4"
+    ground_truth: "1V5vq7vNR_6dIQtCb_E8oWYZwUAJNPJah"
+  sofa-normal:
+    left_camera: "1eq61CDI-ibT_8bSacHIFy-XitC5h8XFr"
+    right_camera: "1q-t9oE1N_3_fY9Xus-9u9uHMOr00gfUB"
+    imu: "1RrmKgio8UDAcKvTfY5y11nQkj6surC2B"
+    ground_truth: "1NuilRdrtyN3YLpMeh6Xjf_Zaw1tFSmh-"
+  sofa-fast:
+    left_camera: "1cTDJDVA8nkNUAdMazDdsxHXYix8538cT"
+    right_camera: "1kQNxR7dopy-nmUmoaD_Lt88f2pn02Yab"
+    imu: "1st7RH5g6bSYVJ0jYWGYlx8htCDEZW8ci"
+    ground_truth: "1-tc3ncq0tJiEnc4vy-yKLKy767ANaQFP"
+  mountain-normal:
+    left_camera: "1hRwKqtTM6gw0Npg739nIH9PnxTKsgQ7k"
+    right_camera: "1q7OxTbdtsXE9J7dEMxvK17sTaVuWVAXw"
+    imu: "1LRvOCc4nqxUhVP73yuJAql0VjA-lruey"
+    ground_truth: "1GxFfm44lWLXGFZPmv2vtnBu1s4uXkRyf"
+  mountain-fast:
+    left_camera: "18lVzRBjM3IvMt6nN57-OXbWFQGAK5sRs"
+    right_camera: "1cG5h25sH_LZ7OgxnJPk7RT2FC-VtEeIS"
+    imu: "1OnPiY5K3C_Xf5TXNi4iGy2fUfUUg58cY"
+    ground_truth: "1b2vmz5tcYpOZZ8aSQrO4lTdUSwU6otVe"
+  hdr-normal:
+    left_camera: "1fX35fFH8nuIq9WKYfczwK5_AQU0qmC7E"
+    right_camera: "1XCw7_Kop9SRLO6orqq_CwpvHUEiE_f8e"
+    imu: "1aXfEFYP8UXbsv308hL5deNQ_K3VF4IhS"
+    ground_truth: "14GngBV-hL5CTyXdxcJuOnsFhRGC94VME"
+  hdr-fast:
+    left_camera: "1h3ncb_yoGSVG1fSnRuWJM7u7IuOr9eGL"
+    right_camera: "1jGWTNF5jn3GBipSmDd1OHjxJRCmZ-vlW"
+    imu: "10W8o1wEfVh1_UlyRTE_RCQAY_bigt9ph"
+    ground_truth: "1Am64y48sycIt1MOK3pv-zjkO5nqrI1Iq"
+  corridors-dolly:
+    left_camera: "1u5FhdVjUo83SZPP-AiQ5KhjqbSDDrSvt"
+    right_camera: "18exFv47PGsT1MyBH8yZLHQ3oUfk9JApC"
+    imu: "11kCUoWtYSLJGAAIJwnUMd7_XKNPP0xNq"
+    ground_truth: "1EJEnBWXo4_FPlEn2BhZOu6PD7NvjAWKL"
+  corridors-walk:
+    left_camera: "1n93yS5Xsc_Hh5eVEpzHZyfBe-XDaoief"
+    right_camera: "1BEBsBEVk9g3UL4px1SyUnro6jRanx1Fs"
+    imu: "1Jt-2noTiBpf7Wb9Tm6HDxtkyz8QqdXfM"
+    ground_truth: "1Rja5l2dSHX0UVVFja1B-_niOdGHX5yqH"
+  units-dolly:
+    left_camera: "1MKGIIC9gYaq9UrPvnk_I3A0FqurY4k46"
+    right_camera: "1ZJk-T5z25jeuPxBzMhlnuszWYvqerfnx"
+    imu: "1kG7o-Ji7LS8RgKocQSmBlDDKcNWJyn4w"
+    ground_truth: "1R07cs90x55rzGmKFVPUwE3nHk1TebYBv"
+  units-scooter:
+    left_camera: "1iux5FQcKXchqxki7UZlFvf0BlDiLHPyp"
+    right_camera: "1FPq6nNQrKkEbqwMf0WRmzGCbJcXrjerq"
+    imu: "1beq2W6vNIui4MJ_iRFk10DA3aiocdPlp"
+    ground_truth: "1ky8BfuKh5c7rOel8VI5oLz7P7o83rZmg"
+  school-dolly:
+    left_camera: "1bp3P7cQmxDSYyzjaeqA8lMyXL1bp6dI_"
+    right_camera: "1mnCdrkEvCQAFIaky_2IXFWHvfdV1JYD5"
+    imu: "1575Fgq2NzIKtzf5iP_UrnE57LWMezy9x"
+    ground_truth: "1yb_ihggKGI4vtePXIoq24yHMTDPDh5E1"
+  school-scooter:
+    left_camera: "1G6DVtv4KzP2xwf29pBL7L8L5b7Bq3xwR"
+    right_camera: "1G8q5k7IC8so-lLjIzFGnIlHrmYhaZLAY"
+    imu: "1Qf6j40rBmflFoMlkem0tvJJfxyTFW9mW"
+    ground_truth: "1d437gJeF9iobk1vAa-RFkk2LmmqiSDvm"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - board-slow
+  - corner-slow
+  - robot-normal
+  - robot-fast
+  - desk-normal
+  - desk-fast
+  - sofa-normal
+  - sofa-fast
+  - mountain-normal
+  - mountain-fast
+  - hdr-normal
+  - hdr-fast
+  - corridors-dolly
+  - corridors-walk
+  - units-dolly
+  - units-scooter
+  - school-dolly
+  - school-scooter
+
+about:
+  license: BSD-3-Clause Clear License
+  summary: VECtor - a versatile event-centric benchmark for multi-sensor SLAM, with a regular stereo camera, an event stereo camera, an RGB-D sensor, a LiDAR and an IMU, covering small-scale (motion-capture ground truth) and large-scale (LiDAR-ICP ground truth) indoor sequences
+  homepage: https://star-datasets.github.io/vector/
+  authors:
+    - Ling Gao
+    - Yuxuan Liang
+    - Jiaqi Yang
+    - Shaoxun Wu
+    - Chenyu Wang
+    - Jiaben Chen
+    - Laurent Kneip
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-04

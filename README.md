@@ -232,6 +232,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**S3LI Vulcano Dataset**](https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets) | 📸🏞️🤳 | `s3li_vulcano` | `mono(-vi)` `stereo(-vi)` | `pinhole` |
 | [**Multi-Camera Underwater Visual-Inertial Dataset**](https://huggingface.co/datasets/ntnu-arl/underwater-datasets) | 📸🏠🏞️🌊🤖 | `ariel` | `mono(-vi)` `stereo(-vi)` | `equid4` |
 | [**Underwater Caves Sonar and Vision Data Set**](https://cirs.udg.edu/caves-dataset/) | 📸🏞️🌊 | `caves` | `mono` | `pinhole` |
+| [**VECtor: A Versatile Event-Centric Benchmark for Multi-Sensor SLAM**](https://star-datasets.github.io/vector/) | 📸🏠🤳 | `vector` | `mono(-vi)` `stereo(-vi)` | `radtan4` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
