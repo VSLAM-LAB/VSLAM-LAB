@@ -226,6 +226,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**Hilti x Trimble 360 Visual-Inertial SLAM Challenge 2026**](https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026) | 📸🏠🏞️🤳 |    `hilti2026`    |`mono(-vi)` | `equid4` |
 | [**The Drunkard's Dataset**](https://davidrecasens.github.io/TheDrunkard'sOdometry/) |  💻🏠🤳 |   `drunkards`    | `mono` `rgbd`  | `pinhole` |
 | [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/) |   📸🫀🤳 |  `hamlyn`   | `mono` `rgbd` `stereo` | `pinhole` |
+| [**TUM monoVO Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset) |   📸🏠🏞️🤳 |  `monotum`   | `mono` | `pinhole` |
 
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|

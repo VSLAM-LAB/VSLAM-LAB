@@ -1,0 +1,80 @@
+dataset_name: monotum
+
+rgb_hz: 50.0
+
+modes: ['mono']
+
+cam_models: ['pinhole']
+
+raw_formats: ['zip']
+
+url_download_root: "https://cvg.cit.tum.de/mono/dataset"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - sequence_01
+  - sequence_02
+  - sequence_03
+  - sequence_04
+  - sequence_05
+  - sequence_06
+  - sequence_07
+  - sequence_08
+  - sequence_09
+  - sequence_10
+  - sequence_11
+  - sequence_12
+  - sequence_13
+  - sequence_14
+  - sequence_15
+  - sequence_16
+  - sequence_17
+  - sequence_18
+  - sequence_19
+  - sequence_20
+  - sequence_21
+  - sequence_22
+  - sequence_23
+  - sequence_24
+  - sequence_25
+  - sequence_26
+  - sequence_27
+  - sequence_28
+  - sequence_29
+  - sequence_30
+  - sequence_31
+  - sequence_32
+  - sequence_33
+  - sequence_34
+  - sequence_35
+  - sequence_36
+  - sequence_37
+  - sequence_38
+  - sequence_39
+  - sequence_40
+  - sequence_41
+  - sequence_42
+  - sequence_43
+  - sequence_44
+  - sequence_45
+  - sequence_46
+  - sequence_47
+  - sequence_48
+  - sequence_49
+  - sequence_50
+
+about:
+  license: CC-BY-4.0
+  summary: Photometrically calibrated monocular visual odometry benchmark with 50 real-world sequences, evaluated via accumulated loop-closure drift
+  homepage: https://cvg.cit.tum.de/data/datasets/mono-dataset
+  authors:
+    - Jakob Engel
+    - Vladyslav Usenko
+    - Daniel Cremers
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-03
