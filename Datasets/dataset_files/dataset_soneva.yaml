@@ -37,6 +37,11 @@ about:
   license: CC-BY-4.0
   summary: Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and Sustainability Maldives and Wildflow
   homepage: https://huggingface.co/datasets/wildflow/soneva-corals
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Handheld
   authors:
     - Ben Yuen
     - Ayla Kroon

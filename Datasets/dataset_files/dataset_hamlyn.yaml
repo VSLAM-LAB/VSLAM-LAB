@@ -36,6 +36,10 @@ about:
   license: GPL-3.0 License
   summary: Hamlyn rectified stereo endoscopy dataset with depth ground truth, from Endo-Depth-and-Motion
   homepage: https://davidrecasens.github.io/EndoDepthAndMotion/
+  features:
+    - Real
+    - Intracorporeal
+    - Handheld
   authors:
     - David Recasens
     - José Lamarca

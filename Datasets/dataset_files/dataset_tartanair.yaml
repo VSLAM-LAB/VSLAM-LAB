@@ -30,6 +30,10 @@ about:
   license: CC BY 4.0
   summary: Large-scale photorealistic simulation dataset with multimodal ground truth for SLAM under challenging conditions
   homepage: https://theairlab.org/tartanair-dataset/
+  features:
+    - Synthetic
+    - Outdoor
+    - Handheld
   authors:
     - Wenshan Wang
     - Delong Zhu

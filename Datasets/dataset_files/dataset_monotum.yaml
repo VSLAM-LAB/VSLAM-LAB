@@ -68,6 +68,11 @@ about:
   license: CC-BY-4.0
   summary: Photometrically calibrated monocular visual odometry benchmark with 50 real-world sequences, evaluated via accumulated loop-closure drift
   homepage: https://cvg.cit.tum.de/data/datasets/mono-dataset
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Handheld
   authors:
     - Jakob Engel
     - Vladyslav Usenko

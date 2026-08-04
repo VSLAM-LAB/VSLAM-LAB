@@ -49,6 +49,10 @@ about:
   license: CC-BY 4.0
   summary: Monado SLAM Dataset - Valve Index
   homepage: https://huggingface.co/datasets/collabora/monado-slam-datasets
+  features:
+    - Real
+    - Indoor
+    - Headmounted
   authors:
     - Mateo de Mayo
     - Daniel Cremers

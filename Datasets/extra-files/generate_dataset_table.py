@@ -8,11 +8,19 @@ Description: Scans Datasets/dataset_files/*.yaml (and, via get_dataset.py, the
              are cross-referenced, not derived from the yaml alone: Features
              comes from README.md's Datasets/Tools tables (including their
              commented-out placeholder rows), License from each dataset's own
-             yaml about.license field.
+             yaml about.license field. The yaml-scanning core is shared (via
+             load_dataset_entries) with generate_dataset_xlsx.py (bibliography
+             columns from about.publication/year/bibtex_key/bibtex/access) and
+             generate_readme_datasets_table.py (regenerates README.md's own
+             Datasets table from about.features instead of scraping it).
+             Datasets table region in README.md may be Markdown or raw HTML
+             (colspan divider rows need HTML) - _readme_features understands
+             both, including the HTML table's Label|Features|Summary|...
+             column order (Label leads, unlike the Tools Markdown table).
 Author: Alejandro Fontan Villacampa
-Version: 1.5
+Version: 2.0
 Created: 2026-07-19
-Updated: 2026-08-02
+Updated: 2026-08-04
 License: GPLv3
 List of Known Bugs: None
 """
@@ -44,6 +52,9 @@ _SWITCHER_RE = re.compile(r'"([\w\-]+)"\s*:\s*lambda:\s*(\w+)\(')
 _CLASS_RE = re.compile(r"^class\s+(\w+)(?:\(([^)]*)\))?\s*:", re.MULTILINE)
 _LOCAL_IMPORT_RE = re.compile(r"^from Datasets\.dataset_files\.(\w+) import (.+)$", re.MULTILINE)
 _ISSUE_ID_RE = re.compile(r'issue_id\s*=\s*"([^"]+)"')
+_HTML_TR_RE = re.compile(r"<tr>(.*?)</tr>", re.DOTALL)
+_HTML_TD_RE = re.compile(r"<td[^>]*>(.*?)</td>", re.DOTALL)
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 
 def _parse_dataset_name_to_class(get_dataset_py: Path) -> dict[str, tuple[str, str]]:
@@ -183,11 +194,26 @@ def _readme_features(readme_path: Path) -> dict[str, str]:
     """Return {label: features_emoji_string}, parsed from every row of README.md's Datasets and
     Tools tables - both the active rows and the commented-out placeholder rows for datasets not
     yet added to the visible table (they already carry curated Features tags, no reason to leave
-    them blank). Scoped to the region from the '| Datasets' table header to the next '## '
-    section heading, so the differently-shaped Baselines table above it (no Features column) is
-    never touched."""
+    them blank). Scoped to the region from the Datasets table header to the next '## ' section
+    heading, so the differently-shaped Baselines table above it (no Features column) is never
+    touched.
+
+    The Datasets table itself may be either shape: a Markdown pipe-table (`| Datasets | ...`,
+    still how the Tools table below it is written) or raw HTML (`<table><tr><th>Label</th>...`,
+    used when a table needs a colspan divider row that Markdown's :---: syntax can't express - see
+    the "Fix Datasets table dividers in README" commit). Both are scanned in the same pass so this
+    keeps working regardless of which shape the Datasets table is in at any given time. The HTML
+    table's column order is Label|Features|Summary|Modes|Camera Models (see
+    generate_readme_datasets_table.py, which writes it) - Label leads, unlike the Tools Markdown
+    table below it, which still has Features|Label."""
     text = readme_path.read_text(encoding="utf-8")
-    start = text.index("| Datasets ")
+    markers = [text.index(m) for m in ("| Datasets ", "<th>Label</th>", "<th>Datasets</th>") if m in text]
+    if not markers:
+        raise ValueError(
+            f"{readme_path}: could not find a Datasets table (expected a Markdown '| Datasets ' "
+            "header or an HTML '<th>Label</th>'/'<th>Datasets</th>' header)"
+        )
+    start = min(markers)
     next_section = re.search(r"^## ", text[start:], re.MULTILINE)
     region = text[start:start + next_section.start()] if next_section else text[start:]
 
@@ -204,62 +230,87 @@ def _readme_features(readme_path: Path) -> dict[str, str]:
         features, label_cell = cells[1], cells[2].strip("`")
         for label in _expand_label(label_cell):
             mapping[label] = features
+
+    for row in _HTML_TR_RE.findall(region):
+        if "colspan" in row:
+            continue  # category divider row (e.g. "🌊 Underwater datasets"), not a data row
+        cells = _HTML_TD_RE.findall(row)
+        if len(cells) < 3:
+            continue  # header row (<th>, not <td>) or anything not shaped like a data row
+        label_cell = _HTML_TAG_RE.sub("", cells[0]).strip()
+        features = _HTML_TAG_RE.sub("", cells[1]).strip()
+        for label in _expand_label(label_cell):
+            mapping[label] = features
+
     return mapping
 
 
-def _load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path, readme_md: Path) -> list[dict[str, str]]:
+def load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path, readme_md: Path) -> list[dict]:
+    """Return one raw (unformatted) entry per dataset_*.yaml - shared by the Markdown renderer here,
+    generate_dataset_xlsx.py, and generate_readme_datasets_table.py. 'Raw' means list-valued fields
+    (cam_models, modes, raw_formats, download_labels, issue_ids, authors, features_words) are
+    returned as Python lists, not pre-joined/backtick-quoted display strings - each renderer applies
+    its own formatting on top. Two distinct Features fields coexist deliberately: 'features' is the
+    emoji string scraped from README.md (what generate_dataset_table.py's Markdown table still
+    uses), 'features_words' is the word list read directly from this yaml's about.features (what
+    generate_readme_datasets_table.py uses to regenerate README.md itself, so it isn't reading back
+    the very table it's about to overwrite)."""
     name_to_class = _parse_dataset_name_to_class(get_dataset_py)
     class_blocks_cache: dict[str, dict[str, tuple[list[str], str]]] = {}
     imports_cache: dict[str, dict[str, str]] = {}
     readme_features = _readme_features(readme_md)
 
-    entries: list[dict[str, str]] = []
+    entries: list[dict] = []
     for yaml_file in sorted(dataset_files_dir.glob("dataset_*.yaml")):
         with open(yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
         dataset_name = str(cfg.get("dataset_name", yaml_file.stem.removeprefix("dataset_"))).strip()
-        cam_models = cfg.get("cam_models", DEFAULT_CAM_MODELS)
-        modes = cfg.get("modes", DEFAULT_MODES)
-        raw_formats = cfg.get("raw_formats", DEFAULT_RAW_FORMATS)
         about = cfg.get("about", {})
-        license_ = str(about.get("license", "")).strip()
-        display_name = str(about.get("summary", "")).strip()
-        homepage = str(about.get("homepage", "")).strip()
-        dataset_link = f"[**{display_name}**]({homepage})" if display_name and homepage else display_name
-        features = readme_features.get(dataset_name, "")
-        download_labels = _download_labels(cfg)
-        issue_ids = _download_issues_for_dataset(dataset_name, dataset_files_dir, name_to_class, class_blocks_cache, imports_cache)
-        maintainer = str(cfg.get("vslamlab_maintainer", {}).get("name", "")).strip()
-        assisted_by = str(cfg.get("vslamlab_maintainer", {}).get("assisted_by", "")).strip()
+        maintainer_cfg = cfg.get("vslamlab_maintainer", {})
 
         entries.append(
             {
                 "dataset_name": dataset_name,
-                "dataset_link": dataset_link,
-                "features": features,
-                "license": license_,
-                "cam_models": " ".join(f"`{m}`" for m in cam_models),
-                "modes": " ".join(f"`{m}`" for m in modes),
-                "raw_formats": " ".join(f"`{r}`" for r in raw_formats),
-                "download": " ".join(f"`{d}`" for d in download_labels),
-                "issues": " ".join(f"`{i}`" for i in issue_ids),
-                "maintainer": maintainer,
-                "assisted_by": assisted_by,
+                "display_name": str(about.get("summary", "")).strip(),
+                "homepage": str(about.get("homepage", "")).strip(),
+                "features": readme_features.get(dataset_name, ""),
+                "features_words": list(about.get("features", []) or []),
+                "license": str(about.get("license", "")).strip(),
+                "authors": about.get("authors", []) or [],
+                "access": str(about.get("access", "")).strip(),
+                "publication": str(about.get("publication", "")).strip(),
+                "year": str(about.get("year", "")).strip(),
+                "bibtex_key": str(about.get("bibtex_key", "")).strip(),
+                "bibtex": str(about.get("bibtex", "")).strip(),
+                "cam_models": list(cfg.get("cam_models", DEFAULT_CAM_MODELS)),
+                "modes": list(cfg.get("modes", DEFAULT_MODES)),
+                "raw_formats": list(cfg.get("raw_formats", DEFAULT_RAW_FORMATS)),
+                "download_labels": _download_labels(cfg),
+                "issue_ids": _download_issues_for_dataset(dataset_name, dataset_files_dir, name_to_class, class_blocks_cache, imports_cache),
+                "maintainer": str(maintainer_cfg.get("name", "")).strip(),
+                "assisted_by": str(maintainer_cfg.get("assisted_by", "")).strip(),
             }
         )
     return entries
 
 
-def _render_markdown_table(entries: list[dict[str, str]]) -> str:
+def _render_markdown_table(entries: list[dict]) -> str:
     lines = [
         "| Datasets | Features | Label | Modes | Camera Models | Raw Format | License | Download | Download Issues | Maintainer | AI-Assisted |",
         "|:---|:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|",
     ]
     for entry in entries:
+        display_name, homepage = entry["display_name"], entry["homepage"]
+        dataset_link = f"[**{display_name}**]({homepage})" if display_name and homepage else display_name
+        modes = " ".join(f"`{m}`" for m in entry["modes"])
+        cam_models = " ".join(f"`{m}`" for m in entry["cam_models"])
+        raw_formats = " ".join(f"`{r}`" for r in entry["raw_formats"])
+        download = " ".join(f"`{d}`" for d in entry["download_labels"])
+        issues = " ".join(f"`{i}`" for i in entry["issue_ids"])
         lines.append(
-            f"| {entry['dataset_link']} | {entry['features']} | `{entry['dataset_name']}` | {entry['modes']} | {entry['cam_models']} | {entry['raw_formats']} | "
-            f"{entry['license']} | {entry['download']} | {entry['issues']} | {entry['maintainer']} | {entry['assisted_by']} |"
+            f"| {dataset_link} | {entry['features']} | `{entry['dataset_name']}` | {modes} | {cam_models} | {raw_formats} | "
+            f"{entry['license']} | {download} | {issues} | {entry['maintainer']} | {entry['assisted_by']} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -276,7 +327,7 @@ def main() -> None:
                          help="Output .md file path")
     args = parser.parse_args()
 
-    entries = _load_dataset_entries(args.dataset_files_dir, args.get_dataset_py, args.readme)
+    entries = load_dataset_entries(args.dataset_files_dir, args.get_dataset_py, args.readme)
     markdown = _render_markdown_table(entries)
 
     args.output.write_text(markdown, encoding="utf-8")

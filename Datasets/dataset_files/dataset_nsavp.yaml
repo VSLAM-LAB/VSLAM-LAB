@@ -23,6 +23,10 @@ about:
   license: CC-BY-4.0
   summary: Novel Sensors for Autonomous Vehicle Perception - stereo thermal, event, monochrome and RGB cameras time-synchronized with high-precision navigation ground truth, collected from a Ford Fusion driving repeated ~8km urban routes
   homepage: https://umautobots.github.io/nsavp
+  features:
+    - Real
+    - Outdoor
+    - Vehicle
   authors:
     - Katherine A. Skinner
     - Ram Vasudevan

@@ -32,6 +32,11 @@ about:
   license: Not explicitly stated by DLR (research/academic use)
   summary: S3LI Etna - the DLR Planetary Stereo, Solid-State LiDAR, Inertial dataset, recorded on the moon-like volcanic slopes of Mt. Etna, Sicily, for SLAM benchmarking in extremely unstructured environments
   homepage: https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets
+  features:
+    - Real
+    - Outdoor
+    - Planetary-analog Terrain
+    - Handheld
   authors:
     - Riccardo Giubilato
     - Wolfgang Stürzl

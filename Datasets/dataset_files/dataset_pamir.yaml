@@ -23,6 +23,10 @@ about:
   license: License
   summary: Multi-session visual-inertial SLAM dataset of the Pamir shipwreck (Barbados), captured with action cameras and IMU across three scuba dives
   homepage: https://huggingface.co/datasets/afrl-uw/Pamir_Visual-Inertial_Data
+  features:
+    - Real
+    - Underwater
+    - Handheld
   authors:
     - Michalis Chatzispyrou
     - Luke Horgan

@@ -17,6 +17,10 @@ about:
   license: CC BY-NC-SA 4.0
   summary: Underwater Caves Sonar and Vision Data Set - a diver-guided AUV exploration of an underwater cave complex, with sonar, DVL, dual-IMU and vertically-mounted camera data
   homepage: https://cirs.udg.edu/caves-dataset/
+  features:
+    - Real
+    - Outdoor
+    - Underwater
   authors:
     - Angelos Mallios
     - Eduard Vidal

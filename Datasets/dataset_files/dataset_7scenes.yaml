@@ -60,6 +60,10 @@ about:
   license: Non-commercial use only (custom Microsoft Research license agreement)
   summary: Tracked RGB-D Kinect frames from seven indoor scenes, for camera relocalization/SLAM research
   homepage: https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/
+  features:
+    - Real
+    - Indoor
+    - Handheld
   authors:
     - Jamie Shotton
     - Ben Glocker

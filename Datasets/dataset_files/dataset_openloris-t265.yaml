@@ -34,6 +34,10 @@ about:
   license: CC BY-ND 4.0
   summary: OpenLORIS-Scene - real-world lifelong SLAM dataset from real robots in real scenes
   homepage: https://lifelong-robotic-vision.github.io/dataset/scene.html
+  features:
+    - Real
+    - Indoor
+    - Handheld
   authors:
     - Xuesong Shi
     - Others

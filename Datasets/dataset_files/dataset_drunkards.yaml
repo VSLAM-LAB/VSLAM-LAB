@@ -171,6 +171,10 @@ about:
   license: MIT License (some components subject to their original licenses)
   summary: The Drunkard's Dataset - synthetic RGB-D exploratory camera trajectories with ground truth in non-rigidly deforming indoor scenes
   homepage: https://davidrecasens.github.io/TheDrunkard'sOdometry/
+  features:
+    - Synthetic
+    - Indoor
+    - Handheld
   authors:
     - David Recasens
     - Martin R. Oswald

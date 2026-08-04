@@ -23,6 +23,11 @@ about:
   license: CC-BY-NC-ND-4.0
   summary: Deep-sea hydrothermal vent imagery from four ROV Victor6000 survey campaigns (2015-2020) of the Eiffel Tower edifice, with per-campaign COLMAP poses for long-term visual localization
   homepage: https://www.seanoe.org/data/00810/92226/
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Robot
   authors:
     - Clémentin Boittiaux
     - Claire Dune

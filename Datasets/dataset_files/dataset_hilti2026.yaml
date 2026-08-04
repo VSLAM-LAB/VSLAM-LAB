@@ -51,6 +51,12 @@ about:
   license: CC BY-NC-SA 3.0
   summary: Hilti x Trimble 360 Visual-Inertial SLAM Challenge 2026 - construction-site benchmark with floor plan priors, captured with a dual-fisheye 360 camera and LiDAR-based ground truth
   homepage: https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Construction Site
+    - Handheld
   authors:
     - Samuele Centanni
     - Yuhao Zhang

@@ -23,6 +23,12 @@ about:
   license: BSD-3-Clause
   summary: Multi-Camera Underwater Visual-Inertial Dataset - a BlueROV2-based platform (Ariel) surveying a Norwegian fjord and an indoor test tank
   homepage: https://huggingface.co/datasets/ntnu-arl/underwater-datasets
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Underwater
+    - Robot
   authors:
     - Mohit Singh
     - Mihir Dharmadhikari

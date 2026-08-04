@@ -30,6 +30,10 @@ about:
   license: CC BY 3.0
   summary: ICL-NUIM RGB-D benchmark with ground-truth trajectories and 3D models for SLAM/odometry evaluation
   homepage: https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html
+  features:
+    - Synthetic
+    - Indoor
+    - Handheld
   authors:
     - Ankur Handa
     - Thomas Whelan

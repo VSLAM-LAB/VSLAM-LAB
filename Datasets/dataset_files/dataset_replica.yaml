@@ -22,6 +22,10 @@ about:
   license: Replica Dataset Research Terms (non-commercial research use)
   summary: Photorealistic 3D indoor scene reconstructions (Replica), with RGB-D SLAM trajectories rendered by iMAP
   homepage: https://github.com/facebookresearch/Replica-Dataset
+  features:
+    - Synthetic
+    - Indoor
+    - Handheld
   authors:
     - Julian Straub
     - Thomas Whelan

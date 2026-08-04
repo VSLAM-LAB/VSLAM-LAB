@@ -105,6 +105,8 @@ compare-allfeature = [{ "task" = "compare", "args" = ["configs/exp_allfeature.ya
 baseline-info = "python vslamlab_gui.py baseline_info"
 print-baselines = "python vslamlab_gui.py print_baselines"
 print-datasets = "python vslamlab_gui.py print_datasets"
+generate-dataset-table = "python Datasets/extra-files/generate_dataset_table.py"
+generate-dataset-xlsx = "python Datasets/extra-files/generate_dataset_xlsx.py"
 set-benchmark-path  = "python path_constants.py set_VSLAMLAB_BENCHMARK_path"
 set-evaluation-path = "python path_constants.py set_VSLAMLAB_EVALUATION_path"
 
@@ -163,6 +165,7 @@ open3d = "*"
 gdown = "*"
 yt-dlp = "*"
 cryptography = "*"
+openpyxl = "*"
 
 [feature.development.tasks]
 validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'

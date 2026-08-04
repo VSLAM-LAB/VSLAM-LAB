@@ -22,6 +22,9 @@ about:
   license: MIT
   summary: An app for collecting raw RGB-D scans on iOS devices.
   homepage: https://docs.strayrobots.io/
+  features:
+    - Real
+    - Handheld
   authors:
     - Kenneth Blomqvist
     - Martin Smith

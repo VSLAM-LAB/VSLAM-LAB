@@ -32,6 +32,10 @@ about:
   license: Not explicitly stated (research/academic use)
   summary: EuRoC MAV visual-inertial dataset with stereo images, IMU, and ground-truth trajectories from a micro aerial vehicle
   homepage: https://projects.asl.ethz.ch/datasets/euroc-mav/
+  features:
+    - Real
+    - Outdoor
+    - UAV
   authors:
     - Michael Burri
     - Janosch Nikolic

@@ -41,6 +41,11 @@ about:
   license: CC BY 4.0
   summary: TUM Visual-Inertial Dataset - stereo fisheye and IMU sequences from a handheld rig, with motion-capture ground truth, for visual-inertial odometry/SLAM evaluation
   homepage: https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Handheld
   authors:
     - David Schubert
     - Thore Goll

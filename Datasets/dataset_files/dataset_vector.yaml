@@ -146,6 +146,11 @@ about:
   license: BSD-3-Clause Clear License
   summary: VECtor - a versatile event-centric benchmark for multi-sensor SLAM, with a regular stereo camera, an event stereo camera, an RGB-D sensor, a LiDAR and an IMU, covering small-scale (motion-capture ground truth) and large-scale (LiDAR-ICP ground truth) indoor sequences
   homepage: https://star-datasets.github.io/vector/
+  features:
+    - Real
+    - Indoor
+    - Handheld
+    - Robot
   authors:
     - Ling Gao
     - Yuxuan Liang

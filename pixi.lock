@@ -11609,6 +11609,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/openjpeg-2.5.4-h55fea9a_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openjph-0.31.0-h8d634f6_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openldap-2.6.13-hbde042b_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/openpyxl-3.1.5-py313ha4be090_3.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openssl-3.6.3-h35e630c_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/pandas-3.0.5-py313hbfd7664_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/pango-1.58.0-hda50119_0.conda
@@ -11718,6 +11719,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/dash-4.4.1-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/docstring_parser-0.18.0-pyhd8ed1ab_0.conda
+      - conda: https://prefix.dev/conda-forge/noarch/et_xmlfile-2.0.0-pyhd8ed1ab_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/eval_type_backport-0.4.0-pyha770c72_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/evo-1.34.3-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/exceptiongroup-1.3.1-pyhd8ed1ab_0.conda
@@ -11859,6 +11861,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/dash-4.4.1-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/docstring_parser-0.18.0-pyhd8ed1ab_0.conda
+      - conda: https://prefix.dev/conda-forge/noarch/et_xmlfile-2.0.0-pyhd8ed1ab_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/eval_type_backport-0.4.0-pyha770c72_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/evo-1.34.3-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/exceptiongroup-1.3.1-pyhd8ed1ab_0.conda
@@ -12148,6 +12151,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/openjpeg-2.5.4-hd9e9057_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/openjph-0.31.0-h2a4d681_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/openldap-2.6.13-hf7f56bc_0.conda
+      - conda: https://prefix.dev/conda-forge/osx-arm64/openpyxl-3.1.5-py313he4f8f71_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/openssl-3.6.3-hd24854e_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/pandas-3.0.5-py313h1188861_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/pango-1.58.0-hf80efc4_0.conda
@@ -12233,6 +12237,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/dash-4.4.1-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/docstring_parser-0.18.0-pyhd8ed1ab_0.conda
+      - conda: https://prefix.dev/conda-forge/noarch/et_xmlfile-2.0.0-pyhd8ed1ab_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/eval_type_backport-0.4.0-pyha770c72_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/evo-1.34.3-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/exceptiongroup-1.3.1-pyhd8ed1ab_0.conda
@@ -12512,6 +12517,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/openh264-2.6.0-h1eab103_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/openjpeg-2.5.4-h0e57b4f_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/openjph-0.31.0-hf13a347_0.conda
+      - conda: https://prefix.dev/conda-forge/win-64/openpyxl-3.1.5-py313hc624790_3.conda
       - conda: https://prefix.dev/conda-forge/win-64/openssl-3.6.3-hf411b9b_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/pandas-3.0.5-py313h26f5e95_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/pango-1.58.0-h13911b6_0.conda
@@ -36561,6 +36567,19 @@ packages:
   run_exports: {}
   size: 8198
   timestamp: 1566244927484
+- conda: https://prefix.dev/conda-forge/linux-64/openpyxl-3.1.5-py313ha4be090_3.conda
+  sha256: ee3e071cbc0be5600747631b41da17349be6fd25c982c9a9644cda3953bbf8b5
+  md5: 993d27015ca7aa1de3f4a471a9b5309e
+  depends:
+  - et_xmlfile
+  - libgcc >=14
+  - python >=3.13,<3.14.0a0
+  - python_abi 3.13.* *_cp313
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 484606
+  timestamp: 1769122088626
 - conda: https://prefix.dev/conda-forge/linux-64/openssl-3.6.3-h35e630c_0.conda
   sha256: d48f5c22b9897c01e4dff3680f1f57ceb02711ab9c62f74339b080419dfad34b
   md5: 79dd2074b5cd5c5c6b2930514a11e22d
@@ -44124,6 +44143,16 @@ packages:
   run_exports: {}
   size: 40210
   timestamp: 1586444722817
+- conda: https://prefix.dev/conda-forge/noarch/et_xmlfile-2.0.0-pyhd8ed1ab_1.conda
+  sha256: 2209534fbf2f70c20661ff31f57ab6a97b82ee98812e8a2dcb2b36a0d345727c
+  md5: 71bf9646cbfabf3022c8da4b6b4da737
+  depends:
+  - python >=3.9
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 21908
+  timestamp: 1733749746332
 - conda: https://prefix.dev/conda-forge/noarch/eval_type_backport-0.4.0-pyha770c72_0.conda
   sha256: e43414a14ba63e0467ef5d15f50297fcbff57e3369ab036338152b328c4418de
   md5: ec589991fc97a32d3eea2df18cbfba14
@@ -53081,6 +53110,19 @@ packages:
     - openldap >=2.6.13,<2.7.0a0
   size: 844724
   timestamp: 1775742074928
+- conda: https://prefix.dev/conda-forge/osx-arm64/openpyxl-3.1.5-py313he4f8f71_3.conda
+  sha256: bf4e6418868902144039737846c2bb18462359ffcab6b7d91f40e63b40afe5bb
+  md5: efbd4d9fbc03317972be69883bbce470
+  depends:
+  - et_xmlfile
+  - python >=3.13,<3.14.0a0
+  - python >=3.13,<3.14.0a0 *_cp313
+  - python_abi 3.13.* *_cp313
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 487057
+  timestamp: 1769122365591
 - conda: https://prefix.dev/conda-forge/osx-arm64/openssl-3.6.3-hd24854e_0.conda
   sha256: b3e3ca895c336d4eb91c5d2f244a312bdb59a0de8cfa0cc4c179225ab2f6bbfb
   md5: 8187a86242741725bfa74785fe812979
@@ -59239,6 +59281,21 @@ packages:
     - openjph >=0.31.0,<0.32.0a0
   size: 227064
   timestamp: 1785149907905
+- conda: https://prefix.dev/conda-forge/win-64/openpyxl-3.1.5-py313hc624790_3.conda
+  sha256: e5e86bc7ac493fcee526434a79f51c6a24e7c71cf4e50044d0c410079bf44af8
+  md5: 57d8fccec9481a008b363bfbbef86d1f
+  depends:
+  - et_xmlfile
+  - python >=3.13,<3.14.0a0
+  - python_abi 3.13.* *_cp313
+  - ucrt >=10.0.20348.0
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 484886
+  timestamp: 1769122183416
 - conda: https://prefix.dev/conda-forge/win-64/openssl-3.6.3-hf411b9b_0.conda
   sha256: cb6e7ba0d010ee0d3249ce9886de3d7613d26d9965d4c95666fa66b9c4c31001
   md5: e99f95734a326c0fd4d02bbd995150d4

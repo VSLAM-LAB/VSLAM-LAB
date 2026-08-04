@@ -100,6 +100,10 @@ about:
   license: CC BY-NC-SA 4.0
   summary: ETH3D SLAM & Stereo Benchmarks
   homepage: https://www.eth3d.net/
+  features:
+    - Real
+    - Indoor
+    - Handheld
   authors:
     - Thomas Schöps
     - Johannes L. Schönberger

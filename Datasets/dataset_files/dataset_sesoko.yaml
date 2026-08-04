@@ -61,6 +61,10 @@ about:
   license: No explicit license stated by SQUIDLE+ or the source surveys; imagery served via the SQUIDLE+ platform (squidle.org)
   summary: AUV (TUNA-SAND) coral-reef mapping surveys off Sesoko Island, Okinawa, Japan (2016-2018 campaigns), served via the SQUIDLE+ marine imagery platform
   homepage: https://squidle.org/
+  features:
+    - Real
+    - Outdoor
+    - Underwater
   authors:
     - Blair Thornton
     - Toshihiro Maki

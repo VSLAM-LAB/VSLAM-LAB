@@ -36,6 +36,10 @@ about:
   license: CC BY-NC-SA 4.0
   summary: The UT Campus Object Dataset (CODa) - egocentric robot perception dataset collected on the UT Austin campus
   homepage: https://amrl.cs.utexas.edu/coda/
+  features:
+    - Real
+    - Outdoor
+    - Robot
   authors:
     - Arthur Zhang
     - Joydeep Biswas

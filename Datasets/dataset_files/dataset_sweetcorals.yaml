@@ -27,6 +27,11 @@ about:
   license: CC-BY-4.0
   summary: Coral reef 3D photogrammetry (Indonesia), from Wildflow
   homepage: https://huggingface.co/datasets/wildflow/sweet-corals
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Handheld
   authors:
     - Sergei Nozdrenkov
     - Michael Sweet

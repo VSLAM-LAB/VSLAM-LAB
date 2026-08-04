@@ -79,13 +79,39 @@ sequence_names:
 
 # authors: the dataset's original creators/publishers, not the vslamlab_maintainer below (the
 # person/agent who integrated it into VSLAM-LAB) — see dataset_eth.yaml for a real example.
+#
+# access/publication/year/bibtex_key/bibtex below are all optional bibliography fields, read by
+# Datasets/extra-files/generate_dataset_xlsx.py (nothing at runtime consumes them). Omit any you
+# don't have yet - blank cells in the generated spreadsheet are expected and get filled in over
+# time, not something to guess at import time.
 about:
   license: CC-BY-4.0
   summary: One-line description of the dataset
   homepage: https://example.com/dataset
+  # Closed list (README.md's legend, right below the Datasets table) - exactly one of Real/
+  # Synthetic, one or more of Indoor/Outdoor/Underwater/Intracorporeal, and one or more of
+  # Handheld/Headmounted/Vehicle/UAV/Robot. Construction Site/Planetary-analog Terrain are
+  # section-divider labels only (grouping several datasets in the README table under one
+  # <hr>-separated heading) - never tag an individual dataset with them. This is the word form of
+  # the same tags README.md shows as emoji (📸🏠🤳 etc.) for this dataset's row - keep both in sync
+  # if either changes.
+  features:
+    - Real
+    - Indoor
+    - Handheld
   authors:
     - Author Name
     - Another Author
+  # access: Public                    # e.g. Public / Private - omit if unknown, don't assume Public
+  # publication: Paper title as published
+  # year: 2024
+  # bibtex_key: schops2019bad         # citation key used in bibtex below
+  # bibtex: |
+  #   @inproceedings{schops2019bad,
+  #     title={...},
+  #     author={...},
+  #     year={2019}
+  #   }
 
 vslamlab_maintainer:
   name: Maintainer Name

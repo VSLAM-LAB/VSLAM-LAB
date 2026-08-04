@@ -53,6 +53,10 @@ about:
   license: MIT
   summary: 'ROVER: A Multiseason Dataset for Visual SLAM'
   homepage: https://iis-esslingen.github.io/rover/
+  features:
+    - Real
+    - Outdoor
+    - Robot
   authors:
     - Fabian Schmidt
     - Others

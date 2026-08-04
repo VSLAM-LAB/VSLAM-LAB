@@ -29,6 +29,11 @@ about:
   license: Not explicitly stated by DLR (research/academic use)
   summary: S3LI Vulcano - a multi-modal (RGB stereo, solid-state LiDAR, inertial) dataset for SLAM and place recognition in unstructured planetary-analogue environments, recorded on the volcanic island of Vulcano, Sicily
   homepage: https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets
+  features:
+    - Real
+    - Outdoor
+    - Planetary-analog Terrain
+    - Handheld
   authors:
     - Riccardo Giubilato
     - Marcus Gerhard Müller

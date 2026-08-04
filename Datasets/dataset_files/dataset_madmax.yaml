@@ -20,6 +20,11 @@ about:
   license: Academic use only (registration required)
   summary: The MADMAX data set for visual-inertial rover navigation on Mars
   homepage: https://datasets.arches-projekt.de/morocco2018/
+  features:
+    - Real
+    - Outdoor
+    - Planetary-analog Terrain
+    - Handheld
   authors:
     - Lukas Meyer
     - Michal Smíšek

@@ -31,6 +31,12 @@ about:
   license: CC BY-NC-SA 3.0
   summary: Hilti-Oxford SLAM Challenge 2022 - multi-camera, IMU and lidar dataset for SLAM benchmarking in construction and industrial environments
   homepage: https://hilti-challenge.com/dataset-2022
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Construction Site
+    - Handheld
   authors:
     - Lintong Zhang
     - Michael Helmberger

@@ -36,6 +36,10 @@ about:
   license: CC BY-NC-SA 3.0
   summary: KITTI Odometry Benchmark with stereo image sequences and ground-truth poses for visual odometry/SLAM
   homepage: https://www.cvlibs.net/datasets/kitti/
+  features:
+    - Real
+    - Outdoor
+    - Vehicle
   authors:
     - Andreas Geiger
     - Philip Lenz
