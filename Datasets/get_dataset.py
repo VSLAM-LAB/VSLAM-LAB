@@ -45,6 +45,8 @@ from Datasets.dataset_files.dataset_vitum import VitumDataset
 from Datasets.dataset_files.dataset_s3li_etna import S3liEtnaDataset
 from Datasets.dataset_files.dataset_s3li_vulcano import S3liVulcanoDataset
 from Datasets.dataset_files.dataset_vector import VectorDataset
+from Datasets.dataset_files.dataset_rvp_handheld import RvpHandheldDataset
+from Datasets.dataset_files.dataset_rvp_car import RvpCarDataset
 
 # Development
 from Datasets.dataset_files.dataset_videos import VideosDataset
@@ -91,6 +93,8 @@ def get_dataset(dataset_name):
         "s3li_etna": lambda: S3liEtnaDataset(),
         "s3li_vulcano": lambda: S3liVulcanoDataset(),
         "vector": lambda: VectorDataset(),
+        "rvp-handheld": lambda: RvpHandheldDataset(),
+        "rvp-car": lambda: RvpCarDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),

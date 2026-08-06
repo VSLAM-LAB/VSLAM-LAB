@@ -1,0 +1,57 @@
+dataset_name: rvp-handheld
+
+rgb_hz: 30.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['radtan4']
+raw_formats: ['ros1']
+
+url_download_root: "http://srrg.diag.uniroma1.it/vbr_slam"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - spagna_test0
+  - spagna_train0
+  - diag_test0
+  - diag_train0
+  - colosseo_test0
+  - colosseo_train0
+  - pincio_test0
+  - pincio_train0
+
+about:
+  license: CC BY-SA 4.0
+  summary: VBR - A Vision Benchmark in Rome (hand-held sequences) - hardware-synced stereo camera, solid-state LiDAR and IMU data around the Colosseum, Piazza di Spagna, Villa Borghese (Pincio) and Sapienza's DIAG building
+  homepage: https://rvp-group.net/slam-dataset.html
+  features:
+    - Real
+    - Outdoor
+    - Handheld
+  authors:
+    - Leonardo Brizi
+    - Emanuele Giacomini
+    - Luca Di Giammarino
+    - Simone Ferrari
+    - Omar Salem
+    - Lorenzo De Rebotti
+    - Giorgio Grisetti
+  access: Public
+  publication: "VBR: A Vision Benchmark in Rome"
+  publication_url: "https://arxiv.org/abs/2404.11322"
+  year: 2024
+  bibtex_key: brizi2024vbr
+  bibtex: |
+    @inproceedings{brizi2024vbr,
+      title={VBR: A vision benchmark in Rome},
+      author={Brizi, Leonardo and Giacomini, Emanuele and Di Giammarino, Luca and Ferrari, Simone and Salem, Omar and De Rebotti, Lorenzo and Grisetti, Giorgio},
+      booktitle={2024 IEEE International Conference on Robotics and Automation (ICRA)},
+      pages={15868--15874},
+      year={2024},
+      organization={IEEE}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: fontanvillacampa@gmail.com
+  date: 2026-08-06
