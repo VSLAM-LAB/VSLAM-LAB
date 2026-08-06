@@ -147,14 +147,16 @@ def _download_issues_for_dataset(dataset_name: str, dataset_files_dir: Path,
 
 
 def _download_labels(cfg: dict) -> list[str]:
-    """Infer the source pattern(s) (hugging-face/google-drive/website/local/other) from the YAML's
-    download fields. google-drive vs. website is decided purely by which field is present, not by
-    inspecting the URL's host: google_drive_link is for a real drive.google.com share link that
-    needs gdown to navigate Drive's virus-scan interstitial (Model: dataset_drunkards.py,
+    """Infer the source pattern(s) (hugging-face/google-drive/website/api/local/other) from the
+    YAML's download fields. google-drive vs. website is decided purely by which field is present,
+    not by inspecting the URL's host: google_drive_link is for a real drive.google.com share link
+    that needs gdown to navigate Drive's virus-scan interstitial (Model: dataset_drunkards.py,
     dataset_hilti2026.py); url_download_root/url_download_sequences is a website label
     unconditionally, even when the URL happens to be hosted on Google Drive - a pre-resolved
     direct-download link (drive.usercontent.google.com/download?...&confirm=t&...) already bypasses
-    the interstitial, so it downloads exactly like any other website URL (Model: dataset_tartanair.py)."""
+    the interstitial, so it downloads exactly like any other website URL (Model: dataset_tartanair.py).
+    api_url is its own field, not shared with url_download_root, so a paginated-JSON-API dataset
+    (Model: dataset_sesoko.yaml) reports api instead of collapsing into website."""
     labels: list[str] = []
     if cfg.get("hf_repo_id"):
         labels.append("hugging-face")
@@ -165,6 +167,9 @@ def _download_labels(cfg: dict) -> list[str]:
     urls = [cfg.get("url_download_root"), cfg.get("url_download_sequences")]
     if any(urls):
         labels.append("website")
+
+    if cfg.get("api_url"):
+        labels.append("api")
 
     sequence_location = cfg.get("sequence_location")
     if isinstance(sequence_location, list):

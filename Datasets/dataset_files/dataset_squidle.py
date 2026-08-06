@@ -85,7 +85,7 @@ class SquidleDataset(DatasetVSLAMLAB):
         super().__init__(dataset_name)
 
         # Get download url
-        self.url_download_root: str = self.cfg["url_download_root"]
+        self.api_url: str = self.cfg["api_url"]
         self.api_token: str = self.cfg.get("api_token", "not_set")
         if len(self.api_token.strip()) == 0:
             self.api_token = "not_set"
@@ -105,7 +105,7 @@ class SquidleDataset(DatasetVSLAMLAB):
         raw_path.mkdir(parents=True, exist_ok=True)
 
         # Setup initial params
-        base_url = self.url_download_root
+        base_url = self.api_url
         headers = {"auth-token": self.api_token, "Content-type": "application/json", "Accept": "application/json"}
         query_structure = _get_query_structure(sequence_name)
 
@@ -251,7 +251,7 @@ class SquidleDataset(DatasetVSLAMLAB):
             _get_dataset_issue(
                 issue_id="api_token",
                 dataset_name=self.dataset_name,
-                website=self.url_download_root,
+                website=self.api_url,
                 yaml_file=str(self.yaml_file),
             )
         ]

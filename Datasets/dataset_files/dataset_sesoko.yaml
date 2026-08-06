@@ -5,7 +5,7 @@ modes: ['mono']
 cam_models: ['unknown']
 raw_formats: ['images']
 
-url_download_root: "https://squidle.org"
+api_url: "https://squidle.org"
 api_token: "not_set"
 target_resolution: [640, 480]
 

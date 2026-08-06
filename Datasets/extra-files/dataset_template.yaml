@@ -5,40 +5,33 @@ rgb_hz: 30.0
 # Closed list (SKILL.md step 1) - every value must already appear in the Modes column of
 # Datasets/extra-files/dataset_table.md (regenerate via generate_dataset_table.py first; read
 # live since the set can grow - as of this writing: mono, mono-vi, rgbd, rgbd-vi, stereo,
-# stereo-vi). Include the native mode(s) *and* every mode derivable by dropping a channel:
-#   stereo/rgbd -> mono (one image of the pair / drop depth - stereo and rgbd don't reduce to
-#                  each other)
-#   -vi         -> non-vi (drop the IMU stream - one-way only, never invent IMU data)
-# e.g. native stereo-vi -> ['mono', 'mono-vi', 'stereo', 'stereo-vi']; plain stereo ->
-# ['mono', 'stereo']; plain mono -> ['mono'].
+# stereo-vi). The derivation rule (include the native mode(s) *and* every mode derivable by
+# dropping a channel) and per-value meanings are canonical in
+# Datasets/extra-files/closed_lists.md#modes-modes. Not repeated here.
 modes: ['mono', 'rgbd']
 
 # Closed list (SKILL.md step 1) - every value must already appear in the Camera Models column of
 # Datasets/extra-files/dataset_table.md (same regenerate-first, read-live rule as modes above -
 # as of this writing: equid4, pinhole, radtan4, radtan5, unknown). The value must describe what
 # create_calibration_yaml actually writes, not just "this is a perspective camera" - the
-# pinhole/radtan/unknown mapping, per-value Model: citations, and gotchas (including why getting
-# this wrong is dangerous) are canonical in dataset_template.py's create_calibration_yaml comment,
-# not repeated here.
+# pinhole/radtan/unknown mapping and per-value Model: citations are canonical in
+# Datasets/extra-files/closed_lists.md#camera-models-cam_models; gotchas for getting this wrong are
+# in dataset_template.py's create_calibration_yaml WARNINGS. Not repeated here.
 cam_models: ['pinhole']
 
 # Closed list (SKILL.md step 1) - every value must already appear in the Raw Format column of
 # Datasets/extra-files/dataset_table.md (same regenerate-first, read-live rule as modes/cam_models
 # above - as of this writing: zip, tar, 7z, ros1, ros2, images, video, colmap, hdf5, local). Not
-# the same axis as url_download_root/hf_repo_id/etc. below - that's the download *transport*,
-# this is the payload's *packaging* once fetched, and the two vary independently (e.g. a
-# hugging-face-hosted dataset can still ship a ros2 bag). Often more than one value applies (e.g.
-# a rosbag for the sequence data plus a separate zip for calibration). The value must describe
-# what create_rgb_folder actually does to turn that raw shape into rgb_0/rgb_1/depth_0 - the exact
-# per-value breakdown and Model: citations are canonical in dataset_template.py's create_rgb_folder
-# comment (colmap is the one exception, canonical in create_calibration_yaml's comment instead,
-# since it's a calibration/pose source, never an rgb-frame one). Not repeated here.
+# the same axis as url_download_root/hf_repo_id/etc. below - that's the download *transport*, this
+# is the payload's *packaging* once fetched, and the two vary independently. The per-value
+# breakdown and Model: citations are canonical in
+# Datasets/extra-files/closed_lists.md#raw-format-raw_formats. Not repeated here.
 raw_formats: ['zip']
 
 # The field below is for the "website"/"google-drive"/"api" download patterns (SKILL.md step 1) -
 # replace it entirely with whichever field matches this dataset's actual source. Field name/shape
-# per pattern (canonical here - the fetch mechanism, gotchas, and Model: citations are canonical in
-# dataset_template.py's download_sequence_data comment instead, not repeated here):
+# per pattern (canonical here - the fetch mechanism and Model: citations are canonical in
+# Datasets/extra-files/closed_lists.md#download-type-download, not repeated here):
 #   website      -> url_download_root: a root URL + filename pattern serving whatever raw_formats
 #                   above names, or a dict keyed by group prefix when several sequences share one
 #                   of a few group-level archives (see dataset_euroc.yaml's MH_/V1_/V2_ prefixes),
@@ -48,8 +41,9 @@ raw_formats: ['zip']
 #   hugging-face -> hf_repo_id: "org/name" (see dataset_soneva.yaml/dataset_sweetcorals.yaml)
 #   google-drive -> google_drive_link: a real drive.google.com share link - if a plain HTTP GET
 #                   works on the URL instead, it's website (url_download_root), not this.
-#   api          -> url_download_root: the API's base URL (same field as website) - see api_token
-#                   below if the API needs auth.
+#   api          -> api_url: the API's base URL - its own field, not shared with url_download_root,
+#                   so generate_dataset_table.py can tell api and website apart (see dataset_sesoko.yaml).
+#                   See api_token below if the API needs auth.
 #   local        -> no field here; affected sequences carry sequence_location: local instead
 #                   (a list with one entry per sequence_names, same order, if only some
 #                   sequences are local; a single scalar if all are - see
