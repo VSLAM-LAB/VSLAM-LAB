@@ -150,7 +150,7 @@ pixi run compare-exp <exp_yaml>                          # Example: pixi run com
 
 ## Add a new VSLAM Dataset
 
-Expand the evaluation suite by integrating custom datasets. Follow the instructions in [Wiki: Integrate a new VSLAM Dataset](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Integrate-a-new-VSLAM-Dataset).
+Expand the evaluation suite by integrating custom datasets. If you're using Claude Code, run the [`add-dataset`](.claude/skills/add-dataset/SKILL.md) skill (`/add-dataset <name> <source>`) to walk through the full workflow end to end. Otherwise, follow the instructions in [Wiki: Integrate a new VSLAM Dataset](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Integrate-a-new-VSLAM-Dataset).
 
 ## Add a new VSLAM Baseline
 
@@ -184,6 +184,8 @@ If you're using **VSLAM-LAB** in your research, please cite:
 To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets) -->
 
 # VSLAM-LAB Supported Baselines and Datasets
+*For full per-dataset details — license, access requirements, and publication/BibTeX citation — see [`Datasets/extra-files/dataset_table.xlsx`](Datasets/extra-files/dataset_table.xlsx).*
+
 | Baselines                                                                   | System |      Modes       |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |
 |:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|:------------:|
 | [**VGGT-SLAM**](https://github.com/MIT-SPARK/VGGT-SLAM) |  VSLAM   |  `mono`  |  [BSD-2](https://github.com/MIT-SPARK/VGGT-SLAM/blob/main/LICENSE)  |   `vggtslam`   | ✅ | `pinhole` |
