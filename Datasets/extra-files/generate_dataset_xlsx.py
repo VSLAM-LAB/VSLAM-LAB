@@ -8,16 +8,16 @@ Description: Scans Datasets/dataset_files/*.yaml (and, via get_dataset.py, the
              autofilter and single-line rows - openable directly in Excel or
              Google Sheets. Shares its yaml-scanning core (load_dataset_entries)
              with generate_dataset_table.py's Markdown table; this script adds
-             the bibliography columns (Access, Publication, Year, BibTeX Key,
-             BibTeX, Authors) sourced from each dataset's yaml about: block.
-             Those fields are optional and, for most datasets today, blank -
-             see dataset_template.yaml's about: block for the field list and
-             fill them in per-dataset as they're gathered. Column order/set is
-             defined by _COLUMNS below.
+             the bibliography columns (Access, Publication, Publication URL,
+             Year, BibTeX Key, BibTeX, Authors) sourced from each dataset's
+             yaml about: block. Those fields are optional and, for most
+             datasets today, blank - see dataset_template.yaml's about: block
+             for the field list and fill them in per-dataset as they're
+             gathered. Column order/set is defined by _COLUMNS below.
 Author: Alejandro Fontan Villacampa
-Version: 1.3
+Version: 1.4
 Created: 2026-08-04
-Updated: 2026-08-04
+Updated: 2026-08-06
 License: GPLv3
 List of Known Bugs: None
 """
@@ -82,6 +82,7 @@ _COLUMNS: list[tuple[str, str]] = [
     ("Camera Model", "cam_models"),
     ("Web", "homepage"),
     ("Publication", "publication"),
+    ("Publication URL", "publication_url"),
     ("Year", "year"),
     ("Authors", "authors"),
     ("BibTeX Key", "bibtex_key"),
@@ -139,6 +140,13 @@ def _write_workbook(entries: list[dict], output: Path) -> None:
             web_cell = ws.cell(row=row_idx, column=web_col)
             web_cell.hyperlink = homepage
             web_cell.font = Font(color="0000FF", underline="single")
+
+        publication_url = entry.get("publication_url", "")
+        if publication_url:
+            pub_url_col = next(i for i, (_h, k) in enumerate(_COLUMNS, start=1) if k == "publication_url")
+            pub_url_cell = ws.cell(row=row_idx, column=pub_url_col)
+            pub_url_cell.hyperlink = publication_url
+            pub_url_cell.font = Font(color="0000FF", underline="single")
 
     for col_idx in range(1, num_cols + 1):
         ws.column_dimensions[get_column_letter(col_idx)].width = _COLUMN_WIDTH

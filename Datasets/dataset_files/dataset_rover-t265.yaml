@@ -59,6 +59,20 @@ about:
   authors:
     - Fabian Schmidt
     - Others
+  access: Public
+  publication: "ROVER: A Multiseason Dataset for Visual SLAM"
+  publication_url: "https://arxiv.org/abs/2412.02506"
+  year: 2025
+  bibtex_key: schmidt2025rover
+  bibtex: |
+    @article{schmidt2025rover,
+      title={ROVER: A Multiseason Dataset for Visual SLAM},
+      author={Schmidt, Fabian and Daubermann, Julian and Mitschke, Marcel and Blessing, Constantin and Meyer, Stephan and Enzweiler, Markus and Valada, Abhinav},
+      journal={IEEE Transactions on Robotics},
+      volume={41},
+      pages={4005--4022},
+      year={2025}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

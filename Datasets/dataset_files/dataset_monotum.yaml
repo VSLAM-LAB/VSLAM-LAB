@@ -77,6 +77,18 @@ about:
     - Jakob Engel
     - Vladyslav Usenko
     - Daniel Cremers
+  access: Public
+  publication: "A Photometrically Calibrated Benchmark for Monocular Visual Odometry"
+  publication_url: "https://arxiv.org/abs/1607.02555"
+  year: 2016
+  bibtex_key: engel2016photometrically
+  bibtex: |
+    @article{engel2016photometrically,
+      title={A photometrically calibrated benchmark for monocular visual odometry},
+      author={Engel, Jakob and Usenko, Vladyslav and Cremers, Daniel},
+      journal={arXiv preprint arXiv:1607.02555},
+      year={2016}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

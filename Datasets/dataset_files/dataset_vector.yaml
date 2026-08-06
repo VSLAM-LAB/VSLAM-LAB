@@ -159,6 +159,22 @@ about:
     - Chenyu Wang
     - Jiaben Chen
     - Laurent Kneip
+  access: Public
+  publication: "VECtor: A Versatile Event-Centric Benchmark for Multi-Sensor SLAM"
+  publication_url: "https://arxiv.org/abs/2207.01404"
+  year: 2022
+  bibtex_key: gao2022vector
+  bibtex: |
+    @article{gao2022vector,
+      title={VECtor: A Versatile Event-Centric Benchmark for Multi-Sensor SLAM},
+      author={Gao, Ling and Liang, Yuxuan and Yang, Jiaqi and Wu, Shaoxun and Wang, Chenyu and Chen, Jiaben and Kneip, Laurent},
+      journal={IEEE Robotics and Automation Letters},
+      volume={7},
+      number={3},
+      pages={8217--8224},
+      publisher={IEEE},
+      year={2022}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

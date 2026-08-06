@@ -45,6 +45,22 @@ about:
     - Marco Camurri
     - Davide Scaramuzza
     - Maurice Fallon
+  access: Public
+  publication: "HILTI-Oxford Dataset: A Millimeter-Accurate Benchmark for Simultaneous Localization and Mapping"
+  publication_url: "https://arxiv.org/abs/2208.09825"
+  year: 2022
+  bibtex_key: zhang2022hilti
+  bibtex: |
+    @article{zhang2022hilti,
+      title={Hilti-oxford dataset: A millimeter-accurate benchmark for simultaneous localization and mapping},
+      author={Zhang, Lintong and Helmberger, Michael and Fu, Lanke Frank Tarimo and Wisth, David and Camurri, Marco and Scaramuzza, Davide and Fallon, Maurice},
+      journal={IEEE Robotics and Automation Letters},
+      volume={8},
+      number={1},
+      pages={408--415},
+      year={2022},
+      publisher={IEEE}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

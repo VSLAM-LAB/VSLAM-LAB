@@ -69,6 +69,19 @@ about:
     - Emilia Szymańska
     - Torben Gräber
     - Maurice Fallon
+  access: Public
+  publication: "Hilti-Trimble-Oxford Dataset: 360 Visual-Inertial Benchmark with Floor Plan Priors for SLAM and Localization"
+  publication_url: "https://arxiv.org/abs/2607.06464"
+  year: 2026
+  bibtex_key: slamchallenge2026
+  bibtex: |
+    @misc{slamchallenge2026,
+      title={{Hilti}-{Trimble}-{Oxford} Dataset: 360 Visual-Inertial Benchmark with Floor Plan Priors for SLAM and Localization},
+      author={Centanni, Samuele and Zhang, Yuhao and Tao, Yifu and Kindle, Julien and Neuhaus, Frank and Ko{\ss}, Tilman and Patel, Aryaman and Helmberger, Michael and Szyma{\'n}ska, Emilia and Gr{\"a}ber, Torben and Fallon, Maurice},
+      eprint={2607.06464},
+      url={https://arxiv.org/abs/2607.06464},
+      year={2026}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

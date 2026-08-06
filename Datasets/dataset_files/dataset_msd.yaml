@@ -57,6 +57,20 @@ about:
     - Mateo de Mayo
     - Daniel Cremers
     - Taihú Pire
+  access: Public
+  publication: "The Monado SLAM Dataset for Egocentric Visual-Inertial Tracking"
+  publication_url: "https://arxiv.org/abs/2508.00088"
+  year: 2025
+  bibtex_key: deMayoCremersPireMSD
+  bibtex: |
+    @inproceedings{deMayoCremersPireMSD,
+      title={The Monado SLAM Dataset for Egocentric Visual-Inertial Tracking},
+      author={{de Mayo}, Mateo and Cremers, Daniel and Pire, Taih{\'u}},
+      booktitle={2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      pages={13111--13118},
+      doi={10.1109/IROS60139.2025.11247240},
+      year={2025}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

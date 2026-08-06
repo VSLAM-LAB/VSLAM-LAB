@@ -1,10 +1,21 @@
 # VSLAM-LAB Closed-List Definitions
 
-Canonical value → meaning definitions for the closed-list fields resolved in `add-dataset`'s
-SKILL.md step 1 (`modes`, `cam_models`, `raw_formats`, `calibration_type`, `download`).
-Cross-referenced from `Datasets/extra-files/dataset_template.py`/`dataset_template.yaml` rather
-than duplicated there — if you're implementing a hook (not just choosing a value), see those
-files' own comments for the gotchas/warnings that go with each definition below.
+Canonical value → meaning definitions for every closed list used by `add-dataset`. This is the
+only place these values are defined — `SKILL.md`, `dataset_template.py`, and `dataset_template.yaml`
+all cross-reference this file rather than duplicating a definition; if you're implementing a hook
+(not just choosing a value), see those files' own comments for the gotchas/warnings that go with
+each definition below.
+
+| Field | Resolved in |
+|---|---|
+| `modes` | SKILL.md step 1 |
+| `cam_models` | SKILL.md step 1 |
+| `raw_formats` | SKILL.md step 1 |
+| `calibration_type` | SKILL.md step 1 |
+| `download` | SKILL.md step 1 |
+| `download_issues` | SKILL.md step 1 |
+| `BENCHMARK_RETENTION` | `path_constants.py` — global constant, not chosen per dataset |
+| `about.features` | SKILL.md step 7 — drives README.md's Datasets/Tools-table rendering |
 
 The *current* closed-list values in use (which can grow over time) live in
 `Datasets/extra-files/dataset_table.md`'s columns, generated from `Datasets/dataset_files/*.yaml`
@@ -42,7 +53,8 @@ split-by-capability rule this implies when a source's sequences aren't all equal
 
 `cam_model` must describe what `create_calibration_yaml` actually writes, not just "this is a
 perspective camera" — see `dataset_template.py`'s WARNINGS for the consistency gotchas this
-invites getting wrong.
+invites getting wrong (live-included in `add-dataset`'s SKILL.md step 4, so no separate lookup
+needed there).
 
 | Value                       | Distortion written                                                                               | Model                                         |
 |------------------------------|---------------------------------------------------------------------------------------------------|-----------------------------------------------|
@@ -95,3 +107,80 @@ source isn't declared through any of the recognized YAML fields above (`hf_repo_
 `google_drive_link`, `url_download_root`/`url_download_sequences`, `api_url`,
 `sequence_location: local`) — e.g. a URL hardcoded directly in the `.py` file instead of pulled
 from `self.cfg`.
+
+## Download Issues (`download_issues`)
+
+A known constraint blocking *automatic* download of a sequence, reported by overriding
+`get_download_issues` to return `_get_dataset_issue(issue_id=..., dataset_name=self.dataset_name,
+...)` (`Datasets/DatasetVSLAMLAB_issues.py`) — leave blank/unimplemented (inherits the base
+class's no-op default) when no such constraint exists; most datasets are blank.
+
+| Value                | Meaning                                                                                                          | `_get_dataset_issue` kwargs | Model                                                                                     |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------|------------------------------|--------------------------------------------------------------------------------------------|
+| complete_dataset     | source can't be split into per-sequence downloads — the whole dataset (or group) must be fetched together. Still `automatic download` (green) — just wider-scoped than requested, not blocked | `size_gb`                    | dataset_kitti.py, dataset_euroc.py, dataset_replica.py, dataset_tartanair.py               |
+| api_token            | requires an API token. Read it in `__init__` as `self.api_token = self.cfg.get("api_token", "not_set")` — never `cfg["api_token"]`, so a missing token surfaces here, not a `KeyError` at load time. `user action required` (yellow) | `website`, `yaml_file`       | dataset_madmax.py, dataset_squidle.py (SesokoDataset)                                      |
+| huggingface_token    | requires a Hugging Face token. No YAML field to read — check `utilities.hf_token()` (`HUGGINGFACE_TOKEN` in `path_constants.py`, falling back to the `HF_TOKEN` env var) directly: `if hf_token() is not None: return []`. `user action required` (yellow) | `website`, `yaml_file`       | `HFColmapDatasetMixin.get_download_issues` (dataset_soneva.py, shared by dataset_sweetcorals.py), dataset_openloris.py |
+| license_required     | requires accepting license terms on the dataset's page first, before any automated download can proceed. `user action required` (yellow) | none                          | —                                                                                            |
+
+Before implementing any of these, confirm the constraint actually exists with a live check (an
+anonymous API call, or a plain curl against a website URL) — don't copy it from a same-pattern
+sibling's existing code just because the pattern matches. `dataset_msd.py`'s Hugging Face repo
+turned out fully public (confirmed via `huggingface_hub.HfApi().dataset_info(repo_id,
+token=None).gated == False`, plus an anonymous `list_repo_files()` call succeeding), so no
+`huggingface_token` issue was added for it. This is unresolved even for the Model examples above —
+soneva/sweetcorals/openloris's own repos also came back `gated=False` on the same live check,
+despite all three reporting this issue. See
+[#91](https://github.com/VSLAM-LAB/VSLAM-LAB/issues/91) before trusting any of them as a
+"definitely right" reference.
+
+## Benchmark Retention (`BENCHMARK_RETENTION`)
+
+Gated by `BENCHMARK_RETENTION` (`path_constants.py`, default `Retention.STANDARD`) — every
+dataset's `remove_unused_files` deletes files `create_rgb_folder`/`create_rgb_csv`/
+`create_calibration_yaml`/`create_groundtruth_csv` have already consumed and turned into the
+standardized layout, so the benchmark directory doesn't keep redundant copies of the same data in
+two formats. How much gets deleted depends on the tier:
+
+| Value    | Meaning                                                                                                                                                          | Model                                                                     |
+|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| FULL     | delete nothing — keep every raw/intermediate file exactly as downloaded/generated, alongside the standardized layout                                              | —                                                                          |
+| STANDARD | delete intermediate files that are pure reformats of data already fully captured in the standardized layout — no information is lost by deleting them. Keep the *original source* downloads (zip archives, un-resized raw images) — re-deriving the standardized layout from them again (e.g. at a different `target_resolution`) would otherwise require re-downloading | dataset_eth.py (per-frame `calibration.txt`/`groundtruth.txt`/`rgb.txt`/`depth.txt`/`associated.txt`, once parsed) |
+| MINIMAL  | delete everything STANDARD does, plus the original source downloads too — only the standardized layout remains: smallest footprint, but not reprocessable without a fresh download                | dataset_eth.py (downloaded `{sequence}_{mode}.zip`), `HFColmapDatasetMixin` in dataset_soneva.py (`rgb_0_raw/`) |
+
+In code this is almost always exactly two checks:
+```python
+if BENCHMARK_RETENTION != Retention.FULL: ...   # delete STANDARD-tier files
+if BENCHMARK_RETENTION == Retention.MINIMAL: ...  # delete MINIMAL-tier files too
+```
+Always gate the STANDARD-tier delete with the first check — omitting it deletes files even at
+`Retention.FULL`, which must delete nothing (a real bug hit by `dataset_euroc.py`/
+`dataset_kitti.py`).
+
+The gotchas for actually implementing this correctly — symlinked raw folders that must survive
+even `MINIMAL`, unlink-path mismatches, `shutil.rmtree` vs. `unlink()`, and the four shared-archive
+scoping patterns (whole-dataset-only, scene/group-scoped, dataset-wide indefinitely reused,
+exact-file share) — are canonical in `dataset_template.py`'s `remove_unused_files` comment. Not
+repeated here.
+
+## Dataset Features (`about.features`)
+
+Word-form tags in each dataset's YAML `about.features` list. README.md's Datasets-table generator
+(`generate_readme_datasets_table.py`) renders them as emoji and uses them to assign a section
+divider (`_SECTION_PRIORITY`, first match wins: Synthetic, Underwater, Vehicle, UAV,
+Intracorporeal, Planetary-analog Terrain, Construction Site, Robot, else the default section).
+Also the emoji legend for README's hand-edited Tools table (SKILL.md step 7).
+
+| Category            | Values                                                                 | Cardinality  |
+|----------------------|-------------------------------------------------------------------------|---------------|
+| Origin               | Real 📸, Synthetic 💻                                                   | exactly one   |
+| Environment          | Indoor 🏠, Outdoor 🏞️, Underwater 🌊, Intracorporeal 🫀                  | one or more   |
+| Platform             | Handheld 🤳, Headmounted 🥽, Vehicle 🚗, UAV 🚁, Robot 🤖                 | one or more   |
+| Section tags (real per-dataset values, not divider-only) | Construction Site 🏗️, Planetary-analog Terrain 🪐 | optional |
+
+Model: `dataset_hilti2022.yaml` (Construction Site), `dataset_madmax.yaml` (Planetary-analog
+Terrain) — both tag the individual dataset directly, they aren't divider-only labels applied
+externally. Ask the user if a value is unclear — don't guess.
+
+Never hand-edit README's Datasets-table emoji/row — edit `about.features` in the YAML, then re-run
+`generate_readme_datasets_table.py` (SKILL.md step 7); the table is generated *from* this field,
+not kept in sync with it by hand.

@@ -71,6 +71,20 @@ about:
     - Shahram Izadi
     - Antonio Criminisi
     - Andrew Fitzgibbon
+  access: Public
+  publication: "Real-time RGB-D camera relocalization"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/6671777"
+  year: 2013
+  bibtex_key: glocker2013real
+  bibtex: |
+    @inproceedings{glocker2013real,
+      title={Real-time RGB-D camera relocalization},
+      author={Glocker, Ben and Izadi, Shahram and Shotton, Jamie and Criminisi, Antonio},
+      booktitle={2013 IEEE International Symposium on Mixed and Augmented Reality (ISMAR)},
+      pages={173--179},
+      year={2013},
+      organization={IEEE}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

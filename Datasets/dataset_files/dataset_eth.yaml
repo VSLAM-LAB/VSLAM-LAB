@@ -108,6 +108,19 @@ about:
     - Thomas Schöps
     - Johannes L. Schönberger
     - Others
+  access: Public
+  publication: "BAD SLAM: Bundle Adjusted Direct RGB-D SLAM"
+  publication_url: "https://openaccess.thecvf.com/content_CVPR_2019/papers/Schops_BAD_SLAM_Bundle_Adjusted_Direct_RGB-D_SLAM_CVPR_2019_paper.pdf"
+  year: 2019
+  bibtex_key: schops2019bad
+  bibtex: |
+    @inproceedings{schops2019bad,
+      title={Bad slam: Bundle adjusted direct rgb-d slam},
+      author={Schops, Thomas and Sattler, Torsten and Pollefeys, Marc},
+      booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+      pages={134--144},
+      year={2019}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

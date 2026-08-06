@@ -10,7 +10,8 @@ Description: Scans Datasets/dataset_files/*.yaml (and, via get_dataset.py, the
              commented-out placeholder rows), License from each dataset's own
              yaml about.license field. The yaml-scanning core is shared (via
              load_dataset_entries) with generate_dataset_xlsx.py (bibliography
-             columns from about.publication/year/bibtex_key/bibtex/access) and
+             columns from about.publication/publication_url/year/bibtex_key/
+             bibtex/access) and
              generate_readme_datasets_table.py (regenerates README.md's own
              Datasets table from about.features instead of scraping it).
              Datasets table region in README.md may be Markdown or raw HTML
@@ -285,6 +286,7 @@ def load_dataset_entries(dataset_files_dir: Path, get_dataset_py: Path, readme_m
                 "authors": about.get("authors", []) or [],
                 "access": str(about.get("access", "")).strip(),
                 "publication": str(about.get("publication", "")).strip(),
+                "publication_url": str(about.get("publication_url", "")).strip(),
                 "year": str(about.get("year", "")).strip(),
                 "bibtex_key": str(about.get("bibtex_key", "")).strip(),
                 "bibtex": str(about.get("bibtex", "")).strip(),

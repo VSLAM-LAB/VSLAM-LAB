@@ -46,6 +46,22 @@ about:
     - José M. Fácil
     - J. M. M. Montiel
     - Javier Civera
+  access: Public
+  publication: "Endo-Depth-and-Motion: Reconstruction and Tracking in Endoscopic Videos Using Depth Networks and Photometric Constraints"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/9478277"
+  year: 2021
+  bibtex_key: recasens2021endo
+  bibtex: |
+    @article{recasens2021endo,
+      title={Endo-depth-and-motion: Reconstruction and tracking in endoscopic videos using depth networks and photometric constraints},
+      author={Recasens, David and Lamarca, Jos{\'e} and F{\'a}cil, Jos{\'e} M and Montiel, JMM and Civera, Javier},
+      journal={IEEE Robotics and Automation Letters},
+      volume={6},
+      number={4},
+      pages={7225--7232},
+      year={2021},
+      publisher={IEEE}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

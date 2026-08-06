@@ -53,6 +53,18 @@ about:
     - Vladyslav Usenko
     - Jörg Stückler
     - Daniel Cremers
+  access: Public
+  publication: "The TUM VI Benchmark for Evaluating Visual-Inertial Odometry"
+  publication_url: "https://arxiv.org/abs/1804.06120"
+  year: 2018
+  bibtex_key: schubert2018vidataset
+  bibtex: |
+    @inproceedings{schubert2018vidataset,
+      title={The TUM VI Benchmark for Evaluating Visual-Inertial Odometry},
+      author={Schubert, D. and Goll, T. and Demmel, N. and Usenko, V. and Stueckler, J. and Cremers, D.},
+      booktitle={International Conference on Intelligent Robots and Systems (IROS)},
+      year={2018}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

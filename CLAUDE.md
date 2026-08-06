@@ -67,8 +67,10 @@ Don't hand-roll this per script — call `utilities.add_sequence_target_args(par
 
 `gh issue list --label <label>` to browse by category, `gh issue create --label <label> ...` to file new ones. Skills that hit an out-of-scope bug/inconsistency/improvement (e.g. `add-dataset`'s Issue exception) file it here instead of editing outside their scope.
 
-- `baseline` — a specific SLAM baseline's integration (`Baselines/baseline_files/*.py`) — e.g. a crash or missing mode in one baseline.
-- `dataset` — a specific dataset's integration (`Datasets/dataset_files/*.py`/`.yaml`) — e.g. a cleanup pass or a wrong field on one dataset.
-- `capability` — a new framework-level capability, not tied to one baseline or dataset — e.g. moving `rgb_hz` from dataset-level YAML into per-sequence calibration.
-- `improvement` — a non-bug improvement to existing code, docs, or tooling — e.g. an audit for staleness, a new output option on a script, a naming-convention cleanup.
-- `bug` (GitHub's stock label) — something that should work but doesn't — e.g. a crash, a stale field check, a false-positive.
+| Label | Scope | Example |
+|---|---|---|
+| `baseline` | a specific SLAM baseline's integration (`Baselines/baseline_files/*.py`) | a crash or missing mode in one baseline |
+| `dataset` | a specific dataset's integration (`Datasets/dataset_files/*.py`/`.yaml`) | a cleanup pass or a wrong field on one dataset |
+| `capability` | a new framework-level capability, not tied to one baseline or dataset | moving `rgb_hz` from dataset-level YAML into per-sequence calibration |
+| `improvement` | a non-bug improvement to existing code, docs, or tooling | an audit for staleness, a new output option on a script, a naming-convention cleanup |
+| `bug` (GitHub's stock label) | something that should work but doesn't | a crash, a stale field check, a false-positive |

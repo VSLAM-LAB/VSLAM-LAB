@@ -44,6 +44,18 @@ about:
     - Yafei Hu
     - Ashish Kapoor
     - Sebastian Scherer
+  access: Public
+  publication: "TartanAir: A Dataset to Push the Limits of Visual SLAM"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/9341801"
+  year: 2020
+  bibtex_key: tartanair2020iros
+  bibtex: |
+    @article{tartanair2020iros,
+      title =   {TartanAir: A Dataset to Push the Limits of Visual SLAM},
+      author =  {Wang, Wenshan and Zhu, Delong and Wang, Xiangwei and Hu, Yaoyu and Qiu, Yuheng and Wang, Chen and Hu, Yafei and Kapoor, Ashish and Scherer, Sebastian},
+      booktitle = {2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      year =    {2020}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

@@ -180,6 +180,19 @@ about:
     - Martin R. Oswald
     - Marc Pollefeys
     - Javier Civera
+  access: Public
+  publication: "The Drunkard's Odometry: Estimating Camera Motion in Deforming Scenes"
+  publication_url: "https://proceedings.neurips.cc/paper_files/paper/2023/hash/98c9b79e9c686aadd4d81e34a7773dd1-Abstract-Datasets_and_Benchmarks.html"
+  year: 2024
+  bibtex_key: recasens2024drunkard
+  bibtex: |
+    @article{recasens2024drunkard,
+      title={The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes},
+      author={Recasens Lafuente, David and Oswald, Martin R and Pollefeys, Marc and Civera, Javier},
+      journal={Advances in Neural Information Processing Systems},
+      volume={36},
+      year={2024}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

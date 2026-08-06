@@ -39,6 +39,20 @@ about:
     - Thomas Whelan
     - John B. McDonald
     - Andrew J. Davison
+  access: Public
+  publication: "A benchmark for RGB-D visual odometry, 3D reconstruction and SLAM"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/6907054"
+  year: 2014
+  bibtex_key: handa2014benchmark
+  bibtex: |
+    @inproceedings{handa2014benchmark,
+      title={A benchmark for RGB-D visual odometry, 3D reconstruction and SLAM},
+      author={Handa, Ankur and Whelan, Thomas and McDonald, John and Davison, Andrew J},
+      booktitle={2014 IEEE international conference on Robotics and automation (ICRA)},
+      pages={1524--1531},
+      year={2014},
+      organization={IEEE}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

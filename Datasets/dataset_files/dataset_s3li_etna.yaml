@@ -42,6 +42,22 @@ about:
     - Wolfgang Stürzl
     - Armin Wedler
     - Rudolph Triebel
+  access: Public
+  publication: "Challenges of SLAM in extremely unstructured environments: the DLR Planetary Stereo, Solid-State LiDAR, Inertial Dataset"
+  publication_url: "https://doi.org/10.1109/LRA.2022.3188118"
+  year: 2022
+  bibtex_key: giubilato2022challenges
+  bibtex: |
+    @article{giubilato2022challenges,
+      title={Challenges of SLAM in extremely unstructured environments: the DLR Planetary Stereo, Solid-State LiDAR, Inertial Dataset},
+      author={Giubilato, Riccardo and St{\"u}rzl, Wolfgang and Wedler, Armin and Triebel, Rudolph},
+      journal={IEEE Robotics and Automation Letters},
+      volume={7},
+      number={4},
+      pages={8721--8728},
+      publisher={IEEE},
+      year={2022}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

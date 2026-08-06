@@ -21,6 +21,12 @@ about:
   homepage: https://huggingface.co/datasets/vslamlab/videos
   authors:
     - Alejandro Fontan
+  access: Public
+  publication: N/A
+  publication_url: N/A
+  year: N/A
+  bibtex_key: N/A
+  bibtex: N/A
 
 vslamlab_maintainer:
   name: Alejandro Fontan

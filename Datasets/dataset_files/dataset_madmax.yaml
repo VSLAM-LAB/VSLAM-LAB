@@ -29,6 +29,22 @@ about:
     - Lukas Meyer
     - Michal Smíšek
     - Others
+  access: Registration Required
+  publication: "The MADMAX data set for visual-inertial rover navigation on Mars"
+  publication_url: "https://doi.org/10.1002/rob.22016"
+  year: 2021
+  bibtex_key: meyer2021madmax
+  bibtex: |
+    @article{meyer2021madmax,
+      title={The MADMAX data set for visual-inertial rover navigation on Mars},
+      author={Meyer, Lukas and Smisek, Michal and Fontan Villacampa, Alejandro and Oliva Maza, Laura and Medina, Daniel and Schuster, Martin J and Steidle, Florian and Vayugundla, Mallikarjuna and M{\"u}ller, Marcus G and Rebele, Bernhard and Wedler, Armin and Triebel, Rudolph},
+      journal={Journal of Field Robotics},
+      volume={38},
+      number={6},
+      pages={833--853},
+      publisher={Wiley Online Library},
+      year={2021}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

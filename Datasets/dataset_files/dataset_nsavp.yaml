@@ -34,6 +34,21 @@ about:
     - Radhika Ravi
     - Spencer Carmichael
     - Austin D. Buchan
+  access: Public
+  publication: "Dataset and Benchmark: Novel Sensors for Autonomous Vehicle Perception"
+  publication_url: "https://journals.sagepub.com/doi/abs/10.1177/02783649241273554"
+  year: 2025
+  bibtex_key: nsavp_2025
+  bibtex: |
+    @article{nsavp_2025,
+      title={Dataset and Benchmark: Novel Sensors for Autonomous Vehicle Perception},
+      author={Carmichael, Spencer and Buchan, Austin and Ramanagopal, Mani and Ravi, Radhika and Vasudevan, Ram and Skinner, Katherine A},
+      journal={The International Journal of Robotics Research},
+      volume={44},
+      number={3},
+      pages={355--365},
+      year={2025}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

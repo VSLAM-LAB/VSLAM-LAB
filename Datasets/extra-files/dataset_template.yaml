@@ -74,21 +74,25 @@ sequence_names:
 # authors: the dataset's original creators/publishers, not the vslamlab_maintainer below (the
 # person/agent who integrated it into VSLAM-LAB) — see dataset_eth.yaml for a real example.
 #
-# access/publication/year/bibtex_key/bibtex below are all optional bibliography fields, read by
-# Datasets/extra-files/generate_dataset_xlsx.py (nothing at runtime consumes them). Omit any you
-# don't have yet - blank cells in the generated spreadsheet are expected and get filled in over
-# time, not something to guess at import time.
+# access/publication/publication_url/year/bibtex_key/bibtex below are all optional bibliography
+# fields, read by Datasets/extra-files/generate_dataset_xlsx.py (nothing at runtime consumes
+# them). Every dataset in this repo sets each of these six explicitly, to one of:
+#   - a real value, once known
+#   - TODO   - genuinely pending: a publication exists (or will), the value just isn't known/
+#              public yet (e.g. an accepted-but-not-yet-posted paper). Expected to be filled in
+#              later - not something to guess at import time.
+#   - N/A    - structurally doesn't apply and never will (e.g. no accompanying publication exists
+#              for this dataset, or - for access specifically - a field genuinely unknown/
+#              inapplicable). Not the same as TODO: N/A means stop looking.
+# Never leave a field bare/omitted once the dataset is real - one of the three states above.
 about:
   license: CC-BY-4.0
   summary: One-line description of the dataset
   homepage: https://example.com/dataset
-  # Closed list (README.md's legend, right below the Datasets table) - exactly one of Real/
-  # Synthetic, one or more of Indoor/Outdoor/Underwater/Intracorporeal, and one or more of
-  # Handheld/Headmounted/Vehicle/UAV/Robot. Construction Site/Planetary-analog Terrain are
-  # section-divider labels only (grouping several datasets in the README table under one
-  # <hr>-separated heading) - never tag an individual dataset with them. This is the word form of
-  # the same tags README.md shows as emoji (📸🏠🤳 etc.) for this dataset's row - keep both in sync
-  # if either changes.
+  # Closed list, canonical in Datasets/extra-files/closed_lists.md#dataset-features-aboutfeatures.
+  # Not repeated here. Drives README.md's Datasets-table row (emoji + section) via
+  # generate_readme_datasets_table.py (SKILL.md step 7) - edit this list, then re-run that script;
+  # never hand-edit README's table.
   features:
     - Real
     - Indoor
@@ -96,16 +100,24 @@ about:
   authors:
     - Author Name
     - Another Author
-  # access: Public                    # e.g. Public / Private - omit if unknown, don't assume Public
-  # publication: Paper title as published
-  # year: 2024
-  # bibtex_key: schops2019bad         # citation key used in bibtex below
-  # bibtex: |
-  #   @inproceedings{schops2019bad,
-  #     title={...},
-  #     author={...},
-  #     year={2019}
-  #   }
+  access: TODO                       # Public if downloadable without registration/permission
+                                      # (check the *actual* download path this dataset's .py
+                                      # uses, e.g. a public S3/GDrive mirror can bypass a site's
+                                      # own registration wall - Model: dataset_kitti.py); else
+                                      # Registration Required (Model: dataset_madmax.py,
+                                      # dataset_sesoko.py). Never assume Public.
+  publication: TODO                  # direct link goes in publication_url below, not here
+  publication_url: TODO              # direct link to the paper (DOI/arXiv/publisher page) -
+                                      # not the dataset's own homepage above
+  year: TODO
+  bibtex_key: TODO                   # citation key used in bibtex below, e.g. schops2019bad
+  bibtex: TODO                       # once known, becomes a block scalar:
+  #   bibtex: |
+  #     @inproceedings{schops2019bad,
+  #       title={...},
+  #       author={...},
+  #       year={2019}
+  #     }
 
 vslamlab_maintainer:
   name: Maintainer Name

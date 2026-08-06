@@ -105,6 +105,20 @@ about:
     - Felix Endres
     - Wolfram Burgard
     - Daniel Cremers
+  access: Public
+  publication: "A benchmark for the evaluation of RGB-D SLAM systems"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/6385773"
+  year: 2012
+  bibtex_key: sturm2012benchmark
+  bibtex: |
+    @inproceedings{sturm2012benchmark,
+      title={A benchmark for the evaluation of RGB-D SLAM systems},
+      author={Sturm, J{\"u}rgen and Engelhard, Nikolas and Endres, Felix and Burgard, Wolfram and Cremers, Daniel},
+      booktitle={2012 IEEE/RSJ international conference on intelligent robots and systems},
+      pages={573--580},
+      year={2012},
+      organization={IEEE}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

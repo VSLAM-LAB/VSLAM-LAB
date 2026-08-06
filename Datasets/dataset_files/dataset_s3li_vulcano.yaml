@@ -41,6 +41,19 @@ about:
     - Laura Alejandra Encinar Gonzalez
     - John Folkesson
     - Rudolph Triebel
+  access: Public
+  publication: "The S3LI Vulcano Dataset: A Dataset for Multi-Modal SLAM in Unstructured Planetary Environments"
+  publication_url: "https://arxiv.org/abs/2601.19557"
+  year: 2026
+  bibtex_key: giubilato2026s3livulcano
+  bibtex: |
+    @misc{giubilato2026s3livulcano,
+      title={The S3LI Vulcano Dataset: A Dataset for Multi-Modal SLAM in Unstructured Planetary Environments},
+      author={Giubilato, Riccardo and M{\"u}ller, Marcus Gerhard and Sewtz, Marco and Encinar Gonzalez, Laura Alejandra and Folkesson, John and Triebel, Rudolph},
+      eprint={2601.19557},
+      archivePrefix={arXiv},
+      year={2026}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

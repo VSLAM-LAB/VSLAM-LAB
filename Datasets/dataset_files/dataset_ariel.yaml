@@ -33,6 +33,20 @@ about:
     - Mohit Singh
     - Mihir Dharmadhikari
     - Kostas Alexis
+  access: Public
+  publication: "An Online Self-calibrating Refractive Camera Model with Application to Underwater Odometry"
+  publication_url: "https://arxiv.org/abs/2310.16658"
+  year: 2023
+  bibtex_key: singh2023online
+  bibtex: |
+    @misc{singh2023online,
+          title={An Online Self-calibrating Refractive Camera Model with Application to Underwater Odometry}, 
+          author={Mohit Singh and Mihir Dharmadhikari and Kostas Alexis},
+          year={2023},
+          eprint={2310.16658},
+          archivePrefix={arXiv},
+          primaryClass={cs.RO}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

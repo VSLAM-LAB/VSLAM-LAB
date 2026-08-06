@@ -37,6 +37,20 @@ about:
     - Alberto Quattrini Li
     - Philippos Mordohai
     - Ioannis Rekleitis
+  access: Public
+  publication: "Mapping Pamir: Multi-Session Visual/Inertial SLAM and 3D Reconstruction of an Underwater Shipwreck"
+  publication_url: "https://arxiv.org/abs/2607.10925"
+  year: 2026
+  bibtex_key: ChatzispyrouICRA2026
+  bibtex: |
+    @InProceedings{ChatzispyrouICRA2026,
+      author={Chatzispyrou, Michalis and Horgan, Luke and Hwang, Hyunkil and Sathishchandra, Harish and Burgul, Chinmay and Roznere, Monika and {Quattrini Li}, Alberto and Mordohai, Philippos and Rekleitis, Ioannis},
+      title={{Mapping Pamir: Multi-Session Visual/Inertial SLAM and 3D Reconstruction of an Underwater Shipwreck}},
+      booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
+      year=2026,
+      month={Jun.},
+      address={Vienna, Austria}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

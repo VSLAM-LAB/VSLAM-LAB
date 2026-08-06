@@ -58,6 +58,12 @@ about:
   homepage: https://youtu.be/kcfs1-ryKWE
   authors:
     - Unknown uploader
+  access: Public
+  publication: N/A
+  publication_url: N/A
+  year: N/A
+  bibtex_key: N/A
+  bibtex: N/A
 
 vslamlab_maintainer:
   name: Alejandro Fontan

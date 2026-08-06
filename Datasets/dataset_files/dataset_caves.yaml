@@ -26,6 +26,22 @@ about:
     - Eduard Vidal
     - Ricard Campos
     - Marc Carreras
+  access: Public
+  publication: "Underwater caves sonar data set"
+  publication_url: "https://journals.sagepub.com/doi/10.1177/0278364917732838"
+  year: 2017
+  bibtex_key: mallios2017underwater
+  bibtex: |
+    @article{mallios2017underwater,
+      title={Underwater caves sonar data set},
+      author={Mallios, Angelos and Vidal, Eduard and Campos, Ricard and Carreras, Marc},
+      journal={The International Journal of Robotics Research},
+      volume={36},
+      number={12},
+      pages={1247--1251},
+      year={2017},
+      publisher={Sage Publications Sage UK: London, England}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan

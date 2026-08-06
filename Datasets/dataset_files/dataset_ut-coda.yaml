@@ -44,6 +44,20 @@ about:
     - Arthur Zhang
     - Joydeep Biswas
     - Others
+  access: Public
+  publication: "Toward Robust Robot 3-D Perception in Urban Environments: The UT Campus Object Dataset"
+  publication_url: "https://doi.org/10.1109/TRO.2024.3400831"
+  year: 2024
+  bibtex_key: zhang2024coda
+  bibtex: |
+    @article{zhang2024coda,
+      title={Toward Robust Robot 3-D Perception in Urban Environments: The UT Campus Object Dataset},
+      author={Zhang, Arthur and Eranki, Chaitanya and Zhang, Christina and Park, Ji-Hwan and Hong, Raymond and Kalyani, Pranav and Kalyanaraman, Lochana and Gamare, Arsh and Bagad, Arnav and Esteva, Maria and Biswas, Joydeep},
+      journal={IEEE Transactions on Robotics},
+      volume={40},
+      publisher={IEEE},
+      year={2024}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan
