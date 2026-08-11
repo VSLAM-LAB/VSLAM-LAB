@@ -12,6 +12,7 @@ from Datasets.dataset_files.dataset_soneva import SonevaDataset
 from Datasets.dataset_files.dataset_eiffel_tower import EiffelTowerDataset
 from Datasets.dataset_files.dataset_monotum import MonotumDataset
 from Datasets.dataset_files.dataset_caves import CavesDataset
+from Datasets.dataset_files.dataset_malaysia import MalaysiaDataset
 
 # RGBD datasets
 from Datasets.dataset_files.dataset_drunkards import DrunkardsDataset
@@ -87,6 +88,7 @@ def get_dataset(dataset_name):
         "eiffel-tower": lambda: EiffelTowerDataset(),
         "monotum": lambda: MonotumDataset(),
         "caves": lambda: CavesDataset(),
+        "malaysia": lambda: MalaysiaDataset(),
         "pamir-rig": lambda: PamirRigDataset(),
         "pamir": lambda: PamirDataset(),
         "vitum": lambda: VitumDataset(),

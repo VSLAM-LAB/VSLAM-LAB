@@ -1,0 +1,39 @@
+dataset_name: malaysia
+
+rgb_hz: 10.0
+modes: ['mono']
+cam_models: ['unknown']
+raw_formats: ['images']
+
+# All sequences are user-placed local data (no remote source exists) - each sequence's raw images
+# are expected at VSLAM-LAB-Benchmark/MALAYSIA/<sequence_name>/<camera_folder>/.
+sequence_location: local
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - jul2026_p1_s01_c2
+
+about:
+  license: TODO
+  summary: Handheld underwater coral-reef transect surveys (Malaysia, July 2026 campaign), 1920x1080 RGB at 10 Hz
+  homepage: N/A
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Handheld
+  authors:
+    - TODO
+  access: N/A
+  publication: TODO
+  publication_url: TODO
+  year: TODO
+  bibtex_key: TODO
+  bibtex: TODO
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-12
