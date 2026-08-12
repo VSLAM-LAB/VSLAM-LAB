@@ -25,10 +25,10 @@ def evo_metric(metric, groundtruth_csv, trajectory_csv, evaluation_folder, max_t
     traj_df = read_trajectory_csv(trajectory_csv)
     if traj_df is None:
         return [False, f"Trajectory .csv is empty: {trajectory_csv}"]
-    
+
     # Sort trajectory by timestamp
     trajectory_sorted = traj_df.sort_values(by=traj_df.columns[0])
-    
+
     if not trajectory_sorted.equals(traj_df):
         save_trajectory_csv(trajectory_csv, trajectory_sorted)
 
@@ -39,7 +39,7 @@ def evo_metric(metric, groundtruth_csv, trajectory_csv, evaluation_folder, max_t
     gt_df.to_csv(gt_txt, header=False, index=False, sep=' ', lineterminator='\n')
 
     # Evaluate
-    if metric == 'ate':     
+    if metric == 'ate':
         command = (f"evo_ape tum {gt_txt} {traj_txt} -va -as "
                    f"--t_max_diff {max_time_difference} --save_results {traj_zip}")
     if metric == 'rpe':
@@ -68,7 +68,7 @@ def evo_metric(metric, groundtruth_csv, trajectory_csv, evaluation_folder, max_t
     aligned_trajectory.columns = ['ts', 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw']
     aligned_trajectory = aligned_trajectory.sort_values(by='ts')
     save_trajectory_csv(aligned_trajectory_file, aligned_trajectory, header=True)
-    
+
     # Write aligned gt
     with zipfile.ZipFile(traj_zip, 'r') as zip_ref:
         for file_name in zip_ref.namelist():
@@ -77,7 +77,7 @@ def evo_metric(metric, groundtruth_csv, trajectory_csv, evaluation_folder, max_t
                     with open(gt_tum, 'wb') as target_file:
                         target_file.write(source_file.read())
                 break
-    
+
     aligned_gt = read_trajectory_txt(gt_tum)
     if aligned_gt is None:
         return [False, f"Aligned gt file is empty: {gt_tum}"]
@@ -110,7 +110,7 @@ def evo_get_accuracy(zip_files, accuracy_csv):
             new_data.columns.values[0] = "traj_name"
             new_columns = ['num_frames', 'num_tracked_frames', 'num_evaluated_frames']
             for col in new_columns:
-                new_data[col] = 0  
+                new_data[col] = 0
 
             if existing_data is not None:
                 new_data = pd.concat([existing_data, new_data], ignore_index=True)
