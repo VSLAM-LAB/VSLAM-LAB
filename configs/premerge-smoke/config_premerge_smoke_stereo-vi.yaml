@@ -1,0 +1,29 @@
+# stereo-vi
+msd:
+  - 'MIO07_mapping_easy'
+openloris-t265:
+  - cafe1-1
+# rvp-handheld:
+#   - 'spagna_test0'
+vitum:
+  - corridor1
+# rvp-car:
+  # - 'campus_test1'
+euroc:
+  - MH_01_easy
+# rover-t265:
+#   - 'campus_small_autumn_t265'
+vector:
+  - 'board-slow'
+hilti2022:
+  - 'exp14_basement_2'
+madmax:
+  - A-0
+s3li_etna:
+  - 'landmarks'
+s3li_vulcano:
+  - 'vegetation'
+ariel:
+  - 'fjord_1'
+# pamir-rig:
+#   - '2024_OnRig'

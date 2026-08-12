@@ -1,0 +1,15 @@
+# RGB-D
+7scenes:
+  - 'chess_seq-01'
+eth:
+  - 'table_3'
+rgbdtum:
+  - 'rgbd_dataset_freiburg1_xyz'
+drunkards:
+  - 00000_320_level0
+nuim:
+  - 'traj0_frei_png'
+replica:
+  - 'office0'
+# rover-d435i:
+#   - 'campus_small_autumn_d435i'

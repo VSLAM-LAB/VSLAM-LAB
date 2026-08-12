@@ -1,0 +1,65 @@
+exp_premerge_smoke_stereo_vi_orbslam3:
+  Config: premerge-smoke/config_premerge_smoke_stereo_vi.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: stereo-vi, rgb_max: 200, rgb_step: 3}
+  Module: orbslam3
+
+exp_premerge_smoke_stereo_vi_pycuvslam:
+  Config: premerge-smoke/config_premerge_smoke_stereo_vi.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: stereo-vi, rgb_max: 200, rgb_step: 3}
+  Module: pycuvslam
+
+exp_premerge_smoke_mono_vi_orbslam3:
+  Config: premerge-smoke/config_premerge_smoke_mono_vi.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono-vi, rgb_max: 200, rgb_step: 3}
+  Module: orbslam3
+
+exp_premerge_smoke_mono_vi_okvis2:
+  Config: premerge-smoke/config_premerge_smoke_mono_vi.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono-vi, rgb_max: 200, rgb_step: 3}
+  Module: okvis2
+
+exp_premerge_smoke_stereo_orbslam2:
+  Config: premerge-smoke/config_premerge_smoke_stereo.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: stereo, rgb_max: 200, rgb_step: 3}
+  Module: orbslam2
+
+exp_premerge_smoke_stereo_droidslam:
+  Config: premerge-smoke/config_premerge_smoke_stereo.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: stereo, rgb_max: 200, rgb_step: 3}
+  Module: droidslam
+
+# exp_premerge_smoke_rgbd_orbslam2:
+#   Config: premerge-smoke/config_premerge_smoke_rgbd.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd, rgb_max: 200, rgb_step: 3}
+#   Module: orbslam2
+
+# exp_premerge_smoke_rgbd_droidslam:
+#   Config: premerge-smoke/config_premerge_smoke_rgbd.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd, rgb_max: 200, rgb_step: 3}
+#   Module: droidslam
+
+exp_premerge_smoke_mono_orbslam2:
+  Config: premerge-smoke/config_premerge_smoke_mono.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: orbslam2
+
+exp_premerge_smoke_mono_droidslam:
+  Config: premerge-smoke/config_premerge_smoke_mono.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: droidslam
+
+exp_premerge_smoke_sfm_colmap:
+  Config: premerge-smoke/config_premerge_smoke_sfm.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: colmap
