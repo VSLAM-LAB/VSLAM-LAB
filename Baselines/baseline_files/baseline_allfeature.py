@@ -11,19 +11,19 @@ SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class ALLFEATURE_baseline(BaselineVSLAMLAB):
-    """ALLFEATURE-VSLAM helper for VSLAM-LAB Baselines."""    
+    """ALLFEATURE-VSLAM helper for VSLAM-LAB Baselines."""
 
-    def __init__(self, baseline_name: str = 'allfeature', baseline_folder: str = 'AllFeature-VSLAM') -> None:    
-        
+    def __init__(self, baseline_name: str = 'allfeature', baseline_folder: str = 'AllFeature-VSLAM') -> None:
+
         default_parameters = {'verbose': 1, 'mode': 'mono',
                               'vocabulary_folder': str(VSLAMLAB_BASELINES / baseline_folder / 'allfeature_vocabulary'),
                               'feature': 'akaze61',
                               'feature_yaml': str(VSLAMLAB_BASELINES / baseline_folder / 'settings' / 'feature_name_to_fill_settings.yaml')}
-        
+
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.0, 0.00, 1.000)
-        self.modes = ['mono']
+        self.modes = ['mono', 'rgbd']
         self.cam_models = ['pinhole', 'radtan4', 'radtan5']
 
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
@@ -41,10 +41,10 @@ class ALLFEATURE_baseline(BaselineVSLAMLAB):
         super().git_clone()
         self.allfeature_download_vocabulary()
 
-    def is_installed(self) -> tuple[bool, str]:  
+    def is_installed(self) -> tuple[bool, str]:
         return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
 
-    def allfeature_download_vocabulary(self) -> None: 
+    def allfeature_download_vocabulary(self) -> None:
         REPO_ID = "fontan/anyfeature_vocabulary"
         vocabulary_files = [
             "ORBvoc.txt",
@@ -74,12 +74,12 @@ class ALLFEATURE_baseline(BaselineVSLAMLAB):
 
 
 class ALLFEATURE_baseline_dev(ALLFEATURE_baseline):
-    """AllFeature-VSLAM-DEV helper for VSLAM-LAB Baselines."""       
+    """AllFeature-VSLAM-DEV helper for VSLAM-LAB Baselines."""
 
     def __init__(self):
         super().__init__(baseline_name = 'allfeature-dev', baseline_folder = 'AllFeature-VSLAM-DEV')
         self.color = tuple(max(c / 1.0, 0.0) for c in self.color)
-        
+
     def is_installed(self) -> tuple[bool, str]:
         is_installed = (self.baseline_path / 'bin' / 'vslamlab_allfeature_mono').is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
