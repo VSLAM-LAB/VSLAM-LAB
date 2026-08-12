@@ -52,6 +52,7 @@ allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
 depth-anything = { features = ["depth-anything", "cuda126",  "py11"], solve-group = "depth-anything" }
+mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "mask2former" }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
@@ -90,9 +91,9 @@ vslamlab-debug.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_debug
 vslamlab-allfeature = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
 demo = "python vslamlab_gui.py demo"
 
-premerge-smoke.cmd = "python vslamlab_gui.py vslamlab {{ exp_yaml }} {{ overwrite }}"
+premerge-smoke.cmd = "python vslamlab_gui.py vslamlab configs/premerge-smoke/exp_premerge_smoke_{{ mode }}.yaml {{ overwrite }}"
 premerge-smoke.args = [
-  { "arg" = "exp_yaml", "default" = "configs/exp_premerge_smoke.yaml" },
+  { "arg" = "mode", "default" = "stereo" },
   { "arg" = "overwrite", "default" = "--overwrite" },
 ]
 
@@ -322,7 +323,7 @@ pandas = "*"
 sqlite = "*"
 opencv = "*"
 tqdm = "*"
-faiss = "*"
+faiss = "1.10.*"
 openimageio = "*"
 
 [feature.colmap.target.linux-64.dependencies]
@@ -960,6 +961,8 @@ platforms = ["linux-64-cuda"]
 git-clone = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV"
 install = { cmd = "pixi run build", cwd = "Baselines/AllFeature-VSLAM-DEV"}
 execute-mono = { cmd = "pixi run execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+execute-rgbd = { cmd = "pixi run execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+
 stream = { cmd = "pixi run stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 
 [feature.allfeature-dev.dependencies]
@@ -1035,6 +1038,59 @@ utm = "*"
 7zip = "*"
 viser = "*"
 gdown = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# mask2former
+[feature.mask2former]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.mask2former.tasks]
+install = "python Datasets/extra-files/mask2former.py --prefetch"
+mask-inference = { cmd = "python Datasets/extra-files/mask2former.py", depends-on = ["install"] }
+
+[feature.mask2former.dependencies]
+# Torch / model libraries
+pytorch-gpu = "*"
+torchvision = "*"
+transformers = "*"
+huggingface_hub = "*"
+
+# Core
+numpy = "<2"
+pillow = "*"
+tqdm = "*"
+
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+scipy = "*"
+h5py = "*"
+requests = "*"
+inputimeout = "*"
+scikit-learn = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
+evo = "*"
+git-lfs = "*"
+piexif = "*"
+psutil = "*"
+loguru = "*"
+utm = "*"
+7zip = "*"
+viser = "*"
+open3d = "*"
+gdown = "*"
+yt-dlp = "*"
+cryptography = "*"
+openpyxl = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
@@ -1124,3 +1180,5 @@ colorama = "*"
 cryptography = "*"
 huggingface_hub = "*"
 py7zr = "*"
+matplotlib = "*"
+opencv = "*"
