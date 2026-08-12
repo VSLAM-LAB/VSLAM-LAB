@@ -1,5 +1,5 @@
-# eth:
-#   - 'table_3'
+eth:
+  - 'table_3'
 # rgbdtum:
 #   - 'rgbd_dataset_freiburg1_xyz'
 # kitti:
@@ -42,7 +42,7 @@
 # - 'indonesia_pemuteran_p1'
 # - 'indonesia_pemuteran_p2'
 # - 'indonesia_pemuteran_p3'
-# - 'indonesia_tabuhan_p1'
+# - 'tabuhan_p1'
 # - 'indonesia_tabuhan_p2'
 # - 'indonesia_tabuhan_p3'
 # - 'indonesia_watudodol_p1'
@@ -79,6 +79,11 @@
 
 #monotum:
 #  - 'sequence_01'
-youtube:
+# youtube:
  #- centum-cellas
- - acinipo
+#  - acinipo
+
+# nsavp:
+# - R0_FA0
+# pamir :
+#   - 2025_Pamir_1

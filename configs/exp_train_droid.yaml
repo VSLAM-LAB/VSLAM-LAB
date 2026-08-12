@@ -8,17 +8,27 @@ exp_train_droid_droid_pth: # Original droid-slam
     verbose: 0
     weights: droid.pth
 
-exp_train_droid_scratch_replica_pth: # Weights trained from scratch on REPLICA
-  Config: config_train_droid.yaml
-  Module: droidslam-dev
-  NumRuns: 3
-  Parameters:
-    mode: mono
-    upsample: 0
-    verbose: 0
-    weights: scratch_replica.pth
+#exp_train_droid_scratch_replica_pth: # Weights trained from scratch on REPLICA
+#  Config: config_train_droid.yaml
+#  Module: droidslam-dev
+#  NumRuns: 3
+#  Parameters:
+#    mode: mono
+#    upsample: 0
+#    verbose: 0
+#    weights: scratch_replica.pth
 
-exp_train_droid_replica_pth: # Weights trained from droid.pth on REPLICA
+#exp_train_droid_replica_pth: # Weights trained from droid.pth on REPLICA
+#  Config: config_train_droid.yaml
+#  Module: droidslam-dev
+#  NumRuns: 3
+#  Parameters:
+#    mode: mono
+#    upsample: 0
+#    verbose: 0
+#    weights: replica.pth
+
+exp_train_droid_eth_lr2e-5_ep8_pth: # Weights trained from eth.pth on ETH
   Config: config_train_droid.yaml
   Module: droidslam-dev
   NumRuns: 3
@@ -26,4 +36,44 @@ exp_train_droid_replica_pth: # Weights trained from droid.pth on REPLICA
     mode: mono
     upsample: 0
     verbose: 0
-    weights: replica.pth
+    weights: eth_lr2e-5_ep8.pth
+
+exp_train_droid_eth_lr1e-5_ep8_092568_pth: # Weights trained from eth.pth on ETH
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 3
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/eth_lr1e-5_ep8_092568.pth
+
+exp_train_droid_eth_lr2e-5_ep12_138852_pth: # Weights trained from eth.pth on ETH
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 3
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/eth_lr2e-5_ep12_138852.pth
+
+exp_train_droid_eth_lr2e-5_ep4_046284_pth: # Weights trained from eth.pth on ETH
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 3
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/eth_lr2e-5_ep4_046284.pth
+
+exp_train_droid_eth_lr5e-5_ep8_092568_pth: # Weights trained from eth.pth on ETH
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 3
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/eth_lr5e-5_ep8_092568.pth

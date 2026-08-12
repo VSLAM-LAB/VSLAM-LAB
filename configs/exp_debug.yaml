@@ -1,146 +1,59 @@
-# exp_vggtslam_dev: # DOES NOT WORK
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: vggtslam-dev
-
-# exp_vggtslam:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
-#   Module: vggtslam
-
-# exp_mast3rslam_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: mast3rslam-dev
-
-# exp_mast3rslam:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: mast3rslam
-
-# exp_dpvo_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: dpvo-dev
-
-# exp_dpvo:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: dpvo
-
-# exp_droidslam_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: droidslam-dev
-
-# exp_droidslam:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: droidslam
-
-# exp_orbslam2_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: orbslam2-dev
-
-# exp_orbslam2:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: orbslam2
-
-# exp_monogs_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: monogs-dev
-
-# exp_monogs:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: monogs
-
-# exp_anyfeature_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: anyfeature-dev
-
-# exp_anyfeature:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: anyfeature
-
-# exp_pycuvslam:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: stereo-vi}
-#   Module: pycuvslam
-
-# exp_orbslam3_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: orbslam3-dev
-
-# exp_orbslam3:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: orbslam3
-
-# exp_okvis2_dev:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono-vi}
-#   Module: okvis2-dev
-
-# exp_okvis2:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono-vi}
-#   Module: okvis2
-
-# exp_glomap:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: glomap
-
-# exp_colmap:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-#   Module: colmap
-
-# exp_vggt:
-#   Config: config_debug.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,100], mode: mono}
-  # Module: vggt
-
-# exp_colmap:
+# exp_colmap_00:
 #   Config: config_debug.yaml
 #   NumRuns: 1
-#   Parameters: {verbose: 1, rgb_idx: [0,100], mode: mono}
+#   Parameters: {verbose: 0, rgb_max: 1180 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
 #   Module: colmap
 
-exp_debug_colmap:
+# exp_colmap_01:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 1000 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+# exp_colmap_02:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 800 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+# exp_colmap_03:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 600 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+# exp_colmap_04:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 400 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+# exp_colmap_05:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 200 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+# exp_colmap_06:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 100 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+# exp_colmap_07:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 80 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
+
+exp_colmap_08:
   Config: config_debug.yaml
   NumRuns: 1
-  #Parameters: {verbose: 1, rgb_idx: [0, 2000], rgb_step: 10, rgb_max: 300, 'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
-  #Parameters: {verbose: 1, rgb_step: 10, rgb_max: 300, 'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
-  Parameters: {verbose: 1, rgb_vpr: 350, 'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
-  #Parameters: {verbose: 1}
+  Parameters: {verbose: 1, rgb_vpr: 40 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
   Module: colmap
+
+# exp_colmap_09:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, rgb_vpr: 35 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap

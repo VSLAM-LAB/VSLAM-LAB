@@ -1,51 +1,15 @@
-eth:
-  - 'table_3'
-  - 'planar_2'
-#   # - 'cables_1'
-#   # - 'mannequin_1'
-#   # - 'plant_2'
-  - 'plant_3'
-#   # - 'plant_4'
-  - 'table_4'
-
-rgbdtum:
-  # - 'rgbd_dataset_freiburg3_nostructure_texture_far'
-  - 'rgbd_dataset_freiburg2_desk'
-  - 'rgbd_dataset_freiburg3_structure_texture_far'
-  - 'rgbd_dataset_freiburg3_structure_texture_near'
-  # - 'rgbd_dataset_freiburg3_sitting_static'
-  - 'rgbd_dataset_freiburg2_desk_with_person'
-  - 'rgbd_dataset_freiburg3_long_office_household'
-replica:
-  - 'office0'
-  - 'room0'
-  # - 'office1'
-  - 'room1'
-  - 'office2'
-  - 'office3'
-  - 'office4'
-  - 'room2'
-nuim:
-  - 'living_room_traj0_frei_png'
-  - 'traj0_frei_png'
-#   # - 'living_room_traj1_frei_png'
-#   # - 'traj1_frei_png'
-  - 'living_room_traj2_frei_png'
-  - 'living_room_traj3_frei_png'
-  - 'traj2_frei_png'
-#   ##- 'traj3_frei_png'
+# RGB-D
 7scenes:
   - 'chess_seq-01'
-  - 'fire_seq-01'
-#   ##- 'pumpkin_seq-01'
-  - 'redkitchen_seq-01'
-#   ## - 'stairs_seq-01'
-## openloris-d400:
-##   - 'office1-1'
-##   - 'market1-1'
-##   - 'corridor1-1'
-##   - 'home1-1'
-  ## - 'home1-1'
-# ## ut-coda:
-# ##   - '0'
-# ##   - '1' 
+eth:
+  - 'table_3'
+rgbdtum:
+  - 'rgbd_dataset_freiburg1_xyz'
+drunkards:
+  - 00000_320_level0
+nuim:
+  - 'traj0_frei_png'
+replica:
+  - 'office0'
+# rover-d435i:
+#   - 'campus_small_autumn_d435i'
