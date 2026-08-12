@@ -40,7 +40,6 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
     # Find runs to evaluate
     runs_to_evaluate = []
     for _, row in exp_log.iterrows():
-        print(row["SUCCESS"],row["EVALUATION"] == 'none',row["dataset_name"] == dataset.dataset_name, row["sequence_name"] == sequence_name)
         if row["SUCCESS"] and (row["EVALUATION"] == 'none') and (row["dataset_name"] == dataset.dataset_name) and (row["sequence_name"] == sequence_name):
             exp_it = str(row["exp_it"]).zfill(5)
             runs_to_evaluate.append(exp_it)
