@@ -38,6 +38,7 @@ Baselines/VGGT-SLAM
 Baselines/AllFeature-VSLAM-DEV
 Baselines/Depth-Anything-3
 Baselines/VPR-LAB
+Baselines/Fast-FoundationStereo
 
 path_constants.py
 configs/config_demo.yaml

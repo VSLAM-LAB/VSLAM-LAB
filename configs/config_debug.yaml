@@ -1,5 +1,5 @@
-eth:
-  - 'table_3'
+# eth:
+#   - 'table_3'
 # rgbdtum:
 #   - 'rgbd_dataset_freiburg1_xyz'
 # kitti:
@@ -83,7 +83,7 @@ eth:
  #- centum-cellas
 #  - acinipo
 
-# nsavp:
-# - R0_FA0
+nsavp:
+- R0_FA0
 # pamir :
 #   - 2025_Pamir_1

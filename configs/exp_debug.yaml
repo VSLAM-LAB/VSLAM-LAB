@@ -1,8 +1,41 @@
-# exp_colmap_00:
-#   Config: config_debug.yaml
-#   NumRuns: 1
-#   Parameters: {verbose: 0, rgb_max: 1180 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
-#   Module: colmap
+exp_debug_allfeature-dev:
+  Config: config_debug.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, segmentation: mask2former, rgb_idx: [2000,21102], mode: rgbd, depth: fastfoundationstereo}
+
+  Module: allfeature-dev
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # exp_colmap_01:
 #   Config: config_debug.yaml
@@ -46,11 +79,11 @@
 #   Parameters: {verbose: 0, rgb_vpr: 80 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
 #   Module: colmap
 
-exp_colmap_08:
-  Config: config_debug.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, rgb_vpr: 40 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
-  Module: colmap
+# exp_colmap_08:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 1, rgb_vpr: 40 ,'mapper_type': 'colmap', 'matching_type': 'sift_bruteforce'}
+#   Module: colmap
 
 # exp_colmap_09:
 #   Config: config_debug.yaml

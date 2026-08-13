@@ -69,6 +69,7 @@ if $DO_BASELINES; then
     rm -rf "$BASELINES_DIR"/AllFeature-VSLAM-DEV
     rm -rf "$BASELINES_DIR"/Depth-Anything-3
     rm -rf "$BASELINES_DIR"/VPR-LAB
+    rm -rf "$BASELINES_DIR"/Fast-FoundationStereo
 fi
 
 if $DO_DATASETS; then

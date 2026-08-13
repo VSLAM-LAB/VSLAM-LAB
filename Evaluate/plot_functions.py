@@ -81,7 +81,8 @@ def plot_trajectories(dataset_sequences, exp_names,
     there_is_gt = False
     for i_dataset, (dataset_name, sequence_names) in enumerate(dataset_sequences.items()):
         for i_sequence, sequence_name in enumerate(sequence_names):
-            #x_max , y_max = 0, 0
+            x_shift, y_shift = 0, 0
+            x_max, y_max = 1, 1
             aligment_with_gt = False
             for i_exp, exp_name in enumerate(exp_names):
                 vslam_lab_evaluation_folder_seq = os.path.join(experiments[exp_name].folder, dataset_name.upper(),
@@ -130,10 +131,10 @@ def plot_trajectories(dataset_sequences, exp_names,
 
                 search_pattern = os.path.join(vslam_lab_evaluation_folder_seq, '*_KeyFrameTrajectory.tum*')
                 files = glob.glob(search_pattern)
-                aligned_traj = pd.read_csv(files[idx], delimiter=' ')
-                pca_df = pd.DataFrame(aligned_traj, columns=['tx', 'ty', 'tz'])
                 if len(files) == 0:
                     continue
+                aligned_traj = pd.read_csv(files[idx], delimiter=' ')
+                pca_df = pd.DataFrame(aligned_traj, columns=['tx', 'ty', 'tz'])
                 if there_is_gt:
                     traj_transformed = pca.transform(pca_df)
                 else:
