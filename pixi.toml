@@ -53,6 +53,7 @@ allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
 depth-anything = { features = ["depth-anything", "cuda126",  "py11"], solve-group = "depth-anything" }
 mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "mask2former" }
+fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"], solve-group = "fastfoundationstereo" }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
@@ -1074,6 +1075,65 @@ inputimeout = "*"
 scikit-learn = "*"
 google-api-python-client = "*"
 google-auth-oauthlib = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
+evo = "*"
+git-lfs = "*"
+piexif = "*"
+psutil = "*"
+loguru = "*"
+utm = "*"
+7zip = "*"
+viser = "*"
+open3d = "*"
+gdown = "*"
+yt-dlp = "*"
+cryptography = "*"
+openpyxl = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# fastfoundationstereo
+[feature.fastfoundationstereo]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.fastfoundationstereo.tasks]
+git-clone.cmd = 'test -d Baselines/Fast-FoundationStereo || git clone https://github.com/NVlabs/Fast-FoundationStereo Baselines/Fast-FoundationStereo'
+git-clone.outputs = ["Baselines/Fast-FoundationStereo"]
+install = { cmd = "python Datasets/extra-files/fastfoundationstereo.py --prefetch", depends-on = ["git-clone"] }
+stereo-inference = { cmd = "python Datasets/extra-files/fastfoundationstereo.py", depends-on = ["install"] }
+
+[feature.fastfoundationstereo.dependencies]
+# Torch / model libraries (Fast-FoundationStereo requirements.txt)
+pytorch-gpu = "*"
+torchvision = "*"
+timm = "*"
+einops = "*"
+omegaconf = "*"
+scikit-image = "*"
+imageio = "*"
+
+# Core
+numpy = "*"
+pillow = "*"
+tqdm = "*"
+
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+scipy = "*"
+h5py = "*"
+requests = "*"
+inputimeout = "*"
+scikit-learn = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+huggingface_hub = "*"
 py7zr = "*"
 exifread = "*"
 pyproj = "*"

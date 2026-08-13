@@ -21,6 +21,17 @@ from sample_vpr import sweep_thresholds, select_for_target, selected_rows
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
+# Mask folders written by Datasets/extra-files/mask2former.py ('pixi run mask-inference'). Kept as
+# local constants rather than imported: importing mask2former.py pulls in torch/transformers,
+# which the vslamlab environment doesn't ship.
+MASK_FOLDER_BASE = "mask2former"
+MASK_COMPLETE_MARKER = ".mask2former_complete"
+
+# Depth folder written by Datasets/extra-files/fastfoundationstereo.py ('pixi run stereo-inference').
+# Same reasoning as the mask constants above: not imported to avoid torch deps.
+DEPTH_FOLDER_BASE = "fastfoundationstereo"
+DEPTH_COMPLETE_MARKER = ".fastfoundationstereo_complete"
+
 def get_rows(rows_idx, rgb_csv):
     df = pd.read_csv(Path(rgb_csv))
 
@@ -69,7 +80,9 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     return results
 
 def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_parameters: dict | None = None) -> None:
-    """Build the experiment's rgb csv, applying rgb_idx/rgb_step/rgb_max filtering if requested."""
+    """Build the experiment's rgb csv, applying rgb_idx/rgb_step/rgb_max/rgb_vpr filtering and
+    appending segmentation mask columns if requested. Only rgb_exp.csv is ever written - the
+    sequence's own rgb.csv is never modified."""
     sequence_path = dataset.sequence_path(sequence_name)
     exp_folder = exp.folder / dataset.dataset_folder / sequence_name
 
@@ -160,6 +173,78 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
             f"{time_pct:.1f}% of time covered)",
             verb='LOW'
         )
+
+    has_segmentation = 'segmentation' in exp.parameters or (has_default and 'segmentation' in default_parameters)
+    if has_segmentation:
+        segmentation = exp.parameters['segmentation'] if 'segmentation' in exp.parameters else default_parameters['segmentation']
+        if segmentation == 'mask2former':
+            append_mask2former_columns(dataset, sequence_name, sequence_path, rgb_exp_csv)
+        else:
+            print_msg(SCRIPT_LABEL, f"segmentation='{segmentation}' not recognized (only 'mask2former' is supported); ignoring", flag="error", verb='NONE')
+
+    has_depth = 'depth' in exp.parameters or (has_default and 'depth' in default_parameters)
+    if has_depth:
+        depth = exp.parameters['depth'] if 'depth' in exp.parameters else default_parameters['depth']
+        if depth == 'fastfoundationstereo':
+            append_stereo_depth_columns(dataset, sequence_name, sequence_path, rgb_exp_csv)
+        else:
+            print_msg(SCRIPT_LABEL, f"depth='{depth}' not recognized (only 'fastfoundationstereo' is supported); ignoring", flag="error", verb='NONE')
+
+def append_mask2former_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path) -> None:
+    """Append ts_mask_<i> (ns)/path_mask_<i> columns to the experiment's rgb_exp csv, one pair per
+    path_rgb_<i> stream, pointing at the sequence's mask2former_<i> masks. Streams whose
+    .mask2former_complete marker is missing trigger 'pixi run mask-inference' first to generate
+    them. Only rgb_exp_csv is rewritten - the sequence's rgb.csv is left untouched."""
+    df = pd.read_csv(rgb_exp_csv)
+    streams = sorted(
+        int(col.removeprefix("path_rgb_")) for col in df.columns
+        if col.startswith("path_rgb_") and col.removeprefix("path_rgb_").isdigit()
+    )
+    if not streams:
+        print_msg(SCRIPT_LABEL, f"segmentation: no path_rgb_<i> columns in {rgb_exp_csv}; skipping mask columns", flag="error", verb='NONE')
+        return
+
+    missing = [i for i in streams if not (sequence_path / f"{MASK_FOLDER_BASE}_{i}" / MASK_COMPLETE_MARKER).exists()]
+    if missing:
+        print_msg(SCRIPT_LABEL, f"segmentation: masks missing for {sequence_name} (streams {missing}), running 'pixi run mask-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+        subprocess.run(["pixi", "run", "-e", "mask2former", "mask-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+
+    for i in streams:
+        df[f"ts_mask_{i} (ns)"] = df[f"ts_rgb_{i} (ns)"]
+        df[f"path_mask_{i}"] = [f"{MASK_FOLDER_BASE}_{i}/{Path(p).name}" for p in df[f"path_rgb_{i}"]]
+    df.to_csv(rgb_exp_csv, index=False)
+    print_msg(SCRIPT_LABEL, f"segmentation: appended mask2former columns for streams {streams} to {rgb_exp_csv.name}", verb='LOW')
+
+def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path) -> None:
+    """Append ts_depth_0 (ns)/path_depth_0 columns to the experiment's rgb_exp csv, pointing at the
+    sequence's fastfoundationstereo_0 depth maps computed from the rgb_0/rgb_1 stereo pair. If the
+    .fastfoundationstereo_complete marker is missing, 'pixi run stereo-inference' is triggered first
+    to generate them (it resumes per frame, never recomputing existing depth PNGs); the script also
+    registers the depth stream (depth_name/depth_factor) in the sequence's calibration.yaml for
+    rgbd baselines. A sequence that already ships depth columns (a real RGBD dataset) is left
+    untouched, as is the sequence's own rgb.csv - only rgb_exp_csv is rewritten."""
+    df = pd.read_csv(rgb_exp_csv)
+    if 'path_depth_0' in df.columns:
+        print_msg(SCRIPT_LABEL, f"depth: {rgb_exp_csv.name} already has depth columns; leaving them untouched", verb='LOW')
+        return
+    if 'path_rgb_1' not in df.columns:
+        print_msg(SCRIPT_LABEL, f"depth=fastfoundationstereo requires a stereo sequence (path_rgb_0 and path_rgb_1) but {rgb_exp_csv} has no path_rgb_1; skipping depth columns", flag="error", verb='NONE')
+        return
+
+    # Trigger generation when depth is missing, and also when it exists but isn't registered in
+    # calibration.yaml yet (the script adds depth_name/depth_factor to the rgb_0 entry; any
+    # pre-existing depth_name means a real RGBD dataset and counts as registered).
+    marker = sequence_path / f"{DEPTH_FOLDER_BASE}_0" / DEPTH_COMPLETE_MARKER
+    calibration_yaml = sequence_path / 'calibration.yaml'
+    depth_registered = calibration_yaml.exists() and 'depth_name' in calibration_yaml.read_text()
+    if not marker.exists() or not depth_registered:
+        print_msg(SCRIPT_LABEL, f"depth: depth missing or unregistered for {sequence_name}, running 'pixi run stereo-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+        subprocess.run(["pixi", "run", "-e", "fastfoundationstereo", "stereo-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+
+    df["ts_depth_0 (ns)"] = df["ts_rgb_0 (ns)"]
+    df["path_depth_0"] = [f"{DEPTH_FOLDER_BASE}_0/{Path(p).stem}.png" for p in df["path_rgb_0"]]
+    df.to_csv(rgb_exp_csv, index=False)
+    print_msg(SCRIPT_LABEL, f"depth: appended fastfoundationstereo depth columns to {rgb_exp_csv.name}", verb='LOW')
 
 def get_sequence_data_for_evaluation(exp: Any, dataset: Any, sequence_name: str) -> None:
     sequence_path = dataset.dataset_path /  sequence_name
