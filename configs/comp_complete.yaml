@@ -1,6 +1,6 @@
-accuracy_boxplot: 0
+accuracy_boxplot: 1
 accuracy_boxplot_shared_scale: 0
-num_tracked_frames: 0
+num_tracked_frames: 1
 trajectories: 1
 image_canvas: 0
 running_time: 0
