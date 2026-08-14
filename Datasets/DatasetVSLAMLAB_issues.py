@@ -5,7 +5,7 @@ RED = "\033[91m"
 RESET = "\033[0m"
 
 @staticmethod
-def _get_dataset_issue(issue_id: str, *, dataset_name: str, size_gb: int = 0, website: str = "", yaml_file: str = "") -> dict:
+def _get_dataset_issue(issue_id: str, *, dataset_name: str, size_gb: int = 0, website: str = "", yaml_file: str = "", target_file: str = "") -> dict:
     factories = {
         "complete_dataset": lambda: {
             "name": "Complete dataset",
@@ -37,6 +37,19 @@ def _get_dataset_issue(issue_id: str, *, dataset_name: str, size_gb: int = 0, we
                 f"Access to '{dataset_name}' requires use of a Hugging Face TOKEN."
             ),
             "solution": f"Register at '{website}' to get a Hugging Face, then set it in '{yaml_file}'.",
+            "mode": f"{YELLOW}user action required{RESET}",
+        },
+        "cdn_links_file": lambda: {
+            "name": "CDN links file required",
+            "description": (
+                f"Access to '{dataset_name}' requires a per-user CDN links file issued after "
+                f"accepting a license on the dataset's website - not a simple download URL or "
+                f"token, and it expires after a couple of weeks."
+            ),
+            "solution": (
+                f"Register and accept the license at '{website}', download your CDN links file "
+                f"from there, and place it at '{target_file}'. Re-fetch it whenever it expires."
+            ),
             "mode": f"{YELLOW}user action required{RESET}",
         },
 

@@ -1,35 +1,35 @@
-test_exp_aria_digital_twin_mono_droidslam:
-  Config: test_config_aria_digital_twin.yaml
+test_exp_aria-digital-twin_mono_droidslam:
+  Config: test_config_aria-digital-twin.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
   Module: droidslam
 
-test_exp_aria_digital_twin_monovi_okvis2:
-  Config: test_config_aria_digital_twin.yaml
+test_exp_aria-digital-twin_monovi_okvis2:
+  Config: test_config_aria-digital-twin.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: mono-vi, rgb_idx: [0,2000]}
   Module: okvis2
 
-test_exp_aria_digital_twin_stereo_orbslam3:
-  Config: test_config_aria_digital_twin.yaml
+test_exp_aria-digital-twin_stereo_orbslam3:
+  Config: test_config_aria-digital-twin.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
   Module: orbslam3
 
-test_exp_aria_digital_twin_stereovi_orbslam3:
-  Config: test_config_aria_digital_twin.yaml
+test_exp_aria-digital-twin_stereovi_orbslam3:
+  Config: test_config_aria-digital-twin.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: stereo-vi, rgb_idx: [0,2000]}
   Module: orbslam3
 
-test_exp_aria_digital_twin_rgbd_droidslam:
-  Config: test_config_aria_digital_twin.yaml
+test_exp_aria-digital-twin_rgbd_droidslam:
+  Config: test_config_aria-digital-twin.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: rgbd, rgb_idx: [0,2000]}
   Module: droidslam
 
-test_exp_aria_digital_twin_rgbdvi_orbslam3:
-  Config: test_config_aria_digital_twin.yaml
+test_exp_aria-digital-twin_rgbdvi_orbslam3:
+  Config: test_config_aria-digital-twin.yaml
   NumRuns: 1
   Parameters: {verbose: 1, mode: rgbd-vi, rgb_idx: [0,2000]}
   Module: orbslam3

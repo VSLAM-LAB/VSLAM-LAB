@@ -93,12 +93,12 @@ def get_dataset(dataset_name):
         "pamir-rig": lambda: PamirRigDataset(),
         "pamir": lambda: PamirDataset(),
         "vitum": lambda: VitumDataset(),
-        "s3li_etna": lambda: S3liEtnaDataset(),
-        "s3li_vulcano": lambda: S3liVulcanoDataset(),
+        "s3li-etna": lambda: S3liEtnaDataset(),
+        "s3li-vulcano": lambda: S3liVulcanoDataset(),
         "vector": lambda: VectorDataset(),
         "rvp-handheld": lambda: RvpHandheldDataset(),
         "rvp-car": lambda: RvpCarDataset(),
-        "aria_digital_twin": lambda: AriaDigitalTwinDataset(),
+        "aria-digital-twin": lambda: AriaDigitalTwinDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),

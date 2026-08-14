@@ -1,4 +1,4 @@
-dataset_name: s3li_etna
+dataset_name: s3li-etna
 
 rgb_hz: 30.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']

@@ -25,10 +25,10 @@ from utilities import decompressFile, downloadFile, write_csv_rows
 class S3liVulcanoDataset(DatasetVSLAMLAB):
     """S3LI Vulcano dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, dataset_name: str = "s3li_vulcano") -> None:
+    def __init__(self, dataset_name: str = "s3li-vulcano") -> None:
         super().__init__(dataset_name)
 
-        # Keyed by full sequence_name - see dataset_s3li_vulcano.yaml.
+        # Keyed by full sequence_name - see dataset_s3li-vulcano.yaml.
         self.url_download_root: dict[str, str] = self.cfg["url_download_root"]
 
     def _raw_sequence_path(self, sequence_name: str) -> Path:

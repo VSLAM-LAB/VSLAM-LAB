@@ -26,10 +26,10 @@ from utilities import compute_scaled_size, decompressFile, downloadFile, scale_i
 class S3liEtnaDataset(DatasetVSLAMLAB):
     """S3LI Etna dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, dataset_name: str = "s3li_etna") -> None:
+    def __init__(self, dataset_name: str = "s3li-etna") -> None:
         super().__init__(dataset_name)
 
-        # Keyed by full sequence_name - see dataset_s3li_etna.yaml. These are direct HiDrive
+        # Keyed by full sequence_name - see dataset_s3li-etna.yaml. These are direct HiDrive
         # sharelinks, not the DLR page's documented (form-gated) access path - see the yaml's
         # comment on url_download_root.
         self.url_download_root: dict[str, str] = self.cfg["url_download_root"]

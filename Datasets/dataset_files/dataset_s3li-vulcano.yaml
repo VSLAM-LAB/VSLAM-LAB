@@ -1,4 +1,4 @@
-dataset_name: s3li_vulcano
+dataset_name: s3li-vulcano
 
 rgb_hz: 10.0
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
