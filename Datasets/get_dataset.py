@@ -24,6 +24,7 @@ from Datasets.dataset_files.dataset_7scenes import SevenscenesDataset
 
 # Stereo datasets
 from Datasets.dataset_files.dataset_kitti import KittiDataset
+from Datasets.dataset_files.dataset_malaga import MalagaDataset
 from Datasets.dataset_files.dataset_ut_coda import UtCodaDataset
 from Datasets.dataset_files.dataset_nsavp import NsavpDataset
 from Datasets.dataset_files.dataset_hamlyn import HamlynDataset
@@ -68,6 +69,7 @@ def get_dataset(dataset_name):
         "replica": lambda: ReplicaDataset(),
         "nuim": lambda: NuimDataset(),
         "kitti": lambda: KittiDataset(),
+        "malaga": lambda: MalagaDataset(),
         "ut-coda": lambda: UtCodaDataset(),
         "nsavp": lambda: NsavpDataset(),
         "hamlyn": lambda: HamlynDataset(),
