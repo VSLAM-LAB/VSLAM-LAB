@@ -1,0 +1,65 @@
+dataset_name: aria_digital_twin
+
+rgb_hz: 30.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi', 'rgbd', 'rgbd-vi']
+cam_models: ['pinhole']
+raw_formats: ['vrs']
+
+# ADT requires signing a non-commercial license agreement on the dataset's website, then fetching
+# sequences with the official `aria_dataset_downloader` CLI (projectaria_tools) using a per-user
+# CDN links file that expires after 14 days - not automatable from here. Sequences are user-placed
+# at VSLAM-LAB-Benchmark/ARIA_DIGITAL_TWIN/<sequence_name>/ (the raw video.vrs/depth_images.vrs/
+# aria_trajectory.csv/... files, exactly as the downloader tool writes them).
+sequence_location: local
+
+# rgb_0/rgb_1 are the SLAM stereo pair (camera-slam-left/camera-slam-right, hardware-synced, the
+# only true calibrated stereo pair on an Aria device), rectified from FISHEYE624 to a virtual
+# pinhole camera at this resolution - already native, so this is the rectification's output size
+# rather than a downstream LANCZOS resize. depth_0 is ground-truth depth aligned to rgb_0
+# (camera-slam-left), rectified the same way with nearest-neighbor sampling. The color camera-rgb
+# stream is not used, since VSLAM-LAB's single rgb_0/rgb_1/depth_0 layout is shared across every
+# mode and camera-rgb has no stereo partner.
+target_resolution: [640, 480]
+
+# Depth pixel values in depth_images.vrs are millimeters; meters = raw / depth_factor.
+depth_factor: 1000.0
+
+sequence_names:
+  - Apartment_release_golden_skeleton_seq100_10s_sample_M1292
+
+about:
+  license: Aria Digital Twin Dataset License Agreement (custom, non-commercial research use only, no redistribution)
+  summary: Aria Digital Twin (ADT) - egocentric dataset captured with Meta's Project Aria glasses in real indoor scenes, with photorealistic simulated ground truth for device trajectory, depth, segmentation, and 3D object/human poses
+  homepage: https://www.projectaria.com/datasets/adt/
+  features:
+    - Real
+    - Indoor
+    - Headmounted
+  authors:
+    - Xiaqing Pan
+    - Nicholas Charron
+    - Yongqian Yang
+    - Scott Peters
+    - Thomas Whelan
+    - Chen Kong
+    - Omkar Parkhi
+    - Richard Newcombe
+    - Carl Yuheng Ren
+  access: Registration Required
+  publication: "Aria Digital Twin: A New Benchmark Dataset for Egocentric 3D Machine Perception"
+  publication_url: "https://arxiv.org/abs/2306.06362"
+  year: 2023
+  bibtex_key: pan2023aria
+  bibtex: |
+    @inproceedings{pan2023aria,
+      title={Aria Digital Twin: A New Benchmark Dataset for Egocentric 3D Machine Perception},
+      author={Pan, Xiaqing and Charron, Nicholas and Yang, Yongqian and Peters, Scott and Whelan, Thomas and Kong, Chen and Parkhi, Omkar and Newcombe, Richard and Ren, Carl Yuheng},
+      booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+      year={2023}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-14
