@@ -59,6 +59,7 @@ vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 ros1 = { features = ["ros1"], solve-group = "ros1" }
 ros2 = { features = ["ros2"], solve-group = "ros2" }
 rerun = { features = ["rerun"], solve-group = "rerun" }
+projectaria = { features = ["projectaria"] }
 
 # VSLAM-LAB main pipeline
 [feature.vslamlab]
@@ -1242,3 +1243,18 @@ huggingface_hub = "*"
 py7zr = "*"
 matplotlib = "*"
 opencv = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# projectaria
+[feature.projectaria]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+
+[feature.projectaria.dependencies]
+python = "3.12.*"
+pip = "*"
+
+[feature.projectaria.pypi-dependencies]
+projectaria-tools = "*"
