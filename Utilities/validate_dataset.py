@@ -4,9 +4,7 @@ validate_dataset_files.py
 Loads and validates a VSLAM-LAB dataset .py + .yaml file pair.
 
 Usage:
-    python validate_dataset_files.py \
-        --py   dataset_hilti2026.py \
-        --yaml dataset_hilti2026.yaml
+    python validate_dataset_files.py hilti2026
 
 Requires:
     pip install rich pyyaml pycodestyle
@@ -153,12 +151,19 @@ def check_yaml_values(data: dict, py_path: Path, yaml_path: Path) -> None:
         fail(f"dataset_name is invalid: {name!r}")
     else:
         ok(f"dataset_name = [bold]'{name}'[/bold]")
-        expected_stem = f"dataset_{name}"
+        # .py module filenames can't contain a hyphen (invalid Python identifier), so
+        # for a hyphenated dataset_name the .py is expected to use the underscored form
+        # while the .yaml matches dataset_name exactly - see resolve_dataset_paths.
+        expected_stems = {
+            "py": f"dataset_{name.replace('-', '_')}",
+            "yaml": f"dataset_{name}",
+        }
         for label, path in (("py", py_path), ("yaml", yaml_path)):
+            expected_stem = expected_stems[label]
             if path.stem == expected_stem:
                 ok(f"{label} filename matches dataset_name ([dim]'{path.name}'[/dim])")
             else:
-                fail(f"{label} filename [bold]'{path.name}'[/bold] does not match expected [bold]'dataset_{name}{path.suffix}'[/bold]")
+                fail(f"{label} filename [bold]'{path.name}'[/bold] does not match expected [bold]'{expected_stem}{path.suffix}'[/bold]")
 
     # rgb_hz
     hz = data.get("rgb_hz")
@@ -480,7 +485,15 @@ if str(VSLAM_LAB_ROOT) not in sys.path:
 
 
 def resolve_dataset_paths(dataset_name: str) -> tuple[Path, Path]:
-    """Resolve .py and .yaml paths from dataset name using VSLAM_LAB_PATH."""
+    """Resolve .py and .yaml paths from dataset name using VSLAM_LAB_PATH.
+
+    dataset_name matches the .yaml exactly (hyphenated for multi-word names, e.g.
+    'eiffel-tower'). The .py module filename can't contain a hyphen (invalid Python
+    identifier), so it's always the underscored form, e.g. dataset_eiffel_tower.py
+    next to dataset_eiffel-tower.yaml - see closed_lists.md's Raw Format intro and
+    any hyphenated dataset (dataset_pamir_rig.py/dataset_pamir-rig.yaml) for the
+    convention this mirrors.
+    """
     try:
         from path_constants import VSLAM_LAB_DIR
         base = Path(VSLAM_LAB_DIR) / DATASET_FILES_SUBDIR
@@ -488,7 +501,7 @@ def resolve_dataset_paths(dataset_name: str) -> tuple[Path, Path]:
         console.print("  [bold yellow]![/bold yellow] [yellow]path_constants not found — falling back to project root[/yellow]")
         base = VSLAM_LAB_ROOT / DATASET_FILES_SUBDIR
 
-    py_path   = base / f"dataset_{dataset_name}.py"
+    py_path   = base / f"dataset_{dataset_name.replace('-', '_')}.py"
     yaml_path = base / f"dataset_{dataset_name}.yaml"
     return py_path, yaml_path
 
