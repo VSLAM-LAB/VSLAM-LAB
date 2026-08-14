@@ -41,15 +41,24 @@ _IMU_LABEL: Final = "imu-left"
 # ground-truth segmentation rather than a Mask2Former inference pass.
 _MASK_FOLDER_BASE: Final = "adt_segmentation"
 
-# aria_dataset_downloader -d indices (run with no -d to list them) for the data groups this file's
-# worker script actually reads: 0=main_vrs (video.vrs: rgb/imu/raw calibration), 6=main_groundtruth
-# (aria_trajectory.csv/instances.json/Skeleton_*.json/... for calibration+groundtruth+segmentation
-# labeling), 7=segmentation (segmentations[_with_skeleton].vrs), 8=depth
-# (depth_images[_with_skeleton].vrs, by far the largest group at several GB/sequence - still needed
-# since rgbd/rgbd-vi modes read ground-truth depth from it). Deliberately excludes 1-5
-# (mps_slam_*/mps_eye_gaze/mps_hand_tracking) and 9 (synthetic): nothing here reads MPS output or
-# the synthetic-rendering video.
-_CDN_DATA_TYPES: Final = ("0", "6", "7", "8")
+# aria_dataset_downloader -d indices (run with no -d to list them), paired with the matching key
+# aria_dataset_downloader itself writes to <sequence>/.download_status.json (used below to verify
+# a download actually succeeded - the CLI exits 0 even when individual data types fail, see
+# download_sequence_data). Covers exactly the data groups this file's worker script reads:
+# main_vrs (video.vrs: rgb/imu/raw calibration), main_groundtruth (aria_trajectory.csv/
+# instances.json/Skeleton_*.json/... for calibration+groundtruth+segmentation labeling),
+# segmentation (segmentations[_with_skeleton].vrs), depth (depth_images[_with_skeleton].vrs, by far
+# the largest group at several GB/sequence - still needed since rgbd/rgbd-vi modes read ground-truth
+# depth from it). Deliberately excludes mps_slam_*/mps_eye_gaze/mps_hand_tracking and synthetic:
+# nothing here reads MPS output or the synthetic-rendering video.
+_CDN_DATA_TYPES: Final = (
+    ("0", "main_vrs"),
+    ("6", "main_groundtruth"),
+    ("7", "segmentation"),
+    ("8", "depth"),
+)
+_DOWNLOAD_STATUS_FILE: Final = ".download_status.json"
+_MAX_DOWNLOAD_ATTEMPTS: Final = 3
 
 # projectaria_tools (VRS parsing, ADT ground-truth API, fisheye-to-pinhole rectification) is only
 # installable in the separate "projectaria" pixi environment (Python 3.12) - the main "vslamlab"
@@ -75,7 +84,14 @@ from projectaria_tools.projects.adt import (
 
 def _open_gt(sequence_path):
     paths_provider = AriaDigitalTwinDataPathsProvider(sequence_path)
-    data_paths = paths_provider.get_datapaths(True)
+    # get_datapaths(True) ("with skeleton occlusion") does NOT fall back to the plain
+    # segmentations.vrs/depth_images.vrs when a sequence has no skeleton ground truth (e.g. the
+    # "clean"/non-"_skeleton_" ADT sequences) - it silently leaves segmentation/depth completely
+    # unloaded (has_segmentation_images()/has_depth_images() False, every per-frame query invalid),
+    # not just missing a few frames. Request the with-skeleton variant only when that file actually
+    # exists; otherwise use the base (skeleton-free) ground truth.
+    has_skeleton = (Path(sequence_path) / "segmentations_with_skeleton.vrs").exists()
+    data_paths = paths_provider.get_datapaths(has_skeleton)
     return AriaDigitalTwinDataProvider(data_paths)
 
 
@@ -339,9 +355,43 @@ class AriaDigitalTwinDataset(DatasetVSLAMLAB):
             "-c", str(self.cdn_urls_file),
             "-o", str(self.dataset_path),
             "-l", sequence_name,
-            "-d", *_CDN_DATA_TYPES,
+            "-d", *[index for index, _ in _CDN_DATA_TYPES],
         ]
-        subprocess.run(cmd, check=True, cwd=str(VSLAM_LAB_DIR))
+
+        # aria_dataset_downloader exits 0 even when individual data types fail (e.g. a transient
+        # network timeout on the ~2GB main_vrs file) - it just prints "N of 1 sequences are
+        # successfully downloaded" and moves on, so `check=True` alone can't detect this. It writes
+        # its own per-data-type status to .download_status.json though, and is resumable (skips
+        # data types already marked successful there) - so retry a few times, which is cheap: a
+        # retry only re-attempts whatever actually failed, not the multi-GB types that already
+        # succeeded.
+        missing: list[tuple[str, str]] = list(_CDN_DATA_TYPES)
+        for attempt in range(1, _MAX_DOWNLOAD_ATTEMPTS + 1):
+            subprocess.run(cmd, check=True, cwd=str(VSLAM_LAB_DIR))
+            missing = self._missing_download_types(sequence_name)
+            if not missing:
+                return
+            if attempt < _MAX_DOWNLOAD_ATTEMPTS:
+                print_warning(
+                    f"'{sequence_name}': data type(s) {[name for _, name in missing]} did not "
+                    f"download successfully (likely a transient network error) - retrying "
+                    f"({attempt}/{_MAX_DOWNLOAD_ATTEMPTS}) ..."
+                )
+
+        raise RuntimeError(
+            f"Downloading '{sequence_name}' failed after {_MAX_DOWNLOAD_ATTEMPTS} attempts - data "
+            f"type(s) {[name for _, name in missing]} never completed. Check your network "
+            f"connection and re-run; aria_dataset_downloader resumes from "
+            f"{self.sequence_path(sequence_name) / _DOWNLOAD_STATUS_FILE} and won't re-fetch "
+            f"data types that already succeeded."
+        )
+
+    def _missing_download_types(self, sequence_name: str) -> list[tuple[str, str]]:
+        status_path = self.sequence_path(sequence_name) / _DOWNLOAD_STATUS_FILE
+        if not status_path.exists():
+            return list(_CDN_DATA_TYPES)
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        return [(index, name) for index, name in _CDN_DATA_TYPES if not status.get(name, False)]
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         rgb0_path = self.rgb_path(sequence_name)
@@ -373,9 +423,14 @@ class AriaDigitalTwinDataset(DatasetVSLAMLAB):
         if rgb_csv.exists():
             return
 
-        # camera-slam-left/right are hardware-synced (capture timestamps differ by ~12ns); depth_0
-        # and each mask stream were written keyed by their own camera's timestamps - all folders
-        # have the same frame count in the same order, safe to zip by sorted-filename index.
+        # camera-slam-left/right are hardware-synced (capture timestamps differ by ~12ns) and every
+        # folder is written keyed by its own camera's timestamps in the same chronological order -
+        # safe to zip by sorted-filename index. Frame counts can still differ though: cmd_rectify
+        # only writes a depth/mask frame when ADT's ground truth is actually valid for that
+        # timestamp, and on some sequences (e.g. the "clean" variants, no skeleton) that ground
+        # truth coverage ends earlier than the raw video - rgb_0/rgb_1 keep going past that point
+        # with no matching depth/mask. zip() below (no strict=True) truncates to the shortest list,
+        # i.e. drops those trailing GT-less frames instead of crashing.
         files0 = sorted(self.rgb_path(sequence_name).iterdir(), key=lambda p: int(p.stem))
         files1 = sorted((self.sequence_path(sequence_name) / "rgb_1").iterdir(), key=lambda p: int(p.stem))
         filesd = sorted(self.depth_path(sequence_name).iterdir(), key=lambda p: int(p.stem))
@@ -384,13 +439,22 @@ class AriaDigitalTwinDataset(DatasetVSLAMLAB):
         filesm0 = sorted(mask0_path.iterdir(), key=lambda p: int(p.stem))
         filesm1 = sorted(mask1_path.iterdir(), key=lambda p: int(p.stem))
 
+        counts = {"rgb_0": len(files0), "rgb_1": len(files1), "depth_0": len(filesd),
+                  f"{_MASK_FOLDER_BASE}_0": len(filesm0), f"{_MASK_FOLDER_BASE}_1": len(filesm1)}
+        if len(set(counts.values())) > 1:
+            print_warning(
+                f"{sequence_name}: frame counts differ across streams {counts} - ADT's "
+                f"depth/segmentation ground truth doesn't cover the full video for this sequence; "
+                f"truncating to the first {min(counts.values())} frames common to all streams."
+            )
+
         header = [
             "ts_rgb_0 (ns)", "path_rgb_0", "ts_rgb_1 (ns)", "path_rgb_1",
             "ts_mask_0 (ns)", "path_mask_0", "ts_mask_1 (ns)", "path_mask_1",
             "ts_depth_0 (ns)", "path_depth_0",
         ]
         rows = []
-        for f0, f1, fm0, fm1, fd in zip(files0, files1, filesm0, filesm1, filesd, strict=True):
+        for f0, f1, fm0, fm1, fd in zip(files0, files1, filesm0, filesm1, filesd):
             rows.append([
                 int(f0.stem), f"rgb_0/{f0.name}", int(f1.stem), f"rgb_1/{f1.name}",
                 int(fm0.stem), f"{_MASK_FOLDER_BASE}_0/{fm0.name}", int(fm1.stem), f"{_MASK_FOLDER_BASE}_1/{fm1.name}",
