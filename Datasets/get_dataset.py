@@ -50,6 +50,7 @@ from Datasets.dataset_files.dataset_vector import VectorDataset
 from Datasets.dataset_files.dataset_rvp_handheld import RvpHandheldDataset
 from Datasets.dataset_files.dataset_rvp_car import RvpCarDataset
 from Datasets.dataset_files.dataset_aria_digital_twin import AriaDigitalTwinDataset
+from Datasets.dataset_files.dataset_newer_college_stereo_vi import NewerCollegeStereoViDataset
 
 # Development
 from Datasets.dataset_files.dataset_videos import VideosDataset
@@ -101,6 +102,7 @@ def get_dataset(dataset_name):
         "rvp-handheld": lambda: RvpHandheldDataset(),
         "rvp-car": lambda: RvpCarDataset(),
         "aria-digital-twin": lambda: AriaDigitalTwinDataset(),
+        "newer-college-stereo-vi": lambda: NewerCollegeStereoViDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),
