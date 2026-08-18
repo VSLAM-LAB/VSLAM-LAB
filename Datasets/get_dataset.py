@@ -21,6 +21,7 @@ from Datasets.dataset_files.dataset_rgbdtum import RgbdtumDataset
 from Datasets.dataset_files.dataset_replica import ReplicaDataset
 from Datasets.dataset_files.dataset_nuim import NuimDataset
 from Datasets.dataset_files.dataset_7scenes import SevenscenesDataset
+from Datasets.dataset_files.dataset_minimal import MinimalDataset
 
 # Stereo datasets
 from Datasets.dataset_files.dataset_kitti import KittiDataset
@@ -83,6 +84,7 @@ def get_dataset(dataset_name):
         "msd": lambda: MsdDataset(),
         "sesoko": lambda: SesokoDataset(),
         "7scenes": lambda: SevenscenesDataset(),
+        "minimal": lambda: MinimalDataset(),
         "openloris-d400": lambda: OpenlorisD400Dataset(),
         "openloris-t265": lambda: OpenlorisT265Dataset(),
         "sweetcorals": lambda: SweetcoralsDataset(),

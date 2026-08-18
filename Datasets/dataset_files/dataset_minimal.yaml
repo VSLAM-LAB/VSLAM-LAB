@@ -1,0 +1,86 @@
+dataset_name: minimal
+
+rgb_hz: 30.0
+
+modes: ['mono', 'rgbd']
+
+cam_models: ['pinhole']
+
+raw_formats: ['ros1']
+
+hf_repo_id: "vslamlab/minimal"
+
+depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor (RealSense aligned depth, mm)
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - 1008_parallel_lines_01
+  - 1008_parallel_lines_02
+  - 1008_parallel_lines_03
+  - 1008_parallel_lines_loop_01
+  - 1008_parallel_lines_loop_02
+  - 1008_circles_01
+  - 1008_circles_02
+  - 1008_circles_loop_01
+  - 1008_hexagon_01
+  - 1008_triangle_01
+  - 1008_triangle_02
+  - 1008_deformation_model_01
+  - 1008_sand_01
+  - 1008_square_with_circles_01
+  - 1008_square_with_circles_loop_01
+  - 1014_triangle_01
+  - 1014_triangle_02
+  - 1014_triangle_03
+  - 1014_circle_01
+  - 1014_square_01
+  - 1014_hexagon_01
+  - 1014_dodecagon_01
+  - 1014_lines_01
+  - 1014_circle_squares_01
+  - 1014_circle_hexagon_01
+  - 1014_circle_dodecagon_01
+  - 1014_sand_rocks_01
+  - 1014_sand_rocks_02
+  - 1014_sand_rocks_03
+  - 1014_forward_backward_01
+  - 1014_circle_only_01
+  - 1014_lru_01
+  - 1014_ardea_01
+
+about:
+  license: CC-BY-4.0
+  summary: Minimal Texture Dataset for RGB-D SLAM - RealSense D435i RGB-D sequences over low-texture conceptual-geometry and sand scenes (DLR), with millimeter-accurate Vicon ground truth
+  homepage: https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/minimal-texture-dataset-for-rgb-d-slam
+  features:
+    - Real
+    - Indoor
+    - Handheld
+  authors:
+    - Alejandro Fontan
+    - Riccardo Giubilato
+    - Laura Oliva Maza
+    - Rudolph Triebel
+    - Javier Civera
+  access: Public
+  publication: "SID-SLAM: Semi-Direct Information-Driven RGB-D SLAM"
+  publication_url: "https://ieeexplore.ieee.org/document/10058038"
+  year: 2023
+  bibtex_key: fontan2023sid
+  bibtex: |
+    @article{fontan2023sid,
+      title={{SID-SLAM}: Semi-Direct Information-Driven {RGB-D SLAM}},
+      author={Font{\'a}n, Alejandro and Giubilato, Riccardo and Oliva, Laura and Civera, Javier and Triebel, Rudolph},
+      journal={IEEE Robotics and Automation Letters},
+      volume={8},
+      number={10},
+      pages={6387--6394},
+      year={2023}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-18
