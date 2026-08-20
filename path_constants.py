@@ -39,19 +39,26 @@ VerbosityManager = {
     "NONE": 0
 }
 
-def set_VSLAMLAB_path(new_path, file_path, target_line_start):
-    new_line = f"{target_line_start} \"{new_path}\""
-    print(f"{SCRIPT_LABEL}Set {new_line}")
+def set_VSLAMLAB_path(new_path: str, file_path: str, target_line_start: str) -> None:
+    new_line = f"{target_line_start} Path(\"{Path(new_path).expanduser().resolve()}\")"
 
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
+    replaced = False
     with open(file_path, 'w') as file:
         for line in lines:
-            if line.strip().startswith(target_line_start):
+            if not replaced and line.startswith(target_line_start):
                 file.write(new_line + '\n')
+                replaced = True
             else:
                 file.write(line)
+
+    if replaced:
+        print(f"{SCRIPT_LABEL}Set {new_line}")
+    else:
+        print(f"{SCRIPT_LABEL}\033[91m[ERROR]\033[0m No line starting with '{target_line_start}' found in {file_path}")
+        sys.exit(1)
 
 if __name__ == "__main__":
 
