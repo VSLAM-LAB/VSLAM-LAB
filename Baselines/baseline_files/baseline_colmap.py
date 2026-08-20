@@ -14,7 +14,7 @@ class COLMAP_baseline(BaselineVSLAMLAB):
     def __init__(self, baseline_name: str = 'colmap', baseline_folder: str = 'colmap') -> None:
 
         default_parameters = {'verbose': 1, 'mode': 'mono', 'matcher_type': 'exhaustive',
-                             'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap','use_gpu': 1, 'rgb_max': 50000000}
+                             'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap', 'rgb_max': 50000000}
 
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
