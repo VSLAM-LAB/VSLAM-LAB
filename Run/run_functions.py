@@ -10,7 +10,7 @@ from typing import Any
 from pathlib import Path
 
 from Baselines.BaselineVSLAMLAB_utilities import log_run_sequence_time
-from path_constants import RGB_BASE_FOLDER, VSLAM_LAB_DIR, VSLAMLAB_EVALUATION
+from path_constants import RGB_BASE_FOLDER, CALIBRATION_EXP_YAML, VSLAM_LAB_DIR, VSLAMLAB_EVALUATION
 from Run import ablations
 from utilities import print_msg, write_csv_rows
 
@@ -31,6 +31,7 @@ MASK_COMPLETE_MARKER = ".mask2former_complete"
 # Same reasoning as the mask constants above: not imported to avoid torch deps.
 DEPTH_FOLDER_BASE = "fastfoundationstereo"
 DEPTH_COMPLETE_MARKER = ".fastfoundationstereo_complete"
+DEPTH_FACTOR_DEFAULT = 256.0  # the script's default; only used for markers that don't record their depth_factor
 
 def get_rows(rows_idx, rgb_csv):
     df = pd.read_csv(Path(rgb_csv))
@@ -50,6 +51,9 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     # Create experiment folder
     exp_folder = exp.folder / dataset.dataset_folder / sequence_name
     exp_folder.mkdir(parents=True, exist_ok=True)
+
+    # Per-experiment calibration copy (before create_rgb_exp_csv, which may patch it - e.g. registering generated depth)
+    create_calibration_exp_yaml(exp, dataset, sequence_name)
 
     # Select images
     create_rgb_exp_csv(exp, dataset, sequence_name, baseline.default_parameters)
@@ -81,8 +85,9 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
 
 def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_parameters: dict | None = None) -> None:
     """Build the experiment's rgb csv, applying rgb_idx/rgb_step/rgb_max/rgb_vpr filtering and
-    appending segmentation mask columns if requested. Only rgb_exp.csv is ever written - the
-    sequence's own rgb.csv is never modified."""
+    appending segmentation mask / generated depth columns if requested. Only the experiment's own
+    files (rgb_exp.csv, and calibration_exp.yaml when depth is registered) are ever written - the
+    sequence's rgb.csv and calibration.yaml are never modified."""
     sequence_path = dataset.sequence_path(sequence_name)
     exp_folder = exp.folder / dataset.dataset_folder / sequence_name
 
@@ -186,9 +191,29 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
     if has_depth:
         depth = exp.parameters['depth'] if 'depth' in exp.parameters else default_parameters['depth']
         if depth == 'fastfoundationstereo':
-            append_stereo_depth_columns(dataset, sequence_name, sequence_path, rgb_exp_csv)
+            append_stereo_depth_columns(dataset, sequence_name, sequence_path, rgb_exp_csv, exp_folder / CALIBRATION_EXP_YAML)
         else:
             print_msg(SCRIPT_LABEL, f"depth='{depth}' not recognized (only 'fastfoundationstereo' is supported); ignoring", flag="error", verb='NONE')
+
+def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str) -> Path:
+    """Seed the experiment's calibration yaml (<exp_folder>/calibration_exp.yaml) with a fresh copy
+    of the sequence's calibration.yaml - the file every baseline is handed as calibration_yaml
+    (BaselineVSLAMLAB.build_execute_command_cpp/python). Like rgb_exp.csv, it is rewritten on
+    every run so per-experiment edits never leak back into the sequence: later stages patch this
+    copy (create_rgb_exp_csv registers generated depth via register_depth_stream; replacing
+    intrinsics works the same way) without touching the benchmark data. Must therefore run
+    before create_rgb_exp_csv."""
+    calibration_yaml = dataset.calibration_yaml_path(sequence_name)
+    calibration_exp_yaml = exp.folder / dataset.dataset_folder / sequence_name / CALIBRATION_EXP_YAML
+
+    if not calibration_yaml.exists():
+        print_msg(SCRIPT_LABEL, f"{calibration_yaml} not found for {sequence_name} (run 'pixi run download-sequence {dataset.dataset_name} {sequence_name}' first)", flag="error", verb='NONE')
+        sys.exit(1)
+
+    if calibration_exp_yaml.exists():
+        calibration_exp_yaml.unlink()
+    shutil.copy(calibration_yaml, calibration_exp_yaml)
+    return calibration_exp_yaml
 
 def append_mask2former_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path) -> None:
     """Append ts_mask_<i> (ns)/path_mask_<i> columns to the experiment's rgb_exp csv, one pair per
@@ -215,14 +240,15 @@ def append_mask2former_columns(dataset: Any, sequence_name: str, sequence_path: 
     df.to_csv(rgb_exp_csv, index=False)
     print_msg(SCRIPT_LABEL, f"segmentation: appended mask2former columns for streams {streams} to {rgb_exp_csv.name}", verb='LOW')
 
-def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path) -> None:
+def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path, calibration_exp_yaml: Path) -> None:
     """Append ts_depth_0 (ns)/path_depth_0 columns to the experiment's rgb_exp csv, pointing at the
-    sequence's fastfoundationstereo_0 depth maps computed from the rgb_0/rgb_1 stereo pair. If the
-    .fastfoundationstereo_complete marker is missing, 'pixi run stereo-inference' is triggered first
-    to generate them (it resumes per frame, never recomputing existing depth PNGs); the script also
-    registers the depth stream (depth_name/depth_factor) in the sequence's calibration.yaml for
-    rgbd baselines. A sequence that already ships depth columns (a real RGBD dataset) is left
-    untouched, as is the sequence's own rgb.csv - only rgb_exp_csv is rewritten."""
+    sequence's fastfoundationstereo_0 depth maps computed from the rgb_0/rgb_1 stereo pair, and
+    register that depth stream in the experiment's calibration_exp.yaml (register_depth_stream) so
+    rgbd baselines can consume it. If the .fastfoundationstereo_complete marker is missing,
+    'pixi run stereo-inference' is triggered first to generate the depth (it resumes per frame,
+    never recomputing existing depth PNGs). A sequence that already ships depth columns (a real
+    RGBD dataset) is left untouched, as are the sequence's own rgb.csv and calibration.yaml -
+    only the experiment's rgb_exp.csv and calibration_exp.yaml are rewritten."""
     df = pd.read_csv(rgb_exp_csv)
     if 'path_depth_0' in df.columns:
         print_msg(SCRIPT_LABEL, f"depth: {rgb_exp_csv.name} already has depth columns; leaving them untouched", verb='LOW')
@@ -231,20 +257,77 @@ def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path:
         print_msg(SCRIPT_LABEL, f"depth=fastfoundationstereo requires a stereo sequence (path_rgb_0 and path_rgb_1) but {rgb_exp_csv} has no path_rgb_1; skipping depth columns", flag="error", verb='NONE')
         return
 
-    # Trigger generation when depth is missing, and also when it exists but isn't registered in
-    # calibration.yaml yet (the script adds depth_name/depth_factor to the rgb_0 entry; any
-    # pre-existing depth_name means a real RGBD dataset and counts as registered).
-    marker = sequence_path / f"{DEPTH_FOLDER_BASE}_0" / DEPTH_COMPLETE_MARKER
-    calibration_yaml = sequence_path / 'calibration.yaml'
-    depth_registered = calibration_yaml.exists() and 'depth_name' in calibration_yaml.read_text()
-    if not marker.exists() or not depth_registered:
-        print_msg(SCRIPT_LABEL, f"depth: depth missing or unregistered for {sequence_name}, running 'pixi run stereo-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+    depth_folder = f"{DEPTH_FOLDER_BASE}_0"
+    marker = sequence_path / depth_folder / DEPTH_COMPLETE_MARKER
+    if not marker.exists():
+        print_msg(SCRIPT_LABEL, f"depth: depth missing for {sequence_name}, running 'pixi run stereo-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
         subprocess.run(["pixi", "run", "-e", "fastfoundationstereo", "stereo-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
 
+    # The marker records the depth_factor the script encoded the PNGs with (empty markers predate
+    # that and were written with the script's default).
+    depth_factor = DEPTH_FACTOR_DEFAULT
+    for line in marker.read_text().splitlines():
+        if line.startswith("depth_factor:"):
+            depth_factor = float(line.split(":", 1)[1])
+
     df["ts_depth_0 (ns)"] = df["ts_rgb_0 (ns)"]
-    df["path_depth_0"] = [f"{DEPTH_FOLDER_BASE}_0/{Path(p).stem}.png" for p in df["path_rgb_0"]]
+    df["path_depth_0"] = [f"{depth_folder}/{Path(p).stem}.png" for p in df["path_rgb_0"]]
     df.to_csv(rgb_exp_csv, index=False)
     print_msg(SCRIPT_LABEL, f"depth: appended fastfoundationstereo depth columns to {rgb_exp_csv.name}", verb='LOW')
+
+    register_depth_stream(calibration_exp_yaml, depth_folder, depth_factor)
+
+def register_depth_stream(calibration_exp_yaml: Path, depth_folder: str, depth_factor: float) -> None:
+    """Declare a generated depth stream on the rgb_0 camera entry of the experiment's
+    calibration_exp.yaml: depth_name/depth_factor and a '+depth' cam_type, with the same field
+    placement as DatasetVSLAMLAB_calibration._get_rgbd_yaml_section (depth_name after cam_type,
+    depth_factor after fps), so rgbd baselines - which read depth_name/depth_factor from the
+    calibration yaml - can consume it. The edit is line-based (the file's hand-formatted flow
+    style and comments are preserved) and idempotent. An rgb_0 entry that already declares a
+    different depth stream (a real RGBD dataset) is left untouched. Only the per-experiment copy
+    is edited - never the sequence's calibration.yaml."""
+    if not calibration_exp_yaml.exists():
+        print_msg(SCRIPT_LABEL, f"depth: {calibration_exp_yaml} missing; cannot register the depth stream", flag="error", verb='NONE')
+        return
+
+    lines = calibration_exp_yaml.read_text().splitlines()
+    try:
+        start = next(i for i, line in enumerate(lines) if "cam_name: rgb_0" in line)
+        end = next(i for i in range(start, len(lines)) if lines[i].strip() == "}")
+    except StopIteration:
+        print_msg(SCRIPT_LABEL, f"depth: no rgb_0 camera entry found in {calibration_exp_yaml}; cannot register the depth stream", flag="error", verb='NONE')
+        return
+
+    def find(key: str) -> int | None:
+        return next((i for i in range(start, end + 1) if lines[i].lstrip().startswith(key)), None)
+
+    factor_line = f"     depth_factor: {float(depth_factor)},"
+    depth_name_idx = find("depth_name:")
+    if depth_name_idx is not None:
+        if depth_folder not in lines[depth_name_idx]:
+            print_msg(SCRIPT_LABEL, f"depth: rgb_0 already declares another depth stream ({lines[depth_name_idx].strip().rstrip(',')}); leaving {calibration_exp_yaml.name} untouched", flag="error", verb='NONE')
+            return
+        factor_idx = find("depth_factor:")
+        if factor_idx is not None and lines[factor_idx] == factor_line:
+            return  # already registered with the same depth_factor
+        if factor_idx is not None:
+            lines[factor_idx] = factor_line
+        else:
+            lines.insert(depth_name_idx + 1, factor_line)
+    else:
+        cam_type_idx, fps_idx = find("cam_type:"), find("fps:")
+        if cam_type_idx is None or fps_idx is None:
+            print_msg(SCRIPT_LABEL, f"depth: rgb_0 entry in {calibration_exp_yaml} has no cam_type/fps line; cannot register the depth stream", flag="error", verb='NONE')
+            return
+        cam_type = lines[cam_type_idx].split("cam_type:")[1].strip().rstrip(",")
+        if "+depth" not in cam_type:
+            lines[cam_type_idx] = f"     cam_type: {cam_type}+depth,"
+        # insert bottom-up so the earlier index stays valid
+        lines.insert(fps_idx + 1, factor_line)
+        lines.insert(cam_type_idx + 1, f"     depth_name: {depth_folder},")
+
+    calibration_exp_yaml.write_text("\n".join(lines) + "\n")
+    print_msg(SCRIPT_LABEL, f"depth: registered depth stream '{depth_folder}' (depth_factor={depth_factor:g}) in {calibration_exp_yaml.name}", verb='LOW')
 
 def get_sequence_data_for_evaluation(exp: Any, dataset: Any, sequence_name: str) -> None:
     sequence_path = dataset.dataset_path /  sequence_name

@@ -2,9 +2,9 @@
 Module: VSLAM-LAB - Datasets - extra-files - fastfoundationstereo.py
 - Author: Alejandro Fontan Villacampa
 - Assisted by: Claude (Fable 5)
-- Version: 1.0
+- Version: 1.1
 - Created: 2026-08-12
-- Updated: 2026-08-12
+- Updated: 2026-08-25
 - License: GPLv3 License
 
 Generates a per-frame metric depth map for every stereo pair (rgb_0/rgb_1) of one or more dataset
@@ -20,17 +20,17 @@ One depth folder is written per sequence (fastfoundationstereo_0/, one PNG per r
 resumes where it left off; a sequence whose fastfoundationstereo_0/.fastfoundationstereo_complete
 marker exists is skipped entirely unless --overwrite is given (which recomputes from scratch).
 
-rgb.csv is never modified: like mask2former.py's mask folders, the depth folder is a per-sequence
-artifact the run pipeline consumes - when an experiment sets 'depth: fastfoundationstereo',
-create_rgb_exp_csv (Run/run_functions.py) appends ts_depth_0 (ns)/path_depth_0 columns to the
-per-experiment rgb_exp.csv (calling the 'stereo-inference' pixi task first if depth is missing).
-The sequence's calibration.yaml, however, IS updated in place once depth is complete: the rgb_0
-camera entry gains depth_name/depth_factor and a '+depth' cam_type, following the rgbd convention
-of DatasetVSLAMLAB_calibration._get_rgbd_yaml_section, so rgbd baselines (which read depth_name/
-depth_factor from calibration.yaml) can consume the generated depth directly. A sequence whose
-rgb_0 already declares a different depth stream (a real RGBD dataset) is left untouched. The
-dataset's Datasets/dataset_files/dataset_<name>.yaml modes list likewise gains 'rgbd' (and
-'rgbd-vi' when 'mono-vi' is present) so rgbd experiments validate.
+Neither rgb.csv nor calibration.yaml of the sequence is ever modified: like mask2former.py's mask
+folders, the depth folder is a per-sequence artifact the run pipeline consumes - when an experiment
+sets 'depth: fastfoundationstereo', create_rgb_exp_csv (Run/run_functions.py) appends
+ts_depth_0 (ns)/path_depth_0 columns to the per-experiment rgb_exp.csv (calling the
+'stereo-inference' pixi task first if depth is missing) and registers the depth stream
+(depth_name/depth_factor and a '+depth' cam_type on the rgb_0 entry, following the rgbd convention
+of DatasetVSLAMLAB_calibration._get_rgbd_yaml_section) in the per-experiment calibration_exp.yaml,
+so rgbd baselines can consume the generated depth directly. The depth_factor used is recorded in
+the completion marker so the run pipeline registers the same value. The dataset's
+Datasets/dataset_files/dataset_<name>.yaml modes list does gain 'rgbd' (and 'rgbd-vi' when
+'mono-vi' is present) so rgbd experiments validate.
 If a sample_vpr/synch_gt rgb_raw.csv backup exists, depth is generated from that full pre-sampling
 frame list, so a downsampled rgb.csv still gets complete depth coverage.
 
@@ -175,59 +175,6 @@ def load_stereo_calibration(dataset_name: str, sequence_name: str) -> dict | Non
             "R": T_c1c0[:3, :3], "t": T_c1c0[:3, 3].reshape(3, 1)}
 
 
-def update_calibration_yaml(dataset_name: str, sequence_name: str, depth_folder: str, depth_factor: float) -> None:
-    """Register the generated depth stream in the sequence's calibration.yaml: the rgb_0 camera
-    entry gains depth_name/depth_factor and a '+depth' cam_type, with the same field placement as
-    DatasetVSLAMLAB_calibration._get_rgbd_yaml_section (depth_name after cam_type, depth_factor
-    after fps), so rgbd baselines can consume the depth directly. The edit is line-based and
-    idempotent; an rgb_0 entry that already declares a different depth stream (a real RGBD
-    dataset) is left untouched."""
-    calib_yaml = sequence_path(dataset_name, sequence_name) / "calibration.yaml"
-    if not calib_yaml.exists():
-        print_warning(f"{dataset_name}:{sequence_name} - missing {calib_yaml}; cannot register the depth stream")
-        return
-
-    lines = calib_yaml.read_text().splitlines()
-    try:
-        start = next(i for i, line in enumerate(lines) if "cam_name: rgb_0" in line)
-        end = next(i for i in range(start, len(lines)) if lines[i].strip() == "}")
-    except StopIteration:
-        print_warning(f"{dataset_name}:{sequence_name} - no rgb_0 camera entry found in {calib_yaml}; cannot register the depth stream")
-        return
-
-    def find(key: str) -> int | None:
-        return next((i for i in range(start, end + 1) if lines[i].lstrip().startswith(key)), None)
-
-    factor_line = f"     depth_factor: {float(depth_factor)},"
-    depth_name_idx = find("depth_name:")
-    if depth_name_idx is not None:
-        if depth_folder not in lines[depth_name_idx]:
-            print_warning(f"{dataset_name}:{sequence_name} - rgb_0 already declares another depth stream "
-                          f"({lines[depth_name_idx].strip().rstrip(',')}); leaving calibration.yaml untouched")
-            return
-        factor_idx = find("depth_factor:")
-        if factor_idx is not None and lines[factor_idx] == factor_line:
-            return  # already registered with the same depth_factor
-        if factor_idx is not None:
-            lines[factor_idx] = factor_line
-        else:
-            lines.insert(depth_name_idx + 1, factor_line)
-    else:
-        cam_type_idx, fps_idx = find("cam_type:"), find("fps:")
-        if cam_type_idx is None or fps_idx is None:
-            print_warning(f"{dataset_name}:{sequence_name} - rgb_0 entry in {calib_yaml} has no cam_type/fps line; cannot register the depth stream")
-            return
-        cam_type = lines[cam_type_idx].split("cam_type:")[1].strip().rstrip(",")
-        if "+depth" not in cam_type:
-            lines[cam_type_idx] = f"     cam_type: {cam_type}+depth,"
-        # insert bottom-up so the earlier index stays valid
-        lines.insert(fps_idx + 1, factor_line)
-        lines.insert(cam_type_idx + 1, f"     depth_name: {depth_folder},")
-
-    calib_yaml.write_text("\n".join(lines) + "\n")
-    print_info(f"{dataset_name}:{sequence_name} - registered depth stream '{depth_folder}' (depth_factor={depth_factor:g}) in {calib_yaml.name}")
-
-
 def update_dataset_modes(dataset_name: str) -> None:
     """Once generated depth exists for a sequence, the dataset can run rgbd experiments: add
     'rgbd' to the modes list in Datasets/dataset_files/dataset_<name>.yaml, plus 'rgbd-vi' when
@@ -354,7 +301,6 @@ def depth_pair(
     marker = depth_dir / COMPLETE_MARKER
     if marker.exists() and not overwrite:
         print_info(f"Skipping {dataset_name}:{sequence_name} - {depth_dir.name} already complete (use --overwrite to recompute)")
-        update_calibration_yaml(dataset_name, sequence_name, depth_dir.name, depth_factor)
         update_dataset_modes(dataset_name)
         return
     if overwrite and depth_dir.exists():
@@ -383,8 +329,9 @@ def depth_pair(
         cv2.imwrite(str(out_png), depth_png)
         written += 1
 
-    marker.touch()
-    update_calibration_yaml(dataset_name, sequence_name, depth_dir.name, depth_factor)
+    # The marker doubles as metadata: Run/run_functions.py reads depth_factor from it when
+    # registering the stream in the per-experiment calibration_exp.yaml.
+    marker.write_text(f"depth_factor: {float(depth_factor)}\n")
     update_dataset_modes(dataset_name)
     print_info(f"{dataset_name}:{sequence_name} - wrote {written} depth maps to {depth_dir}"
                + (f" ({skipped} already existed)" if skipped else ""))
@@ -426,8 +373,7 @@ def main() -> None:
     pairs = resolve_sequence_targets_or_exit(args, parser)
 
     device = torch.device(args.device)
-    # Lazy: sequences that are already complete (only their calibration.yaml gets refreshed)
-    # should not pay the model load.
+    # Lazy: sequences that are already complete should not pay the model load.
     model_loader = functools.cache(lambda: load_model(checkpoint, device, args.valid_iters, args.max_disp))
 
     for dataset_name, sequence_name in pairs:

@@ -2,9 +2,9 @@
 """
 Module: VSLAM-LAB - Baselines - BaselineVSLAMLAB.py
 - Author: Alejandro Fontan Villacampa
-- Version: 2.0
+- Version: 2.1
 - Created: 2024-07-12
-- Updated: 2025-12-30
+- Updated: 2026-08-25
 - License: GPLv3 License
 
 BaselineVSLAMLAB: A class to handle Visual SLAM baseline-related operations.
@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from huggingface_hub import hf_hub_download
 
 from utilities import ws, print_msg
-from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME, VSLAMLAB_VERBOSITY, VerbosityManager
+from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME, CALIBRATION_EXP_YAML, VSLAMLAB_VERBOSITY, VerbosityManager
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
@@ -120,7 +120,7 @@ class BaselineVSLAMLAB(ABC):
     def build_execute_command_cpp(self, exp_it, exp, dataset, sequence_name):
         sequence_path = dataset.dataset_path / sequence_name
         exp_folder = Path(exp.folder) / dataset.dataset_folder / sequence_name
-        calibration_yaml = sequence_path / 'calibration.yaml'
+        calibration_yaml = exp_folder / CALIBRATION_EXP_YAML  # per-experiment copy written by Run.run_functions.create_calibration_exp_yaml
         rgb_exp_csv = exp_folder / 'rgb_exp.csv'
 
         vslamlab_command = [f"sequence_path:{sequence_path}",
@@ -142,7 +142,7 @@ class BaselineVSLAMLAB(ABC):
     def build_execute_command_python(self, exp_it, exp, dataset, sequence_name):
         sequence_path = dataset.dataset_path / sequence_name
         exp_folder = Path(exp.folder) / dataset.dataset_folder / sequence_name
-        calibration_yaml = sequence_path / 'calibration.yaml'
+        calibration_yaml = exp_folder / CALIBRATION_EXP_YAML  # per-experiment copy written by Run.run_functions.create_calibration_exp_yaml
         rgb_exp_csv = exp_folder / 'rgb_exp.csv'
 
         vslamlab_command = [f"--sequence_path {sequence_path}",

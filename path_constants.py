@@ -20,6 +20,7 @@ CONFIG_DEFAULT = 'config_debug.yaml'
 VSLAM_LAB_EVALUATION_FOLDER = 'vslamlab_evaluation'
 RGB_BASE_FOLDER = 'rgb'
 GROUNTRUTH_FILE = 'groundtruth.csv'
+CALIBRATION_EXP_YAML = 'calibration_exp.yaml'  # per-experiment copy of a sequence's calibration.yaml (Run/run_functions.py)
 
 ABLATION_PARAMETERS_CSV = 'log_ablation_parameters.csv'
 
