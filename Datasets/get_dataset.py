@@ -29,6 +29,7 @@ from Datasets.dataset_files.dataset_malaga import MalagaDataset
 from Datasets.dataset_files.dataset_ut_coda import UtCodaDataset
 from Datasets.dataset_files.dataset_nsavp import NsavpDataset
 from Datasets.dataset_files.dataset_hamlyn import HamlynDataset
+from Datasets.dataset_files.dataset_tartanair_train import TartanairTrainDataset
 
 # Stereo-VI datasets
 from Datasets.dataset_files.dataset_ariel import ArielDataset
@@ -66,6 +67,7 @@ def get_dataset(dataset_name):
     switcher = {
         # ADD your datasets here
         "tartanair": lambda: TartanairDataset(),
+        "tartanair-train": lambda: TartanairTrainDataset(),
         "drunkards": lambda: DrunkardsDataset(),
         "eth": lambda: EthDataset(),
         "rgbdtum": lambda: RgbdtumDataset(),
