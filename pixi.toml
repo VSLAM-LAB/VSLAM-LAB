@@ -54,6 +54,7 @@ lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightg
 depth-anything = { features = ["depth-anything", "cuda126",  "py11"], solve-group = "depth-anything" }
 mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "mask2former" }
 fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"], solve-group = "fastfoundationstereo" }
+anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
@@ -166,7 +167,9 @@ utm = "*"
 viser = "*"
 open3d = "*"
 gdown = "*"
-yt-dlp = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
 cryptography = "*"
 openpyxl = "*"
 
@@ -1099,7 +1102,9 @@ utm = "*"
 viser = "*"
 open3d = "*"
 gdown = "*"
-yt-dlp = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
 cryptography = "*"
 openpyxl = "*"
 
@@ -1158,7 +1163,64 @@ utm = "*"
 viser = "*"
 open3d = "*"
 gdown = "*"
-yt-dlp = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
+cryptography = "*"
+openpyxl = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# anycalib
+[feature.anycalib]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.anycalib.tasks]
+git-clone.cmd = 'test -d Baselines/AnyCalib || git clone https://github.com/javrtg/AnyCalib Baselines/AnyCalib'
+git-clone.outputs = ["Baselines/AnyCalib"]
+install = { cmd = "python Datasets/extra-files/run_anycalib.py --prefetch", depends-on = ["git-clone"] }
+calib-inference = { cmd = "python Datasets/extra-files/run_anycalib.py", depends-on = ["install"] }
+
+[feature.anycalib.dependencies]
+# Torch / model libraries (AnyCalib: torch + what its camera fitting and DINOv2 backbone import)
+pytorch-gpu = "*"
+scipy = "*"
+requests = "*"
+
+# Core
+numpy = "*"
+pillow = "*"
+tqdm = "*"
+
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+h5py = "*"
+inputimeout = "*"
+scikit-learn = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+huggingface_hub = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
+evo = "*"
+git-lfs = "*"
+piexif = "*"
+psutil = "*"
+loguru = "*"
+utm = "*"
+7zip = "*"
+viser = "*"
+open3d = "*"
+gdown = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
 cryptography = "*"
 openpyxl = "*"
 

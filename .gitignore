@@ -39,6 +39,7 @@ Baselines/AllFeature-VSLAM-DEV
 Baselines/Depth-Anything-3
 Baselines/VPR-LAB
 Baselines/Fast-FoundationStereo
+Baselines/AnyCalib
 
 path_constants.py
 configs/config_demo.yaml

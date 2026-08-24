@@ -33,6 +33,10 @@ DEPTH_FOLDER_BASE = "fastfoundationstereo"
 DEPTH_COMPLETE_MARKER = ".fastfoundationstereo_complete"
 DEPTH_FACTOR_DEFAULT = 256.0  # the script's default; only used for markers that don't record their depth_factor
 
+# Calibration artifact written by Datasets/extra-files/run_anycalib.py ('pixi run calib-inference').
+# Same reasoning as above: not imported to avoid torch deps.
+ANYCALIB_FOLDER = "anycalib"
+
 def get_rows(rows_idx, rgb_csv):
     df = pd.read_csv(Path(rgb_csv))
 
@@ -53,7 +57,7 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     exp_folder.mkdir(parents=True, exist_ok=True)
 
     # Per-experiment calibration copy (before create_rgb_exp_csv, which may patch it - e.g. registering generated depth)
-    create_calibration_exp_yaml(exp, dataset, sequence_name)
+    create_calibration_exp_yaml(exp, dataset, sequence_name, baseline.default_parameters)
 
     # Select images
     create_rgb_exp_csv(exp, dataset, sequence_name, baseline.default_parameters)
@@ -195,16 +199,37 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
         else:
             print_msg(SCRIPT_LABEL, f"depth='{depth}' not recognized (only 'fastfoundationstereo' is supported); ignoring", flag="error", verb='NONE')
 
-def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str) -> Path:
-    """Seed the experiment's calibration yaml (<exp_folder>/calibration_exp.yaml) with a fresh copy
-    of the sequence's calibration.yaml - the file every baseline is handed as calibration_yaml
-    (BaselineVSLAMLAB.build_execute_command_cpp/python). Like rgb_exp.csv, it is rewritten on
-    every run so per-experiment edits never leak back into the sequence: later stages patch this
-    copy (create_rgb_exp_csv registers generated depth via register_depth_stream; replacing
-    intrinsics works the same way) without touching the benchmark data. Must therefore run
-    before create_rgb_exp_csv."""
+def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str, default_parameters: dict | None = None) -> Path:
+    """Seed the experiment's calibration yaml (<exp_folder>/calibration_exp.yaml) - the file every
+    baseline is handed as calibration_yaml (BaselineVSLAMLAB.build_execute_command_cpp/python) -
+    with a fresh copy of the sequence's calibration.yaml, or, when the experiment sets
+    'calibration: anycalib', of the AnyCalib-estimated <sequence>/anycalib/calibration.yaml
+    (generated on first use by 'pixi run calib-inference'; it is the original file with the
+    intrinsics replaced and annotated, so T_BS/fps/imus carry over). Like rgb_exp.csv, it is
+    rewritten on every run so per-experiment edits never leak back into the sequence: later
+    stages patch this copy (create_rgb_exp_csv registers generated depth via
+    register_depth_stream) without touching the benchmark data. Must therefore run before
+    create_rgb_exp_csv."""
+    sequence_path = dataset.sequence_path(sequence_name)
     calibration_yaml = dataset.calibration_yaml_path(sequence_name)
     calibration_exp_yaml = exp.folder / dataset.dataset_folder / sequence_name / CALIBRATION_EXP_YAML
+
+    has_default = isinstance(default_parameters, dict)
+    has_calibration = 'calibration' in exp.parameters or (has_default and 'calibration' in default_parameters)
+    if has_calibration:
+        calibration = exp.parameters['calibration'] if 'calibration' in exp.parameters else default_parameters['calibration']
+        if calibration == 'anycalib':
+            anycalib_yaml = sequence_path / ANYCALIB_FOLDER / 'calibration.yaml'
+            if not anycalib_yaml.exists():
+                print_msg(SCRIPT_LABEL, f"calibration: {anycalib_yaml} not found, running 'pixi run calib-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+                subprocess.run(["pixi", "run", "-e", "anycalib", "calib-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+            if not anycalib_yaml.exists():
+                print_msg(SCRIPT_LABEL, f"calibration: 'pixi run calib-inference' did not produce {anycalib_yaml} (see its output above)", flag="error", verb='NONE')
+                sys.exit(1)
+            calibration_yaml = anycalib_yaml
+            print_msg(SCRIPT_LABEL, f"calibration: using AnyCalib intrinsics ({anycalib_yaml.relative_to(sequence_path)}) for {sequence_name}", verb='LOW')
+        else:
+            print_msg(SCRIPT_LABEL, f"calibration='{calibration}' not recognized (only 'anycalib' is supported); using the sequence's calibration.yaml", flag="error", verb='NONE')
 
     if not calibration_yaml.exists():
         print_msg(SCRIPT_LABEL, f"{calibration_yaml} not found for {sequence_name} (run 'pixi run download-sequence {dataset.dataset_name} {sequence_name}' first)", flag="error", verb='NONE')
