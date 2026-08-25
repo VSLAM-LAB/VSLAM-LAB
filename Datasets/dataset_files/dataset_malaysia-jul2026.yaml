@@ -1,0 +1,52 @@
+dataset_name: malaysia-jul2026
+
+rgb_hz: 10.0
+modes: ['mono']
+cam_models: ['radtan4']
+raw_formats: ['images']
+
+# All sequences are user-placed local data (the raw campaign drive is the only source) - each
+# sequence's synchronized frames are expected at
+# VSLAM-LAB-Benchmark/MALAYSIA-JUL2026/<sequence_name>/<camera_folder>/ where <camera_folder> is
+# the source's own folder name, e.g. p1_s01_C1 for sequence p1_s01_c1 (a symlink onto the
+# campaign drive's p1/s01/syncd/p1_s01_C1 works).
+sequence_location: local
+
+target_resolution: [640, 480]
+
+# p<platform>_s<survey>_c<camera>: three hardware-synchronized cameras (C1/C2/C3) per survey,
+# exposed as independent mono sequences since no inter-camera extrinsics were calibrated.
+sequence_names:
+  - p1_s01_c1
+  - p1_s01_c2
+  - p1_s01_c3
+  - p1_s02_c1
+  - p1_s02_c2
+  - p1_s02_c3
+  - p1_s03_c1
+  - p1_s03_c2
+  - p1_s03_c3
+
+about:
+  license: TODO
+  summary: Handheld underwater coral-reef transect surveys (Malaysia, July 2026 campaign) - three hardware-synchronized 1920x1080 RGB cameras at 10 Hz, each exposed as a mono sequence
+  homepage: N/A
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Handheld
+  authors:
+    - TODO
+  access: N/A
+  publication: TODO
+  publication_url: TODO
+  year: TODO
+  bibtex_key: TODO
+  bibtex: TODO
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-25

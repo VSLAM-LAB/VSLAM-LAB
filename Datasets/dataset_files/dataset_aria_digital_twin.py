@@ -561,7 +561,7 @@ class AriaDigitalTwinDataset(DatasetVSLAMLAB):
     def remove_unused_files(self, sequence_name: str) -> None:
         # Deliberate no-op at every retention tier, including MINIMAL: the raw VRS/MPS files are
         # user-placed local data fetched via ADT's own license-gated downloader - there is no
-        # re-download path to recover from deleting them (same rationale as dataset_malaysia.py).
+        # re-download path to recover from deleting them (same rationale as dataset_malaysia_jul2026.py).
         return
 
     def _run_worker(self, *args: str) -> None:

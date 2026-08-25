@@ -1,0 +1,11 @@
+test_exp_malaysia_jul2026_orbslam2:
+  Config: test_config_malaysia_jul2026.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: orbslam2
+
+test_exp_malaysia_jul2026_colmap:
+  Config: test_config_malaysia_jul2026.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: colmap

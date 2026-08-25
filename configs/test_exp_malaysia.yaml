@@ -1,5 +1,0 @@
-test_exp_malaysia_colmap:
-  Config: test_config_malaysia.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, mode: mono, rgb_vpr: 200, rgb_step: 1}
-  Module: colmap
