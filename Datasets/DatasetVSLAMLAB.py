@@ -159,13 +159,25 @@ class DatasetVSLAMLAB(ABC):
 
     def check_sequence_availability(self, sequence_name: str, verbose: bool = True) -> str:
         sequence_path = self.sequence_path(sequence_name)
-        if sequence_path.is_dir():
-            sequence_complete = self.check_sequence_integrity(sequence_name, verbose=verbose)
-            if sequence_complete:
-                return "available"
-            else:
-                return "corrupted"
-        return "non-available"
+        if not sequence_path.is_dir():
+            return "non-available"
+        if self.check_sequence_integrity(sequence_name, verbose=False):
+            return "available"
+
+        # The folder exists but nothing of the standardized layout does: the sequence was never
+        # processed (e.g. a 'local' dataset whose user-placed raw data already sits in the
+        # sequence folder), not a corrupted one - let download_process run on it (#136).
+        standardized = [
+            self.rgb_path(sequence_name),
+            self.rgb_csv_path(sequence_name),
+            self.calibration_yaml_path(sequence_name),
+        ]
+        if not any(path.exists() for path in standardized):
+            return "non-available"
+
+        # A genuinely partial layout - re-run the check so the missing pieces get logged.
+        self.check_sequence_integrity(sequence_name, verbose=verbose)
+        return "corrupted"
 
     def check_sequence_integrity(self, sequence_name: str, verbose: bool) -> bool:
         sequence_path = self.sequence_path(sequence_name)
