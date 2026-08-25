@@ -52,3 +52,9 @@ app.log
 
 # ROS
 Baselines/ros2_ws
+
+# Debug / personal experiment configs: tracked (fresh clones need them), so .gitignore can't hide
+# local edits. Silence them per clone instead:
+#   git update-index --skip-worktree configs/comp_complete.yaml configs/config_debug.yaml \
+#       configs/config_train_droid.yaml configs/exp_debug.yaml configs/exp_train_droid.yaml
+# (undo with --no-skip-worktree; list with: git ls-files -v | grep '^S')

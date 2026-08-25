@@ -80,6 +80,30 @@ class ALLFEATURE_baseline_dev(ALLFEATURE_baseline):
         super().__init__(baseline_name = 'allfeature-dev', baseline_folder = 'AllFeature-VSLAM-DEV')
         self.color = tuple(max(c / 1.0, 0.0) for c in self.color)
 
+    def git_clone(self) -> None:
+        super().git_clone()
+        self.allfeature_download_segmentation_model()
+
     def is_installed(self) -> tuple[bool, str]:
         is_installed = (self.baseline_path / 'bin' / 'vslamlab_allfeature_mono').is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
+
+    def allfeature_download_segmentation_model(self) -> None:
+        REPO_ID = "vslamlab/allfeature-vslamlab"
+        segmentation_files = [
+            "efficientvit-seg-l1-ade20k_512x512.onnx",
+            "efficientvit-seg-l1-ade20k_512x512.onnx.classes.yaml"
+        ]
+
+        segmentation_folder = os.path.join(self.baseline_path, 'segmentation_models')
+        if not os.path.isdir(segmentation_folder):
+            print_msg(f"\n{SCRIPT_LABEL}", f"Download segmentation model files to: {segmentation_folder}",'info')
+            os.makedirs(segmentation_folder, exist_ok=True)
+
+        for segmentation_file in segmentation_files:
+
+            if os.path.isfile(os.path.join(segmentation_folder, segmentation_file)):
+                continue
+
+            print_msg(f"{SCRIPT_LABEL}", f"Download segmentation model file: {segmentation_file}",'info')
+            hf_hub_download(repo_id=REPO_ID, filename=segmentation_file, local_dir=segmentation_folder)

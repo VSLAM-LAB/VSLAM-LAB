@@ -122,6 +122,16 @@ def cmd_rectify(args):
     out_depth = Path(args.out_depth0)
     dynamic_ids = _dynamic_instance_ids(gt)
 
+    # ADT's video recording extends past both ends of its ground-truth coverage (~12s each way
+    # on the sequences checked), and projectaria's per-timestamp GT queries (pose, depth,
+    # segmentation) CLAMP out-of-range timestamps to the nearest sample while still reporting
+    # is_valid()=True - so without this trim, every video frame outside the GT range silently
+    # gets a byte-identical frozen copy of the first/last depth+segmentation frame (uncorrelated
+    # with the moving RGB image; poisons RGB-D runs). Trim ALL streams (rgb included) to the
+    # GT-covered range so the per-stream folders stay index-aligned for create_rgb_csv's zip.
+    gt_start, gt_end = gt.get_start_time_ns(), gt.get_end_time_ns()
+    has_gt_bounds = gt_end > gt_start
+
     for label, out_dir in out_dirs.items():
         sid = raw_provider.get_stream_id_from_label(label)
         raw_calib = gt.get_aria_camera_calibration(sid)
@@ -137,6 +147,8 @@ def cmd_rectify(args):
         write_depth = label == "camera-slam-left"
 
         for ts in gt.get_aria_device_capture_timestamps_ns(sid):
+            if has_gt_bounds and not (gt_start <= ts <= gt_end):
+                continue
             out_path = out_dir / f"{ts}.png"
             depth_path = out_depth / f"{ts}.png"
             mask_path = out_mask / f"{ts}.png"
@@ -238,8 +250,16 @@ def cmd_groundtruth(args):
     raw_provider = gt.raw_data_provider_ptr()
     sid = raw_provider.get_stream_id_from_label("camera-slam-left")
 
+    # Same GT-range trim as cmd_rectify: is_valid() alone does NOT reject out-of-range
+    # timestamps (the provider clamps and returns the first/last pose as "valid"), which
+    # previously produced hundreds of identical constant-pose rows at both ends of the csv.
+    gt_start, gt_end = gt.get_start_time_ns(), gt.get_end_time_ns()
+    has_gt_bounds = gt_end > gt_start
+
     rows = []
     for ts in gt.get_aria_device_capture_timestamps_ns(sid):
+        if has_gt_bounds and not (gt_start <= ts <= gt_end):
+            continue
         pose_result = gt.get_aria_3d_pose_by_timestamp_ns(ts)
         if not pose_result.is_valid():
             continue

@@ -11,12 +11,16 @@ url_download_sequences:
   fpv-drone-iceland-01: "https://youtu.be/kcfs1-ryKWE"
   centum-cellas: "https://www.youtube.com/watch?v=V0bc6dg6OL4"
   acinipo: "https://youtu.be/22Xkid5kqgo"
+  the-shining: "https://youtu.be/2W7uKverqX8"
+  touch-of-evil: "https://youtu.be/Sv4EbvPufEc"
 
 sequence_names:
   - fpv-drone-iceland-00
   - fpv-drone-iceland-01
   - centum-cellas
   - acinipo
+  - the-shining
+  - touch-of-evil
 
 # [ti, tf] seconds to extract from each sequence's video. Sparse dict, keyed by sequence name -
 # any sequence not listed here defaults to [0, None] (the whole video).
@@ -25,6 +29,8 @@ time_windows:
   fpv-drone-iceland-01: [24, 33]
   centum-cellas: [900, 1100]
   acinipo: [206, 300]
+  the-shining: [1, 92]
+  touch-of-evil: [15, 150]
 
 # [top, bottom, left, right] pixels to trim from each edge, before target_resolution resizing.
 # Only sequences needing a crop are listed here.
