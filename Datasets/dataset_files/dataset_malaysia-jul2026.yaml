@@ -6,30 +6,33 @@ cam_models: ['radtan4']
 raw_formats: ['images']
 
 # All sequences are user-placed local data (the raw campaign drive is the only source) - each
-# sequence's synchronized frames are expected at
-# VSLAM-LAB-Benchmark/MALAYSIA-JUL2026/<sequence_name>/<camera_folder>/ where <camera_folder> is
-# the source's own folder name, e.g. p1_s01_C1 for sequence p1_s01_c1 (a symlink onto the
-# campaign drive's p1/s01/syncd/p1_s01_C1 works).
+# sequence's three synchronized camera folders are expected at
+# VSLAM-LAB-Benchmark/MALAYSIA-JUL2026/<sequence_name>/<sequence_name>_C{1,2,3}/ (the source's
+# own syncd folder names, e.g. p1_s01_C1; symlinks onto the campaign drive's
+# p1/s01/syncd/p1_s01_C{1,2,3} work).
 sequence_location: local
 
 target_resolution: [640, 480]
 
-# p<platform>_s<survey>_c<camera>: three hardware-synchronized cameras (C1/C2/C3) per survey,
-# exposed as independent mono sequences since no inter-camera extrinsics were calibrated.
+# p<platform>_s<survey>: a three-camera rig (C1/C2/C3 -> rgb_0/rgb_1/rgb_2), hardware-synchronized.
+# The rig's inter-camera extrinsics were never calibrated, so calibration.yaml writes identity
+# T_BS for all three cameras and only 'mono' (on rgb_0) is advertised - no stereo mode.
+#
+# p<platform>_s<survey>_comb: the same survey with the three cameras interleaved into a single
+# rgb_0 (c1, c2, c3 frames of each capture instant back to back; c1 keeps the capture timestamp, c2/c3 sit
+# 1/3 and 2/3 of the way to the next capture instant so the stream stays strictly increasing; files symlinked onto the base sequence's
+# resized frames, named c<N>_<ts>.png) and C2's calibration. Requesting a *_comb sequence pulls in (downloads/processes) its base sequence.
 sequence_names:
-  - p1_s01_c1
-  - p1_s01_c2
-  - p1_s01_c3
-  - p1_s02_c1
-  - p1_s02_c2
-  - p1_s02_c3
-  - p1_s03_c1
-  - p1_s03_c2
-  - p1_s03_c3
+  - p1_s01
+  - p1_s02
+  - p1_s03
+  - p1_s01_comb
+  - p1_s02_comb
+  - p1_s03_comb
 
 about:
   license: TODO
-  summary: Handheld underwater coral-reef transect surveys (Malaysia, July 2026 campaign) - three hardware-synchronized 1920x1080 RGB cameras at 10 Hz, each exposed as a mono sequence
+  summary: Handheld underwater coral-reef transect surveys (Malaysia, July 2026 campaign) - three-camera hardware-synchronized rig (1920x1080 RGB at 10 Hz, rgb_0/rgb_1/rgb_2), extrinsics uncalibrated
   homepage: N/A
   features:
     - Real
