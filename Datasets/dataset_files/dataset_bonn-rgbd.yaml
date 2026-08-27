@@ -1,0 +1,76 @@
+dataset_name: bonn-rgbd
+
+rgb_hz: 30.0
+modes: ['mono', 'rgbd']
+cam_models: ['radtan5']
+raw_formats: ['zip']
+
+# One zip per sequence: <url_download_root>/rgbd_bonn_<sequence>.zip, unpacking to a TUM RGB-D
+# style folder rgbd_bonn_<sequence>/ (rgb/, depth/, rgb.txt, depth.txt, groundtruth.txt).
+url_download_root: "https://www.ipb.uni-bonn.de/html/projects/rgbd_dynamic2019"
+depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor (TUM RGB-D convention)
+
+# Names below drop the shared "rgbd_bonn_" prefix the source uses for every zip/folder
+# (rgbd_bonn_balloon.zip -> balloon); dataset_bonn_rgbd.py re-adds it when downloading.
+# 24 dynamic sequences (people manipulating boxes / playing with balloons) + 2 static ones.
+sequence_names:
+  - balloon
+  - balloon2
+  - balloon_tracking
+  - balloon_tracking2
+  - crowd
+  - crowd2
+  - crowd3
+  - kidnapping_box
+  - kidnapping_box2
+  - moving_nonobstructing_box
+  - moving_nonobstructing_box2
+  - moving_obstructing_box
+  - moving_obstructing_box2
+  - person_tracking
+  - person_tracking2
+  - placing_nonobstructing_box
+  - placing_nonobstructing_box2
+  - placing_nonobstructing_box3
+  - placing_obstructing_box
+  - removing_nonobstructing_box
+  - removing_nonobstructing_box2
+  - removing_obstructing_box
+  - synchronous
+  - synchronous2
+  - static
+  - static_close_far
+
+about:
+  license: Not explicitly stated (research/academic use)
+  summary: Bonn RGB-D Dynamic Dataset - 24 highly dynamic indoor RGB-D sequences (people manipulating boxes, playing with balloons, crowds) plus 2 static ones, recorded with an ASUS Xtion Pro Live in TUM RGB-D format, with Optitrack motion-capture ground truth
+  homepage: https://www.ipb.uni-bonn.de/data/rgbd-dynamic-dataset/index.html
+  features:
+    - Real
+    - Indoor
+    - Handheld
+  authors:
+    - Emanuele Palazzolo
+    - Jens Behley
+    - Philipp Lottes
+    - Philippe Giguère
+    - Cyrill Stachniss
+  access: Public
+  publication: "ReFusion: 3D Reconstruction in Dynamic Environments for RGB-D Cameras Exploiting Residuals"
+  publication_url: "https://arxiv.org/abs/1905.02082"
+  year: 2019
+  bibtex_key: palazzolo2019iros
+  bibtex: |
+    @inproceedings{palazzolo2019iros,
+      title={{ReFusion: 3D Reconstruction in Dynamic Environments for RGB-D Cameras Exploiting Residuals}},
+      author={Palazzolo, Emanuele and Behley, Jens and Lottes, Philipp and Gigu{\`e}re, Philippe and Stachniss, Cyrill},
+      booktitle={2019 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      year={2019},
+      organization={IEEE}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-27
