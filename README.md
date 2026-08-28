@@ -268,6 +268,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
 | [**Stray Scanner App**](https://github.com/strayrobots/scanner) |  📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` |
+| [**Pupil Labs Neon**](https://pupil-labs.com/) |  📸🥽 | `pupil-labs` | `mono(-vi)` | `pinhole` |
 <!-- | [**Underwater caves sonar and vision data set**](https://cirs.udg.edu/caves-dataset/)  |  📸🏞️🌊 |   `caves`  | `mono` | `pinhole` | -->
 <!-- | [**ScanNet++: A High-Fidelity Dataset of 3D Indoor Scenes**](https://scannetpp.mlsg.cit.tum.de/scannetpp/) |  📸🏠🤳 | `scannetplusplus` | `mono`| `pinhole` | -->
 <!-- [**Monocular Visual Odometry Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset) | 📸🏠🤳 |  `monotum`  | `mono` | `pinhole` | -->

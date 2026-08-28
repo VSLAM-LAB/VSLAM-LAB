@@ -60,6 +60,7 @@ from Datasets.dataset_files.dataset_uzh_fpv import UzhFpvDataset
 from Datasets.dataset_files.dataset_videos import VideosDataset
 from Datasets.dataset_files.dataset_youtube import YoutubeDataset
 from Datasets.dataset_files.dataset_strayscanner import StrayscannerDataset
+from Datasets.dataset_files.dataset_pupil_labs import PupilLabsDataset
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
@@ -115,7 +116,8 @@ def get_dataset(dataset_name):
         # Development
         "videos": lambda: VideosDataset(),
         "youtube": lambda: YoutubeDataset(),
-        "strayscanner": lambda: StrayscannerDataset()
+        "strayscanner": lambda: StrayscannerDataset(),
+        "pupil-labs": lambda: PupilLabsDataset(),
     }
 
     return switcher.get(dataset_name, lambda: "Invalid case")()

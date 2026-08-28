@@ -1,0 +1,60 @@
+dataset_name: pupil-labs
+
+# Neon's scene camera nominal rate (1600x1200 @ 30 Hz per Pupil Labs' docs; this dataset's own
+# recordings were captured at 1088x1080). The exported mp4 is variable-frame-rate (~28 Hz average
+# in practice), so rgb.csv takes every frame's real UTC timestamp from world_timestamps.csv - this
+# value is only the nominal fps written to calibration.yaml, never used to synthesize timestamps.
+rgb_hz: 30.0
+modes: ['mono', 'mono-vi']
+# The scene camera ships an OpenCV rational 8-coefficient distortion (k1,k2,p1,p2,k3,k4,k5,k6),
+# which no closed-list cam_model covers - create_rgb_folder remaps every frame onto a
+# distortion-free pinhole camera instead (cv2.initUndistortRectifyMap, like dataset_monotum.py),
+# so what calibration.yaml writes really is 'pinhole'.
+cam_models: ['pinhole']
+raw_formats: ['video']
+
+# All sequences are user-recorded local data: a Pupil Cloud "Timeseries Data + Scene Video"
+# export (https://docs.pupil-labs.com/neon/data-collection/data-format/). Each recording folder of
+# the export (named <recording name>-<recording id prefix>, e.g. 2026-08-28_02-20-18-73da1a05, and
+# holding <section id>_<start>-<end>.mp4, world_timestamps.csv, scene_camera.json, imu.csv,
+# info.json, ...) is one sequence, expected at VSLAM-LAB-Benchmark/PUPIL-LABS/<sequence_name>/.
+# download_sequence_data also adopts it automatically from a still-nested export directory
+# (VSLAM-LAB-Benchmark/PUPIL-LABS/Timeseries Data + Scene Video/<sequence_name>/).
+sequence_location: local
+
+target_resolution: [640, 480]
+
+# sequence_name = the export's own recording folder name, verbatim, so a new Pupil Cloud export
+# drops in unchanged.
+sequence_names:
+  - "2026-08-28_02-20-18-73da1a05"
+
+about:
+  license: N/A (user-recorded data; Pupil Labs Neon hardware/software terms apply)
+  summary: Pupil Labs Neon eye-tracking glasses - user-recorded scene-camera video and IMU (Pupil Cloud "Timeseries Data + Scene Video" export), undistorted to pinhole
+  homepage: https://pupil-labs.com/
+  features:
+    - Real
+    - Headmounted
+  authors:
+    - Pupil Labs GmbH
+  access: N/A
+  publication: "Neon Accuracy Test Report"
+  publication_url: "https://zenodo.org/doi/10.5281/zenodo.10420388"
+  year: 2023
+  bibtex_key: baumann2023neon
+  bibtex: |
+    @article{baumann2023neon,
+      title={Neon Accuracy Test Report},
+      author={Baumann, Chris and Dierkes, Kai},
+      year={2023},
+      publisher={Pupil Labs},
+      doi={10.5281/ZENODO.10420388},
+      url={https://zenodo.org/doi/10.5281/zenodo.10420388}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-28
