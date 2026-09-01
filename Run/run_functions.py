@@ -15,27 +15,32 @@ from Run import ablations
 from utilities import print_msg, write_csv_rows
 
 # Datasets/extra-files isn't an importable package (hyphen in the dir name), so it's added to
-# sys.path directly - the same trick sample_vpr.py itself uses to import run_vpr.py.
+# sys.path directly (sample_vpr.py itself imports its artifact helper from the Capabilities package).
 sys.path.insert(0, str(VSLAM_LAB_DIR / "Datasets" / "extra-files"))
 from sample_vpr import sweep_thresholds, select_for_target, selected_rows
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
-# Mask folders written by Datasets/extra-files/mask2former.py ('pixi run mask-inference'). Kept as
+# Mask folders written by Capabilities/mask2former.py ('pixi run mask-inference'). Kept as
 # local constants rather than imported: importing mask2former.py pulls in torch/transformers,
 # which the vslamlab environment doesn't ship.
 MASK_FOLDER_BASE = "mask2former"
 MASK_COMPLETE_MARKER = ".mask2former_complete"
 
-# Depth folder written by Datasets/extra-files/fastfoundationstereo.py ('pixi run stereo-inference').
+# Depth folder written by Capabilities/fastfoundationstereo.py ('pixi run stereo-inference').
 # Same reasoning as the mask constants above: not imported to avoid torch deps.
 DEPTH_FOLDER_BASE = "fastfoundationstereo"
 DEPTH_COMPLETE_MARKER = ".fastfoundationstereo_complete"
 DEPTH_FACTOR_DEFAULT = 256.0  # the script's default; only used for markers that don't record their depth_factor
 
-# Calibration artifact written by Datasets/extra-files/run_anycalib.py ('pixi run calib-inference').
+# Calibration artifact written by Capabilities/anycalib.py ('pixi run calib-inference').
 # Same reasoning as above: not imported to avoid torch deps.
 ANYCALIB_FOLDER = "anycalib"
+
+# Refraction-corrected rgb_0 frames written by Capabilities/refrax.py
+# ('pixi run refrax-inference'). Same reasoning as above: kept as local constants.
+REFRACTION_FOLDER_BASE = "refrax"
+REFRACTION_COMPLETE_MARKER = ".refrax_complete"
 
 def get_rows(rows_idx, rgb_csv):
     df = pd.read_csv(Path(rgb_csv))
@@ -88,10 +93,11 @@ def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     return results
 
 def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_parameters: dict | None = None) -> None:
-    """Build the experiment's rgb csv, applying rgb_idx/rgb_step/rgb_max/rgb_vpr filtering and
-    appending segmentation mask / generated depth columns if requested. Only the experiment's own
-    files (rgb_exp.csv, and calibration_exp.yaml when depth is registered) are ever written - the
-    sequence's rgb.csv and calibration.yaml are never modified."""
+    """Build the experiment's rgb csv, applying rgb_idx/rgb_step/rgb_max/rgb_vpr filtering,
+    swapping in refraction-corrected frames and appending segmentation mask / generated depth
+    columns if requested. Only the experiment's own files (rgb_exp.csv, and calibration_exp.yaml
+    when depth is registered or refraction corrected) are ever written - the sequence's rgb.csv
+    and calibration.yaml are never modified."""
     sequence_path = dataset.sequence_path(sequence_name)
     exp_folder = exp.folder / dataset.dataset_folder / sequence_name
 
@@ -184,6 +190,23 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
         )
 
     has_segmentation = 'segmentation' in exp.parameters or (has_default and 'segmentation' in default_parameters)
+    has_depth = 'depth' in exp.parameters or (has_default and 'depth' in default_parameters)
+    has_calibration = 'calibration' in exp.parameters or (has_default and 'calibration' in default_parameters)
+
+    # Refraction correction swaps the rgb_0 frames themselves (and the rgb_0 calibration), so it
+    # goes first: segmentation/depth artifacts below are keyed by frame name and geometry.
+    has_refraction = 'refraction' in exp.parameters or (has_default and 'refraction' in default_parameters)
+    if has_refraction:
+        refraction = exp.parameters['refraction'] if 'refraction' in exp.parameters else default_parameters['refraction']
+        if refraction == 'refrax':
+            replace_rgb_with_refraction_corrected(dataset, sequence_name, sequence_path, rgb_exp_csv, exp_folder / CALIBRATION_EXP_YAML,
+                                                  calibration_overridden=has_calibration)
+            if has_segmentation or has_depth:
+                print_msg(SCRIPT_LABEL, f"refraction: segmentation/depth artifacts are generated from the original frames, not the "
+                          f"refraction-corrected ones - their masks/depth will not match {REFRACTION_FOLDER_BASE}_0 frames", flag="error", verb='NONE')
+        else:
+            print_msg(SCRIPT_LABEL, f"refraction='{refraction}' not recognized (only 'refrax' is supported); ignoring", flag="error", verb='NONE')
+
     if has_segmentation:
         segmentation = exp.parameters['segmentation'] if 'segmentation' in exp.parameters else default_parameters['segmentation']
         if segmentation == 'mask2former':
@@ -191,7 +214,6 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
         else:
             print_msg(SCRIPT_LABEL, f"segmentation='{segmentation}' not recognized (only 'mask2former' is supported); ignoring", flag="error", verb='NONE')
 
-    has_depth = 'depth' in exp.parameters or (has_default and 'depth' in default_parameters)
     if has_depth:
         depth = exp.parameters['depth'] if 'depth' in exp.parameters else default_parameters['depth']
         if depth == 'fastfoundationstereo':
@@ -301,6 +323,62 @@ def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path:
     print_msg(SCRIPT_LABEL, f"depth: appended fastfoundationstereo depth columns to {rgb_exp_csv.name}", verb='LOW')
 
     register_depth_stream(calibration_exp_yaml, depth_folder, depth_factor)
+
+def replace_rgb_with_refraction_corrected(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path,
+                                          calibration_exp_yaml: Path, calibration_overridden: bool = False) -> None:
+    """Point path_rgb_0 of the experiment's rgb_exp csv at the sequence's refrax_0
+    corrected frames (<frame stem>.png) and replace the experiment's calibration_exp.yaml with the
+    artifact's calibration.yaml (the rgb_0 entry rewritten for the corrected pinhole camera). If
+    the .refrax_complete marker is missing, 'pixi run refrax-inference' is
+    triggered first (it resumes per frame). ts_mask_0 (ns)/path_mask_0 columns pointing at the
+    artifact's mask.png (1 = usable pixel; all ones for cropped artifacts, the invalid border for
+    --no-crop ones) are appended like mask2former's, unless the csv already has them. Only the
+    experiment's rgb_exp.csv and calibration_exp.yaml are rewritten - the sequence's own files are
+    left untouched."""
+    df = pd.read_csv(rgb_exp_csv)
+    if 'path_rgb_0' not in df.columns:
+        print_msg(SCRIPT_LABEL, f"refraction: no path_rgb_0 column in {rgb_exp_csv}; skipping", flag="error", verb='NONE')
+        return
+
+    folder = f"{REFRACTION_FOLDER_BASE}_0"
+    marker = sequence_path / folder / REFRACTION_COMPLETE_MARKER
+    if not marker.exists():
+        print_msg(SCRIPT_LABEL, f"refraction: corrected frames missing for {sequence_name}, running 'pixi run refrax-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+        # check=False: a capability that skips the sequence (missing frames, uncalibrated camera, ...) exits 0 with a
+        # warning, so the marker check below is the real test either way and gives one clear message.
+        subprocess.run(["pixi", "run", "-e", "refrax", "refrax-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=False)
+    artifact_yaml = sequence_path / folder / 'calibration.yaml'
+    if not marker.exists() or not artifact_yaml.exists():
+        print_msg(SCRIPT_LABEL, f"refraction: 'pixi run refrax-inference {dataset.dataset_name} {sequence_name}' did not produce {marker.parent} "
+                  f"(see its output above); cannot run {sequence_name} on refraction-corrected frames", flag="error", verb='NONE')
+        sys.exit(1)
+
+    metadata = {}
+    for line in marker.read_text().splitlines():
+        key, sep, value = line.partition(":")
+        if sep:
+            metadata[key.strip()] = value.strip()
+
+    df['path_rgb_0'] = [f"{folder}/{Path(p).stem}.png" for p in df['path_rgb_0']]
+    if 'path_rgb_1' in df.columns:
+        print_msg(SCRIPT_LABEL, f"refraction: only rgb_0 is refraction-corrected; {sequence_name}'s rgb_1 stream is left as is", flag="error", verb='NONE')
+    # Expose the validity mask like mask2former's masks (ts_mask_0 (ns)/path_mask_0, 1 = usable
+    # pixel): one mask.png shared by every frame, since the fixed-depth map is the same for all.
+    # For cropped artifacts it is all ones, but the columns are there whenever the baseline runs
+    # on corrected frames. An existing path_mask_0 (a real RGBD-style dataset mask) is kept.
+    if 'path_mask_0' in df.columns:
+        print_msg(SCRIPT_LABEL, f"refraction: {rgb_exp_csv.name} already has path_mask_0; leaving it untouched", verb='LOW')
+    else:
+        df['ts_mask_0 (ns)'] = df['ts_rgb_0 (ns)']
+        df['path_mask_0'] = f"{folder}/mask.png"
+    df.to_csv(rgb_exp_csv, index=False)
+
+    if calibration_overridden:
+        print_msg(SCRIPT_LABEL, f"refraction: 'calibration:' is also set, but the refraction-corrected camera replaces it in {calibration_exp_yaml.name} "
+                  f"(run the calibration capability on the corrected frames, or pass --calibration-yaml to refrax-inference, to combine them)", flag="error", verb='NONE')
+    shutil.copy(artifact_yaml, calibration_exp_yaml)
+    print_msg(SCRIPT_LABEL, f"refraction: path_rgb_0 -> {folder}/ (zoom={metadata.get('zoom')}, z0={metadata.get('z0')}, crop={metadata.get('crop')}), "
+              f"path_mask_0 -> {folder}/mask.png, {calibration_exp_yaml.name} replaced by {folder}/calibration.yaml for {sequence_name}", verb='LOW')
 
 def register_depth_stream(calibration_exp_yaml: Path, depth_folder: str, depth_factor: float) -> None:
     """Declare a generated depth stream on the rgb_0 camera entry of the experiment's

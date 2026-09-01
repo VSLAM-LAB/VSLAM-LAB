@@ -56,6 +56,7 @@ mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "ma
 fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"], solve-group = "fastfoundationstereo" }
 anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
+refrax = { features = ["refrax"], solve-group = "refrax" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
 ros2 = { features = ["ros2"], solve-group = "ros2" }
@@ -1272,6 +1273,36 @@ pandas = ">=2.3.3,<4"
 pyyaml = ">=6.0.2,<7"
 
 # ########################################################################################################################
+# ########################################################################################################################
+# refrax
+[feature.refrax]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.refrax.tasks]
+git-clone.cmd = "./git-clone.sh VSLAM-LAB Refrax Refrax"
+git-clone.outputs = ["Baselines/Refrax"]
+install = { cmd = "python Capabilities/refrax.py --prefetch", depends-on = ["git-clone"] }
+refrax-inference = { cmd = "python Capabilities/refrax.py", depends-on = ["install"] }
+
+[feature.refrax.dependencies]
+# Refrax (pure Python: numpy ray tracing + scipy map inversion/optimisation + opencv remap)
+python = "3.11.*"
+numpy = "*"
+scipy = "*"
+py-opencv = "*"
+pyyaml = "*"
+tqdm = "*"
+
+# What utilities.py imports at module level (the capability uses its sequence-target/CSV helpers)
+pandas = "*"
+pillow = "*"
+py7zr = "*"
+colorama = "*"
+cryptography = "*"
+huggingface_hub = "*"
+matplotlib = "*"
+
 # ########################################################################################################################
 # vpr-lab
 [feature.vpr-lab]

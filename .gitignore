@@ -40,6 +40,8 @@ Baselines/Depth-Anything-3
 Baselines/VPR-LAB
 Baselines/Fast-FoundationStereo
 Baselines/AnyCalib
+Baselines/Refrax
+Baselines/refraction_simulator
 
 path_constants.py
 configs/config_demo.yaml

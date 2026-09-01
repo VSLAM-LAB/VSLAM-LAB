@@ -270,7 +270,9 @@ def read_csv_rows(path: str | Path) -> tuple[list[str], list[list[str]]]:
         reader = csv.reader(f)
         header = next(reader)
         rows = [row for row in reader if row]
-    rows.sort(key=lambda row: int(row[0]))
+    # Timestamps are integer ns by convention, but some sequences carry float/sub-ns values
+    # (e.g. lizardisland): sort those as floats rather than crashing on int('739.4').
+    rows.sort(key=lambda row: int(row[0]) if row[0].lstrip("-").isdigit() else float(row[0]))
     return header, rows
 
 
