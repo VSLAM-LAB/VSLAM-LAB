@@ -313,9 +313,8 @@ opencv = { channel = "fontan" }
 ########################################################################################################################
 # colmap
 [feature.colmap]
-channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/uth-robotics"]
-#platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
-platforms = ["linux-64-cuda129"]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
 
 [feature.colmap.tasks]
 git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
@@ -328,26 +327,17 @@ scipy = "*"
 pandas = "*"
 sqlite = "*"
 tqdm = "*"
-#faiss = "1.10.*"
 faiss = "*"
 openimageio = "*"
 
-[feature.colmap.pypi-dependencies]
-# conda-forge opencv can't coexist with colmap-cudss: colmap-cudss pins openimageio 2.5.x,
-# whose only fmt>=12.1-compatible builds need ffmpeg 7 + openexr 3.4, a combination no
-# conda-forge libopencv build ships (they pair ffmpeg 7 with openexr 3.3, or ffmpeg 8 with
-# openexr 3.4). The pip wheel bundles its own libs and sidesteps the conflict.
-opencv-python-headless = "*"
-
 [feature.colmap.target.linux-64.dependencies]
-# colmap = {version="=4.1.0", build = "*cuda*" }
-colmap-cudss = {version="=4.1.1"}
+ colmap = {version="=4.1.1", build = "*cuda*" }
 
-# [feature.colmap.target.osx-arm64.dependencies]
-# colmap = "*"
+[feature.colmap.target.osx-arm64.dependencies]
+colmap = "*"
 
-# [feature.colmap.target.win-64.dependencies]
-# colmap = "*"
+[feature.colmap.target.win-64.dependencies]
+colmap = "*"
 
 ########################################################################################################################
 ########################################################################################################################
