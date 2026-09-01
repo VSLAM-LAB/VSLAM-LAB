@@ -27,7 +27,7 @@ target_resolution: [640, 480]
 # sequence_name = the export's own recording folder name, verbatim, so a new Pupil Cloud export
 # drops in unchanged.
 sequence_names:
-  - "2026-08-28_02-20-18-73da1a05"
+  - "2026-08-28_03-23-32-edb584f2"
 
 about:
   license: N/A (user-recorded data; Pupil Labs Neon hardware/software terms apply)
