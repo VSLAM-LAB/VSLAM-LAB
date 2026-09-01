@@ -15,7 +15,7 @@ platforms = [
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
-kill-all = { cmd = "pkill -f -e 'pixi|droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+kill-all = { cmd = "pkill -f -e 'droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
