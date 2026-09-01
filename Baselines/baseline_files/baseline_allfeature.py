@@ -83,10 +83,34 @@ class ALLFEATURE_baseline_dev(ALLFEATURE_baseline):
     def git_clone(self) -> None:
         super().git_clone()
         self.allfeature_download_segmentation_model()
+        self.allfeature_download_megaloc_model()
 
     def is_installed(self) -> tuple[bool, str]:
         is_installed = (self.baseline_path / 'bin' / 'vslamlab_allfeature_mono').is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
+
+    def allfeature_download_megaloc_model(self) -> None:
+        """MegaLoc ONNX + sidecar for the `vpr: megaloc` place-recognition backend
+        (exported by Thirdparty/MegaLoc-TensorRT/convert2onnx/export_megaloc.py; the
+        TensorRT engine is built from it on first run and cached next to it)."""
+        REPO_ID = "vslamlab/allfeature-vslamlab"
+        megaloc_files = [
+            "megaloc_322x322.onnx",
+            "megaloc_322x322.onnx.yaml"
+        ]
+
+        megaloc_folder = os.path.join(self.baseline_path, 'megaloc_models')
+        if not os.path.isdir(megaloc_folder):
+            print_msg(f"\n{SCRIPT_LABEL}", f"Download MegaLoc model files to: {megaloc_folder}",'info')
+            os.makedirs(megaloc_folder, exist_ok=True)
+
+        for megaloc_file in megaloc_files:
+
+            if os.path.isfile(os.path.join(megaloc_folder, megaloc_file)):
+                continue
+
+            print_msg(f"{SCRIPT_LABEL}", f"Download MegaLoc model file: {megaloc_file}",'info')
+            hf_hub_download(repo_id=REPO_ID, filename=megaloc_file, local_dir=megaloc_folder)
 
     def allfeature_download_segmentation_model(self) -> None:
         REPO_ID = "vslamlab/allfeature-vslamlab"
