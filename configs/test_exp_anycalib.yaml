@@ -1,4 +1,4 @@
-# Smoke test for 'calibration: anycalib' (Datasets/extra-files/run_anycalib.py): the baseline is
+# Smoke test for 'calibration: anycalib' (Capabilities/anycalib.py): the baseline is
 # handed a calibration_exp.yaml whose intrinsics come from <sequence>/anycalib/calibration.yaml
 # (generated on first use by 'pixi run calib-inference').
 test_exp_anycalib_allfeature-dev-mono:

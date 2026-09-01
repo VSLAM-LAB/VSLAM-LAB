@@ -1,5 +1,5 @@
 """
-Module: VSLAM-LAB - Datasets - extra-files - mask2former.py
+Module: VSLAM-LAB - Capabilities - mask2former.py
 - Author: Alejandro Fontan Villacampa
 - Assisted by: Claude (Sonnet 5, Fable 5)
 - Version: 1.1
@@ -16,7 +16,7 @@ path_rgb_1 -> mask2former_1, ...), each mask keeping the same filename as its so
 stream whose mask2former_<i>/.mask2former_complete marker already exists is skipped unless
 --overwrite is given.
 
-rgb.csv is never modified: like run_vpr.py's D.npy, the mask folders are a per-sequence artifact
+rgb.csv is never modified: like vpr.py's D.npy, the mask folders are a per-sequence artifact
 the run pipeline consumes - when an experiment sets 'segmentation: mask2former',
 create_rgb_exp_csv (Run/run_functions.py) appends ts_mask_<i> (ns)/path_mask_<i> columns to the
 per-experiment rgb_exp.csv (calling the 'mask-inference' pixi task first if the masks are
@@ -42,7 +42,7 @@ from PIL import Image
 from tqdm import tqdm
 from transformers import AutoImageProcessor, Mask2FormerForUniversalSegmentation
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from utilities import (

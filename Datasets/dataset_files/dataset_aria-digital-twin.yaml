@@ -39,7 +39,7 @@ depth_factor: 1000.0
 # adt_segmentation_0/adt_segmentation_1 hold ADT's own per-instance ground-truth segmentation
 # (segmentations.vrs), rectified the same way as rgb_0/rgb_1 and reduced to a binary static(1)/
 # dynamic(0) mask per pixel using each instance's own MotionType label (STATIC/DYNAMIC) - not a
-# class-name heuristic like Datasets/extra-files/mask2former.py. Same file convention as that
+# class-name heuristic like Capabilities/mask2former.py. Same file convention as that
 # script's mask2former_<i> output (uint8 "L" PNG, 1=static/0=dynamic, one file per rgb_<i> frame),
 # so ts_mask_<i>/path_mask_<i> columns are written straight into rgb.csv - 'segmentation: mask2former'
 # should not be set for this dataset in an experiment, since Run/run_functions.py would otherwise

@@ -1,5 +1,5 @@
 """
-Module: VSLAM-LAB - Datasets - extra-files - run_anycalib.py
+Module: VSLAM-LAB - Capabilities - anycalib.py
 - Author: Alejandro Fontan Villacampa
 - Assisted by: Claude (Fable 5)
 - Version: 1.0
@@ -65,7 +65,7 @@ import yaml
 from PIL import Image
 from tqdm import tqdm
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from utilities import (
@@ -109,7 +109,9 @@ def rgb_stream_indices(header: list[str]) -> list[int]:
 
 def import_anycalib():
     """AnyCalib is pure Python: import it straight from the git-clone rather than pip-installing
-    it into the environment."""
+    it into the environment. ANYCALIB_DIR goes to the front of sys.path on purpose: this file is
+    itself importable as a top-level 'anycalib' module when run as a script (sys.path[0] is
+    Capabilities/), so the upstream package must shadow it, not the other way round."""
     if not ANYCALIB_DIR.exists():
         print_warning(f"{ANYCALIB_DIR} not found - run 'pixi run -e anycalib install' first")
         sys.exit(1)

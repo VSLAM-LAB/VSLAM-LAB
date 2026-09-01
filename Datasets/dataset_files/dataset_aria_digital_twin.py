@@ -35,7 +35,7 @@ _RGB0_LABEL: Final = "camera-slam-left"
 _RGB1_LABEL: Final = "camera-slam-right"
 _IMU_LABEL: Final = "imu-left"
 
-# Folder/marker convention mirrors Datasets/extra-files/mask2former.py's mask2former_<i> output
+# Folder/marker convention mirrors Capabilities/mask2former.py's mask2former_<i> output
 # (uint8 "L" PNG, 1=static/0=dynamic, one file per rgb_<i> frame) so downstream consumers of
 # rgb_exp.csv can't tell the two apart - only the folder name says these came from ADT's own
 # ground-truth segmentation rather than a Mask2Former inference pass.

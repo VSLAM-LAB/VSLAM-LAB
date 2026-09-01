@@ -1,5 +1,5 @@
 """
-Module: VSLAM-LAB - Datasets - extra-files - run_vpr.py
+Module: VSLAM-LAB - Capabilities - vpr.py
 - Author: Alejandro Fontan Villacampa
 - Assisted by: Claude (Sonnet 5)
 - Version: 1.0
@@ -26,7 +26,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from path_constants import HUGGINGFACE_TOKEN

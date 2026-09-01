@@ -992,7 +992,7 @@ platforms = ["linux-64-cuda"]
 [feature.depth-anything.tasks]
 git-clone = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
 install = {cmd = 'pip install -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['git-clone']}
-depth-inference  = {cmd = 'python -m Utilities.depth-anything', depends-on = ['install']}
+depth-inference  = {cmd = 'python Capabilities/depth_anything.py', depends-on = ['install']}
 
 [feature.depth-anything.dependencies]
 # Torch libraries
@@ -1061,8 +1061,8 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.mask2former.tasks]
-install = "python Datasets/extra-files/mask2former.py --prefetch"
-mask-inference = { cmd = "python Datasets/extra-files/mask2former.py", depends-on = ["install"] }
+install = "python Capabilities/mask2former.py --prefetch"
+mask-inference = { cmd = "python Capabilities/mask2former.py", depends-on = ["install"] }
 
 [feature.mask2former.dependencies]
 # Torch / model libraries
@@ -1118,8 +1118,8 @@ platforms = ["linux-64-cuda"]
 [feature.fastfoundationstereo.tasks]
 git-clone.cmd = 'test -d Baselines/Fast-FoundationStereo || git clone https://github.com/NVlabs/Fast-FoundationStereo Baselines/Fast-FoundationStereo'
 git-clone.outputs = ["Baselines/Fast-FoundationStereo"]
-install = { cmd = "python Datasets/extra-files/fastfoundationstereo.py --prefetch", depends-on = ["git-clone"] }
-stereo-inference = { cmd = "python Datasets/extra-files/fastfoundationstereo.py", depends-on = ["install"] }
+install = { cmd = "python Capabilities/fastfoundationstereo.py --prefetch", depends-on = ["git-clone"] }
+stereo-inference = { cmd = "python Capabilities/fastfoundationstereo.py", depends-on = ["install"] }
 
 [feature.fastfoundationstereo.dependencies]
 # Torch / model libraries (Fast-FoundationStereo requirements.txt)
@@ -1179,8 +1179,8 @@ platforms = ["linux-64-cuda"]
 [feature.anycalib.tasks]
 git-clone.cmd = 'test -d Baselines/AnyCalib || git clone https://github.com/javrtg/AnyCalib Baselines/AnyCalib'
 git-clone.outputs = ["Baselines/AnyCalib"]
-install = { cmd = "python Datasets/extra-files/run_anycalib.py --prefetch", depends-on = ["git-clone"] }
-calib-inference = { cmd = "python Datasets/extra-files/run_anycalib.py", depends-on = ["install"] }
+install = { cmd = "python Capabilities/anycalib.py --prefetch", depends-on = ["git-clone"] }
+calib-inference = { cmd = "python Capabilities/anycalib.py", depends-on = ["install"] }
 
 [feature.anycalib.dependencies]
 # Torch / model libraries (AnyCalib: torch + what its camera fitting and DINOv2 backbone import)
@@ -1297,7 +1297,7 @@ setup.cwd = "Baselines/VPR-LAB"
 setup.depends-on = ["git-clone"]
 setup.outputs = ["Baselines/VPR-LAB/LightGlue", "Baselines/VPR-LAB/VPR-methods-evaluation"]
 
-vpr.cmd = "python Datasets/extra-files/run_vpr.py"
+vpr.cmd = "python Capabilities/vpr.py"
 vpr.depends-on = ["setup"]
 
 [feature.vpr-lab.dependencies]

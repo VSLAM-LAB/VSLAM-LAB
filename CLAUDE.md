@@ -31,6 +31,7 @@ There's no linter/formatter configured yet. `ruff` is a reasonable option if one
 - `Baselines/<Name>/` — actual third-party baseline source, cloned in by `install-baseline` at setup time; gitignored, not part of this repo's history.
 - `Datasets/dataset_files/*.py` + paired `.yaml` — one class per dataset, subclassing `DatasetVSLAMLAB`. `Datasets/extra-files/dataset_template.py`/`.yaml` is the starting template for a new dataset.
 - `configs/` — experiment YAMLs (`exp_*.yaml`, referencing a `Config:` block that lists dataset:sequence pairs, `NumRuns`, `Parameters`, `Module`) and sequence-list configs (`config_*.yaml`). `test_*` files here are test experiment configs, not pytest.
+- `Capabilities/` — per-sequence preprocessing capabilities (semantic masks, generated depth, estimated intrinsics, VPR distance matrix), one script + pixi environment each, writing artifacts next to the sequence data that `Run/run_functions.py` wires into an experiment via `Parameters:` keys. `Capabilities/README.md` is the contract they follow.
 - `Run/` — pipeline execution logic.
 - `Evaluate/` — metrics and evaluation logic.
 - `vslamlab_gui.py`, `vslamlab_utilities.py`, `utilities.py`, `path_constants.py` — CLI entry point and shared utilities at the repo root.

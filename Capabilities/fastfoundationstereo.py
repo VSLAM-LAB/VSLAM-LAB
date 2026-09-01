@@ -1,5 +1,5 @@
 """
-Module: VSLAM-LAB - Datasets - extra-files - fastfoundationstereo.py
+Module: VSLAM-LAB - Capabilities - fastfoundationstereo.py
 - Author: Alejandro Fontan Villacampa
 - Assisted by: Claude (Fable 5)
 - Version: 1.1
@@ -61,7 +61,7 @@ import torch
 import yaml
 from tqdm import tqdm
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from utilities import (

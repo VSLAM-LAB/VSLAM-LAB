@@ -329,7 +329,7 @@ def revert_csv_from_backup(csv_path: str | Path, *, keep_raw: bool = False) -> b
 # Shared CLI-argument resolver for tasks/scripts that operate on one or more dataset sequences
 # (downloading, running, evaluating, syncing groundtruth, etc). See CLAUDE.md's "Sequence-target
 # argument convention" for the shapes this supports; Datasets/extra-files/synch_gt.py is a
-# worked example of a task built on top of it. Only adopted by run_vpr.py/sample_vpr.py/
+# worked example of a task built on top of it. Only adopted by Capabilities/vpr.py, sample_vpr.py/
 # synch_gt.py so far - vslamlab_utilities.py's download_sequence/download_sequences/
 # download_dataset/download_datasets (and possibly other commands) still reinvent this problem
 # with their own narrower, more fragile argument shapes. TODO: migrate them onto this convention

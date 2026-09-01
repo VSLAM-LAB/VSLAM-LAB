@@ -50,7 +50,7 @@ from utilities import (
     sequence_rgb_csv, raw_path, read_csv_rows, write_csv_rows,
     ensure_raw_backup, overwrite_csv_with_backup, revert_csv_from_backup,
 )
-from run_vpr import sequence_d_matrix
+from Capabilities.vpr import sequence_d_matrix
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 print_info, print_warning = make_printers(SCRIPT_LABEL)
