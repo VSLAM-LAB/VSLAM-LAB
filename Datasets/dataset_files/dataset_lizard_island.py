@@ -2,8 +2,9 @@
 Module: VSLAM-LAB - Datasets - dataset_lizard_island.py
 - Author: Alejandro Fontan
 - Assisted by: Claude (Fable 5.1)
-- Version: 1.0
+- Version: 1.1
 - Created: 2026-09-02
+- Updated: 2026-09-03
 - License: GPLv3 License
 """
 
@@ -23,7 +24,7 @@ from PIL import Image, UnidentifiedImageError
 from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
-from utilities import compute_scaled_size, make_printers, write_csv_rows
+from utilities import compute_scaled_size, make_printers, scale_intrinsics, write_csv_rows
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 print_info, print_warning = make_printers(SCRIPT_LABEL)
@@ -37,6 +38,18 @@ _IMAGE_SUFFIXES: Final = frozenset({".jpg", ".jpeg"})
 _EXIF_IFD: Final = 0x8769
 _EXIF_DATETIME_ORIGINAL: Final = 0x9003  # "YYYY:MM:DD HH:MM:SS", camera local time
 _EXIF_SUBSEC_TIME_ORIGINAL: Final = 0x9291  # fractional-second digits, e.g. "1370" or " 280"
+
+# Camera calibration shared by all five captures (same GoPro HERO11 Black model and photo mode):
+# pinhole + radtan4 [k1, k2, p1, p2], self-calibrated with COLMAP on feb24_gp1 (2026-09-03). The
+# intrinsics are given at the *resized* frame size the calibration was run at (593x518 - what
+# compute_scaled_size gives for the 5568x4872 stills at target_resolution [640, 480]) and are
+# rescaled in create_calibration_yaml to whatever size the current target_resolution produces.
+_CALIBRATION_RESOLUTION: Final[tuple[int, int]] = (593, 518)  # (width, height)
+_CALIBRATION_FOCAL_LENGTH: Final[tuple[float, float]] = (373.55200001047257, 372.46950225699976)
+_CALIBRATION_PRINCIPAL_POINT: Final[tuple[float, float]] = (296.5, 259.0)
+_CALIBRATION_DISTORTION: Final[tuple[float, float, float, float]] = (
+    0.29363414812198091, 0.41721504621138134, -0.00020843765252784958, 0.0018989445323345231
+)
 
 # WGS84 ellipsoid, for the GPS -> local ENU groundtruth conversion.
 _WGS84_A: Final = 6378137.0
@@ -238,13 +251,21 @@ class LizardIslandDataset(DatasetVSLAMLAB):
         write_csv_rows(rgb_csv, ["ts_rgb_0 (ns)", "path_rgb_0"], rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        # No calibration exists for the GoPros - 'unknown' with zero intrinsics, no distortion.
+        # One shared pinhole + radtan4 calibration (see _CALIBRATION_* above). It describes the
+        # 593x518 resized frames; rescale it to the size the current target_resolution actually
+        # yields (a no-op at the default [640, 480]), and warn if rgb_0 disagrees with that (#99).
+        self._check_calibration_resolution(sequence_name)
+        focal_length, principal_point = scale_intrinsics(
+            _CALIBRATION_FOCAL_LENGTH, _CALIBRATION_PRINCIPAL_POINT, _CALIBRATION_RESOLUTION, self.target_resolution
+        )
         rgb: dict[str, Any] = {
             "cam_name": "rgb_0",
             "cam_type": "rgb",
-            "cam_model": "unknown",
-            "focal_length": [0.0, 0.0],
-            "principal_point": [0.0, 0.0],
+            "cam_model": "pinhole",
+            "distortion_type": "radtan4",
+            "distortion_coefficients": [float(v) for v in _CALIBRATION_DISTORTION],
+            "focal_length": focal_length,
+            "principal_point": principal_point,
             "fps": float(self.rgb_hz),
             "T_BS": np.eye(4),
         }
@@ -283,6 +304,21 @@ class LizardIslandDataset(DatasetVSLAMLAB):
         # campaign drive (the only full-resolution copy, with no remote source to re-download
         # from), and nothing else intermediate is written.
         return
+
+    def _check_calibration_resolution(self, sequence_name: str) -> None:
+        """Warn if the first rgb_0 frame's size differs from what the calibration is being scaled
+        to - the written intrinsics would then describe the wrong image size."""
+        rgb_path = self.rgb_path(sequence_name)
+        frames = sorted(p for p in rgb_path.iterdir() if p.suffix.lower() in _IMAGE_SUFFIXES) if rgb_path.is_dir() else []
+        if not frames:
+            return
+        expected_size = compute_scaled_size(_CALIBRATION_RESOLUTION, self.target_resolution)
+        with Image.open(frames[0]) as img:
+            if img.size != expected_size:
+                print_warning(
+                    f"{sequence_name}: {rgb_path.name}/{frames[0].name} is {img.size}, but the calibration is scaled "
+                    f"for {expected_size} - intrinsics may describe the wrong image size."
+                )
 
     def _is_excluded(self, sequence_name: str, name: str) -> bool:
         stem = _frame_stem(name)

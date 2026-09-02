@@ -6,10 +6,11 @@ dataset_name: lizard-island
 # the nominal fps written to calibration.yaml, never used to synthesize timestamps.
 rgb_hz: 2.0
 modes: ['mono']
-# No calibration exists for the GoPros (wide-FOV 5568x4872 stills with visible barrel distortion),
-# so calibration.yaml declares 'unknown' with zero intrinsics - same as the sweetcorals/sesoko
-# non-calibrated branch. Estimate intrinsics with the anycalib capability if a baseline needs them.
-cam_models: ['unknown']
+# The GoPros were never calibrated in the field; calibration.yaml carries a pinhole + radtan4
+# calibration self-calibrated with COLMAP on feb24_gp1 (2026-09-03), shared by all five captures
+# (same camera model and photo mode), given at the resized 593x518 frame size and rescaled to
+# whatever target_resolution produces - see _CALIBRATION in dataset_lizard_island.py.
+cam_models: ['radtan4']
 raw_formats: ['images']
 
 # All sequences are local data on the campaign drive - there is no remote source. raw_data_path is
@@ -52,12 +53,15 @@ sequence_names:
 # get_dataset('lizard-island').download_process('<sequence>')"` - which prunes the now-excluded
 # frames from rgb_0/ and rewrites rgb.csv/groundtruth.csv without resizing anything again.
 exclude_frames:
-  feb24_gp1:
-    - G0018313.JPG-G0018376.JPG
-    - G0026539.JPG-G0026574.JPG
-  mar24_gp1: []
-  mar24_gp2: []
-  sep24_gp1: []
+  feb24_gp1: []
+  mar24_gp1:
+  - G0011001.JPG-G0011047.JPG
+  - G0022878.JPG-G0022923.JPG
+  mar24_gp2:
+  - G00331274.JPG-G00331328.JPG
+  - G00336195.JPG-G00336233.JPG
+  sep24_gp1:
+  - G0041918.JPG-G0041996.JPG
   sep24_gp2: []
 
 about:
