@@ -90,10 +90,11 @@ class ALLFEATURE_baseline_dev(ALLFEATURE_baseline):
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
 
     def allfeature_download_megaloc_model(self) -> None:
-        """MegaLoc ONNX + sidecar for the `vpr: megaloc` place-recognition backend
-        (exported by Thirdparty/MegaLoc-TensorRT/convert2onnx/export_megaloc.py; the
-        TensorRT engine is built from it on first run and cached next to it)."""
-        REPO_ID = "vslamlab/allfeature-vslamlab"
+        """MegaLoc ONNX + sidecar for the `vpr: megaloc` place-recognition backend,
+        served by the placecell submodule (exported by its tools/export_megaloc.py;
+        the TensorRT engine is built from the ONNX on first run and cached next to
+        it)."""
+        REPO_ID = "vslamlab/megaloc-models"
         megaloc_files = [
             "megaloc_322x322.onnx",
             "megaloc_322x322.onnx.yaml"
