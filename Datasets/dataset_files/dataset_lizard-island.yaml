@@ -1,0 +1,85 @@
+dataset_name: lizard-island
+
+# GoPro HERO11 Black time-lapse photo mode: one still every 0.5 s (verified from EXIF
+# DateTimeOriginal/SubsecTimeOriginal across all five captures; the earlier student integration's
+# 10 Hz was wrong). rgb.csv carries each frame's real EXIF capture timestamp - this value is only
+# the nominal fps written to calibration.yaml, never used to synthesize timestamps.
+rgb_hz: 2.0
+modes: ['mono']
+# No calibration exists for the GoPros (wide-FOV 5568x4872 stills with visible barrel distortion),
+# so calibration.yaml declares 'unknown' with zero intrinsics - same as the sweetcorals/sesoko
+# non-calibrated branch. Estimate intrinsics with the anycalib capability if a baseline needs them.
+cam_models: ['unknown']
+raw_formats: ['images']
+
+# All sequences are local data on the campaign drive - there is no remote source. raw_data_path is
+# the entry point: the Serena_Mou_Data folder (its own README.md documents the layout:
+# LIRS_<Month>_<Year>/<Location>/<GoPro>/<1xxGOPRO>/G*.JPG, plus a per-image GPS csv of
+# image_name, latitude, longitude, height per GoPro). download_sequence_data symlinks each
+# sequence's GoPro camera folder to VSLAM-LAB-Benchmark/LIZARD-ISLAND/<sequence_name>/raw; the
+# create_* hooks read through that link, so the drive must be mounted while a sequence is processed.
+sequence_location: local
+raw_data_path: /media/alejandro/Elements/Serena_Mou_Data
+
+target_resolution: [640, 480]
+
+# <campaign><yy>_gp<N>: one sequence per GoPro capture (campaign month + year, GoPro number), all
+# over South Palfrey 1 reef at Lizard Island Research Station (LIRS). The Sep campaign folder is
+# named LIRS_Sep_25 on the drive, but its EXIF dates (2024-09-25/26) and the ASV telemetry date
+# both say September 2024 - hence sep24. Only frames captured on the survey day are kept (Sep GP1
+# also holds a 918-frame test session from the day before, Sep GP2 one stray frame); the mapping
+# from sequence to camera folder / GPS csv / survey date lives in dataset_lizard_island.py.
+#   feb24_gp1  LIRS_Feb_24/South_Palfrey_1/GoPro1   10629 frames, full GPS coverage - but noisy:
+#              ~14% of consecutive 0.5 s frames jump >10 m (mis-associated fixes in the source csv;
+#              every other capture is smooth), so treat its groundtruth with care
+#   mar24_gp1  LIRS_Mar_24/South_Palfrey_1/GoPro1   11922 frames, full GPS coverage
+#   mar24_gp2  LIRS_Mar_24/South_Palfrey_1/GoPro2    4960 frames, full GPS coverage
+#   sep24_gp1  LIRS_Sep_25/GP1                       9235 frames, GPS fix on ~83% of them
+#   sep24_gp2  LIRS_Sep_25/GP2                      14382 frames, GPS fix on ~85% of them
+sequence_names:
+  - feb24_gp1
+  - mar24_gp1
+  - mar24_gp2
+  - sep24_gp1
+  - sep24_gp2
+
+# Frames to leave out of a sequence (dropped from rgb_0/, rgb.csv and groundtruth.csv), per
+# sequence: corrupted stills, launch/recovery shots, etc. Each entry is either one GoPro file name
+# ("G0013195.JPG") or an inclusive range "<first>-<last>" of file names (GoPro numbering is
+# chronological, so a range is a contiguous stretch of frames). Case-insensitive; the .JPG
+# extension is optional. Editing this after a sequence has already been processed: re-run its
+# hooks - `pixi run -e vslamlab python3 -c "from Datasets.get_dataset import get_dataset;
+# get_dataset('lizard-island').download_process('<sequence>')"` - which prunes the now-excluded
+# frames from rgb_0/ and rewrites rgb.csv/groundtruth.csv without resizing anything again.
+exclude_frames:
+  feb24_gp1:
+    - G0018313.JPG-G0018376.JPG
+    - G0026539.JPG-G0026574.JPG
+  mar24_gp1: []
+  mar24_gp2: []
+  sep24_gp1: []
+  sep24_gp2: []
+
+about:
+  license: Private use only (for Alejandro Fontan Villacampa and Beverley Gorry, per the data folder's README) - not redistributable
+  summary: Lizard Island (Great Barrier Reef) coral-reef surveys of South Palfrey reef - 2 Hz GoPro HERO11 Black time-lapse stills from GoPros mounted under Floatyboats, with per-image GPS positioning as position-only groundtruth, across Feb/Mar/Sep 2024 campaigns
+  homepage: N/A
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Robot
+  authors:
+    - Serena Mou
+  access: N/A
+  publication: TODO
+  publication_url: TODO
+  year: 2024
+  bibtex_key: TODO
+  bibtex: TODO
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5.1)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-09-02
