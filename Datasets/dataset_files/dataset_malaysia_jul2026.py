@@ -2,14 +2,16 @@
 Module: VSLAM-LAB - Datasets - dataset_malaysia_jul2026.py
 - Author: Alejandro Fontan
 - Assisted by: Claude (Fable 5)
-- Version: 1.0
+- Version: 1.1
 - Created: 2026-08-25
+- Updated: 2026-09-03
 - License: GPLv3 License
 """
 
 from __future__ import annotations
 
 import os
+import re
 import shutil
 from pathlib import Path
 from typing import Any, Final
@@ -26,11 +28,17 @@ print_info, print_warning = make_printers(SCRIPT_LABEL)
 
 _IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
 
+# A base sequence is named p<platform>_s<survey> (p1_s01); its raw camera folders live on the
+# campaign drive (raw_data_path in the yaml) at p<platform>/s<survey>/syncd/<sequence_name>_C<N>.
+_SEQUENCE_NAME_RE: Final = re.compile(r"^(?P<platform>p\d+)_(?P<survey>s\d+)$")
+
 # The rig's three hardware-synchronized cameras, in rgb_0/rgb_1/rgb_2 order: camera _CAMERAS[i]
-# feeds rgb_<i>. Their inter-camera extrinsics were never calibrated, so calibration.yaml writes
+# feeds rgb_<i>, so C2 (the rig's central camera) is rgb_0, C1 is rgb_1 and C3 is rgb_2 (changed
+# 2026-09-03 from C1/C2/C3; sequences processed before then have C1 in rgb_0 and must be
+# regenerated). Their inter-camera extrinsics were never calibrated, so calibration.yaml writes
 # identity T_BS for every camera and the dataset only advertises 'mono' (on rgb_0) - rgb_1/rgb_2
 # ship alongside for whoever wants them, but no stereo mode is enabled.
-_CAMERAS: Final[tuple[str, ...]] = ("C1", "C2", "C3")
+_CAMERAS: Final[tuple[str, ...]] = ("C2", "C1", "C3")
 
 # Per-camera in-air Kalibr calibration (pinhole + radtan), transcribed from the campaign drive's
 # p1/calibration/inair/090726_land/C{1,2,3}/calibration-camchain.yaml. Kalibr's radtan
@@ -53,12 +61,14 @@ _CAMERA_CALIBRATIONS: Final[dict[str, dict[str, list[float]]]] = {
 }
 
 
-# "<base>_comb" sequences: the base sequence's three cameras interleaved into one rgb_0 (c1, c2,
-# c3 frames of each capture instant back to back), with C2's calibration. Built from the base sequence's already
-# resized rgb_0/rgb_1/rgb_2 (per-file relative symlinks, named c<N>_<ts>.png), so requesting a
-# *_comb sequence first pulls in its base sequence.
+# "<base>_comb" sequences: the base sequence's three cameras interleaved into one rgb_0 (the
+# frames of each capture instant back to back in rgb_0/rgb_1/rgb_2 order, i.e. c2, c1, c3), with
+# the rgb_0 camera's (C2's) calibration. Built from the base sequence's already resized
+# rgb_0/rgb_1/rgb_2 (per-file relative symlinks, named <camera>_<ts>.png with the hardware camera
+# name in lower case: c2_<ts>.png, c1_<ts>.png, c3_<ts>.png), so requesting a *_comb sequence first
+# pulls in its base sequence.
 _COMB_SUFFIX: Final = "_comb"
-_COMB_CALIBRATION_CAMERA: Final = "C2"
+_COMB_CALIBRATION_CAMERA: Final = _CAMERAS[0]
 
 
 def _is_comb(sequence_name: str) -> bool:
@@ -73,29 +83,58 @@ def _image_files(folder: Path) -> list[Path]:
     return sorted(p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in _IMAGE_SUFFIXES)
 
 
+def _comb_frame_name(cam_idx: int, frame_name: str) -> str:
+    """Name of a *_comb rgb_0 frame linked from rgb_<cam_idx>: '<camera>_<ts>.png' (e.g. c2_<ts>.png)."""
+    return f"{_CAMERAS[cam_idx].lower()}_{frame_name}"
+
+
+def _comb_frame_camera_index(frame_name: str) -> int:
+    """Inverse of _comb_frame_name: the rgb_<i> index the camera prefix of a *_comb frame maps to."""
+    return _CAMERAS.index(frame_name.split("_", 1)[0].upper())
+
+
 class MalaysiaJul2026Dataset(DatasetVSLAMLAB):
     """Malaysia July 2026 coral-reef transect survey dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "malaysia-jul2026") -> None:
         super().__init__(dataset_name)
 
-        # All sequences are local (scalar in the yaml) - there is no remote source to fetch from.
+        # All sequences are local (scalar in the yaml): the campaign drive is the only source,
+        # entered through raw_data_path.
         self.sequence_location = self.cfg["sequence_location"]
+        self.raw_data_path = Path(self.cfg["raw_data_path"])
 
     def download_sequence_data(self, sequence_name: str) -> None:
         if _is_comb(sequence_name):
-            # Pull in the base sequence (raw check + resize of all three cameras) first.
+            # Pull in the base sequence (raw links + resize of all three cameras) first.
             self.download_sequence(_base_sequence(sequence_name))
             return
 
-        missing = [self._raw_image_dir(sequence_name, cam) for cam in _CAMERAS]
-        missing = [raw_dir for raw_dir in missing if not raw_dir.is_dir()]
-        if not missing:
+        # One symlink per camera, skipping any already in place (a dangling one from an unmounted
+        # drive included - it points at the right place once the drive is back).
+        pending = [
+            (self._raw_image_dir(sequence_name, cam), self._drive_camera_dir(sequence_name, cam))
+            for cam in _CAMERAS
+        ]
+        pending = [(link, src) for link, src in pending if not (link.is_symlink() or link.exists())]
+        if not pending:
             return
-        print_info(
-            f"Sequence '{sequence_name}' is marked as 'local'. Please place (or symlink) its "
-            f"synchronized raw camera folders at: " + ", ".join(str(p) for p in missing)
-        )
+
+        missing = [src for _, src in pending if not src.is_dir()]
+        if missing:
+            print_info(
+                f"Sequence '{sequence_name}' is marked as 'local'. Its raw camera folders were not found at "
+                + ", ".join(str(src) for src in missing)
+                + f" - mount the campaign drive, or point raw_data_path in dataset_{self.dataset_name}.yaml "
+                f"at your copy of jul2026_malaysia."
+            )
+            return
+
+        self.sequence_path(sequence_name).mkdir(parents=True, exist_ok=True)
+        for link, src in pending:
+            # Absolute target on purpose: the raw data lives on an external drive, outside the
+            # benchmark folder, so a relative link would break if either were moved.
+            os.symlink(src.resolve(), link)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         if _is_comb(sequence_name):
@@ -109,7 +148,9 @@ class MalaysiaJul2026Dataset(DatasetVSLAMLAB):
             raw_dir = self._raw_image_dir(sequence_name, cam)
             if not raw_dir.is_dir():
                 raise FileNotFoundError(
-                    f"Raw frames for '{sequence_name}' camera {cam} not found at {raw_dir} (sequence marked as 'local')."
+                    f"Raw frames for '{sequence_name}' camera {cam} not found at {raw_dir} (sequence marked as "
+                    f"'local'): run download_sequence_data with the campaign drive mounted, and keep it mounted "
+                    f"while processing."
                 )
             self._resize_folder(raw_dir, rgb_dir, desc=f"    resizing images ({cam} -> {rgb_dir.name})")
 
@@ -147,7 +188,8 @@ class MalaysiaJul2026Dataset(DatasetVSLAMLAB):
         write_csv_rows(rgb_csv, header, rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        # A *_comb sequence has a single rgb_0 (the three cameras interleaved) calibrated with C2.
+        # A *_comb sequence has a single rgb_0 (the three cameras interleaved) calibrated with the
+        # rgb_0 camera's (C2's) intrinsics.
         cameras = [_COMB_CALIBRATION_CAMERA] if _is_comb(sequence_name) else list(_CAMERAS)
 
         rgb: list[dict[str, Any]] = []
@@ -184,9 +226,8 @@ class MalaysiaJul2026Dataset(DatasetVSLAMLAB):
 
     def remove_unused_files(self, sequence_name: str) -> None:
         # Deliberate no-op at every retention tier, including MINIMAL: the raw camera folders are
-        # user-placed local data (or symlinks onto the campaign drive) with no remote source -
-        # deleting them would permanently destroy the only full-resolution copy, with no
-        # re-download to recover from.
+        # symlinks onto the campaign drive (the only full-resolution copy, with no remote source to
+        # re-download from), and nothing else intermediate is written.
         return
 
     def _create_comb_rgb_folder(self, sequence_name: str) -> None:
@@ -199,23 +240,24 @@ class MalaysiaJul2026Dataset(DatasetVSLAMLAB):
             base_rgb_dir = self._rgb_dir(base, cam_idx)
             if not base_rgb_dir.is_dir():
                 raise FileNotFoundError(f"Base sequence folder {base_rgb_dir} missing - cannot build {sequence_name}")
-            for frame in tqdm(_image_files(base_rgb_dir), desc=f"    linking {base_rgb_dir.name} -> rgb_0 (c{cam_idx + 1}_*)"):
-                link = rgb_path / f"c{cam_idx + 1}_{frame.name}"
+            prefix = _comb_frame_name(cam_idx, "")
+            for frame in tqdm(_image_files(base_rgb_dir), desc=f"    linking {base_rgb_dir.name} -> rgb_0 ({prefix}*)"):
+                link = rgb_path / _comb_frame_name(cam_idx, frame.name)
                 # Relative target so the benchmark folder stays relocatable as a whole.
                 os.symlink(os.path.relpath(frame, rgb_path), link)
 
     def _create_comb_rgb_csv(self, sequence_name: str) -> None:
-        # Interleaved: the three cameras' frames of one capture instant follow each other
-        # (c1, c2, c3), then the next instant. c1 keeps the real capture timestamp; c2/c3 are
-        # placed 1/3 and 2/3 of the way towards the *next* capture instant, so the stream stays
-        # strictly increasing while tracking the sequence's real frame spacing (the last instant
-        # reuses the preceding gap). The original capture timestamp survives in the filename
-        # (c<N>_<ts>.png).
+        # Interleaved: the three cameras' frames of one capture instant follow each other in
+        # rgb_0/rgb_1/rgb_2 order (c2, c1, c3), then the next instant. The rgb_0 camera (c2) keeps
+        # the real capture timestamp; the rgb_1/rgb_2 cameras (c1/c3) are placed 1/3 and 2/3 of
+        # the way towards the *next* capture instant, so the stream stays strictly increasing
+        # while tracking the sequence's real frame spacing (the last instant reuses the preceding
+        # gap). The original capture timestamp survives in the filename (<camera>_<ts>.png).
         rgb_path = self.rgb_path(sequence_name)
         n_cams = len(_CAMERAS)
         by_ts: dict[int, dict[int, str]] = {}  # capture ts -> {camera index: filename}
         for frame in _image_files(rgb_path):
-            cam_idx = int(frame.name[1]) - 1  # c<N>_...
+            cam_idx = _comb_frame_camera_index(frame.name)  # <camera>_<ts>.png -> rgb_<i>
             by_ts.setdefault(int(frame.stem.split("_", 1)[1]), {})[cam_idx] = frame.name
 
         instants = sorted(by_ts)
@@ -239,9 +281,20 @@ class MalaysiaJul2026Dataset(DatasetVSLAMLAB):
         return self.sequence_path(sequence_name) / f"rgb_{cam_idx}"
 
     def _raw_image_dir(self, sequence_name: str, cam: str) -> Path:
-        """The user-placed raw folder of one camera inside this sequence's folder, named after
-        the source's own syncd folder: sequence 'p1_s01', camera 'C2' -> '<sequence_path>/p1_s01_C2'."""
+        """The symlink download_sequence_data drops inside this sequence's folder for one camera,
+        named after the source's own syncd folder: sequence 'p1_s01', camera 'C2' ->
+        '<sequence_path>/p1_s01_C2' (-> raw_data_path/p1/s01/syncd/p1_s01_C2)."""
         return self.sequence_path(sequence_name) / f"{sequence_name}_{cam}"
+
+    def _drive_camera_dir(self, sequence_name: str, cam: str) -> Path:
+        """One camera's raw folder on the campaign drive, derived from the sequence name:
+        'p1_s01', 'C2' -> raw_data_path/p1/s01/syncd/p1_s01_C2."""
+        match = _SEQUENCE_NAME_RE.match(sequence_name)
+        if match is None:
+            raise ValueError(
+                f"Unknown {self.dataset_name} sequence '{sequence_name}' - expected p<platform>_s<survey> (e.g. p1_s01)"
+            )
+        return self.raw_data_path / match["platform"] / match["survey"] / "syncd" / f"{sequence_name}_{cam}"
 
     def _resize_folder(self, raw_dir: Path, out_dir: Path, desc: str) -> None:
         out_dir.mkdir(parents=True, exist_ok=True)
