@@ -2,9 +2,9 @@
 Module: VSLAM-LAB - Capabilities - refrax.py
 - Author: Alejandro Fontan Villacampa
 - Assisted by: Claude (Fable 5)
-- Version: 1.0
+- Version: 1.1
 - Created: 2026-08-27
-- Updated: 2026-08-28
+- Updated: 2026-09-03
 - License: GPLv3 License
 
 Removes flat-port refraction from the rgb_0 frames of one or more underwater dataset sequences
@@ -17,13 +17,20 @@ sequence, both from Refrax's code (imported from Baselines/Refrax):
   1. core.find_best_scale.find_best_scale - the correction zoom (isotropic scale about the
      principal point) that keeps the corrected image at the original magnification, swept over
      --zoom-bounds; --zoom auto (default) takes the unconstrained optimum, --zoom in-bounds the
-     best zoom whose map keeps every valid pixel inside the original frame (what Refrax's own
-     remove_refraction.py applies), --zoom <float> skips the search. The sampled zoom -> RMSE
-     curve is written to zoom_sweep.csv.
-  2. remove_refraction.RefractionCorrector - the per-frame remap. With cropping (crop_valid_bbox
-     in the housing yaml, or --crop/--no-crop) every output is cropped to the largest all-valid
+     best zoom whose map keeps every valid pixel inside the original W x H frame (what Refrax's
+     own remove_refraction.py applies when its canvas fitting is off), --zoom <float> skips the
+     search. The sampled zoom -> RMSE curve is written to zoom_sweep.csv.
+  2. remove_refraction.RefractionCorrector - the per-frame remap. By default (fit_canvas in the
+     housing yaml, or --fit-canvas/--no-fit-canvas) the output canvas is sized to hold the WHOLE
+     corrected image: its W x H is the bounding box of the valid corrected region at z0 (larger
+     or smaller than the source, depending on the zoom) and the principal point moves by the
+     canvas origin, so nothing the zoomed map pushes outside the source frame is lost and no
+     empty border is kept; the corners the barrel-shaped valid region does not reach stay
+     invalid. --no-fit-canvas keeps the source W x H (the pre-2026-09 behaviour, where
+     --zoom in-bounds is the zoom that avoids clipping). With cropping (crop_valid_bbox in the
+     housing yaml, or --crop/--no-crop) every output is then cropped to the largest all-valid
      rectangle so no black border remains and mask.png is all ones; with --no-crop the full
-     frame is kept and mask.png (1 = valid pixel, 0 = outside the valid region, the mask2former
+     canvas is kept and mask.png (1 = valid pixel, 0 = outside the valid region, the mask2former
      convention) records the invalid border. mask.png is shared by every frame.
 
 Camera parameters come from the sequence's calibration.yaml (rgb_0 entry: focal_length,
@@ -45,9 +52,10 @@ Output is a per-sequence artifact: <sequence>/refrax_0/<frame stem>.png (3-chann
 PNG, one per rgb_0 frame), mask.png, zoom_sweep.csv, calibration.yaml and the
 .refrax_complete marker. calibration.yaml is the sequence's calibration.yaml with
 the rgb_0 entry replaced by the corrected camera - cam_model pinhole, focal_length scaled by the
-zoom, principal_point shifted by the crop offset, image_dimension of the written PNGs, no
-distortion fields - every other field and entry kept verbatim; the marker records every
-parameter the run used (zoom, z0, crop box, housing, source intrinsics) as 'key: value' lines.
+zoom, principal_point shifted by the canvas origin and the crop offset, image_dimension of the
+written PNGs, no distortion fields - every other field and entry kept verbatim; the marker records
+every parameter the run used (zoom, z0, canvas, crop box, housing, source intrinsics) as
+'key: value' lines.
 Frames whose PNG already exists are skipped, so an interrupted run resumes; a sequence whose
 marker exists is skipped unless --overwrite is given. Neither rgb.csv nor calibration.yaml of
 the sequence is ever modified: when an experiment sets 'refraction: refrax',
@@ -242,7 +250,7 @@ def patch_calibration_lines(lines: list[str], corrected: dict, comment: str) -> 
 def correct_pair(
     dataset_name: str, sequence_name: str, simulator, *,
     calibration_rel: str, intrinsics: str, housing: dict, z0: float, method: str,
-    zoom_spec: str, zoom_bounds: tuple[float, float], crop: bool, folder_base: str, overwrite: bool,
+    zoom_spec: str, zoom_bounds: tuple[float, float], crop: bool, fit_canvas: bool, folder_base: str, overwrite: bool,
     housing_source: str = "",
 ) -> None:
     rgb_csv = sequence_rgb_csv(dataset_name, sequence_name)
@@ -293,10 +301,15 @@ def correct_pair(
     find_best_scale, RefractionCorrector = simulator
     out_dir.mkdir(parents=True, exist_ok=True)
     zoom, zoom_mode, zoom_rmse = choose_zoom(find_best_scale, camera, housing, z0, zoom_spec, zoom_bounds, out_dir / ZOOM_SWEEP_FILE)
-    corrector = RefractionCorrector(camera, housing, method=method, z0=z0, zoom=zoom, crop_valid_bbox=crop)
+    if fit_canvas and zoom_mode == "in-bounds":
+        print_info(f"{dataset_name}:{sequence_name} - --zoom in-bounds with the canvas fitted to the corrected image: the in-bounds "
+                   f"constraint only matters with --no-fit-canvas; 'auto' is the natural choice here")
+    corrector = RefractionCorrector(camera, housing, method=method, z0=z0, zoom=zoom, crop_valid_bbox=crop, fit_canvas=fit_canvas)
     corrected = corrector.corrected_camera()
+    canvas = (f"canvas {corrector.out_W}x{corrector.out_H} at ({corrector.origin[0]:g}, {corrector.origin[1]:g}) of the source frame"
+              if fit_canvas else f"canvas {camera['W']}x{camera['H']} (source size)")
     print_info(f"{dataset_name}:{sequence_name} - {source}; in-air f=({camera['fx']:.2f}, {camera['fy']:.2f}); "
-               f"zoom={zoom:.4f} ({zoom_mode}{'' if zoom_rmse is None else f', rmse={zoom_rmse:.2f} px'}), z0={z0:g} m, {method}; "
+               f"zoom={zoom:.4f} ({zoom_mode}{'' if zoom_rmse is None else f', rmse={zoom_rmse:.2f} px'}), z0={z0:g} m, {method}; {canvas}; "
                f"corrected f=({corrected['fx']:.2f}, {corrected['fy']:.2f}) c=({corrected['cx']:.2f}, {corrected['cy']:.2f}) "
                f"{corrected['W']}x{corrected['H']}" + (f" (crop {[int(v) for v in corrector.crop_box]})" if crop else ""))
 
@@ -326,7 +339,9 @@ def correct_pair(
     header_idx = next((i for i, line in enumerate(calib_lines) if line.strip() == "---"), -1) + 1
     calib_lines[header_idx:header_idx] = [
         f"# rgb_0: refrax-corrected ({stamp}) - frames in {out_dir.name}/ are re-rendered as an in-air pinhole camera",
-        f"# (flat-port refraction removed, {method}, z0={z0:g} m, zoom={zoom:.4f}{', cropped to the valid region' if crop else ''});",
+        f"# (flat-port refraction removed, {method}, z0={z0:g} m, zoom={zoom:.4f}"
+        f"{', canvas fitted to the whole corrected image' if fit_canvas else ', clipped to the source frame'}"
+        f"{', cropped to the valid region' if crop else ''});",
         f"# cam_model/focal_length/principal_point/image_dimension replaced accordingly, distortion removed. Source: {source}.",
         "# Every other field is the sequence's original calibration.",
     ]
@@ -336,6 +351,8 @@ def correct_pair(
         ("zoom", f"{zoom:.6f}"), ("zoom_mode", zoom_mode),
         ("zoom_rmse_px", "" if zoom_rmse is None else f"{zoom_rmse:.4f}"),
         ("zoom_bounds", fmt_list(zoom_bounds)), ("z0", f"{z0:g}"), ("method", method),
+        ("fit_canvas", "true" if fit_canvas else "false"),
+        ("canvas", f"[{corrector.out_W}, {corrector.out_H}]"), ("canvas_origin", fmt_list(corrector.origin)),
         ("crop", "true" if crop else "false"), ("crop_box", [int(v) for v in corrector.crop_box] if corrector.crop_box else "null"),
         ("image_dimension", f"[{corrected['W']}, {corrected['H']}]"),
         ("focal_length", fmt_list([corrected["fx"], corrected["fy"]])),
@@ -351,10 +368,10 @@ def correct_pair(
 
 def resolve_housing(args: argparse.Namespace) -> dict:
     """Housing/correction settings: built-in fallbacks < the housing yaml (--housing-yaml, default
-    Refrax's configs/vslamlab.yaml: method:, housing:, correction: z0_fixed / crop_valid_bbox)
-    < explicit flags. Returns {housing, z0, method, crop, source}."""
+    Refrax's configs/vslamlab.yaml: method:, housing:, correction: z0_fixed / fit_canvas /
+    crop_valid_bbox) < explicit flags. Returns {housing, z0, method, crop, fit_canvas, source}."""
     housing = dict(DEFAULT_HOUSING)
-    settings = {"z0": DEFAULT_Z0, "method": "closed_form", "crop": True, "source": "built-in defaults"}
+    settings = {"z0": DEFAULT_Z0, "method": "closed_form", "crop": True, "fit_canvas": True, "source": "built-in defaults"}
     housing_yaml = Path(args.housing_yaml) if args.housing_yaml else DEFAULT_HOUSING_YAML
     if housing_yaml.exists():
         cfg = yaml.safe_load(housing_yaml.read_text()) or {}
@@ -362,6 +379,7 @@ def resolve_housing(args: argparse.Namespace) -> dict:
         corr = cfg.get("correction") or {}
         settings["z0"] = corr.get("z0_fixed", settings["z0"])
         settings["crop"] = bool(corr.get("crop_valid_bbox", settings["crop"]))
+        settings["fit_canvas"] = bool(corr.get("fit_canvas", settings["fit_canvas"]))
         settings["method"] = cfg.get("method", settings["method"])
         settings["source"] = str(housing_yaml)
     elif args.housing_yaml:
@@ -378,6 +396,8 @@ def resolve_housing(args: argparse.Namespace) -> dict:
         settings["method"] = args.method
     if args.crop is not None:
         settings["crop"] = args.crop
+    if args.fit_canvas is not None:
+        settings["fit_canvas"] = args.fit_canvas
     housing["n_port"] = [float(v) for v in housing["n_port"]]
     settings["z0"] = float(settings["z0"])
     settings["housing"] = housing
@@ -412,6 +432,11 @@ def main() -> None:
                              "whole valid image inside the frame) or a number")
     parser.add_argument("--zoom-bounds", type=float, nargs=2, default=DEFAULT_ZOOM_BOUNDS, dest="zoom_bounds", metavar=("MIN", "MAX"),
                         help=f"Zoom search interval for --zoom auto/in-bounds (default: {list(DEFAULT_ZOOM_BOUNDS)})")
+    parser.add_argument("--fit-canvas", action="store_true", default=None, dest="fit_canvas",
+                        help="Size the output canvas to the whole corrected image, shifting the principal point accordingly "
+                             "(default: the housing yaml's fit_canvas, true in Refrax's vslamlab.yaml)")
+    parser.add_argument("--no-fit-canvas", action="store_false", dest="fit_canvas",
+                        help="Keep the source W x H and clip whatever the zoomed map pushes outside it (pair with --zoom in-bounds)")
     parser.add_argument("--crop", action="store_true", default=None, dest="crop",
                         help="Crop every output to the largest all-valid rectangle (default: the housing yaml's crop_valid_bbox)")
     parser.add_argument("--no-crop", action="store_false", dest="crop",
@@ -432,7 +457,8 @@ def main() -> None:
     pairs = resolve_sequence_targets_or_exit(args, parser)
     settings = resolve_housing(args)
     print_info(f"housing/correction defaults from {settings['source']}: mu_w={settings['housing']['mu_w']}, rflat={settings['housing']['rflat']}, "
-               f"tglass={settings['housing']['tglass']}, z0={settings['z0']:g} m, method={settings['method']}, crop={settings['crop']}")
+               f"tglass={settings['housing']['tglass']}, z0={settings['z0']:g} m, method={settings['method']}, "
+               f"fit_canvas={settings['fit_canvas']}, crop={settings['crop']}")
     if args.zoom not in ("auto", "in-bounds"):
         try:
             float(args.zoom)
@@ -445,7 +471,7 @@ def main() -> None:
             dataset_name, sequence_name, simulator,
             calibration_rel=args.calibration_yaml, intrinsics=args.intrinsics, housing=settings["housing"], z0=settings["z0"],
             method=settings["method"], zoom_spec=args.zoom, zoom_bounds=tuple(args.zoom_bounds), crop=settings["crop"],
-            folder_base=args.folder_base, overwrite=args.overwrite, housing_source=settings["source"],
+            fit_canvas=settings["fit_canvas"], folder_base=args.folder_base, overwrite=args.overwrite, housing_source=settings["source"],
         )
 
 
