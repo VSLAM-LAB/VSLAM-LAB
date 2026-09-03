@@ -53,7 +53,11 @@ sequence_names:
 # get_dataset('lizard-island').download_process('<sequence>')"` - which prunes the now-excluded
 # frames from rgb_0/ and rewrites rgb.csv/groundtruth.csv without resizing anything again.
 exclude_frames:
-  feb24_gp1: []
+  feb24_gp1:
+  - G0018313.JPG-G0018376.JPG
+  - G0026539.JPG-G0026574.JPG
+  - G0028887.JPG-G0028942.JPG
+
   mar24_gp1:
   - G0011001.JPG-G0011047.JPG
   - G0022878.JPG-G0022923.JPG
