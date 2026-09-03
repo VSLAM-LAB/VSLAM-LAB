@@ -53,7 +53,11 @@ PNG, one per rgb_0 frame), mask.png, zoom_sweep.csv, calibration.yaml and the
 .refrax_complete marker. calibration.yaml is the sequence's calibration.yaml with
 the rgb_0 entry replaced by the corrected camera - cam_model pinhole, focal_length scaled by the
 zoom, principal_point shifted by the canvas origin and the crop offset, image_dimension of the
-written PNGs, no distortion fields - every other field and entry kept verbatim; the marker records
+written PNGs, distortion_type forced to radtan4 with distortion_coefficients all zero (the
+corrected image has no lens distortion left; explicit zero coefficients keep downstream
+consumers that branch on distortion_type/distortion_coefficients being present, e.g.
+Baselines/colmap/get_calibration.py, on an explicit camera model) - every other field and entry
+kept verbatim; the marker records
 every parameter the run used (zoom, z0, canvas, crop box, housing, source intrinsics) as
 'key: value' lines.
 Frames whose PNG already exists are skipped, so an interrupted run resumes; a sequence whose
@@ -209,9 +213,12 @@ def fmt_list(values) -> str:
 
 def patch_calibration_lines(lines: list[str], corrected: dict, comment: str) -> bool:
     """Replace the rgb_0 entry's camera model with the corrected pinhole camera: cam_model,
-    focal_length, principal_point and image_dimension rewritten (annotated), distortion lines
-    removed. Line-based, so the hand-formatted flow style and every other entry survive.
-    Returns False if there is no rgb_0 entry."""
+    focal_length, principal_point and image_dimension rewritten (annotated), distortion_type
+    forced to radtan4 with all-zero distortion_coefficients (the corrected image has no lens
+    distortion left, but downstream consumers that branch on distortion_type/distortion_coefficients
+    being present - e.g. Baselines/colmap/get_calibration.py - get an explicit camera model
+    instead of falling back to a bare cam_model line). Line-based, so the hand-formatted flow
+    style and every other entry survive. Returns False if there is no rgb_0 entry."""
     try:
         start = next(i for i, line in enumerate(lines) if "cam_name: rgb_0," in line or "cam_name: rgb_0}" in line)
         end = next(i for i in range(start, len(lines)) if lines[i].strip() == "}")
@@ -229,21 +236,27 @@ def patch_calibration_lines(lines: list[str], corrected: dict, comment: str) -> 
         "focal_length": fmt_list([corrected["fx"], corrected["fy"]]),
         "principal_point": fmt_list([corrected["cx"], corrected["cy"]]),
         "image_dimension": f"[{corrected['W']}, {corrected['H']}]",
+        "distortion_type": "radtan4",
+        "distortion_coefficients": fmt_list([0.0, 0.0, 0.0, 0.0]),
+    }
+    anchors = {
+        "cam_model": "cam_type",
+        "focal_length": "cam_model",
+        "principal_point": "focal_length",
+        "image_dimension": "principal_point",
+        "distortion_type": "image_dimension",
+        "distortion_coefficients": "distortion_type",
     }
     for key, value in replacements.items():
         idx = find(key)
-        new_line = f"{prefix(idx)}{key}: {value}, # refrax: {comment if key == 'focal_length' else 'corrected'}"
+        comment_text = comment if key == "focal_length" else ("zero (corrected)" if key.startswith("distortion") else "corrected")
+        new_line = f"{prefix(idx)}{key}: {value}, # refrax: {comment_text}"
         if idx is not None:
             lines[idx] = new_line
         else:
-            anchor = find("cam_type") if key == "cam_model" else find("cam_model")
+            anchor = find(anchors[key])
             lines.insert((anchor if anchor is not None else start) + 1, new_line)
             end += 1
-    for key in ("distortion_type", "distortion_coefficients"):
-        idx = find(key)
-        if idx is not None:
-            del lines[idx]
-            end -= 1
     return True
 
 
@@ -342,7 +355,8 @@ def correct_pair(
         f"# (flat-port refraction removed, {method}, z0={z0:g} m, zoom={zoom:.4f}"
         f"{', canvas fitted to the whole corrected image' if fit_canvas else ', clipped to the source frame'}"
         f"{', cropped to the valid region' if crop else ''});",
-        f"# cam_model/focal_length/principal_point/image_dimension replaced accordingly, distortion removed. Source: {source}.",
+        f"# cam_model/focal_length/principal_point/image_dimension replaced accordingly, distortion_type forced to radtan4 with "
+        f"distortion_coefficients all zero. Source: {source}.",
         "# Every other field is the sequence's original calibration.",
     ]
     (out_dir / CALIBRATION_FILE).write_text("\n".join(calib_lines).rstrip("\n") + "\n")
