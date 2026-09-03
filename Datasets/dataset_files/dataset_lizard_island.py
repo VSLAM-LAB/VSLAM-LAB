@@ -45,10 +45,10 @@ _EXIF_SUBSEC_TIME_ORIGINAL: Final = 0x9291  # fractional-second digits, e.g. "13
 # compute_scaled_size gives for the 5568x4872 stills at target_resolution [640, 480]) and are
 # rescaled in create_calibration_yaml to whatever size the current target_resolution produces.
 _CALIBRATION_RESOLUTION: Final[tuple[int, int]] = (593, 518)  # (width, height)
-_CALIBRATION_FOCAL_LENGTH: Final[tuple[float, float]] = (373.55200001047257, 372.46950225699976)
+_CALIBRATION_FOCAL_LENGTH: Final[tuple[float, float]] = (280.866165421, 280.052257336)
 _CALIBRATION_PRINCIPAL_POINT: Final[tuple[float, float]] = (296.5, 259.0)
 _CALIBRATION_DISTORTION: Final[tuple[float, float, float, float]] = (
-    0.29363414812198091, 0.41721504621138134, -0.00020843765252784958, 0.0018989445323345231
+    0.0, 0.0, 0.0, 0.0
 )
 
 # WGS84 ellipsoid, for the GPS -> local ENU groundtruth conversion.
