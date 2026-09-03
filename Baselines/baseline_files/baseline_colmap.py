@@ -16,9 +16,13 @@ class COLMAP_baseline(BaselineVSLAMLAB):
         # use_mask: 1 -> feature extraction honours the rgb csv's path_mask_<i> column when the run
         # pipeline provides one ('segmentation: mask2former', 'refraction: refrax', datasets that
         # ship masks); 0 -> masks ignored (see Baselines/colmap/colmap_matcher.sh).
+        # optimize_intrinsics: 1 -> bundle adjustment refines the camera intrinsics (focal length and
+        # distortion; the principal point stays fixed, as in COLMAP's default); 0 -> the intrinsics
+        # from the calibration yaml are kept fixed. Ignored (forced to 1) when the calibration model
+        # is 'unknown', since there are no intrinsics to keep (see Baselines/colmap/colmap_mapper.sh).
         default_parameters = {'verbose': 1, 'mode': 'mono', 'matcher_type': 'exhaustive',
                              'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap', 'rgb_max': 50000000,
-                             'use_mask': 0}
+                             'use_mask': 0, 'optimize_intrinsics': 1}
 
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
