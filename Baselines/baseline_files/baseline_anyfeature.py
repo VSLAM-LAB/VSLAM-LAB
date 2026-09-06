@@ -41,9 +41,6 @@ class ANYFEATURE_baseline(BaselineVSLAMLAB):
         super().fetch_source()
         self.anyfeature_download_vocabulary()
 
-    def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-
     def anyfeature_download_vocabulary(self) -> None: 
         REPO_ID = "fontan/anyfeature_vocabulary"
         vocabulary_files = [

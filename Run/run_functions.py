@@ -53,7 +53,7 @@ def get_rows(rows_idx, rgb_csv):
 #@ray.remote(num_gpus=1)
 def run_sequence(exp_it, exp, baseline, dataset, sequence_name, ablation=False):
     # Check baseline is installed
-    baseline.check_installation()
+    baseline.ensure_installed()
 
     run_time_start = time.time()
 

@@ -61,21 +61,22 @@ class BaselineVSLAMLAB(ABC):
     @abstractmethod
     def build_execute_command(self, exp_it, exp, dataset, sequence_name) -> str: ...
 
-    @abstractmethod
-    def is_installed(self) -> tuple[bool, str]: ...
-
-    def has_source(self) -> bool:
-        return (self.baseline_path / '.git').exists()
+    ####################################################################################################################
+    # Ensure Installed
+    def ensure_installed(self) -> None:
+        self.fetch_source()
+        self.install()
 
     def ensure_pixi_env(self) -> None:
-        """Solve and install the baseline's pixi env (non-frozen, so pixi.lock is refreshed if
-        pixi.toml changed) before the --frozen fetch-source/install tasks run in it. Runs once per process."""
         if self._pixi_env_ready:
             return
         print()
         print_msg(SCRIPT_LABEL, f"pixi initializing {self.label} environment")
-        subprocess.run(["pixi", "run", "-e", self.baseline_name, "echo", ""])
+        subprocess.run(["pixi", "install", "-e", self.baseline_name])
         self._pixi_env_ready = True
+
+    def has_source(self) -> bool:
+        return (self.baseline_path / '.git').exists()
 
     def fetch_source(self) -> None:
         if self.has_source():
@@ -91,10 +92,14 @@ class BaselineVSLAMLAB(ABC):
             print_msg(SCRIPT_LABEL, f"fetch source of {self.label} failed (see output above)", flag="error", verb='NONE')
             sys.exit(1)
 
-    ####################################################################################################################
-    # Auxiliary methods
+    def is_installed(self) -> tuple[bool, str]:
+        # Default for conda-package baselines (no `install` pixi task): the executable ships in the env, so having
+        # the source/settings checkout is all it takes. Baselines that build from source override this.
+        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
+
     def install(self) -> None:
-        if self.is_installed()[0]:
+        is_installed, _ = self.is_installed()
+        if is_installed:
             return
 
         self.ensure_pixi_env()
@@ -106,14 +111,13 @@ class BaselineVSLAMLAB(ABC):
         with open(log_file_path, 'w') as log_file:
             subprocess.run(["pixi", "run", "--frozen", "-e", self.baseline_name, "install", "-v"], stdout=log_file, stderr=log_file)
 
-        if not self.is_installed()[0]:
-            print_msg(SCRIPT_LABEL, f"install of {self.label} failed, see {log_file_path}", flag="error", verb='NONE')
+        is_installed, msg = self.is_installed()
+        if not is_installed:
+            print_msg(SCRIPT_LABEL, f"install of {self.label} failed ({msg}), see {log_file_path}", flag="error", verb='NONE')
             sys.exit(1)
 
-    def check_installation(self) -> None:
-        self.fetch_source()
-        self.install()
-
+    ####################################################################################################################
+    # Auxiliary methods
     def info_print(self) -> None:
         print(f'Name: {self.label}')
         is_installed, install_msg = self.is_installed()

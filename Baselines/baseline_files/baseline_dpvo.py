@@ -31,9 +31,6 @@ class DPVO_baseline(BaselineVSLAMLAB):
         super().fetch_source()
         self.dpvo_download_weights()
     
-    def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-
     def dpvo_download_weights(self) -> None: # Download dpvo.pth
         weights_pth = self.baseline_path / 'dpvo.pth'
         if not weights_pth.is_file():

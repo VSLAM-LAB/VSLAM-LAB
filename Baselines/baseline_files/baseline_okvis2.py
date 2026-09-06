@@ -25,9 +25,6 @@ class OKVIS2_baseline(BaselineVSLAMLAB):
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
 
-    def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-
 
 class OKVIS2_baseline_dev(OKVIS2_baseline):
     """OKVIS2-DEV helper for VSLAM-LAB Baselines."""

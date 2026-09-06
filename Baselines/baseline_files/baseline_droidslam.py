@@ -27,9 +27,6 @@ class DROIDSLAM_baseline(BaselineVSLAMLAB):
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
         
-    def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-    
 
 class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
     """DROID-SLAM-DEV helper for VSLAM-LAB Baselines."""

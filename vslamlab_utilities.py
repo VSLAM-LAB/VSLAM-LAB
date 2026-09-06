@@ -252,14 +252,10 @@ def download_datasets(dataset_names: list[str]) -> None:
 ##################################################################################################################################################
 ##################################################################################################################################################
 
-def install_baseline(baseline_name: list[str]) -> None:
-    baseline = get_baseline(baseline_name)
-    is_baseline_installed, _ = baseline.is_installed()
-    if not is_baseline_installed:
-        baseline.fetch_source()
-        baseline.install()
+def install_baseline(baseline_name: str) -> None:
+    get_baseline(baseline_name).ensure_installed()
 
-def install_baselines(baselines_to_install: str) -> None:
+def install_baselines(baselines_to_install: list[str]) -> None:
     for baseline_name in baselines_to_install:
         install_baseline(baseline_name)
 

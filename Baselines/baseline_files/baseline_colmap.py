@@ -40,9 +40,6 @@ class COLMAP_baseline(BaselineVSLAMLAB):
         if self.default_parameters['matcher_type'] == 'sequential':
             self.colmap_download_bag_of_words()
 
-    def is_installed(self) -> tuple[bool, str]:
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-
     def colmap_download_bag_of_words(self) -> None:
         files = [
             os.path.join(self.baseline_path, "vocab_tree_flickr100K_words1M.bin"),

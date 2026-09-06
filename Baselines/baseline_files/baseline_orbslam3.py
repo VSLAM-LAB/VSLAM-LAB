@@ -30,9 +30,6 @@ class ORBSLAM3_baseline(BaselineVSLAMLAB):
         super().fetch_source()
         self.orbslam2_download_vocabulary()
 
-    def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-    
     def orbslam2_download_vocabulary(self) -> None: # Download ORBvoc.txt
         vocabulary_folder = self.baseline_path / 'Vocabulary'
         vocabulary_txt = vocabulary_folder / 'ORBvoc.txt'

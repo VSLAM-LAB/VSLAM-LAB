@@ -29,9 +29,6 @@ class MAST3RSLAM_baseline(BaselineVSLAMLAB):
         super().fetch_source()
         self.mast3rslam_download_weights()
 
-    def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
-   
     def mast3rslam_download_weights(self) -> None: # Download checkpoints
         checkpoints_dir = self.baseline_path / 'checkpoints'
         os.makedirs(checkpoints_dir, exist_ok=True)

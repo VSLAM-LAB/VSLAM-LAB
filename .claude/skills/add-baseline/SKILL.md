@@ -8,7 +8,7 @@ Adding a baseline means creating a `BaselineVSLAMLAB` subclass, registering a pi
 1. **Implement the class**: create `Baselines/baseline_files/baseline_<name>.py`, subclassing `BaselineVSLAMLAB` (`Baselines/BaselineVSLAMLAB.py`). There is no template file for baselines — copy the closest existing baseline of similar type (e.g. `baseline_droidslam.py` for a learned/CUDA method, `baseline_orbslam2.py` for a classical feature-based method) and adapt it. At minimum implement the abstract hooks:
    - `__init__(self, baseline_name, baseline_folder, default_parameters='')` — set `baseline_path`, `settings_yaml`, labels/colors.
    - `build_execute_command(self, exp_it, exp, dataset, sequence_name)` — construct the shell command that runs the baseline on a sequence.
-   - `is_installed(self)` — check whether the baseline's environment/weights are already set up.
+   - `is_installed(self) -> tuple[bool, str]` — not abstract: the base default returns `has_source()`, which is right for conda-package baselines (no `install` pixi task; the executable ships in the env). A baseline that builds from source **must** override it to check a build artifact (e.g. `bin/<executable>`), otherwise a failed build is reported as installed.
 
 2. **Add a pixi feature** in `pixi.toml` for the baseline's dependencies (mirror `[feature.<name>]` blocks like `[feature.droidslam]`):
    - `[feature.<name>]` — channels/platforms (e.g. `platforms = ["linux-64-cuda"]` if it needs CUDA).
