@@ -1,120 +1,40 @@
 
-# exp_train_droid_droid_pth: # Original droid-slam
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: droid.pth
+exp_train_droid_pth: # Original droid-slam
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 6
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: droid.pth
 
-# exp_train_droid_droid_pth_rgbd: # Original droid-slam
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: rgbd
-#     upsample: 0
-#     verbose: 0
-#     weights: droid.pth
+exp_train_droid_eth_lr2e-5_ep8_092568_pth: # Overfitted to ETH(gt)
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 6
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/eth_lr2e-5_ep8_092568.pth
 
-#exp_train_droid_scratch_replica_pth: # Weights trained from scratch on REPLICA
-#  Config: config_train_droid.yaml
-#  Module: droidslam-dev
-#  NumRuns: 3
-#  Parameters:
-#    mode: mono
-#    upsample: 0
-#    verbose: 0
-#    weights: scratch_replica.pth
+exp_train_droid_eth_overfit_noaug_092568_pth: # Overfitted to ETH(gt) without augmentations
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 6
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/eth_overfit_noaug_092568.pth
 
-#exp_train_droid_replica_pth: # Weights trained from droid.pth on REPLICA
-#  Config: config_train_droid.yaml
-#  Module: droidslam-dev
-#  NumRuns: 3
-#  Parameters:
-#    mode: mono
-#    upsample: 0
-#    verbose: 0
-#    weights: replica.pth
-
-# exp_train_droid_eth_lr2e-5_ep8_pth: # Weights trained from eth.pth on ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/eth_lr2e-5_ep8.pth
-
-# exp_train_droid_eth_lr1e-5_ep8_092568_pth: # Weights trained from eth.pth on ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/eth_lr1e-5_ep8_092568.pth
-
-# exp_train_droid_eth_lr2e-5_ep12_138852_pth: # Weights trained from eth.pth on ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/eth_lr2e-5_ep12_138852.pth
-
-# exp_train_droid_eth_lr2e-5_ep4_046284_pth: # Weights trained from eth.pth on ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/eth_lr2e-5_ep4_046284.pth
-
-# exp_train_droid_eth_lr5e-5_ep8_092568_pth: # Weights trained from eth.pth on ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/eth_lr5e-5_ep8_092568.pth
-
-# exp_train_droid_eth_overfit_noaug_pth: # Overfit on ETH, no augmentation
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/eth_overfit_noaug_092568.pth
-
-# exp_train_droid_replica-eth_semi_w4-05_015996: # Semi-supervised REPLICA+ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: mono
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/replica-eth_semi_w4-05_015996.pth
-
-# exp_train_droid_replica-eth_semi_w4-05_015996_rgbd: # Semi-supervised REPLICA+ETH
-#   Config: config_train_droid.yaml
-#   Module: droidslam-dev
-#   NumRuns: 3
-#   Parameters:
-#     mode: rgbd
-#     upsample: 0
-#     verbose: 0
-#     weights: checkpoints/replica-eth_semi_w4-05_015996.pth
+exp_train_droid_replica-eth_semi_w4-05_015996_pth: # Fine-tuned on ETH(gt-free) and REPLICA(gt)
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 6
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/replica-eth_semi_w4-05_015996.pth
