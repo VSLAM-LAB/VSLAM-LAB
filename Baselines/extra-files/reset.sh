@@ -50,7 +50,6 @@ fi
 if $DO_BASELINES; then
     echo "Removing Baselines..."
     #rm -rf "$BASELINES_DIR"/*-DEV*
-    rm -rf "$BASELINES_DIR"/*git_clone_*
     rm -rf "$BASELINES_DIR"/AnyFeature-VSLAM
     rm -rf "$BASELINES_DIR"/colmap
     rm -rf "$BASELINES_DIR"/DPVO

@@ -196,7 +196,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.droidslam.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
 execute-mono = 'vslamlab_droidslam_mono'
 execute-rgbd = 'vslamlab_droidslam_rgbd'
 execute-stereo = 'vslamlab_droidslam_stereo'
@@ -214,7 +214,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.mast3rslam.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
 execute-mono = 'vslamlab_mast3rslam_mono'
 
 [feature.mast3rslam.dependencies]
@@ -231,7 +231,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.dpvo.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
+fetch-source = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
 execute-mono = 'vslamlab_dpvo_mono'
 
 [feature.dpvo.dependencies]
@@ -253,7 +253,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.monogs.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
+fetch-source = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
 execute-mono = 'vslamlab_monogs_mono'
 execute-rgbd = 'vslamlab_monogs_rgbd'
 
@@ -282,7 +282,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan", "tobiasrobotics"]
 platforms = ["linux-64", "osx-arm64", "win-64"]
 
 [feature.orbslam2.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/orbslam2-vslamlab Baselines/ORB-SLAM2'
+fetch-source = 'git clone https://huggingface.co/vslamlab/orbslam2-vslamlab Baselines/ORB-SLAM2'
 execute-mono = 'vslamlab_orbslam2_mono'
 execute-rgbd = 'vslamlab_orbslam2_rgbd'
 execute-stereo = 'vslamlab_orbslam2_stereo'
@@ -299,7 +299,7 @@ channels = ["fontan", "https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.anyfeature.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/anyfeature-vslamlab Baselines/AnyFeature-VSLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/anyfeature-vslamlab Baselines/AnyFeature-VSLAM'
 execute-mono = 'vslamlab_anyfeature_mono'
 
 [feature.anyfeature.dependencies]
@@ -319,7 +319,7 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
 
 [feature.colmap.tasks]
-git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
+fetch-source = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
 execute-mono = './Baselines/colmap/colmap_reconstruction.sh'
 
 [feature.colmap.dependencies]
@@ -349,7 +349,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/orbslam3-vslamlab Baselines/ORB-SLAM3'
+fetch-source = 'git clone https://huggingface.co/vslamlab/orbslam3-vslamlab Baselines/ORB-SLAM3'
 execute-mono = 'vslamlab_orbslam3_mono'
 execute-rgbd = 'vslamlab_orbslam3_rgbd'
 execute-stereo = 'vslamlab_orbslam3_stereo'
@@ -371,7 +371,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/okvis2-vslamlab Baselines/OKVIS2'
+fetch-source = 'git clone https://huggingface.co/vslamlab/okvis2-vslamlab Baselines/OKVIS2'
 execute-mono-vi = 'vslamlab_okvis2_mono_vi'
 
 [feature.okvis2.dependencies]
@@ -385,7 +385,7 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.pycuvslam.tasks]
-git-clone = './git-clone.sh VSLAM-LAB PyCuVSLAM-VSLAM-LAB PyCuVSLAM'
+fetch-source = './git-clone.sh VSLAM-LAB PyCuVSLAM-VSLAM-LAB PyCuVSLAM'
 install = { cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM" }
 execute-mono = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_mono.py',  cwd = 'Baselines/PyCuVSLAM' }
 execute-rgbd = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM' }
@@ -433,7 +433,7 @@ gradio = "==6.2.0"
 viser = "*"
 
 [feature.vggt.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
+fetch-source = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
 execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT" }
 
 ########################################################################################################################
@@ -455,7 +455,7 @@ pytorch-metric-learning = "*"
 nodeenv = "*"
 
 [feature.vggtslam.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
 execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
 
 ########################################################################################################################
@@ -559,7 +559,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.droidslam-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB DROID-SLAM-VSLAM-LAB DROID-SLAM-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB DROID-SLAM-VSLAM-LAB DROID-SLAM-DEV"
 install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
@@ -605,7 +605,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.mast3rslam-dev.tasks]
-git-clone = './git-clone.sh VSLAM-LAB MASt3R-SLAM-VSLAM-LAB MASt3R-SLAM-DEV'
+fetch-source = './git-clone.sh VSLAM-LAB MASt3R-SLAM-VSLAM-LAB MASt3R-SLAM-DEV'
 install = { cmd = "pip install -e thirdparty/mast3r --no-build-isolation && pip install -e thirdparty/in3d --no-build-isolation && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
 
 execute-mono = { cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV' }
@@ -662,7 +662,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.dpvo-dev.tasks]
-git-clone = './git-clone.sh VSLAM-LAB DPVO-VSLAM-LAB DPVO-DEV'
+fetch-source = './git-clone.sh VSLAM-LAB DPVO-VSLAM-LAB DPVO-DEV'
 install_DPViewer = { cmd = "pip install . --no-deps --no-build-isolation --use-pep517", cwd = "Baselines/DPVO-DEV/DPViewer" }
 install = { cmd = "pip install . --no-deps --no-build-isolation", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"] }
 execute-mono = { cmd = 'python vslamlab_dpvo_mono.py' ,cwd = 'Baselines/DPVO-DEV' }
@@ -711,7 +711,7 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.monogs-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
 install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization --no-deps --no-build-isolation", cwd = "Baselines/MonoGS-DEV" }
 execute-mono = { cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV" }
 execute-rgbd = { cmd = 'python vslamlab_monogs_rgbd.py', cwd = "Baselines/MonoGS-DEV" }
@@ -756,7 +756,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB ORB-SLAM2-VSLAM-LAB ORB-SLAM2-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB ORB-SLAM2-VSLAM-LAB ORB-SLAM2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB-SLAM2-DEV" }
@@ -780,7 +780,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64-cuda"]
 
 [feature.anyfeature-dev.tasks]
-git-clone = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
+fetch-source = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 
@@ -815,7 +815,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB ORB-SLAM3-VSLAM-LAB ORB-SLAM3-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB ORB-SLAM3-VSLAM-LAB ORB-SLAM3-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_orbslam3_mono",  cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam3_rgbd",  cwd = "Baselines/ORB-SLAM3-DEV" }
@@ -843,7 +843,7 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.okvis2-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB okvis2-VSLAM-LAB OKVIS2-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB okvis2-VSLAM-LAB OKVIS2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV" }
 execute-mono-vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
 
@@ -870,8 +870,8 @@ channels = ["https://prefix.dev/conda-forge" , "fontan"]
 platforms = ["linux-64"]
 
 [feature.vggtslam-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
-install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['git-clone']}
+fetch-source = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
+install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['fetch-source']}
 execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV" }
 
 [feature.vggtslam-dev.dependencies]
@@ -919,9 +919,9 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.lightglue.tasks]
-git-clone.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
-git-clone.cwd = 'Baselines'
-install = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['git-clone']}
+fetch-source.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
+fetch-source.cwd = 'Baselines'
+install = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['fetch-source']}
 
 [feature.lightglue.dependencies]
 # Core Libraries
@@ -968,7 +968,7 @@ platforms = ["linux-64-cuda"]
 # models are downloaded into the baseline folder and the execute tasks run from there.
 # GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
 # download task below fetches it into segmentation_models/ instead.
-git-clone = { cmd = "git clone https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+fetch-source = { cmd = "git clone https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
 download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
 download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
 download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
@@ -992,7 +992,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev
 platforms = ["linux-64-cuda"]
 
 [feature.allfeature-dev.tasks]
-git-clone = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV cleanup"
+fetch-source = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV cleanup"
 install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV"}
 execute-mono = { cmd = "pixi run execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-rgbd = { cmd = "pixi run execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
@@ -1010,8 +1010,8 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.depth-anything.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
-install = {cmd = 'pip install -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['git-clone']}
+fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
+install = {cmd = 'pip install -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source']}
 depth-inference  = {cmd = 'python Capabilities/depth_anything.py', depends-on = ['install']}
 
 [feature.depth-anything.dependencies]
@@ -1136,9 +1136,9 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.fastfoundationstereo.tasks]
-git-clone.cmd = 'test -d Baselines/Fast-FoundationStereo || git clone https://github.com/NVlabs/Fast-FoundationStereo Baselines/Fast-FoundationStereo'
-git-clone.outputs = ["Baselines/Fast-FoundationStereo"]
-install = { cmd = "python Capabilities/fastfoundationstereo.py --prefetch", depends-on = ["git-clone"] }
+fetch-source.cmd = 'test -d Baselines/Fast-FoundationStereo || git clone https://github.com/NVlabs/Fast-FoundationStereo Baselines/Fast-FoundationStereo'
+fetch-source.outputs = ["Baselines/Fast-FoundationStereo"]
+install = { cmd = "python Capabilities/fastfoundationstereo.py --prefetch", depends-on = ["fetch-source"] }
 stereo-inference = { cmd = "python Capabilities/fastfoundationstereo.py", depends-on = ["install"] }
 
 [feature.fastfoundationstereo.dependencies]
@@ -1197,9 +1197,9 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
 [feature.anycalib.tasks]
-git-clone.cmd = 'test -d Baselines/AnyCalib || git clone https://github.com/javrtg/AnyCalib Baselines/AnyCalib'
-git-clone.outputs = ["Baselines/AnyCalib"]
-install = { cmd = "python Capabilities/anycalib.py --prefetch", depends-on = ["git-clone"] }
+fetch-source.cmd = 'test -d Baselines/AnyCalib || git clone https://github.com/javrtg/AnyCalib Baselines/AnyCalib'
+fetch-source.outputs = ["Baselines/AnyCalib"]
+install = { cmd = "python Capabilities/anycalib.py --prefetch", depends-on = ["fetch-source"] }
 calib-inference = { cmd = "python Capabilities/anycalib.py", depends-on = ["install"] }
 
 [feature.anycalib.dependencies]
@@ -1309,9 +1309,9 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.refrax.tasks]
-git-clone.cmd = "./git-clone.sh VSLAM-LAB Refrax Refrax"
-git-clone.outputs = ["Baselines/Refrax"]
-install = { cmd = "python Capabilities/refrax.py --prefetch", depends-on = ["git-clone"] }
+fetch-source.cmd = "./git-clone.sh VSLAM-LAB Refrax Refrax"
+fetch-source.outputs = ["Baselines/Refrax"]
+install = { cmd = "python Capabilities/refrax.py --prefetch", depends-on = ["fetch-source"] }
 refrax-inference = { cmd = "python Capabilities/refrax.py", depends-on = ["install"] }
 
 [feature.refrax.dependencies]
@@ -1339,12 +1339,12 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.vpr-lab.tasks]
-git-clone.cmd = "./git-clone.sh VSLAM-LAB VPR-LAB VPR-LAB"
-git-clone.outputs = ["Baselines/VPR-LAB"]
+fetch-source.cmd = "./git-clone.sh VSLAM-LAB VPR-LAB VPR-LAB"
+fetch-source.outputs = ["Baselines/VPR-LAB"]
 
 setup.cmd = "pixi run setup"
 setup.cwd = "Baselines/VPR-LAB"
-setup.depends-on = ["git-clone"]
+setup.depends-on = ["fetch-source"]
 setup.outputs = ["Baselines/VPR-LAB/LightGlue", "Baselines/VPR-LAB/VPR-methods-evaluation"]
 
 vpr.cmd = "python Capabilities/vpr.py"

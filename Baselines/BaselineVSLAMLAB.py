@@ -4,7 +4,7 @@ Module: VSLAM-LAB - Baselines - BaselineVSLAMLAB.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.1
 - Created: 2024-07-12
-- Updated: 2026-08-25
+- Updated: 2026-09-06
 - License: GPLv3 License
 
 BaselineVSLAMLAB: A class to handle Visual SLAM baseline-related operations.
@@ -55,29 +55,41 @@ class BaselineVSLAMLAB(ABC):
         # Supported modes (set by each concrete baseline subclass)
         self.modes: list[str] = []
 
+        # Set once ensure_pixi_env has run in this process
+        self._pixi_env_ready: bool = False
+
     @abstractmethod
     def build_execute_command(self, exp_it, exp, dataset, sequence_name) -> str: ...
 
     @abstractmethod
-    def is_installed(self) -> bool: ...
+    def is_installed(self) -> tuple[bool, str]: ...
 
-    def is_cloned(self) -> bool:
-        return (self.baseline_path / '.git').is_dir()
+    def has_source(self) -> bool:
+        return (self.baseline_path / '.git').exists()
 
-    def git_clone(self) -> None:
-        if self.is_cloned():
+    def ensure_pixi_env(self) -> None:
+        """Solve and install the baseline's pixi env (non-frozen, so pixi.lock is refreshed if
+        pixi.toml changed) before the --frozen fetch-source/install tasks run in it. Runs once per process."""
+        if self._pixi_env_ready:
+            return
+        print()
+        print_msg(SCRIPT_LABEL, f"pixi initializing {self.label} environment")
+        subprocess.run(["pixi", "run", "-e", self.baseline_name, "echo", ""])
+        self._pixi_env_ready = True
+
+    def fetch_source(self) -> None:
+        if self.has_source():
             return
 
-        print(f"\n{SCRIPT_LABEL}pixi initializing {self.label}\033[0m environment")
-        pixi_update_command = f"pixi run -e {self.baseline_name} echo ''"
-        subprocess.run(pixi_update_command, shell=True)
+        self.ensure_pixi_env()
 
-        log_file_path = VSLAMLAB_BASELINES / f'git_clone_{self.baseline_name}.txt'
-        git_clone_command = f"pixi run --frozen -e {self.baseline_name} git-clone"
-        with open(log_file_path, 'w') as log_file:
-            print(f"\n{SCRIPT_LABEL}git clone {self.label}\033[0m : {self.baseline_path}")
-            print(f"{ws(6)} log file: {log_file_path}")
-            subprocess.run(git_clone_command, shell=True, stdout=log_file, stderr=log_file)
+        print()
+        print_msg(SCRIPT_LABEL, f"fetch source {self.label} : {self.baseline_path}")
+        subprocess.run(["pixi", "run", "--frozen", "-e", self.baseline_name, "fetch-source"])
+
+        if not self.has_source():
+            print_msg(SCRIPT_LABEL, f"fetch source of {self.label} failed (see output above)", flag="error", verb='NONE')
+            sys.exit(1)
 
     ####################################################################################################################
     # Auxiliary methods
@@ -85,15 +97,21 @@ class BaselineVSLAMLAB(ABC):
         if self.is_installed()[0]:
             return
 
+        self.ensure_pixi_env()
+
         log_file_path = self.baseline_path / f'install_{self.baseline_name}.txt'
-        install_command = f"pixi run --frozen -e {self.baseline_name} install -v"
+        print()
+        print_msg(SCRIPT_LABEL, f"install {self.label} : {self.baseline_path}")
+        print_msg(ws(6), f"log file: {log_file_path}")
         with open(log_file_path, 'w') as log_file:
-            print(f"\n{SCRIPT_LABEL}Installing {self.label}\033[0m : {self.baseline_path}")
-            print(f"{ws(6)} log file: {log_file_path}")
-            subprocess.run(install_command, shell=True, stdout=log_file, stderr=log_file)
+            subprocess.run(["pixi", "run", "--frozen", "-e", self.baseline_name, "install", "-v"], stdout=log_file, stderr=log_file)
+
+        if not self.is_installed()[0]:
+            print_msg(SCRIPT_LABEL, f"install of {self.label} failed, see {log_file_path}", flag="error", verb='NONE')
+            sys.exit(1)
 
     def check_installation(self) -> None:
-        self.git_clone()
+        self.fetch_source()
         self.install()
 
     def info_print(self) -> None:
@@ -105,8 +123,8 @@ class BaselineVSLAMLAB(ABC):
         else:
             print_msg(f"{ws(0)}", f"Installed:\033[93m {install_msg}\033[0m", verb='LOW')
 
-        is_cloned = self.is_cloned()
-        print(f"Path:\033[92m {self.baseline_path}\033[0m" if is_cloned else f"Path:\033[93m {self.baseline_path} (missing)\033[0m")
+        has_source = self.has_source()
+        print(f"Path:\033[92m {self.baseline_path}\033[0m" if has_source else f"Path:\033[93m {self.baseline_path} (missing)\033[0m")
         print(f'Modalities: {self.modes}')
         print(f'Default parameters: {self.get_default_parameters()}')
 

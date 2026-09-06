@@ -256,7 +256,7 @@ def install_baseline(baseline_name: list[str]) -> None:
     baseline = get_baseline(baseline_name)
     is_baseline_installed, _ = baseline.is_installed()
     if not is_baseline_installed:
-        baseline.git_clone()
+        baseline.fetch_source()
         baseline.install()
 
 def install_baselines(baselines_to_install: str) -> None:

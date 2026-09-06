@@ -37,12 +37,12 @@ class ANYFEATURE_baseline(BaselineVSLAMLAB):
 
         return command
 
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         self.anyfeature_download_vocabulary()
 
     def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
+        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
 
     def anyfeature_download_vocabulary(self) -> None: 
         REPO_ID = "fontan/anyfeature_vocabulary"

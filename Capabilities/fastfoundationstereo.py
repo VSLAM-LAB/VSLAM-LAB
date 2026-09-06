@@ -35,7 +35,7 @@ If a sample_vpr/synch_gt rgb_raw.csv backup exists, depth is generated from that
 frame list, so a downsampled rgb.csv still gets complete depth coverage.
 
 The Fast-FoundationStereo repo is cloned to Baselines/Fast-FoundationStereo by the feature's
-'git-clone' pixi task and the default checkpoint is fetched from NVIDIA's HuggingFace repo by
+'fetch-source' pixi task and the default checkpoint is fetched from NVIDIA's HuggingFace repo by
 --prefetch (the 'install' pixi task); the paper's alternative checkpoint sizes live on the
 authors' Google Drive and can be selected with --checkpoint. Requires a stereo calibration.yaml with two pinhole cameras (rgb_0,
 rgb_1) and radtan distortion (or none); fisheye/equidistant models are not supported.

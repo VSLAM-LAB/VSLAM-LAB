@@ -35,13 +35,13 @@ class COLMAP_baseline(BaselineVSLAMLAB):
             self.colmap_download_bag_of_words()
         return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
 
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         if self.default_parameters['matcher_type'] == 'sequential':
             self.colmap_download_bag_of_words()
 
     def is_installed(self) -> tuple[bool, str]:
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
+        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
 
     def colmap_download_bag_of_words(self) -> None:
         files = [

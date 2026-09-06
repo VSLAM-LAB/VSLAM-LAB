@@ -28,7 +28,7 @@ class DROIDSLAM_baseline(BaselineVSLAMLAB):
         return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
         
     def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
+        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
     
 
 class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
@@ -38,8 +38,8 @@ class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
         super().__init__(baseline_name = 'droidslam-dev', baseline_folder =  'DROID-SLAM-DEV')
         self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
         
-    def git_clone(self):
-        super().git_clone()
+    def fetch_source(self):
+        super().fetch_source()
         self.droidslam_download_weights()
         
     def is_installed(self) -> tuple[bool, str]:

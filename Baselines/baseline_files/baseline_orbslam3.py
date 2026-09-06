@@ -26,12 +26,12 @@ class ORBSLAM3_baseline(BaselineVSLAMLAB):
     def build_execute_command(self, exp_it, exp, dataset, sequence_name):
         return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
 
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         self.orbslam2_download_vocabulary()
 
     def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
+        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
     
     def orbslam2_download_vocabulary(self) -> None: # Download ORBvoc.txt
         vocabulary_folder = self.baseline_path / 'Vocabulary'

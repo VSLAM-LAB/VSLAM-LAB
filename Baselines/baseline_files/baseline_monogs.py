@@ -23,7 +23,7 @@ class MONOGS_baseline(BaselineVSLAMLAB):
         return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
         
     def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
+        return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
         
 
 class MONOGS_baseline_dev(MONOGS_baseline):

@@ -82,8 +82,8 @@ One feature + environment per capability in `pixi.toml`, named after it:
 <name> = { features = ["<name>", "cuda126", "py11"], solve-group = "<name>" }
 
 [feature.<name>.tasks]
-git-clone = ...                                              # only if the upstream repo is imported from Baselines/<Upstream>/
-install = { cmd = "python Capabilities/<name>.py --prefetch", depends-on = ["git-clone"] }
+fetch-source = ...                                              # only if the upstream repo is imported from Baselines/<Upstream>/
+install = { cmd = "python Capabilities/<name>.py --prefetch", depends-on = ["fetch-source"] }
 <task> = { cmd = "python Capabilities/<name>.py", depends-on = ["install"] }
 ```
 

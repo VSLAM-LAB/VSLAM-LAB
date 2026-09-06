@@ -38,7 +38,7 @@ when an experiment sets 'calibration: anycalib' (create_calibration_exp_yaml,
 Run/run_functions.py), calling the 'calib-inference' pixi task first if the artifact is missing.
 A sequence whose anycalib/calibration.yaml already exists is skipped unless --overwrite is given.
 
-The AnyCalib repo is cloned to Baselines/AnyCalib by the feature's 'git-clone' pixi task (it is
+The AnyCalib repo is cloned to Baselines/AnyCalib by the feature's 'fetch-source' pixi task (it is
 pure Python, so it is imported from there rather than pip-installed) and the pretrained weights
 are fetched from the authors' GitHub release into the torch hub cache by --prefetch (the
 'install' pixi task).
