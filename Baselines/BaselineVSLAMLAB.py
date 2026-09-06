@@ -93,8 +93,6 @@ class BaselineVSLAMLAB(ABC):
             sys.exit(1)
 
     def is_installed(self) -> tuple[bool, str]:
-        # Default for conda-package baselines (no `install` pixi task): the executable ships in the env, so having
-        # the source/settings checkout is all it takes. Baselines that build from source override this.
         return (True, 'is installed') if self.has_source() else (False, 'not installed (conda package available)')
 
     def install(self) -> None:
