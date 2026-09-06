@@ -1,9 +1,5 @@
-import os.path
-import pandas as pd
 from pathlib import Path
-from huggingface_hub import hf_hub_download
 
-from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
 from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
@@ -15,8 +11,9 @@ class ALLFEATURE_baseline(BaselineVSLAMLAB):
 
     def __init__(self, baseline_name: str = 'allfeature', baseline_folder: str = 'AllFeature-VSLAM') -> None:
 
+        # No Bag-of-Words vocabulary parameter: place recognition goes through the `vpr`
+        # backend configured in the settings yaml (MegaLoc / none).
         default_parameters = {'verbose': 1, 'mode': 'mono',
-                              'vocabulary_folder': str(VSLAMLAB_BASELINES / baseline_folder / 'allfeature_vocabulary'),
                               'feature': 'akaze61',
                               'feature_yaml': str(VSLAMLAB_BASELINES / baseline_folder / 'settings' / 'feature_name_to_fill_settings.yaml')}
 
@@ -37,40 +34,18 @@ class ALLFEATURE_baseline(BaselineVSLAMLAB):
 
         return command
 
-    def git_clone(self) -> None:
-        super().git_clone()
-        self.allfeature_download_vocabulary()
-
     def is_installed(self) -> tuple[bool, str]:
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
-
-    def allfeature_download_vocabulary(self) -> None:
-        REPO_ID = "fontan/anyfeature_vocabulary"
-        vocabulary_files = [
-            "ORBvoc.txt",
-            "Akaze61_DBoW2_voc.txt",
-            "Brisk_DBoW2_voc.txt",
-            "Surf64_DBoW2_voc.txt",
-            "Sift128_DBoW2_voc.txt",
-            "Kaze64_DBoW2_voc.txt",
-            "R2d2_DBoW2_voc.txt"
-        ]
-
-        vocabulary_folder = os.path.join(self.baseline_path, 'allfeature_vocabulary')
-        if not os.path.isdir(vocabulary_folder):
-            print_msg(f"\n{SCRIPT_LABEL}", f"Download vocabulary files to: {vocabulary_folder}",'info')
-            os.makedirs(vocabulary_folder, exist_ok=True)
-
-        for vocabulary_file in vocabulary_files:
-
-            if os.path.isfile(os.path.join(vocabulary_folder, vocabulary_file)):
-                continue
-
-            print_msg(f"{SCRIPT_LABEL}", f"Download vocabulary file: {vocabulary_file}",'info')
-            dataset = pd.read_csv(
-                hf_hub_download(repo_id=REPO_ID, filename=vocabulary_file, repo_type="dataset")
-            )
-            dataset.to_csv(os.path.join(vocabulary_folder, vocabulary_file), sep='\t', index=False)
+        # The conda package provides the executables; "installed" means the baseline folder holds
+        # the settings and the model folders (all resolved relative to the cwd by the executables),
+        # placed there by the `allfeature` pixi env's `install` task.
+        required = [self.settings_yaml,
+                    self.baseline_path / 'lightglue_models' / 'aliked-n16.pt',
+                    self.baseline_path / 'superpoint_models' / 'superpoint_v1_fixed.onnx',
+                    self.baseline_path / 'megaloc_models' / 'megaloc_322x322.onnx',
+                    self.baseline_path / 'segmentation_models' / 'efficientvit-seg-l1-ade20k_512x512.onnx']
+        if all(f.is_file() for f in required):
+            return True, 'is installed'
+        return False, 'not installed (conda package; auto install downloads settings and models)'
 
 
 class ALLFEATURE_baseline_dev(ALLFEATURE_baseline):
@@ -80,55 +55,6 @@ class ALLFEATURE_baseline_dev(ALLFEATURE_baseline):
         super().__init__(baseline_name = 'allfeature-dev', baseline_folder = 'AllFeature-VSLAM-DEV')
         self.color = tuple(max(c / 1.0, 0.0) for c in self.color)
 
-    def git_clone(self) -> None:
-        super().git_clone()
-        self.allfeature_download_segmentation_model()
-        self.allfeature_download_megaloc_model()
-
     def is_installed(self) -> tuple[bool, str]:
         is_installed = (self.baseline_path / 'bin' / 'vslamlab_allfeature_mono').is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
-
-    def allfeature_download_megaloc_model(self) -> None:
-        """MegaLoc ONNX + sidecar for the `vpr: megaloc` place-recognition backend,
-        served by the placecell submodule (exported by its tools/export_megaloc.py;
-        the TensorRT engine is built from the ONNX on first run and cached next to
-        it)."""
-        REPO_ID = "vslamlab/megaloc-models"
-        megaloc_files = [
-            "megaloc_322x322.onnx",
-            "megaloc_322x322.onnx.yaml"
-        ]
-
-        megaloc_folder = os.path.join(self.baseline_path, 'megaloc_models')
-        if not os.path.isdir(megaloc_folder):
-            print_msg(f"\n{SCRIPT_LABEL}", f"Download MegaLoc model files to: {megaloc_folder}",'info')
-            os.makedirs(megaloc_folder, exist_ok=True)
-
-        for megaloc_file in megaloc_files:
-
-            if os.path.isfile(os.path.join(megaloc_folder, megaloc_file)):
-                continue
-
-            print_msg(f"{SCRIPT_LABEL}", f"Download MegaLoc model file: {megaloc_file}",'info')
-            hf_hub_download(repo_id=REPO_ID, filename=megaloc_file, local_dir=megaloc_folder)
-
-    def allfeature_download_segmentation_model(self) -> None:
-        REPO_ID = "vslamlab/allfeature-vslamlab"
-        segmentation_files = [
-            "efficientvit-seg-l1-ade20k_512x512.onnx",
-            "efficientvit-seg-l1-ade20k_512x512.onnx.classes.yaml"
-        ]
-
-        segmentation_folder = os.path.join(self.baseline_path, 'segmentation_models')
-        if not os.path.isdir(segmentation_folder):
-            print_msg(f"\n{SCRIPT_LABEL}", f"Download segmentation model files to: {segmentation_folder}",'info')
-            os.makedirs(segmentation_folder, exist_ok=True)
-
-        for segmentation_file in segmentation_files:
-
-            if os.path.isfile(os.path.join(segmentation_folder, segmentation_file)):
-                continue
-
-            print_msg(f"{SCRIPT_LABEL}", f"Download segmentation model file: {segmentation_file}",'info')
-            hf_hub_download(repo_id=REPO_ID, filename=segmentation_file, local_dir=segmentation_folder)

@@ -35,6 +35,7 @@ Baselines/glomap
 Baselines/LightGlue
 Baselines/VGGT-SLAM-DEV
 Baselines/VGGT-SLAM
+Baselines/AllFeature-VSLAM
 Baselines/AllFeature-VSLAM-DEV
 Baselines/Depth-Anything-3
 Baselines/VPR-LAB

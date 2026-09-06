@@ -31,6 +31,7 @@ dpvo = { features = ["dpvo", "cuda126", "py11"], solve-group = "droid" }
 monogs = { features = ["monogs"], solve-group = "monogs" }
 orbslam2 = { features = ["orbslam2"], solve-group = "orb" }
 anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
+allfeature = { features = ["allfeature"] }
 colmap = { features = ["colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"], solve-group = "orb" }
 okvis2 = { features = ["okvis2"], solve-group = "okvis" }
@@ -957,6 +958,34 @@ timm = ">=1.0.15,<2"
 
 ########################################################################################################################
 ########################################################################################################################
+# allfeature (conda package `allfeature-vslamlab`, fontan channel; TensorRT packages from spqr-tests)
+[feature.allfeature]
+channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev/spqr-tests"]
+platforms = ["linux-64-cuda"]
+
+[feature.allfeature.tasks]
+# The executables resolve `megaloc_models/` and `segmentation_models/` relative to their cwd, so the
+# models are downloaded into the baseline folder and the execute tasks run from there.
+# GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
+# download task below fetches it into segmentation_models/ instead.
+git-clone = { cmd = "git clone https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
+download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
+download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
+download-lightglue-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'lightglue_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/lightglue_models/*.pt"] }
+# Settings shipped inside the conda package fill in whatever the HF clone does not provide (cp -n: never overwrite)
+copy-package-settings = { cmd = "bash -c 'mkdir -p Baselines/AllFeature-VSLAM/settings && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/settings/*.yaml Baselines/AllFeature-VSLAM/settings/ && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/vslamlab_allfeature-dev_settings.yaml Baselines/AllFeature-VSLAM/vslamlab_allfeature_settings.yaml'" }
+install = { cmd = "ls Baselines/AllFeature-VSLAM", depends-on = ["download-megaloc-models", "download-segmentation-models", "download-superpoint-models", "download-lightglue-models", "copy-package-settings"] }
+execute-mono = { cmd = "vslamlab_allfeature_mono", cwd = "Baselines/AllFeature-VSLAM" }
+execute-rgbd = { cmd = "vslamlab_allfeature_rgbd", cwd = "Baselines/AllFeature-VSLAM" }
+stream = { cmd = "vslamlab_allfeature_mono_stream", cwd = "Baselines/AllFeature-VSLAM" }
+
+[feature.allfeature.dependencies]
+allfeature = { channel = "fontan" }
+cuda-version = "12.6.*"   # the package is compiled against the cuda126 libtorch build; without the pin the solver picks cuda129
+
+########################################################################################################################
+########################################################################################################################
 # allfeature-dev
 [feature.allfeature-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev/spqr-tests"]
@@ -964,7 +993,7 @@ platforms = ["linux-64-cuda"]
 
 [feature.allfeature-dev.tasks]
 git-clone = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV cleanup"
-install = { cmd = "pixi run build", cwd = "Baselines/AllFeature-VSLAM-DEV"}
+install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV"}
 execute-mono = { cmd = "pixi run execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-rgbd = { cmd = "pixi run execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 
