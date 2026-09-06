@@ -1,6 +1,5 @@
 # Baselines/BaselineVSLAMLAB.py
 
-
 **Section:** [`# Ensure Installed`](BaselineVSLAMLAB.py#L65)
 ```mermaid
 flowchart LR
