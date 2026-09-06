@@ -10,7 +10,9 @@
       "Edit(**)",
       "Write(//home/alejandro/VSLAM-LAB-Benchmark/**)",
       "Edit(//home/alejandro/VSLAM-LAB-Benchmark/**)",
-      "Bash(*)"
+      "Bash(*)",
+      "Write(//home/alejandro/VSLAM-LAB-Evaluation/**)",
+      "Edit(//home/alejandro/VSLAM-LAB-Evaluation/**)"
     ],
     "deny": [
       "Bash(git push *)",
@@ -26,6 +28,26 @@
       "Read(//home/alejandro/.ssh/**)",
       "Read(//home/alejandro/.aws/**)",
       "Read(//home/alejandro/.config/gh/**)"
+    ],
+    "additionalDirectories": [
+      "/home/alejandro/VSLAM-LAB-Benchmark",
+      "/home/alejandro/VSLAM-LAB-Evaluation",
+      "/tmp/claude-1001/-home-alejandro-VSLAM-LAB"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block_unparseable_bash.py",
+            "timeout": 10,
+            "statusMessage": "Checking Bash command for $(...) / backticks / eval"
+          }
+        ]
+      }
     ]
   }
 }
