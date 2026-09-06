@@ -224,7 +224,7 @@ class TemplateDataset(DatasetVSLAMLAB):
         # WARNINGS
         # - Symlinked raw folder: MINIMAL's "delete un-resized raw images" clause only applies
         #   when create_rgb_folder copied those images into place (e.g. HFColmapDatasetMixin's
-        #   rgb_0_raw/, disposable precisely because it's a copy). If create_rgb_folder instead
+        #   rgb_<i>_raw/, disposable precisely because it's a copy). If create_rgb_folder instead
         #   symlinks rgb_0/depth_0/rgb_1 directly onto the raw source folder (Model:
         #   dataset_openloris.py, dataset_ut_coda.py's 2d_rect/), that raw folder must never be
         #   deleted at *any* retention tier, including MINIMAL — doing so leaves the standardized

@@ -8,6 +8,13 @@ raw_formats: ['images', 'colmap']
 hf_repo_id: "wildflow/soneva-corals"
 target_resolution: [640, 480]
 
+# <plot>_<yyyymmdd>: one survey of the two-GoPro rig, as two independent monocular streams - rgb_0
+# (LHS camera; what 'mono' runs on) plus rgb_1 (RHS camera) with its own rgb_1.csv, calibration
+# entry and groundtruth_1.csv. Not a stereo pair: unsynchronized shutters, no rig extrinsics.
+# <plot>_<yyyymmdd>_comb: the same survey with both cameras merged into one denser rgb_0 (RHS frames
+# warped into the rgb_0 intrinsics, both cropped to their common canvas, interleaved by a
+# groundtruth-estimated shutter offset) with a single rgb.csv / groundtruth.csv and the rgb_0
+# camera's calibration. Requesting a *_comb sequence pulls in (downloads/processes) its base survey.
 sequence_names:
   - hb_20250710
   - hb_20250728
@@ -32,6 +39,29 @@ sequence_names:
   - ootsr3_20250704
   - ootsr3_20251008
   - ootsr3_20260303
+  - hb_20250710_comb
+  - hb_20250728_comb
+  - hb_20251029_comb
+  - hb_20260304_comb
+  - ootbm_20250624_comb
+  - ootbm_20250703_comb
+  - ootbm_20251007_comb
+  - ootbr_20250709_comb
+  - ootbr_20250728_comb
+  - ootbr_20251029_comb
+  - ootbr_20260304_comb
+  - ootsl1_20250602_comb
+  - ootsl1_20250620_comb
+  - ootsl1_20251007_comb
+  - ootsl1_20260218_comb
+  - ootsr2_20250702_comb
+  - ootsr2_20250704_comb
+  - ootsr2_20251008_comb
+  - ootsr2_20260303_comb
+  - ootsr3_20250703_comb
+  - ootsr3_20250704_comb
+  - ootsr3_20251008_comb
+  - ootsr3_20260303_comb
 
 about:
   license: CC-BY-4.0
