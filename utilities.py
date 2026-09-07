@@ -1031,13 +1031,25 @@ def show_time(time_s):
     return f"{(time_s / 3600):.2f} hours"
 
 
+def _caller_location() -> str:
+    """'<file>:<line>' of the first frame outside this module, i.e. the print_msg/format_msg call site
+    (skips print_msg itself and the make_printers wrappers)."""
+    frame = sys._getframe(1)
+    while frame is not None and frame.f_code.co_filename == __file__:
+        frame = frame.f_back
+    return f"{Path(frame.f_code.co_filename).name}:{frame.f_lineno}" if frame is not None else ''
+
+
 def format_msg(script_label, msg, flag="info"):
     if flag == "info":
+        # the call site is appended (dimmed) only at HIGH verbosity, so normal runs keep the plain narration
+        if VerbosityManager[VSLAMLAB_VERBOSITY] >= VerbosityManager['HIGH']:
+            return f"{script_label}{msg} {Style.DIM}({_caller_location()}){Style.RESET_ALL}"
         return f"{script_label}{msg}"
-    elif flag == "warning":
-        return f"{script_label}{Fore.YELLOW} {msg} {Style.RESET_ALL}"
-    elif flag == "error":
-        return f"{script_label}{Fore.RED} {msg} {Style.RESET_ALL}"
+    # warning/error: one colour for the whole line; the file:line of the call site replaces script_label
+    color = Fore.LIGHTYELLOW_EX if flag == "warning" else Fore.RED
+    tag = "[WARNING]" if flag == "warning" else "[ERROR]"
+    return f"{color}{tag}[{_caller_location()}] {msg} {Style.RESET_ALL}"
 
 
 def print_msg(script_label, msg, flag="info", verb='NONE'):

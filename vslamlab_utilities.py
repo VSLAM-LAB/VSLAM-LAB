@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Any
 from pathlib import Path
 from inputimeout import inputimeout, TimeoutOccurred
- 
+
 
 from utilities import ws, load_yaml_file, print_msg, show_time, read_csv
 from Datasets.get_dataset import list_available_datasets, get_dataset
@@ -35,13 +35,13 @@ def write_demo_yaml_fles(baseline_name: str, dataset_name: str, sequence_name: s
     exp_data[exp_demo]['Module'] = baseline_name
     if mode:
         exp_data[exp_demo]['Parameters']['mode'] = mode
-    
+
     # Write experiment yaml
     with open(exp_yaml, "w", encoding="utf-8") as f:
         yaml.safe_dump(exp_data, f)
 
     # Write config yaml
-    exp_seq = { dataset_name: [sequence_name] }   
+    exp_seq = { dataset_name: [sequence_name] }
     with open(config_yaml, "w", encoding="utf-8") as f:
         yaml.safe_dump(exp_seq, f)
 
@@ -58,7 +58,7 @@ def baseline_info(baseline_name: str) -> None:
         print_baselines()
         exit(0)
 
-    baseline = get_baseline(baseline_name)    
+    baseline = get_baseline(baseline_name)
     baseline.info_print()
 
 def print_baselines() -> None:
@@ -89,13 +89,13 @@ def add_video(video_path):
             yaml.dump(data, f, sort_keys=False)
     if not os.path.exists(os.path.join(VSLAMLAB_VIDEOS, video_name_ext)):
         shutil.copy2(abs_path, os.path.join(VSLAMLAB_VIDEOS, video_name_ext))
-    
+
     return sequence_name
 
 ##################################################################################################################################################
 ##################################################################################################################################################
 class Experiment:
-    def __init__(self, name: str, settings):            
+    def __init__(self, name: str, settings):
         self.name = name
         self.folder = VSLAMLAB_EVALUATION / self.name
         self.num_runs = settings.get('NumRuns', 1)
@@ -137,7 +137,7 @@ def compare_exp(exp_yaml: str | Path) -> None:
 ##################################################################################################################################################
 ##################################################################################################################################################
 def evaluate_exp(exp_yaml: str | Path, overwrite: bool = False) -> None:
-    
+
     experiments = load_experiments(exp_yaml)
     first_evaluation_found = True
     for [_, exp] in experiments.items():
@@ -173,18 +173,18 @@ def run_exp(exp_yaml: str | Path) -> None:
         remaining_iterations = 0
         for [exp_name, exp] in experiments.items():
             exp_log = read_csv(exp.log_csv)
-            completed_runs[exp_name] = (exp_log["STATUS"] == "completed").sum()  
-            not_completed_runs[exp_name] = (exp_log["STATUS"] != "completed").sum() 
+            completed_runs[exp_name] = (exp_log["STATUS"] == "completed").sum()
+            not_completed_runs[exp_name] = (exp_log["STATUS"] != "completed").sum()
             remaining_iterations += not_completed_runs[exp_name]
-            
+
             if not_completed_runs[exp_name] == 0:
                 all_experiments_completed[exp_name] = True
                 continue
-            
+
             first_not_finished_experiment = exp_log[exp_log["STATUS"] != "completed"].index.min()
             row = exp_log.loc[first_not_finished_experiment]
             baseline = get_baseline(row['method_name'])
-            dataset = get_dataset(row['dataset_name'])    
+            dataset = get_dataset(row['dataset_name'])
 
             if num_executed_runs == 0:
                 print(f"\n{SCRIPT_LABEL}Running experiments (in {exp_yaml}) ...")
@@ -206,7 +206,7 @@ def run_exp(exp_yaml: str | Path) -> None:
             exp_log.loc[first_not_finished_experiment, "SWAP"] = results['swap']
             exp_log.loc[first_not_finished_experiment, "GPU"] = results['gpu']
             exp_log.to_csv(exp.log_csv, index=False)
-                
+
             all_experiments_completed[exp_name] = exp_log["STATUS"].eq("completed").fillna(False).all()
 
         if(duration_time_total > 1):
@@ -273,7 +273,7 @@ def check_experiment_state(exp_yaml: str | Path) -> None:
 
     total_num_runs = 0
     executed_num_runs = 0
-    
+
     for exp_name, settings in exp_data.items():
         exp_folder = VSLAMLAB_EVALUATION / exp_name
         exp_log_csv = exp_folder / "vslamlab_exp_log.csv"
@@ -284,9 +284,9 @@ def check_experiment_state(exp_yaml: str | Path) -> None:
         executed_num_runs_exp = 0
         if exp_folder.exists() & exp_log_csv.exists():
             exp_log = read_csv(exp_log_csv)
-            executed_num_runs_exp += (exp_log["STATUS"] == "completed").sum()  
+            executed_num_runs_exp += (exp_log["STATUS"] == "completed").sum()
             executed_num_runs += executed_num_runs_exp
-        
+
         if executed_num_runs_exp == total_num_runs_exp:
             print(f"{ws(4)}- {exp_name}: \033[92m{executed_num_runs_exp} / {total_num_runs_exp} ({100 * executed_num_runs_exp/total_num_runs_exp} %)\033[0m")
         else:
@@ -310,7 +310,7 @@ def check_experiment_baselines_installed(exp_data: Any, exp_yaml: str | Path) ->
         is_baseline_installed, install_msg = baseline.is_installed()
         if is_baseline_installed:
             print_msg(f"{ws(4)}", f"- {baseline.label}:\033[92m {install_msg}\033[0m", verb='LOW')
-        else:    
+        else:
             print_msg(f"{ws(4)}", f"- {baseline.label}:\033[93m {install_msg}\033[0m", verb='LOW')
             num_baselines_to_install += 1
             baselines_to_install.append(baseline_name)
@@ -320,7 +320,7 @@ def check_experiment_baselines_installed(exp_data: Any, exp_yaml: str | Path) ->
 
 def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) -> tuple[int, int, list[str]]:
     print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment sequences: {exp_yaml}", verb='LOW')
-    
+
     configs: set[str] = set()
     for _, settings in exp_data.items():
         configs.add(settings.get('Config'))
@@ -377,10 +377,10 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
 def check_experiment_resources(exp_yaml: str | Path) -> tuple[list[str], list[str]]:
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
-   
+
     num_baselines_to_install, num_automatic_install, baselines_to_install = check_experiment_baselines_installed(exp_data, exp_yaml)
     num_download_issues, num_automatic_download, sequences_to_download = check_experiment_sequences_available(exp_data, exp_yaml)
-    
+
     if num_baselines_to_install > 0 or num_download_issues > 0:
         print_msg(f"\n{SCRIPT_LABEL}",f"Your experiments have {num_baselines_to_install} install issues and {num_download_issues} download issues:",'warning')
         if(num_baselines_to_install - num_automatic_install) > 0:
@@ -390,7 +390,7 @@ def check_experiment_resources(exp_yaml: str | Path) -> tuple[list[str], list[st
         if num_download_issues - num_automatic_download > 0:
             print_msg(f"{ws(4)}", f"Some issues are  not automatically fixable. Please, fix them manually and run the experiment again.",'error')
             exit(1)
-        
+
         print(f"{ws(4)}All issues are \033[92mautomatically\033[0m fixable.")
 
     return baselines_to_install, sequences_to_download, num_download_issues
@@ -414,7 +414,7 @@ def get_experiment_resources(exp_yaml: str | Path) -> None:
             user_input = 'Y'
             print(f"{ws(4)}No input detected. Defaulting to 'Y'.")
         if user_input == 'n':
-            exit() 
+            exit()
 
     install_baselines(baselines_to_install)
 
@@ -450,7 +450,7 @@ def update_experiment_csv_log(exp_name: str, settings: Any) -> bool:
     with open(config_file, 'r') as file:
         config_file_data = yaml.safe_load(file)
         for dataset_name, sequence_names in config_file_data.items():
-            for sequence_name in sequence_names: 
+            for sequence_name in sequence_names:
                 for iRun in range(0, num_runs):
                         subset = exp_log[
                             (exp_log["dataset_name"] == dataset_name) &
@@ -483,14 +483,14 @@ def update_experiment_csv_log(exp_name: str, settings: Any) -> bool:
     if updated:
         exp_log.to_csv(exp_log_csv, index=False)
     return updated
-         
+
 def create_experiment_csv_log(exp_name: str, settings: Any) -> None:
     exp_folder = VSLAMLAB_EVALUATION / exp_name
     exp_log_csv = exp_folder / "vslamlab_exp_log.csv"
     if not exp_folder.exists():
         exp_folder.mkdir(parents=True, exist_ok=True)
 
-    if exp_log_csv.exists(): 
+    if exp_log_csv.exists():
         return
 
     log_headers = ["method_name", "dataset_name", "sequence_name", "exp_it", "STATUS", "SUCCESS", "TIME", "RAM", "SWAP", "GPU", "COMMENTS", "EVALUATION"]
@@ -506,11 +506,11 @@ def create_experiment_csv_log(exp_name: str, settings: Any) -> None:
             for i in range(num_runs):
                 for dataset_name, sequence_names in config_file_data.items():
                     for sequence_name in sequence_names:
-                        exp_it = str(i).zfill(5)  
+                        exp_it = str(i).zfill(5)
                         writer.writerow([baseline_name, dataset_name, sequence_name, f"{exp_it}", "", "",0.0, 0.0, 0.0, 0.0, "", "none"])
 
 def update_experiment_csv_logs(exp_yaml: str | Path) -> None:
-    
+
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
 
@@ -521,7 +521,7 @@ def update_experiment_csv_logs(exp_yaml: str | Path) -> None:
         if not exp_folder.exists():
             exp_folder.mkdir(parents=True, exist_ok=True)
 
-        if not exp_log_csv.exists(): 
+        if not exp_log_csv.exists():
             if num_updates == 0:
                 print_msg(f"\n{SCRIPT_LABEL}", f"Update experiment csv logs: {exp_yaml}", verb='LOW')
             print(f"{ws(4)}- \033[92mCreate new\033[0m: {exp_log_csv}")
@@ -543,7 +543,8 @@ def update_experiment_csv_logs(exp_yaml: str | Path) -> None:
 def overwrite_exp(exp_yaml: str | Path) -> None:
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
-    print_msg(f"\n{SCRIPT_LABEL}", f"Overwrite experiment: '{exp_yaml}'", "warning")
+    print()
+    print_msg(SCRIPT_LABEL, f"Overwrite experiment: '{exp_yaml}'", "warning")
     for exp_name, _ in exp_data.items():
         exp_folder = VSLAMLAB_EVALUATION / exp_name
         exp_folder.mkdir(parents=True, exist_ok=True)
@@ -586,13 +587,13 @@ def check_experiment_sequence_names(exp_data: Any, exp_yaml: str | Path) -> None
     for _, settings in exp_data.items():
         config_yaml = settings.get("Config")
         configs.add(config_yaml)
-    
+
     dataset_list = set(list_available_datasets())
-    
+
     for config_yaml in configs:
         config_file = VSLAM_LAB_DIR / 'configs' / config_yaml
         config_file_data = load_yaml_file(config_file)
-        
+
         for dataset_name, sequence_names in config_file_data.items():
             if dataset_name not in dataset_list:
                 errors.append(f"[Error] Dataset '{dataset_name}' doesn't exist (in config '{config_file}').")
@@ -608,13 +609,13 @@ def check_experiment_sequence_names(exp_data: Any, exp_yaml: str | Path) -> None
 
     if not errors:
         return
-    
+
     print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment dataset and sequence names (in '{exp_yaml}'):", "info")
     for error in errors:
         print_msg(ws(4), error, "error")
 
     print_datasets()
-    sys.exit(1)    
+    sys.exit(1)
 
 ###################### Check experiment conflicts ######################
 def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) -> str:
@@ -625,14 +626,14 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
     for exp_name, settings in exp_data.items():
         baseline_name = settings.get("Module")
         baseline = get_baseline(baseline_name)
-    
+
         mode = (settings.get("Parameters", {}).get("mode") or baseline.default_parameters.get("mode"))
         if not mode in modes:
             modes.append(mode)
 
         if mode not in baseline.modes:
             errors.append(
-                f"[Error] Baseline '{baseline_name}' in '{exp_name}' doesn't handle "
+                f"Baseline '{baseline_name}' in '{exp_name}' doesn't handle "
                 f"mode '{mode}'. Available modes are: {baseline.modes}."
             )
     # if len(modes) > 1:
@@ -641,7 +642,7 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
     if errors:
         print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment baseline conflicts (in '{exp_yaml}'):", "info")
         for error in errors:
-            print_msg(ws(4), error, "error")
+            print_msg(SCRIPT_LABEL, error, "error")
         sys.exit(1)
 
     return modes[0]
@@ -658,7 +659,7 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mo
     for config_yaml in configs:
         config_file = VSLAM_LAB_DIR / 'configs' / config_yaml
         config_file_data = load_yaml_file(config_file)
-    
+
         for dataset_name in config_file_data.keys():
             dataset = get_dataset(dataset_name)
             if mode not in dataset.modes:
@@ -677,7 +678,7 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mo
                         f"Baseline: {baseline_cam_models}. "
                         f"Dataset: {dataset_cam_models}."
                     )
-                
+
     if not errors:
         return
 
@@ -691,7 +692,7 @@ def validate_experiment_yaml(exp_yaml: str | Path) -> None:
     # Load experiments
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
-   
+
     # Check syntax
     check_experiment_baseline_names(exp_data, exp_yaml)
     check_experiment_sequence_names(exp_data, exp_yaml)
@@ -706,4 +707,4 @@ def validate_experiment_yaml(exp_yaml: str | Path) -> None:
         baseline_name = settings.get("Module")
         config = settings.get("Config")
         numRuns = settings.get("NumRuns")
-        print(f"{ws(4)} - {exp_name}: \033[96m{baseline_name}\033[0m, \033[38;2;255;165;0m {config}\033[0m x{numRuns}")            
+        print(f"{ws(4)} - {exp_name}: \033[96m{baseline_name}\033[0m, \033[38;2;255;165;0m {config}\033[0m x{numRuns}")
