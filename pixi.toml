@@ -19,6 +19,7 @@ kill-all = { cmd = "pkill -f -e 'droidslam|dpvo|mast3rslam|monogs|orbslam2|orbsl
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
+viz = { features = ["vslamlab", "viz"], solve-group = "viz" }
 cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
 py10 = { features = ["py10"], solve-group = "py10" }
 py11 = { features = ["py11"], solve-group = "py11" }
@@ -166,14 +167,25 @@ psutil = "*"
 loguru = "*"
 utm = "*"
 7zip = "*"
-viser = "*"
-open3d = "*"
 gdown = "*"
 yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
 yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
 deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
 cryptography = "*"
 openpyxl = "*"
+
+# 3D viewers. Kept out of the vslamlab env: open3d drags in vtk-base (the largest single download in the
+# solve) plus trimesh/scikit-image/websockets, and nothing in the pipeline imports either package.
+[feature.viz]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "osx-arm64", "win-64"]
+
+[feature.viz.tasks]
+viser-test = "python Utilities/viser_test.py"
+
+[feature.viz.dependencies]
+viser = "*"
+open3d = "*"
 
 [feature.development.tasks]
 validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'
