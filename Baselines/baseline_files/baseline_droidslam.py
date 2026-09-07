@@ -23,10 +23,8 @@ class DROIDSLAM_baseline(BaselineVSLAMLAB):
         self.color = (0.900, 0.600, 0.400) # 'orange'
         self.modes = ['mono', 'rgbd', 'stereo']
         self.cam_models = ['pinhole', 'radtan4', 'radtan5']
+        self.command_style = 'python'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
-        
 
 class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
     """DROID-SLAM-DEV helper for VSLAM-LAB Baselines."""

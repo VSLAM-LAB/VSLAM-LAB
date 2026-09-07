@@ -22,9 +22,7 @@ class ORBSLAM2_baseline(BaselineVSLAMLAB):
         self.color = (0.47, 0.628, 0.862) # 'blue'
         self.modes = ['mono', 'rgbd', 'stereo']
         self.cam_models = ['pinhole', 'radtan4', 'radtan5']
-
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+        self.command_style = 'cpp'
 
     def fetch_source(self) -> None:
         super().fetch_source()

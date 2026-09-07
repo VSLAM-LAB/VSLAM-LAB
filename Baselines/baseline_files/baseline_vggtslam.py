@@ -16,10 +16,9 @@ class VGGTSLAM_baseline(BaselineVSLAMLAB):
         self.color = (1.000, 0.050, 0.600)
         self.modes = ['mono']
         self.cam_models = ['pinhole']
+        self.command_style = 'python'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
-        
+
 class VGGTSLAM_baseline_dev(VGGTSLAM_baseline):
     """VGGT-SLAM-DEV helper for VSLAM-LAB Baselines."""
 

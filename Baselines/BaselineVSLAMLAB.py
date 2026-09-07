@@ -15,6 +15,7 @@ import os
 import platform
 from pathlib import Path
 
+import shlex
 import signal
 import subprocess
 import sys
@@ -24,12 +25,17 @@ import time
 import queue
 import pynvml
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 from huggingface_hub import hf_hub_download
 
 from utilities import ws, print_msg
-from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME, CALIBRATION_EXP_YAML, VSLAMLAB_VERBOSITY, VerbosityManager
+from path_constants import VSLAMLAB_BASELINES, TRAJECTORY_FILE_NAME, CALIBRATION_EXP_YAML, RGB_EXP_CSV, EXP_FRAMEWORK_PARAMETERS, VSLAMLAB_VERBOSITY, VerbosityManager
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
+
+if TYPE_CHECKING:  # annotations only: vslamlab_utilities imports this package, so a runtime import would be circular
+    from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+    from vslamlab_utilities import Experiment
 
 
 class BaselineVSLAMLAB(ABC):
@@ -37,7 +43,7 @@ class BaselineVSLAMLAB(ABC):
 
     # ---- Abstract hooks that concrete baselines must implement ----
     @abstractmethod
-    def __init__(self, baseline_name: str, baseline_folder: str, default_parameters='') -> None:
+    def __init__(self, baseline_name: str, baseline_folder: str, default_parameters: dict | None = None) -> None:
         # Basic fields
         self.baseline_name: str = baseline_name
         self.baseline_folder: str = baseline_folder
@@ -49,17 +55,15 @@ class BaselineVSLAMLAB(ABC):
         self.baseline_path: Path = VSLAMLAB_BASELINES / baseline_folder
         self.settings_yaml: Path = self.baseline_path / f'vslamlab_{baseline_name}_settings.yaml'
 
-        # Defaults parameters
-        self.default_parameters = default_parameters
+        # Default parameters (overridable per experiment via its Parameters: block)
+        self.default_parameters: dict = default_parameters or {}
 
-        # Supported modes (set by each concrete baseline subclass)
+        # Supported modes and entry-point argument style (set by each concrete baseline subclass, see _COMMAND_STYLES)
         self.modes: list[str] = []
+        self.command_style: str = ''
 
         # Set once ensure_pixi_env has run in this process
         self._pixi_env_ready: bool = False
-
-    @abstractmethod
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name) -> str: ...
 
     ####################################################################################################################
     # Ensure Installed
@@ -89,7 +93,7 @@ class BaselineVSLAMLAB(ABC):
         subprocess.run(["pixi", "run", "--frozen", "-e", self.baseline_name, "fetch-source"])
 
         if not self.has_source():
-            print_msg(SCRIPT_LABEL, f"fetch source of {self.label} failed (see output above)", flag="error", verb='NONE')
+            print_msg(SCRIPT_LABEL, f"fetch source of {self.baseline_name} failed (see output above)", flag="error", verb='NONE')
             sys.exit(1)
 
     def is_installed(self) -> tuple[bool, str]:
@@ -111,75 +115,54 @@ class BaselineVSLAMLAB(ABC):
 
         is_installed, msg = self.is_installed()
         if not is_installed:
-            print_msg(SCRIPT_LABEL, f"install of {self.label} failed ({msg}), see {log_file_path}", flag="error", verb='NONE')
+            print_msg(SCRIPT_LABEL, f"install of {self.baseline_name} failed ({msg}), see {log_file_path}", flag="error", verb='NONE')
             sys.exit(1)
 
     ####################################################################################################################
-    # Auxiliary methods
-    def info_print(self) -> None:
-        print(f'Name: {self.label}')
-        is_installed, install_msg = self.is_installed()
+    # Build Execute Command
+    # Argument style per baseline entry-point type: (token format, name of the experiment-iteration key)
+    _COMMAND_STYLES: dict[str, tuple[str, str]] = {
+        'cpp': ('{key}:{value}', 'exp_id'),
+        'python': ('--{key} {value}', 'exp_it'),
+    }
 
-        if is_installed:
-            print_msg(f"{ws(0)}", f"Installed:\033[92m {install_msg}\033[0m", verb='LOW')
-        else:
-            print_msg(f"{ws(0)}", f"Installed:\033[93m {install_msg}\033[0m", verb='LOW')
+    def resolve_parameters(self, exp: 'Experiment') -> dict:
+        """Baseline parameters for this run: defaults, overridden by the experiment's Parameters: block.
+        Subclasses override to derive one parameter from another (e.g. allfeature's feature_yaml from feature)."""
+        parameters = {name: exp.parameters.get(name, value) for name, value in self.default_parameters.items()}
 
-        has_source = self.has_source()
-        print(f"Path:\033[92m {self.baseline_path}\033[0m" if has_source else f"Path:\033[93m {self.baseline_path} (missing)\033[0m")
-        print(f'Modalities: {self.modes}')
-        print(f'Default parameters: {self.get_default_parameters()}')
+        # Keys neither this baseline nor the run pipeline knows are ignored: warn (not exit), since one
+        # experiment yaml is often shared across baselines with different parameter sets
+        unknown = [key for key in exp.parameters if key not in self.default_parameters and key not in EXP_FRAMEWORK_PARAMETERS]
+        if unknown:
+            print()
+            print_msg(SCRIPT_LABEL, f"{self.baseline_name} ignores unknown parameter(s) {unknown} (known: {list(self.default_parameters)})", flag="warning", verb='LOW')
 
-    def download_vslamlab_settings(self) -> bool: # Download vslamlab_{baseline_name}_settings.yaml
-        if not self.settings_yaml.is_file():
-            settings_yaml = self.settings_yaml.name
-            print_msg(SCRIPT_LABEL, f"Downloading {self.settings_yaml} ...",'info')
-            _ = hf_hub_download(repo_id=f'vslamlab/{self.baseline_name}', filename=settings_yaml, repo_type='model', local_dir=self.baseline_path)
-        return self.settings_yaml.is_file()
+        return parameters
 
-    def build_execute_command_cpp(self, exp_it, exp, dataset, sequence_name):
-        sequence_path = dataset.dataset_path / sequence_name
-        exp_folder = Path(exp.folder) / dataset.dataset_folder / sequence_name
-        calibration_yaml = exp_folder / CALIBRATION_EXP_YAML  # per-experiment copy written by Run.run_functions.create_calibration_exp_yaml
-        rgb_exp_csv = exp_folder / 'rgb_exp.csv'
+    def build_execute_command(self, exp_it: int, exp: 'Experiment', dataset: 'DatasetVSLAMLAB', sequence_name: str) -> str:
+        if self.command_style not in self._COMMAND_STYLES:
+            print_msg(SCRIPT_LABEL, f"{self.baseline_name} has command_style '{self.command_style}', expected one of {list(self._COMMAND_STYLES)}", flag="error", verb='NONE')
+            sys.exit(1)
+        arg_format, exp_it_key = self._COMMAND_STYLES[self.command_style]
 
-        vslamlab_command = [f"sequence_path:{sequence_path}",
-                            f"calibration_yaml:{calibration_yaml}",
-                            f"rgb_csv:{rgb_exp_csv}",
-                            f"exp_folder:{exp_folder}",
-                            f"exp_id:{exp_it}",
-                            f"settings_yaml:{self.settings_yaml}"]
+        exp_folder = exp.folder / dataset.dataset_folder / sequence_name
+        arguments = {'sequence_path': dataset.sequence_path(sequence_name),
+                     'calibration_yaml': exp_folder / CALIBRATION_EXP_YAML,  # per-experiment copy written by Run.run_functions.create_calibration_exp_yaml
+                     'rgb_csv': exp_folder / RGB_EXP_CSV,
+                     'exp_folder': exp_folder,
+                     exp_it_key: exp_it,
+                     'settings_yaml': self.settings_yaml}
+        arguments.update(self.resolve_parameters(exp))
 
-        for parameter_name, parameter_value in self.default_parameters.items():
-            if parameter_name in exp.parameters:
-                vslamlab_command += [f"{str(parameter_name)}:{str(exp.parameters[parameter_name])}"]
-            else:
-                vslamlab_command += [f"{str(parameter_name)}:{str(parameter_value)}"]
+        mode = arguments.get('mode')  # selects the pixi task execute-<mode>
+        if mode not in self.modes:
+            print_msg(SCRIPT_LABEL, f"{self.baseline_name} does not support mode '{mode}', expected one of {self.modes}", flag="error", verb='NONE')
+            sys.exit(1)
 
-        mode_str = next((s for s in vslamlab_command if s.startswith("mode:")), None).replace("mode:", '')
-        return f"pixi run --frozen -e {self.baseline_name} execute-{mode_str} " + ' '.join(vslamlab_command)
-
-    def build_execute_command_python(self, exp_it, exp, dataset, sequence_name):
-        sequence_path = dataset.dataset_path / sequence_name
-        exp_folder = Path(exp.folder) / dataset.dataset_folder / sequence_name
-        calibration_yaml = exp_folder / CALIBRATION_EXP_YAML  # per-experiment copy written by Run.run_functions.create_calibration_exp_yaml
-        rgb_exp_csv = exp_folder / 'rgb_exp.csv'
-
-        vslamlab_command = [f"--sequence_path {sequence_path}",
-                            f"--calibration_yaml {calibration_yaml}",
-                            f"--rgb_csv {rgb_exp_csv}",
-                            f"--exp_folder {exp_folder}",
-                            f"--exp_it {exp_it}",
-                            f"--settings_yaml {self.settings_yaml}"]
-
-        for parameter_name, parameter_value in self.default_parameters.items():
-            if parameter_name in exp.parameters:
-                vslamlab_command += [f"--{str(parameter_name)} {str(exp.parameters[parameter_name])}"]
-            else:
-                vslamlab_command += [f"--{str(parameter_name)} {str(parameter_value)}"]
-
-        mode_str = next((s for s in vslamlab_command if s.startswith("--mode ")), None).replace("--mode ", '')
-        return f"pixi run --frozen -e {self.baseline_name} execute-{mode_str} " + ' '.join(vslamlab_command)
+        # Values are shell-quoted (no-op for plain values) since execute() runs the command with shell=True
+        tokens = [arg_format.format(key=key, value=shlex.quote(str(value))) for key, value in arguments.items()]
+        return f"pixi run --frozen -e {self.baseline_name} execute-{mode} " + ' '.join(tokens)
 
     ####################################################################################################################
     # Execute methods
@@ -319,6 +302,29 @@ class BaselineVSLAMLAB(ABC):
             "swap": memory_stats.get('swap', 'N/A'),
             "gpu": memory_stats.get('gpu', 'N/A')
         }
+
+    ####################################################################################################################
+    # Auxiliary methods
+    def info_print(self) -> None:
+        print(f'Name: {self.label}')
+        is_installed, install_msg = self.is_installed()
+
+        if is_installed:
+            print_msg(f"{ws(0)}", f"Installed:\033[92m {install_msg}\033[0m", verb='LOW')
+        else:
+            print_msg(f"{ws(0)}", f"Installed:\033[93m {install_msg}\033[0m", verb='LOW')
+
+        has_source = self.has_source()
+        print(f"Path:\033[92m {self.baseline_path}\033[0m" if has_source else f"Path:\033[93m {self.baseline_path} (missing)\033[0m")
+        print(f'Modalities: {self.modes}')
+        print(f'Default parameters: {self.get_default_parameters()}')
+
+    def download_vslamlab_settings(self) -> bool: # Download vslamlab_{baseline_name}_settings.yaml
+        if not self.settings_yaml.is_file():
+            settings_yaml = self.settings_yaml.name
+            print_msg(SCRIPT_LABEL, f"Downloading {self.settings_yaml} ...",'info')
+            _ = hf_hub_download(repo_id=f'vslamlab/{self.baseline_name}', filename=settings_yaml, repo_type='model', local_dir=self.baseline_path)
+        return self.settings_yaml.is_file()
 
     ####################################################################################################################
     # Utils

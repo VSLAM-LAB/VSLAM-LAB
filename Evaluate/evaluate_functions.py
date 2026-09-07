@@ -5,7 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 from Evaluate.evo_functions import evo_metric, evo_get_accuracy
-from path_constants import VSLAM_LAB_EVALUATION_FOLDER, TRAJECTORY_FILE_NAME, GROUNTRUTH_FILE
+from path_constants import VSLAM_LAB_EVALUATION_FOLDER, TRAJECTORY_FILE_NAME, GROUNTRUTH_FILE, RGB_EXP_CSV
 from utilities import print_msg, ws, format_msg, read_csv
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
@@ -85,7 +85,7 @@ def evaluate_sequence(exp, dataset, sequence_name, overwrite=False):
             exp_log.loc[run_mask, "EVALUATION"] = METRIC
 
             # Find number of frames in the sequence
-            rgb_exp_csv = trajectories_path / f"rgb_exp.csv"
+            rgb_exp_csv = trajectories_path / RGB_EXP_CSV
             with open(rgb_exp_csv, "r") as file:
                 num_frames = sum(1 for _ in file)-1
             accuracy.loc[accuracy["traj_name"] == trajectory_name_txt,"num_frames"] = num_frames

@@ -21,9 +21,7 @@ class MAST3RSLAM_baseline(BaselineVSLAMLAB):
         self.color = (0.470, 0.862, 0.628)
         self.modes = ['mono']
         self.cam_models = ['pinhole', 'radtan4', 'radtan5']
-
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)        
+        self.command_style = 'python'
 
     def fetch_source(self) -> None:
         super().fetch_source()

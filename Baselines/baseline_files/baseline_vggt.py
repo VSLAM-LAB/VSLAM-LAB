@@ -16,10 +16,8 @@ class VGGT_baseline(BaselineVSLAMLAB):
         self.color = (0.850, 0.150, 0.250)
         self.modes = ['mono']
         self.cam_models = ['pinhole']
+        self.command_style = 'python'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
-        
     def is_installed(self) -> tuple[bool, str]:
         is_installed = os.path.isfile(os.path.join(self.baseline_path, 'vslamlab_vggt.py'))
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')

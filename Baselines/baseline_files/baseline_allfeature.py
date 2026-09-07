@@ -1,9 +1,13 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from path_constants import VSLAMLAB_BASELINES
 from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
+
+if TYPE_CHECKING:
+    from vslamlab_utilities import Experiment
 
 
 class ALLFEATURE_baseline(BaselineVSLAMLAB):
@@ -22,17 +26,13 @@ class ALLFEATURE_baseline(BaselineVSLAMLAB):
         self.color = (0.0, 0.00, 1.000)
         self.modes = ['mono', 'rgbd']
         self.cam_models = ['pinhole', 'radtan4', 'radtan5']
+        self.command_style = 'cpp'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        command = super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
-
-        # If feature_yaml has not been provided it has to match the feature selected
-        import re
-        match = re.search(r'feature:(\S+)', command)
-        feature_name = match.group(1)
-        command = command.replace('feature_name_to_fill', feature_name)
-
-        return command
+    def resolve_parameters(self, exp: 'Experiment') -> dict:
+        # Unless feature_yaml is given explicitly, it follows the selected feature
+        parameters = super().resolve_parameters(exp)
+        parameters['feature_yaml'] = parameters['feature_yaml'].replace('feature_name_to_fill', parameters['feature'])
+        return parameters
 
     def is_installed(self) -> tuple[bool, str]:
         # The conda package provides the executables; "installed" means the baseline folder holds

@@ -18,10 +18,8 @@ class MONOGS_baseline(BaselineVSLAMLAB):
         self.color = (0.500, 0.550, 0.600)
         self.modes = ['mono', 'rgbd']       
         self.cam_models = ['pinhole', 'radtan4', 'radtan5']
+        self.command_style = 'python'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
-        
 
 class MONOGS_baseline_dev(MONOGS_baseline):
     """MonoGS-DEV helper for VSLAM-LAB Baselines."""     

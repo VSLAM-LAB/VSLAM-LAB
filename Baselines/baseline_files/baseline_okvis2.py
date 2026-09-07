@@ -21,9 +21,7 @@ class OKVIS2_baseline(BaselineVSLAMLAB):
         self.color = (0.470, 0.862, 0.628) # 'green'
         self.modes = ['mono-vi']
         self.cam_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
-
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+        self.command_style = 'cpp'
 
 
 class OKVIS2_baseline_dev(OKVIS2_baseline):

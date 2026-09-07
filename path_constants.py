@@ -21,8 +21,14 @@ VSLAM_LAB_EVALUATION_FOLDER = 'vslamlab_evaluation'
 RGB_BASE_FOLDER = 'rgb'
 GROUNTRUTH_FILE = 'groundtruth.csv'
 CALIBRATION_EXP_YAML = 'calibration_exp.yaml'  # per-experiment copy of a sequence's calibration.yaml (Run/run_functions.py)
+RGB_EXP_CSV = f'{RGB_BASE_FOLDER}_exp.csv'  # per-experiment (filtered) copy of a sequence's rgb.csv (Run/run_functions.py)
 
 ABLATION_PARAMETERS_CSV = 'log_ablation_parameters.csv'
+
+# Experiment Parameters: keys consumed by the run pipeline itself (Run/run_functions.py) rather than
+# forwarded to the baseline; BaselineVSLAMLAB.build_execute_command warns about any other unknown key.
+EXP_FRAMEWORK_PARAMETERS = ('rgb_csv', 'rgb_idx', 'rgb_step', 'rgb_max', 'rgb_vpr',
+                            'refraction', 'segmentation', 'depth', 'calibration')
 
 TRAJECTORY_FILE_NAME = 'KeyFrameTrajectory'
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "

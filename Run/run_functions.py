@@ -10,7 +10,7 @@ from typing import Any
 from pathlib import Path
 
 from Baselines.BaselineVSLAMLAB_utilities import log_run_sequence_time
-from path_constants import RGB_BASE_FOLDER, CALIBRATION_EXP_YAML, VSLAM_LAB_DIR, VSLAMLAB_EVALUATION
+from path_constants import CALIBRATION_EXP_YAML, RGB_EXP_CSV, VSLAM_LAB_DIR, VSLAMLAB_EVALUATION
 from Run import ablations
 from utilities import print_msg, write_csv_rows
 
@@ -107,7 +107,7 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
     else:
         rgb_csv = dataset.rgb_csv_path(sequence_name)
 
-    rgb_exp_csv = exp_folder / f"{RGB_BASE_FOLDER}_exp.csv"
+    rgb_exp_csv = exp_folder / RGB_EXP_CSV
 
     if rgb_exp_csv.exists():
         rgb_exp_csv.unlink()
@@ -223,7 +223,7 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
 
 def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str, default_parameters: dict | None = None) -> Path:
     """Seed the experiment's calibration yaml (<exp_folder>/calibration_exp.yaml) - the file every
-    baseline is handed as calibration_yaml (BaselineVSLAMLAB.build_execute_command_cpp/python) -
+    baseline is handed as calibration_yaml (BaselineVSLAMLAB.build_execute_command) -
     with a fresh copy of the sequence's calibration.yaml, or, when the experiment sets
     'calibration: anycalib', of the AnyCalib-estimated <sequence>/anycalib/calibration.yaml
     (generated on first use by 'pixi run calib-inference'; it is the original file with the
@@ -434,7 +434,7 @@ def register_depth_stream(calibration_exp_yaml: Path, depth_folder: str, depth_f
 
 def get_sequence_data_for_evaluation(exp: Any, dataset: Any, sequence_name: str) -> None:
     sequence_path = dataset.dataset_path /  sequence_name
-    exp_folder = Path(exp.folder) / Path(dataset.dataset_folder) / sequence_name
+    exp_folder = exp.folder / dataset.dataset_folder / sequence_name
     groundtruth_csv = sequence_path / 'groundtruth.csv'
     groundtruth_csv_dst = exp_folder / 'groundtruth.csv'
     if not groundtruth_csv_dst.exists():
