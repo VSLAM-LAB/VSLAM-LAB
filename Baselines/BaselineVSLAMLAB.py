@@ -305,6 +305,15 @@ class BaselineVSLAMLAB(ABC):
 
     ####################################################################################################################
     # Auxiliary methods
+    def download_vslamlab_settings(self) -> bool: # Download vslamlab_{baseline_name}_settings.yaml
+        if not self.settings_yaml.is_file():
+            settings_yaml = self.settings_yaml.name
+            print_msg(SCRIPT_LABEL, f"Downloading {self.settings_yaml} ...",'info')
+            _ = hf_hub_download(repo_id=f'vslamlab/{self.baseline_name}', filename=settings_yaml, repo_type='model', local_dir=self.baseline_path)
+        return self.settings_yaml.is_file()
+
+    ####################################################################################################################
+    # Utils
     def info_print(self) -> None:
         print(f'Name: {self.label}')
         is_installed, install_msg = self.is_installed()
@@ -319,14 +328,5 @@ class BaselineVSLAMLAB(ABC):
         print(f'Modalities: {self.modes}')
         print(f'Default parameters: {self.get_default_parameters()}')
 
-    def download_vslamlab_settings(self) -> bool: # Download vslamlab_{baseline_name}_settings.yaml
-        if not self.settings_yaml.is_file():
-            settings_yaml = self.settings_yaml.name
-            print_msg(SCRIPT_LABEL, f"Downloading {self.settings_yaml} ...",'info')
-            _ = hf_hub_download(repo_id=f'vslamlab/{self.baseline_name}', filename=settings_yaml, repo_type='model', local_dir=self.baseline_path)
-        return self.settings_yaml.is_file()
-
-    ####################################################################################################################
-    # Utils
     def get_default_parameters(self) -> dict:
         return self.default_parameters
