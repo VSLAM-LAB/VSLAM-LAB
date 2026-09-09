@@ -1,0 +1,143 @@
+dataset_name: endomapper
+
+# EndoMapper videos are 1440x1080 at 40 fps (Epiphan frame grabber; the paper also lists 50 fps
+# Magewell captures for other procedures - Seq_001's COLMAP project folder is "40fps_HCULB"). No
+# timestamps ship with the frames: rgb.csv derives each frame's time from its video frame index
+# (out<N>.png -> N / rgb_hz).
+rgb_hz: 40.0
+modes: ['mono']
+# Official EndoMapper calibration: Kannala-Brandt (calibu "fu fv u0 v0 kb4" = fx, fy, cx, cy,
+# k1..k4), one file per endoscope, at the native 1440x1080 and rescaled to target_resolution.
+cam_models: ['equid4']
+raw_formats: ['zip', 'colmap']
+
+# All sequences are local - there is no remote source wired up. raw_data_path is the entry point:
+# a folder holding, per procedure,
+#   Seq_<NNN>.zip                      the COLMAP retrieval-training export of that procedure (see
+#                                      below), a single top-level folder (Seq_001: "33/") with
+#                                      img_train/out<N>.png (the video frames COLMAP registered,
+#                                      1440x1080), sparse/<M>/{cameras,images,points3D}.bin (one
+#                                      COLMAP sub-model per cluster M), cluster_list/<M>.txt (the
+#                                      frames of cluster M) and GT/<M>.txt (image-retrieval
+#                                      positives - not poses, ignored here)
+#   Seq_<NNN>_info.json                {"seq_number", "endoscope_number", "type", ...}
+#   Endoscope_<NN>_geometrical.xml     that endoscope's Kannala-Brandt calibration
+#   Endoscope_<NN>_photometrical.xml   (not used)
+# download_sequence_data symlinks the zip to VSLAM-LAB-Benchmark/ENDOMAPPER/<sequence>/raw.zip,
+# copies the info json + geometrical xml next to it and extracts the sequence's images.bin; the
+# create_* hooks read the frames straight out of the zip through that link.
+sequence_location: local
+raw_data_path: /home/alejandro/VSLAM-LAB-Benchmark/Endomapper_raw
+
+target_resolution: [640, 480]
+
+# Seq_<NNN>_<MM>: COLMAP sub-model MM of procedure NNN - rgb_0 holds exactly the frames registered
+# in sparse/MM/images.bin (a mostly-consecutive stretch of the video, occasionally with gaps), and
+# groundtruth.csv their COLMAP poses (camera-in-world, that sub-model's own arbitrary frame and
+# scale). Seq_001 has 50 sub-models of 14 to 953 frames; nine pairs overlap in time.
+# Seq_<NNN>: the whole procedure export - rgb_0 holds every img_train frame in video order (5809
+# for Seq_001, video indices 1328..14809 with long gaps between clusters), and groundtruth.csv the
+# poses of the *largest* sub-model only (Seq_001: sub-model 11, 953 frames) - poses from different
+# sub-models don't share a frame, so no other cluster's poses can be merged in.
+sequence_names:
+  - Seq_001
+  - Seq_001_00
+  - Seq_001_01
+  - Seq_001_02
+  - Seq_001_03
+  - Seq_001_04
+  - Seq_001_05
+  - Seq_001_06
+  - Seq_001_07
+  - Seq_001_08
+  - Seq_001_09
+  - Seq_001_10
+  - Seq_001_11
+  - Seq_001_12
+  - Seq_001_13
+  - Seq_001_14
+  - Seq_001_15
+  - Seq_001_16
+  - Seq_001_17
+  - Seq_001_18
+  - Seq_001_19
+  - Seq_001_20
+  - Seq_001_21
+  - Seq_001_22
+  - Seq_001_23
+  - Seq_001_24
+  - Seq_001_25
+  - Seq_001_26
+  - Seq_001_27
+  - Seq_001_28
+  - Seq_001_29
+  - Seq_001_30
+  - Seq_001_31
+  - Seq_001_32
+  - Seq_001_33
+  - Seq_001_34
+  - Seq_001_35
+  - Seq_001_36
+  - Seq_001_37
+  - Seq_001_38
+  - Seq_001_39
+  - Seq_001_40
+  - Seq_001_41
+  - Seq_001_42
+  - Seq_001_43
+  - Seq_001_44
+  - Seq_001_45
+  - Seq_001_46
+  - Seq_001_47
+  - Seq_001_48
+  - Seq_001_49
+
+about:
+  license: CC BY 4.0
+  summary: EndoMapper - complete calibrated colonoscopy and gastroscopy procedures (Olympus EVIS EXERA III, 1440x1080 at 40 fps) with per-endoscope Kannala-Brandt calibration and COLMAP sub-model reconstructions as pseudo-groundtruth
+  homepage: https://www.synapse.org/Synapse:syn26707219
+  features:
+    - Real
+    - Intracorporeal
+    - Handheld
+  authors:
+    - Pablo Azagra
+    - Carlos Sostres
+    - Ángel Ferrández
+    - Luis Riazuelo
+    - Clara Tomasini
+    - O. León Barbed
+    - Javier Morlana
+    - David Recasens
+    - Víctor M. Batlle
+    - Juan J. Gómez-Rodríguez
+    - Richard Elvira
+    - Julia López
+    - Cristina Oriol
+    - Javier Civera
+    - Juan D. Tardós
+    - Ana C. Murillo
+    - Angel Lanas
+    - José M. M. Montiel
+  access: Registration Required
+  publication: "Endomapper dataset of complete calibrated endoscopy procedures"
+  publication_url: "https://www.nature.com/articles/s41597-023-02564-7"
+  year: 2023
+  bibtex_key: azagra2023endomapper
+  bibtex: |
+    @article{azagra2023endomapper,
+      title={Endomapper dataset of complete calibrated endoscopy procedures},
+      author={Azagra, Pablo and Sostres, Carlos and Ferr{\'a}ndez, {\'A}ngel and Riazuelo, Luis and Tomasini, Clara and Barbed, O Le{\'o}n and Morlana, Javier and Recasens, David and Batlle, V{\'i}ctor M and G{\'o}mez-Rodr{\'i}guez, Juan J and others},
+      journal={Scientific Data},
+      volume={10},
+      number={1},
+      pages={671},
+      year={2023},
+      publisher={Nature Publishing Group}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5.1)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-09-10
