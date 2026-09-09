@@ -12,17 +12,19 @@ cam_models: ['equid4']
 raw_formats: ['zip', 'colmap']
 
 # All sequences are local - there is no remote source wired up. raw_data_path is the entry point:
-# a folder holding, per procedure,
-#   Seq_<NNN>.zip                      the COLMAP retrieval-training export of that procedure (see
+# a folder mirroring the Synapse project's layout,
+#   Sequences/Seq_<NNN>.zip            the COLMAP retrieval-training export of that procedure (see
 #                                      below), a single top-level folder (Seq_001: "33/") with
 #                                      img_train/out<N>.png (the video frames COLMAP registered,
 #                                      1440x1080), sparse/<M>/{cameras,images,points3D}.bin (one
 #                                      COLMAP sub-model per cluster M), cluster_list/<M>.txt (the
 #                                      frames of cluster M) and GT/<M>.txt (image-retrieval
 #                                      positives - not poses, ignored here)
-#   Seq_<NNN>_info.json                {"seq_number", "endoscope_number", "type", ...}
-#   Endoscope_<NN>_geometrical.xml     that endoscope's Kannala-Brandt calibration
-#   Endoscope_<NN>_photometrical.xml   (not used)
+#   Sequences/Seq_<NNN>_info.json      {"seq_number", "endoscope_number", "type", ...}
+#   Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml    that endoscope's Kannala-Brandt
+#                                      calibration (the *_photometrical.xml next to it is unused)
+#   Simulated Sequences/               synthetic colon sequences - a different dataset (pinhole,
+#                                      rgbd, metric trajectory), not part of this one
 # download_sequence_data symlinks the zip to VSLAM-LAB-Benchmark/ENDOMAPPER/<sequence>/raw.zip,
 # copies the info json + geometrical xml next to it and extracts the sequence's images.bin; the
 # create_* hooks read the frames straight out of the zip through that link.

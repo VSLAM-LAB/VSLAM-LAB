@@ -35,8 +35,13 @@ _SEQUENCE_NAME_RE: Final = re.compile(r"^(?P<procedure>Seq_\d{3})(?:_(?P<submode
 # Video frames inside the zip's img_train/ folder, named by video frame index.
 _FRAME_RE: Final = re.compile(r"^out(?P<index>\d+)\.png$")
 
+# Layout of raw_data_path (mirrors the Synapse project): Sequences/Seq_<NNN>.zip +
+# Sequences/Seq_<NNN>_info.json, Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml.
+_SEQUENCES_DIR: Final = "Sequences"
+_CALIBRATIONS_DIR: Final = "Calibrations"
+
 # Per-sequence files download_sequence_data leaves in the sequence folder.
-_RAW_ZIP_LINK: Final = "raw.zip"  # symlink onto raw_data_path/Seq_<NNN>.zip
+_RAW_ZIP_LINK: Final = "raw.zip"  # symlink onto raw_data_path/Sequences/Seq_<NNN>.zip
 _COLMAP_DIR: Final = "colmap"  # holds the sequence's sub-model images.bin
 
 # The calibu camera type EndoMapper's geometrical xml declares: fx, fy, cx, cy, k1, k2, k3, k4
@@ -96,7 +101,7 @@ class EndomapperDataset(DatasetVSLAMLAB):
         procedure, _ = _split_sequence_name(sequence_name)
         raw_link = self._raw_zip(sequence_name)
         if not (raw_link.is_symlink() or raw_link.exists()):
-            raw_zip = self.raw_data_path / f"{procedure}.zip"
+            raw_zip = self.raw_data_path / _SEQUENCES_DIR / f"{procedure}.zip"
             if not raw_zip.is_file():
                 print_info(
                     f"Sequence '{sequence_name}' is marked as 'local'. Its raw zip was not found at {raw_zip} - "
@@ -109,11 +114,15 @@ class EndomapperDataset(DatasetVSLAMLAB):
             os.symlink(raw_zip.resolve(), raw_link)
 
         # The endoscope calibration: Seq_<NNN>_info.json names the endoscope, whose geometrical xml
-        # holds the intrinsics. Both are tiny - copied in so the sequence folder is self-contained.
-        for name in (self._info_json_name(procedure), self._geometrical_xml_name(sequence_name)):
-            target = self.sequence_path(sequence_name) / name
+        # holds the intrinsics. Both are tiny - copied in (flat) so the sequence folder is
+        # self-contained.
+        info_json = self.raw_data_path / _SEQUENCES_DIR / self._info_json_name(procedure)
+        xml_name = self._geometrical_xml_name(sequence_name)
+        geometrical_xml = self.raw_data_path / _CALIBRATIONS_DIR / xml_name.rsplit("_", 1)[0] / xml_name
+        for source in (info_json, geometrical_xml):
+            target = self.sequence_path(sequence_name) / source.name
             if not target.exists():
-                shutil.copy2(self.raw_data_path / name, target)
+                shutil.copy2(source, target)
 
         # This sequence's COLMAP poses: sparse/<M>/images.bin of its sub-model (Seq_<NNN>: the
         # largest one). Extracted into a temp folder and renamed once complete, so a crash midway
@@ -275,12 +284,14 @@ class EndomapperDataset(DatasetVSLAMLAB):
         """'Endoscope_<NN>_geometrical.xml' for this sequence's endoscope, from the procedure's info
         json - read from the sequence folder if already copied in, else from the raw folder."""
         procedure, _ = _split_sequence_name(sequence_name)
-        for folder in (self.sequence_path(sequence_name), self.raw_data_path):
+        for folder in (self.sequence_path(sequence_name), self.raw_data_path / _SEQUENCES_DIR):
             info_json = folder / self._info_json_name(procedure)
             if info_json.is_file():
                 with open(info_json, encoding="utf-8") as f:
                     return f"Endoscope_{int(json.load(f)['endoscope_number']):02d}_geometrical.xml"
-        raise FileNotFoundError(f"{sequence_name}: {self._info_json_name(procedure)} not found in {self.raw_data_path}")
+        raise FileNotFoundError(
+            f"{sequence_name}: {self._info_json_name(procedure)} not found in {self.raw_data_path / _SEQUENCES_DIR}"
+        )
 
     def _read_geometrical_xml(self, sequence_name: str) -> tuple[int, int, list[float]]:
         """(width, height, [fx, fy, cx, cy, k1, k2, k3, k4]) from the endoscope's calibu xml."""
