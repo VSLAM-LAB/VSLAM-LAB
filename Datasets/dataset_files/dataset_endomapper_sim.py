@@ -2,8 +2,9 @@
 Module: VSLAM-LAB - Datasets - dataset_endomapper_sim.py
 - Author: Alejandro Fontan
 - Assisted by: Claude (Fable 5.1)
-- Version: 1.0
+- Version: 2.0
 - Created: 2026-09-10
+- Updated: 2026-09-10
 - License: GPLv3 License
 """
 
@@ -12,8 +13,6 @@ from __future__ import annotations
 import os
 import re
 import shutil
-import zipfile
-from io import BytesIO
 from pathlib import Path
 from typing import Any, Final
 
@@ -25,17 +24,32 @@ from PIL import Image  # noqa: E402
 from tqdm import tqdm  # noqa: E402
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB  # noqa: E402
-from utilities import compute_scaled_size, make_printers, scale_intrinsics, write_csv_rows  # noqa: E402
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue  # noqa: E402
+from utilities import (  # noqa: E402
+    compute_scaled_size,
+    make_printers,
+    scale_intrinsics,
+    synapse_client,
+    synapse_download_folder,
+    synapse_resolve_path,
+    write_csv_rows,
+)
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 print_info, print_warning = make_printers(SCRIPT_LABEL)
 
-_SIMULATED_DIR: Final = "Simulated Sequences"  # under raw_data_path
-_RAW_ZIP_LINK: Final = "raw.zip"  # symlink onto raw_data_path/Simulated Sequences/Seq_<N>.zip
-_TEXT_FILES: Final = ("calibration.txt", "info.txt", "trajectory.csv")  # copied out of the zip
+# Layout of raw_data_path (mirrors the Synapse project): Simulated Sequences/Seq_<N>/{rgb/
+# image_<NNNN>.png, depth/aov_image_<NNNN>.exr, calibration.txt, info.txt, rgb.txt, depth.txt,
+# trajectory.csv}. A marker records a completed Synapse folder download.
+_SIMULATED_DIR: Final = "Simulated Sequences"
+_RGB_DIR: Final = "rgb"
+_DEPTH_DIR: Final = "depth"
+_TEXT_FILES: Final = ("calibration.txt", "info.txt", "trajectory.csv")
+_DOWNLOAD_MARKER: Final = ".download_complete"
+_RAW_LINK_NAME: Final = "raw"  # symlink in the sequence folder onto the raw Seq_<N> folder
 
-_RGB_MEMBER_RE: Final = re.compile(r"(?:^|/)image_(?P<index>\d+)\.png$")
-_DEPTH_MEMBER_RE: Final = re.compile(r"(?:^|/)aov_image_(?P<index>\d+)\.exr$")
+_RGB_FRAME_RE: Final = re.compile(r"^image_(?P<index>\d+)\.png$")
+_DEPTH_FRAME_RE: Final = re.compile(r"^aov_image_(?P<index>\d+)\.exr$")
 _DEPTH_CHANNEL: Final = 2  # the EXR's R channel (cv2 decodes BGRA); G/B are zero, A is one
 _DM_TO_M: Final = 0.1  # info.txt: depth and trajectory are in decimeters
 
@@ -46,43 +60,54 @@ def _frame_name(frame_index: int) -> str:
     return f"{frame_index:04d}.png"
 
 
+def _indexed_files(folder: Path, pattern: re.Pattern[str]) -> dict[int, Path]:
+    """frame index -> file, for the files in folder whose name matches pattern."""
+    if not folder.is_dir():
+        return {}
+    files = {}
+    for path in folder.iterdir():
+        if match := pattern.match(path.name):
+            files[int(match["index"])] = path
+    return files
+
+
 class EndomapperSimDataset(DatasetVSLAMLAB):
     """EndoMapper simulated colon dataset helper for VSLAM-LAB benchmark."""
 
     def __init__(self, dataset_name: str = "endomapper-sim") -> None:
         super().__init__(dataset_name)
 
-        # All sequences are local (scalar in the yaml): the raw folder is the only source, entered
-        # through raw_data_path.
-        self.sequence_location = self.cfg["sequence_location"]
+        self.dataset_homepage: str = self.cfg["api_url"]
+        self.synapse_project_id: str = self.cfg["synapse_project_id"]
+        # Local mirror of the Synapse project (fetched on demand, reused as-is when present).
         self.raw_data_path = Path(self.cfg["raw_data_path"])
         # Depth in meters = depth_0 pixel value / depth_factor (see the yaml).
         self.depth_factor: float = float(self.cfg["depth_factor"])
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        raw_link = self._raw_zip(sequence_name)
-        if not (raw_link.is_symlink() or raw_link.exists()):
-            raw_zip = self.raw_data_path / _SIMULATED_DIR / f"{sequence_name}.zip"
-            if not raw_zip.is_file():
+        raw_dir = self._raw_dir(sequence_name)
+        if not self._raw_complete(raw_dir):
+            syn = synapse_client()
+            if syn is None:
                 print_info(
-                    f"Sequence '{sequence_name}' is marked as 'local'. Its raw zip was not found at {raw_zip} - "
-                    f"place it there, or point raw_data_path in dataset_{self.dataset_name}.yaml at your copy of "
-                    f"the EndoMapper raw folder."
+                    f"Sequence '{sequence_name}' is not in {raw_dir.parent} and no Synapse credentials are configured "
+                    f"(~/.synapseConfig or SYNAPSE_AUTH_TOKEN) - place its folder there yourself, or set up the "
+                    f"credentials (see `pixi run get-resources`)."
                 )
                 return
-            self.sequence_path(sequence_name).mkdir(parents=True, exist_ok=True)
-            # Absolute target on purpose: the zip lives outside the benchmark folder.
-            os.symlink(raw_zip.resolve(), raw_link)
+            folder_id = synapse_resolve_path(syn, self.synapse_project_id, _SIMULATED_DIR, sequence_name)
+            if folder_id is None:
+                print_warning(f"{_SIMULATED_DIR}/{sequence_name} not found in Synapse project {self.synapse_project_id}")
+                return
+            print_info(f"Downloading {_SIMULATED_DIR}/{sequence_name} from Synapse ({folder_id}) -> {raw_dir}")
+            synapse_download_folder(syn, folder_id, raw_dir)
+            (raw_dir / _DOWNLOAD_MARKER).touch()
 
-        # The three small text files (calibration, deformation/units info, trajectory), copied
-        # out so the sequence folder is self-contained; the frames stay in the zip.
-        missing = [name for name in _TEXT_FILES if not (self.sequence_path(sequence_name) / name).is_file()]
-        if not missing:
-            return
-        with self._open_raw_zip(sequence_name) as zf:
-            members = {Path(name).name: name for name in zf.namelist() if Path(name).name in _TEXT_FILES}
-            for name in missing:
-                (self.sequence_path(sequence_name) / name).write_bytes(zf.read(members[name]))
+        raw_link = self.sequence_path(sequence_name) / _RAW_LINK_NAME
+        if not (raw_link.is_symlink() or raw_link.exists()):
+            self.sequence_path(sequence_name).mkdir(parents=True, exist_ok=True)
+            # Absolute target on purpose: the raw folder lives outside the benchmark folder.
+            os.symlink(raw_dir.resolve(), raw_link)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         rgb_path, depth_path = self.rgb_path(sequence_name), self.depth_path(sequence_name)
@@ -96,25 +121,23 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
             shutil.rmtree(tmp, ignore_errors=True)
             tmp.mkdir(parents=True)
 
-        with self._open_raw_zip(sequence_name) as zf:
-            rgb_members, depth_members = self._frame_members(sequence_name, zf)
-            frames = sorted(set(rgb_members) & set(depth_members))
-            target_size = None
-            for index in tqdm(frames, desc=f"    resizing frames -> {rgb_path.name}/{depth_path.name}"):
-                with Image.open(BytesIO(zf.read(rgb_members[index]))) as img:
-                    if target_size is None:
-                        target_size = compute_scaled_size(img.size, self.target_resolution)
-                    rgb = img.convert("RGB")  # drop the constant alpha channel
-                    if self.target_resolution is not None:
-                        rgb = rgb.resize(target_size, Image.Resampling.LANCZOS)
-                    rgb.save(tmp_rgb / _frame_name(index))
-
-                depth_dm = self._decode_depth(zf.read(depth_members[index]))
+        rgb_files, depth_files = self._frame_files(sequence_name)
+        target_size = None
+        for index in tqdm(sorted(set(rgb_files) & set(depth_files)), desc=f"    resizing frames -> {rgb_path.name}/{depth_path.name}"):
+            with Image.open(rgb_files[index]) as img:
+                if target_size is None:
+                    target_size = compute_scaled_size(img.size, self.target_resolution)
+                rgb = img.convert("RGB")  # drop the constant alpha channel
                 if self.target_resolution is not None:
-                    # Depth: nearest-neighbor only, never an interpolating resample.
-                    depth_dm = cv2.resize(depth_dm, target_size, interpolation=cv2.INTER_NEAREST)
-                depth_px = np.round(depth_dm.astype(np.float64) * _DM_TO_M * self.depth_factor)
-                cv2.imwrite(str(tmp_depth / _frame_name(index)), np.clip(depth_px, 0, np.iinfo(np.uint16).max).astype(np.uint16))
+                    rgb = rgb.resize(target_size, Image.Resampling.LANCZOS)
+                rgb.save(tmp_rgb / _frame_name(index))
+
+            depth_dm = self._read_depth(depth_files[index])
+            if self.target_resolution is not None:
+                # Depth: nearest-neighbor only, never an interpolating resample.
+                depth_dm = cv2.resize(depth_dm, target_size, interpolation=cv2.INTER_NEAREST)
+            depth_px = np.round(depth_dm.astype(np.float64) * _DM_TO_M * self.depth_factor)
+            cv2.imwrite(str(tmp_depth / _frame_name(index)), np.clip(depth_px, 0, np.iinfo(np.uint16).max).astype(np.uint16))
 
         shutil.rmtree(rgb_path, ignore_errors=True)
         shutil.rmtree(depth_path, ignore_errors=True)
@@ -159,11 +182,11 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         # trajectory.csv: "tX;tY;tZ;rX;rY;rZ;rW;time(s)", one row per rendered frame at 1/30 s,
         # position in dm (info.txt) -> m here, quaternion written as given (rX rY rZ rW = qx qy qz
-        # qw). Seq_0's file ends in a truncated row (a cut-off upload) - malformed rows are
-        # skipped and reported, as are frames left without a pose.
+        # qw). Malformed rows (a truncated file) are skipped and reported, as are frames left
+        # without a pose.
         poses: dict[int, list[float]] = {}
         skipped = 0
-        with open(self.sequence_path(sequence_name) / "trajectory.csv", encoding="utf-8") as f:
+        with open(self._raw_link(sequence_name) / "trajectory.csv", encoding="utf-8") as f:
             next(f)  # header
             for line in f:
                 parts = line.strip().split(";")
@@ -183,45 +206,57 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
         write_csv_rows(self.groundtruth_csv_path(sequence_name), _GROUNDTRUTH_HEADER, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        # Deliberate no-op at every retention tier: raw.zip is a symlink onto the raw folder (the
-        # only copy of the frames), and the three copied text files are the calibration/pose
-        # sources, a few KB in total.
+        # Deliberate no-op at every retention tier: raw/ is a symlink onto the raw folder (the
+        # Synapse mirror, the only copy of the source frames), and nothing intermediate is written.
         return
 
+    def get_download_issues(self, sequence_names: list[str]) -> list[dict]:
+        # Only a problem when something must actually be fetched: a raw folder that already holds
+        # the requested sequences needs no Synapse login at all.
+        missing = [s for s in sequence_names if not self._raw_complete(self._raw_dir(s))]
+        if not missing or synapse_client() is not None:
+            return []
+        return [_get_dataset_issue(issue_id="synapse_token", dataset_name=self.dataset_name, website=self.dataset_homepage)]
+
     # --- helpers, all recomputed from sequence_name (no per-sequence state on self) -------------
-    def _raw_zip(self, sequence_name: str) -> Path:
-        return self.sequence_path(sequence_name) / _RAW_ZIP_LINK
+    def _raw_dir(self, sequence_name: str) -> Path:
+        return self.raw_data_path / _SIMULATED_DIR / sequence_name
 
-    def _open_raw_zip(self, sequence_name: str) -> zipfile.ZipFile:
-        raw_link = self._raw_zip(sequence_name)
-        if not raw_link.is_file():
+    def _raw_link(self, sequence_name: str) -> Path:
+        raw_link = self.sequence_path(sequence_name) / _RAW_LINK_NAME
+        if not raw_link.is_dir():
             raise FileNotFoundError(
-                f"Raw zip for '{sequence_name}' not found at {raw_link} (sequence marked as 'local'): run "
-                f"download_sequence_data with the raw folder in place, and keep it in place while processing."
+                f"Raw folder for '{sequence_name}' not found at {raw_link}: run download_sequence_data first, and keep "
+                f"raw_data_path in place while processing."
             )
-        return zipfile.ZipFile(raw_link)
+        return raw_link
 
-    def _frame_members(self, sequence_name: str, zf: zipfile.ZipFile) -> tuple[dict[int, str], dict[int, str]]:
-        """(frame index -> rgb member, frame index -> depth member) of the zip, reporting frames
+    @staticmethod
+    def _raw_complete(raw_dir: Path) -> bool:
+        """A finished Synapse download (marker), or a hand-placed copy with every piece present."""
+        if (raw_dir / _DOWNLOAD_MARKER).is_file():
+            return True
+        return all((raw_dir / name).is_file() for name in _TEXT_FILES) and all(
+            (raw_dir / folder).is_dir() and any((raw_dir / folder).iterdir()) for folder in (_RGB_DIR, _DEPTH_DIR)
+        )
+
+    def _frame_files(self, sequence_name: str) -> tuple[dict[int, Path], dict[int, Path]]:
+        """(frame index -> rgb png, frame index -> depth exr) of the raw folder, reporting frames
         that have only one of the two (dropped: rgbd needs the pair)."""
-        rgb: dict[int, str] = {}
-        depth: dict[int, str] = {}
-        for name in zf.namelist():
-            if match := _RGB_MEMBER_RE.search(name):
-                rgb[int(match["index"])] = name
-            elif match := _DEPTH_MEMBER_RE.search(name):
-                depth[int(match["index"])] = name
+        raw = self._raw_link(sequence_name)
+        rgb = _indexed_files(raw / _RGB_DIR, _RGB_FRAME_RE)
+        depth = _indexed_files(raw / _DEPTH_DIR, _DEPTH_FRAME_RE)
         for label, only in (("depth map", set(rgb) - set(depth)), ("RGB image", set(depth) - set(rgb))):
             if only:
-                print_warning(f"{sequence_name}: dropping {len(only)} frames with no {label} in the zip")
+                print_warning(f"{sequence_name}: dropping {len(only)} frames with no {label}")
         return rgb, depth
 
     @staticmethod
-    def _decode_depth(exr_bytes: bytes) -> np.ndarray:
+    def _read_depth(exr_path: Path) -> np.ndarray:
         """The EXR's depth channel as a float32 (H, W) array, in the source units (dm)."""
-        image = cv2.imdecode(np.frombuffer(exr_bytes, np.uint8), cv2.IMREAD_UNCHANGED)
+        image = cv2.imread(str(exr_path), cv2.IMREAD_UNCHANGED)
         if image is None:
-            raise ValueError("cv2 could not decode a depth EXR (is OPENCV_IO_ENABLE_OPENEXR set?)")
+            raise ValueError(f"cv2 could not decode {exr_path} (is OPENCV_IO_ENABLE_OPENEXR set?)")
         return image[..., _DEPTH_CHANNEL] if image.ndim == 3 else image
 
     def _rgb_frames(self, sequence_name: str) -> list[Path]:
@@ -234,7 +269,7 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
 
     def _read_calibration_txt(self, sequence_name: str) -> dict[str, float]:
         values: dict[str, float] = {}
-        with open(self.sequence_path(sequence_name) / "calibration.txt", encoding="utf-8") as f:
+        with open(self._raw_link(sequence_name) / "calibration.txt", encoding="utf-8") as f:
             for line in f:
                 if ":" in line:
                     key, value = line.split(":", 1)

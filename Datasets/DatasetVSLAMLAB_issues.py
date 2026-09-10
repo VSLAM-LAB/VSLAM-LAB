@@ -39,6 +39,19 @@ def _get_dataset_issue(issue_id: str, *, dataset_name: str, size_gb: int = 0, we
             "solution": f"Register at '{website}' to get a Hugging Face, then set it in '{yaml_file}'.",
             "mode": f"{YELLOW}user action required{RESET}",
         },
+        "synapse_token": lambda: {
+            "name": "Synapse credentials required",
+            "description": (
+                f"'{dataset_name}' is hosted on Synapse (sagebase); downloading needs a Synapse "
+                f"account that has accepted the dataset's access conditions, plus a Personal Access Token."
+            ),
+            "solution": (
+                f"Register at '{website}', accept the access conditions, create a Personal Access Token "
+                f"(view + download scopes) and store it where synapseclient looks for it: "
+                f"~/.synapseConfig ([authentication] authtoken = <token>) or the SYNAPSE_AUTH_TOKEN env var."
+            ),
+            "mode": f"{YELLOW}user action required{RESET}",
+        },
         "cdn_links_file": lambda: {
             "name": "CDN links file required",
             "description": (

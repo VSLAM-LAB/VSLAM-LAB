@@ -173,6 +173,9 @@ deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challe
 cryptography = "*"
 openpyxl = "*"
 
+[feature.vslamlab.pypi-dependencies]
+synapseclient = "*"     # Synapse (sagebase) downloads, e.g. the EndoMapper project; not on conda-forge
+
 [feature.development.tasks]
 validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'
 validate-dataset.cwd = 'Utilities'

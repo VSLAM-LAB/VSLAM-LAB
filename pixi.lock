@@ -13871,6 +13871,8 @@ environments:
   vslamlab:
     channels:
     - url: https://prefix.dev/conda-forge/
+    indexes:
+    - https://pypi.org/simple
     packages:
       linux-64:
       - conda: https://prefix.dev/conda-forge/linux-64/7zip-26.03-h4dbf13b_0.conda
@@ -14262,6 +14264,22 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/yt-dlp-2026.8.19-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/yt-dlp-ejs-0.8.0-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
+      - pypi: https://files.pythonhosted.org/packages/03/49/d10027df9fce941cb8184e78a02857af36360d33e1721df81c5ed2179a1a/async_lru-2.0.5-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/20/91/5716417cdccd31c726ff1025ecd99cfa173787d70492e4ee774c771eb4b1/synapseclient-4.13.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/23/3f/ab8d29df207ce5f470a07fa96ebb48af4e95b7fab7e7635311b9a32f2fab/opentelemetry_util_http-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/40/7b/85eab1215f72adf0e68d3dc4a679b9bff993fa679ff34cd8dd378e2659fd/opentelemetry_instrumentation-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/42/45/6201afe846263d775cd4fc8d6a87dc8c15eb7921cdade4dca1e1227b04b6/opentelemetry_instrumentation_requests-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/50/8d/387b69572f81f9b78c2b0d3a98acfcd43c5ef4ce16ea903f1a90c1dd1d04/opentelemetry_instrumentation_threading-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/5e/71/65fd9d54c10b860f87c045ccee1264cab7011268895d3528818a29c1172a/opentelemetry_exporter_otlp_proto_common-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/65/10/d6abaefa57a52646651fd0383c056280b0853c0106229ece6bb38cd14463/asyncio_atexit-1.0.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/9d/0f/c6144096b4914bbf44b43ba21c962e8f333ff045770b50a3e79ed8bd455f/opentelemetry_instrumentation_httpx-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a6/0e/49df70d9b81fb5cbae4bbf2a49d865b09bcbcbc4eb53f5851b1027738d78/opentelemetry_semantic_conventions-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/cc/37/9b8a61d5493865319a27a0de06eaa2f3da4f8df24cc2903b32eb901db227/opentelemetry_instrumentation_urllib-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/cd/d0/fdeb1a98d8d3a6205f5f297c51b4a9bfe65126ab60339669bbe3dd54c2e2/opentelemetry_exporter_otlp_proto_http-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d1/7c/8be563d68e93bbefa5c8affb82ddcff91b3ad858ce49957ba7b16fd3e0ab/opentelemetry_proto-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e7/23/ff077e61886ee020a17ce9c8b6fa11c601c8d8345b09ea24f605445df62a/opentelemetry_sdk-1.44.0-py3-none-any.whl
       osx-arm64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda
       - conda: https://prefix.dev/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda
@@ -14576,6 +14594,22 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstandard-0.25.0-py313h2f871a8_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
+      - pypi: https://files.pythonhosted.org/packages/03/49/d10027df9fce941cb8184e78a02857af36360d33e1721df81c5ed2179a1a/async_lru-2.0.5-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/20/91/5716417cdccd31c726ff1025ecd99cfa173787d70492e4ee774c771eb4b1/synapseclient-4.13.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/23/3f/ab8d29df207ce5f470a07fa96ebb48af4e95b7fab7e7635311b9a32f2fab/opentelemetry_util_http-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/40/7b/85eab1215f72adf0e68d3dc4a679b9bff993fa679ff34cd8dd378e2659fd/opentelemetry_instrumentation-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/42/45/6201afe846263d775cd4fc8d6a87dc8c15eb7921cdade4dca1e1227b04b6/opentelemetry_instrumentation_requests-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/50/8d/387b69572f81f9b78c2b0d3a98acfcd43c5ef4ce16ea903f1a90c1dd1d04/opentelemetry_instrumentation_threading-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/5e/71/65fd9d54c10b860f87c045ccee1264cab7011268895d3528818a29c1172a/opentelemetry_exporter_otlp_proto_common-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/65/10/d6abaefa57a52646651fd0383c056280b0853c0106229ece6bb38cd14463/asyncio_atexit-1.0.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/9d/0f/c6144096b4914bbf44b43ba21c962e8f333ff045770b50a3e79ed8bd455f/opentelemetry_instrumentation_httpx-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a6/0e/49df70d9b81fb5cbae4bbf2a49d865b09bcbcbc4eb53f5851b1027738d78/opentelemetry_semantic_conventions-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/cc/37/9b8a61d5493865319a27a0de06eaa2f3da4f8df24cc2903b32eb901db227/opentelemetry_instrumentation_urllib-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/cd/d0/fdeb1a98d8d3a6205f5f297c51b4a9bfe65126ab60339669bbe3dd54c2e2/opentelemetry_exporter_otlp_proto_http-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d1/7c/8be563d68e93bbefa5c8affb82ddcff91b3ad858ce49957ba7b16fd3e0ab/opentelemetry_proto-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e7/23/ff077e61886ee020a17ce9c8b6fa11c601c8d8345b09ea24f605445df62a/opentelemetry_sdk-1.44.0-py3-none-any.whl
       win-64:
       - conda: https://prefix.dev/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda
       - conda: https://prefix.dev/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda
@@ -14885,6 +14919,23 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/zlib-ng-2.3.3-h0261ad2_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/zstandard-0.25.0-py313h5fd188c_3.conda
       - conda: https://prefix.dev/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
+      - pypi: https://files.pythonhosted.org/packages/03/49/d10027df9fce941cb8184e78a02857af36360d33e1721df81c5ed2179a1a/async_lru-2.0.5-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/20/91/5716417cdccd31c726ff1025ecd99cfa173787d70492e4ee774c771eb4b1/synapseclient-4.13.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/23/3f/ab8d29df207ce5f470a07fa96ebb48af4e95b7fab7e7635311b9a32f2fab/opentelemetry_util_http-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/40/7b/85eab1215f72adf0e68d3dc4a679b9bff993fa679ff34cd8dd378e2659fd/opentelemetry_instrumentation-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/42/45/6201afe846263d775cd4fc8d6a87dc8c15eb7921cdade4dca1e1227b04b6/opentelemetry_instrumentation_requests-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/50/8d/387b69572f81f9b78c2b0d3a98acfcd43c5ef4ce16ea903f1a90c1dd1d04/opentelemetry_instrumentation_threading-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/5e/71/65fd9d54c10b860f87c045ccee1264cab7011268895d3528818a29c1172a/opentelemetry_exporter_otlp_proto_common-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/65/10/d6abaefa57a52646651fd0383c056280b0853c0106229ece6bb38cd14463/asyncio_atexit-1.0.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/9d/0f/c6144096b4914bbf44b43ba21c962e8f333ff045770b50a3e79ed8bd455f/opentelemetry_instrumentation_httpx-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a6/0e/49df70d9b81fb5cbae4bbf2a49d865b09bcbcbc4eb53f5851b1027738d78/opentelemetry_semantic_conventions-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/ca/6f/a04e900f465ff3221ccc395522503e2d10e79fa21f2723c8e177aae1e0d1/opentelemetry_api-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/cc/37/9b8a61d5493865319a27a0de06eaa2f3da4f8df24cc2903b32eb901db227/opentelemetry_instrumentation_urllib-0.65b0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/cd/d0/fdeb1a98d8d3a6205f5f297c51b4a9bfe65126ab60339669bbe3dd54c2e2/opentelemetry_exporter_otlp_proto_http-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d1/7c/8be563d68e93bbefa5c8affb82ddcff91b3ad858ce49957ba7b16fd3e0ab/opentelemetry_proto-1.44.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e7/23/ff077e61886ee020a17ce9c8b6fa11c601c8d8345b09ea24f605445df62a/opentelemetry_sdk-1.44.0-py3-none-any.whl
   x11:
     channels:
     - url: https://prefix.dev/conda-forge/
@@ -63467,6 +63518,13 @@ packages:
   run_exports: {}
   size: 1130775
   timestamp: 1771455500587
+- pypi: https://files.pythonhosted.org/packages/03/49/d10027df9fce941cb8184e78a02857af36360d33e1721df81c5ed2179a1a/async_lru-2.0.5-py3-none-any.whl
+  name: async-lru
+  version: 2.0.5
+  sha256: ab95404d8d2605310d345932697371a5f40def0487c03d6d0ad9138de52c9943
+  requires_dist:
+  - typing-extensions>=4.0.0 ; python_full_version < '3.11'
+  requires_python: '>=3.9'
 - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
   name: h11
   version: 0.16.0
@@ -63672,10 +63730,113 @@ packages:
   - pywin32>=305 ; sys_platform == 'win32' and extra == 'nativelib'
   - pyobjc>=9.0 ; sys_platform == 'darwin' and extra == 'nativelib'
   requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/20/91/5716417cdccd31c726ff1025ecd99cfa173787d70492e4ee774c771eb4b1/synapseclient-4.13.0-py3-none-any.whl
+  name: synapseclient
+  version: 4.13.0
+  sha256: bc2fde687183d9e5d03c1c4862cf414396998c8337ec44db9022a94264a366be
+  requires_dist:
+  - requests>=2.34.0,<3.0
+  - urllib3>=2.6.3
+  - deprecated>=1.2.4,<2.0
+  - opentelemetry-api>=1.21.0
+  - opentelemetry-sdk>=1.21.0
+  - opentelemetry-exporter-otlp-proto-http>=1.21.0
+  - opentelemetry-instrumentation-httpx>=0.48b0
+  - opentelemetry-instrumentation-requests>=0.48b0
+  - opentelemetry-instrumentation-threading>=0.48b0
+  - opentelemetry-instrumentation-urllib>=0.48b0
+  - nest-asyncio~=1.6.0
+  - asyncio-atexit~=1.0.1
+  - httpx>=0.27.0
+  - httpcore>=1.0.9
+  - tqdm>=4.66.2,<5.0
+  - async-lru~=2.0.4
+  - psutil>=5.9.8
+  - setuptools>=80.10.1
+  - pytest~=8.2.0 ; extra == 'dev'
+  - pytest-mock>=3.0,<4.0 ; extra == 'dev'
+  - pytest-socket~=0.6.0 ; extra == 'dev'
+  - pytest-asyncio>=1.2.0,<2.0 ; extra == 'dev'
+  - flake8>=3.7.0,<4.0 ; extra == 'dev'
+  - pytest-xdist[psutil]>=2.2,<3.0.0 ; extra == 'dev'
+  - pytest-rerunfailures~=12.0 ; extra == 'dev'
+  - func-timeout~=4.3 ; extra == 'dev'
+  - pytest-cov~=4.1.0 ; extra == 'dev'
+  - pytest-html~=4.1.0 ; extra == 'dev'
+  - black ; extra == 'dev'
+  - pre-commit ; extra == 'dev'
+  - filelock>=3.20.3 ; extra == 'dev'
+  - pandas>=1.5,<3.0 ; extra == 'dev'
+  - pytest~=8.2.0 ; extra == 'tests'
+  - pytest-mock>=3.0,<4.0 ; extra == 'tests'
+  - pytest-socket~=0.6.0 ; extra == 'tests'
+  - pytest-asyncio>=1.2.0,<2.0 ; extra == 'tests'
+  - flake8>=3.7.0,<4.0 ; extra == 'tests'
+  - pytest-xdist[psutil]>=2.2,<3.0.0 ; extra == 'tests'
+  - pytest-rerunfailures~=12.0 ; extra == 'tests'
+  - func-timeout~=4.3 ; extra == 'tests'
+  - pytest-cov~=4.1.0 ; extra == 'tests'
+  - pytest-html~=4.1.0 ; extra == 'tests'
+  - pandas>=1.5,<3.0 ; extra == 'tests'
+  - jsonschema>=4.23.0 ; extra == 'tests'
+  - pandas>=1.5,<3.0 ; extra == 'pandas'
+  - pandas>=1.5,<3.0 ; extra == 'curator'
+  - pandarallel>=1.6.4 ; extra == 'curator'
+  - inflection>=0.5.1 ; extra == 'curator'
+  - networkx>=2.2.8 ; extra == 'curator'
+  - dataclasses-json>=0.6.1 ; extra == 'curator'
+  - rdflib>=6.0.0 ; extra == 'curator'
+  - pysftp>=0.2.8,<0.3 ; extra == 'pysftp'
+  - paramiko<4.0.0 ; extra == 'pysftp'
+  - boto3>=1.7.0,<2.0 ; extra == 'boto3'
+  - mkdocs>=1.5.3 ; extra == 'docs'
+  - mkdocs-material>=9.4.14 ; extra == 'docs'
+  - mkdocstrings>=0.24.0 ; extra == 'docs'
+  - mkdocstrings-python>=2.0.0 ; extra == 'docs'
+  - termynal>=0.11.1 ; extra == 'docs'
+  - mkdocs-open-in-new-tab~=1.0.3 ; extra == 'docs'
+  - markdown-include~=0.8.1 ; extra == 'docs'
+  - pytest~=8.2.0 ; extra == 'all'
+  - pytest-mock>=3.0,<4.0 ; extra == 'all'
+  - pytest-socket~=0.6.0 ; extra == 'all'
+  - pytest-asyncio>=1.2.0,<2.0 ; extra == 'all'
+  - flake8>=3.7.0,<4.0 ; extra == 'all'
+  - pytest-xdist[psutil]>=2.2,<3.0.0 ; extra == 'all'
+  - pytest-rerunfailures~=12.0 ; extra == 'all'
+  - func-timeout~=4.3 ; extra == 'all'
+  - pytest-cov~=4.1.0 ; extra == 'all'
+  - pytest-html~=4.1.0 ; extra == 'all'
+  - black ; extra == 'all'
+  - pre-commit ; extra == 'all'
+  - filelock>=3.20.3 ; extra == 'all'
+  - pandas>=1.5,<3.0 ; extra == 'all'
+  - pandas>=1.5,<3.0 ; extra == 'all'
+  - pandas>=1.5,<3.0 ; extra == 'all'
+  - pandarallel>=1.6.4 ; extra == 'all'
+  - inflection>=0.5.1 ; extra == 'all'
+  - networkx>=2.2.8 ; extra == 'all'
+  - dataclasses-json>=0.6.1 ; extra == 'all'
+  - rdflib>=6.0.0 ; extra == 'all'
+  - pysftp>=0.2.8,<0.3 ; extra == 'all'
+  - paramiko<4.0.0 ; extra == 'all'
+  - boto3>=1.7.0,<2.0 ; extra == 'all'
+  - mkdocs>=1.5.3 ; extra == 'all'
+  - mkdocs-material>=9.4.14 ; extra == 'all'
+  - mkdocstrings>=0.24.0 ; extra == 'all'
+  - mkdocstrings-python>=2.0.0 ; extra == 'all'
+  - termynal>=0.11.1 ; extra == 'all'
+  - mkdocs-open-in-new-tab~=1.0.3 ; extra == 'all'
+  - markdown-include~=0.8.1 ; extra == 'all'
+  requires_python: '>=3.10,<3.15'
 - pypi: https://files.pythonhosted.org/packages/22/a6/858897256d0deac81a172289110f31629fc4cee19b6f01283303e18c8db3/ptyprocess-0.7.0-py2.py3-none-any.whl
   name: ptyprocess
   version: 0.7.0
   sha256: 4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35
+- pypi: https://files.pythonhosted.org/packages/23/3f/ab8d29df207ce5f470a07fa96ebb48af4e95b7fab7e7635311b9a32f2fab/opentelemetry_util_http-0.65b0-py3-none-any.whl
+  name: opentelemetry-util-http
+  version: 0.65b0
+  sha256: 7553b606f963097cb190536dc30556cce85090692e471a422fff30ca29b04348
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/23/e8/9d61dcbd1dce8ef418f06befd4ac084b4720429c26b0b1222bc218685eff/jupyter_lsp-2.3.1-py3-none-any.whl
   name: jupyter-lsp
   version: 2.3.1
@@ -63928,6 +64089,16 @@ packages:
   - sphinx<6 ; extra == 'full'
   - tifffile ; extra == 'full'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/40/7b/85eab1215f72adf0e68d3dc4a679b9bff993fa679ff34cd8dd378e2659fd/opentelemetry_instrumentation-0.65b0-py3-none-any.whl
+  name: opentelemetry-instrumentation
+  version: 0.65b0
+  sha256: ea967a72b9939b5fcfdad572753b4306c59dcb99e3f382d95dae04286805e137
+  requires_dist:
+  - opentelemetry-api~=1.4
+  - opentelemetry-semantic-conventions==0.65b0
+  - packaging>=18.0
+  - wrapt>=1.0.0,<3.0.0
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/41/09/5b161152e2d90f7b87f781c2e1267494aef9c32498df793f73ad0a0a494a/matplotlib_inline-0.2.2-py3-none-any.whl
   name: matplotlib-inline
   version: 0.2.2
@@ -63948,6 +64119,17 @@ packages:
   requires_dist:
   - referencing>=0.31.0
   requires_python: '>=3.9'
+- pypi: https://files.pythonhosted.org/packages/42/45/6201afe846263d775cd4fc8d6a87dc8c15eb7921cdade4dca1e1227b04b6/opentelemetry_instrumentation_requests-0.65b0-py3-none-any.whl
+  name: opentelemetry-instrumentation-requests
+  version: 0.65b0
+  sha256: 91688ec0d4d1fed75ea8d026ef2c66274ed9868c22b6be211ef85d832d16f957
+  requires_dist:
+  - opentelemetry-api~=1.12
+  - opentelemetry-instrumentation==0.65b0
+  - opentelemetry-semantic-conventions==0.65b0
+  - opentelemetry-util-http==0.65b0
+  - requests~=2.0 ; extra == 'instruments'
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/49/82/2755c7c982086f00d4dab85bc120ec35045a9fc2191893a6ce79afe94443/fastjsonschema-2.22.2-py3-none-any.whl
   name: fastjsonschema
   version: 2.22.2
@@ -63974,6 +64156,15 @@ packages:
   requires_dist:
   - argon2-cffi-bindings
   requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/50/8d/387b69572f81f9b78c2b0d3a98acfcd43c5ef4ce16ea903f1a90c1dd1d04/opentelemetry_instrumentation_threading-0.65b0-py3-none-any.whl
+  name: opentelemetry-instrumentation-threading
+  version: 0.65b0
+  sha256: d8a1a1f35418a32769d469ef2d7e8401935e097a8553abcfba833da9c74736ce
+  requires_dist:
+  - opentelemetry-api~=1.12
+  - opentelemetry-instrumentation==0.65b0
+  - wrapt>=1.0.0,<3.0.0
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/54/6f/84908cad2d6aa5144abcf7b42709fe4fdb459bc640ec7ac5786e7693dabc/prompt_toolkit-3.0.53-py3-none-any.whl
   name: prompt-toolkit
   version: 3.0.53
@@ -64030,6 +64221,13 @@ packages:
   - pytest>=7.0 ; extra == 'test'
   - requests ; extra == 'test'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/5e/71/65fd9d54c10b860f87c045ccee1264cab7011268895d3528818a29c1172a/opentelemetry_exporter_otlp_proto_common-1.44.0-py3-none-any.whl
+  name: opentelemetry-exporter-otlp-proto-common
+  version: 1.44.0
+  sha256: 9a9fe61bba73d802904bc989f1d6b4a7b1ee40f06c40e98d6f85af65aaebb694
+  requires_dist:
+  - opentelemetry-proto==1.44.0
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/60/45/c7b5c3168458db837e8ceab06dc77824e18202679d0463f0e8f002143a97/tinycss2-1.5.1-py3-none-any.whl
   name: tinycss2
   version: 1.5.1
@@ -64073,6 +64271,14 @@ packages:
   version: 26.1.0
   sha256: c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309
   requires_python: '>=3.9'
+- pypi: https://files.pythonhosted.org/packages/65/10/d6abaefa57a52646651fd0383c056280b0853c0106229ece6bb38cd14463/asyncio_atexit-1.0.1-py3-none-any.whl
+  name: asyncio-atexit
+  version: 1.0.1
+  sha256: d93d5f7d5633a534abd521ce2896ed0fbe8de170bb1e65ec871d1c20eac9d376
+  requires_dist:
+  - pytest ; extra == 'test'
+  - uvloop ; extra == 'test'
+  requires_python: '>=3.6'
 - pypi: https://files.pythonhosted.org/packages/65/af/aa78d1a88805456e212b65461354cd943197fb9acecc4c90fd12295123a3/numpy-2.5.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
   name: numpy
   version: 2.5.3
@@ -64343,6 +64549,19 @@ packages:
   - pytest-cov>=7 ; extra == 'test'
   - pytest>=7.0 ; extra == 'test'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl
+  name: deprecated
+  version: 1.3.1
+  sha256: 597bfef186b6f60181535a29fbe44865ce137a5079f295b479886c82729d5f3f
+  requires_dist:
+  - wrapt>=1.10,<3
+  - inspect2 ; python_full_version < '3'
+  - tox ; extra == 'dev'
+  - pytest ; extra == 'dev'
+  - pytest-cov ; extra == 'dev'
+  - bump2version<1 ; extra == 'dev'
+  - setuptools ; python_full_version >= '3.12' and extra == 'dev'
+  requires_python: '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*'
 - pypi: https://files.pythonhosted.org/packages/88/c6/92fcd42f1ba33e1184263f25bfabf3d27c383410470f169e4b8163bf9c17/beautifulsoup4-4.15.0-py3-none-any.whl
   name: beautifulsoup4
   version: 4.15.0
@@ -64475,6 +64694,19 @@ packages:
   - sphinxcontrib-serializinghtml==2.0.0 ; extra == 'docs'
   - urllib3==2.6.3 ; extra == 'docs'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/9d/0f/c6144096b4914bbf44b43ba21c962e8f333ff045770b50a3e79ed8bd455f/opentelemetry_instrumentation_httpx-0.65b0-py3-none-any.whl
+  name: opentelemetry-instrumentation-httpx
+  version: 0.65b0
+  sha256: 400f1b78afa4ee2332b5debe58e1ed1b317913d58812c952576be76660aeadb1
+  requires_dist:
+  - opentelemetry-api~=1.12
+  - opentelemetry-instrumentation==0.65b0
+  - opentelemetry-semantic-conventions==0.65b0
+  - opentelemetry-util-http==0.65b0
+  - wrapt>=1.0.0,<3.0.0
+  - httpx2>=2.0.0 ; extra == 'instruments-any'
+  - httpx>=0.18.0 ; extra == 'instruments-any'
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/9e/51/17023c0f8f1869d8806b979a2bffa3f861f26a3f1a66b094288323fba52f/rfc3986_validator-0.1.1-py2.py3-none-any.whl
   name: rfc3986-validator
   version: 0.1.1
@@ -64512,6 +64744,14 @@ packages:
   - certifi>=2023.5.7
   - pysocks>=1.5.6,!=1.5.7 ; extra == 'socks'
   - chardet>=3.0.2,<8 ; extra == 'use-chardet-on-py3'
+  requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/a6/0e/49df70d9b81fb5cbae4bbf2a49d865b09bcbcbc4eb53f5851b1027738d78/opentelemetry_semantic_conventions-0.65b0-py3-none-any.whl
+  name: opentelemetry-semantic-conventions
+  version: 0.65b0
+  sha256: 1cacde7b0ad306f84c5ef08c3dbe1bbaf20165bba6f8bff43b670e555a086bcb
+  requires_dist:
+  - opentelemetry-api==1.44.0
+  - typing-extensions>=4.5.0
   requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/ad/66/0d785f0bc5e4315a96c989bb476d0fc07ea4f85132550c7b156ca2035d52/traitlets-5.16.1-py3-none-any.whl
   name: traitlets
@@ -64645,6 +64885,13 @@ packages:
   - pyparsing>=3
   - python-dateutil>=2.7
   requires_python: '>=3.11'
+- pypi: https://files.pythonhosted.org/packages/ca/6f/a04e900f465ff3221ccc395522503e2d10e79fa21f2723c8e177aae1e0d1/opentelemetry_api-1.44.0-py3-none-any.whl
+  name: opentelemetry-api
+  version: 1.44.0
+  sha256: 94b98c893a91b88657eaac1e3ba89618cdb85be6918196705354f34728b2cdef
+  requires_dist:
+  - typing-extensions>=4.5.0
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/ca/77/71d78d58f15c22db16328a476426f7ac4a60d3a5a7ba3b9627ee2f7903d4/jupyter_console-6.6.3-py3-none-any.whl
   name: jupyter-console
   version: 6.6.3
@@ -64711,6 +64958,16 @@ packages:
   - pytest>=7.0,<10 ; extra == 'test'
   - requests ; extra == 'test'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/cc/37/9b8a61d5493865319a27a0de06eaa2f3da4f8df24cc2903b32eb901db227/opentelemetry_instrumentation_urllib-0.65b0-py3-none-any.whl
+  name: opentelemetry-instrumentation-urllib
+  version: 0.65b0
+  sha256: df1b79e50d6d59f4248acc659bbed0ada8ccc8a028ee915d3fdeaf9140672b87
+  requires_dist:
+  - opentelemetry-api~=1.12
+  - opentelemetry-instrumentation==0.65b0
+  - opentelemetry-semantic-conventions==0.65b0
+  - opentelemetry-util-http==0.65b0
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/cc/8f/ec6289987824b29529d0dfda0d74a07cec60e54b9c92f3c9da4c0ac732de/contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
   name: contourpy
   version: 1.3.3
@@ -64736,6 +64993,20 @@ packages:
   - pytest-xdist ; extra == 'test-no-images'
   - wurlitzer ; extra == 'test-no-images'
   requires_python: '>=3.11'
+- pypi: https://files.pythonhosted.org/packages/cd/d0/fdeb1a98d8d3a6205f5f297c51b4a9bfe65126ab60339669bbe3dd54c2e2/opentelemetry_exporter_otlp_proto_http-1.44.0-py3-none-any.whl
+  name: opentelemetry-exporter-otlp-proto-http
+  version: 1.44.0
+  sha256: 838592fce774c1c8bb7b9a0a7facbfa82e17be5a8a4e94cef10cb84ae026bae3
+  requires_dist:
+  - googleapis-common-protos~=1.52
+  - opentelemetry-api~=1.15
+  - opentelemetry-exporter-otlp-proto-common==1.44.0
+  - opentelemetry-proto==1.44.0
+  - opentelemetry-sdk~=1.44.0
+  - requests~=2.7
+  - typing-extensions>=4.5.0
+  - opentelemetry-exporter-credential-provider-gcp>=0.59b0 ; extra == 'gcp-auth'
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/cf/58/8acf1b3e91c58313ce5cb67df61001fc9dcd21be4fadb76c1a2d540e09ed/fqdn-1.5.1-py3-none-any.whl
   name: fqdn
   version: 1.5.1
@@ -64767,6 +65038,13 @@ packages:
   - pytest-timeout ; extra == 'test'
   - pytest>=7.0 ; extra == 'test'
   requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/d1/7c/8be563d68e93bbefa5c8affb82ddcff91b3ad858ce49957ba7b16fd3e0ab/opentelemetry_proto-1.44.0-py3-none-any.whl
+  name: opentelemetry-proto
+  version: 1.44.0
+  sha256: 898b155a0e1557afd867478fb6158e8122a46329ca0bb8dc53cc55e98f017f56
+  requires_dist:
+  - protobuf>=5.0,<8.0
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/d4/2b/04b8a15f3a1c77bc79ddf5c73875327f34b4fa75982df2b76e45e402d364/asttokens-3.0.2-py3-none-any.whl
   name: asttokens
   version: 3.0.2
@@ -65084,6 +65362,16 @@ packages:
   - pytest-cov ; extra == 'tests'
   - pytest-xdist ; extra == 'tests'
   requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/e7/23/ff077e61886ee020a17ce9c8b6fa11c601c8d8345b09ea24f605445df62a/opentelemetry_sdk-1.44.0-py3-none-any.whl
+  name: opentelemetry-sdk
+  version: 1.44.0
+  sha256: df081c4c6bcfdb1211e3e86140376792643128a25f8d72d1d27675936e7e96ad
+  requires_dist:
+  - opentelemetry-api==1.44.0
+  - opentelemetry-semantic-conventions==0.65b0
+  - typing-extensions>=4.5.0
+  - opentelemetry-configuration==0.65b0 ; extra == 'file-configuration'
+  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/e7/e7/80988e32bf6f73919a113473a604f5a8f09094de312b9d52b79c2df7612b/jupyter_core-5.9.1-py3-none-any.whl
   name: jupyter-core
   version: 5.9.1

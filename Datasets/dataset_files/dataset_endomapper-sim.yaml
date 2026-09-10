@@ -4,38 +4,45 @@ dataset_name: endomapper-sim
 # with the frames: rgb.csv derives each frame's time from its index (image_<N>.png -> N / rgb_hz).
 rgb_hz: 30.0
 modes: ['mono', 'rgbd']
-# calibration.txt in each zip: fx, fy, cx, cy at 960x720, no distortion (a rendered pinhole).
+# calibration.txt in each sequence: fx, fy, cx, cy at 960x720, no distortion (a rendered pinhole).
 cam_models: ['pinhole']
-raw_formats: ['zip']
+raw_formats: ['images']
 
-# All sequences are local - there is no remote source wired up. raw_data_path is the same folder
-# as dataset_endomapper.yaml's (a mirror of the Synapse project); this dataset reads its
-# "Simulated Sequences" subfolder, one Seq_<N>.zip per simulated sequence holding (flat, or under
-# rgb/ and depth/ as the paper draws it) image_<NNNN>.png (960x720 RGBA), aov_image_<NNNN>.exr
-# (float depth, one channel), rgb.txt, depth.txt, trajectory.csv, calibration.txt and info.txt.
-# download_sequence_data symlinks the zip to VSLAM-LAB-Benchmark/ENDOMAPPER-SIM/<sequence>/raw.zip
-# and copies the three small text files next to it; create_rgb_folder reads the frames straight
-# out of the zip through that link.
-sequence_location: local
+# Hosted on Synapse (project syn26707219, folder "Simulated Sequences"), behind registration +
+# access conditions. Each Seq_<N> folder is fetched on demand with synapseclient - credentials via
+# its own ~/.synapseConfig or the SYNAPSE_AUTH_TOKEN env var, never a yaml field - into
+# raw_data_path (the same folder as dataset_endomapper.yaml's), which mirrors the project's own
+# layout and doubles as an offline cache (a complete folder already there is used as-is, no login):
+#   Simulated Sequences/Seq_<N>/rgb/image_<NNNN>.png          960x720 RGBA renders
+#   Simulated Sequences/Seq_<N>/depth/aov_image_<NNNN>.exr    float depth, one channel
+#   Simulated Sequences/Seq_<N>/{calibration,info,rgb,depth}.txt, trajectory.csv
+# download_sequence_data symlinks that folder to VSLAM-LAB-Benchmark/ENDOMAPPER-SIM/<sequence>/raw;
+# the create_* hooks read through the link.
+api_url: https://www.synapse.org/Synapse:syn26707219
+synapse_project_id: syn26707219
 raw_data_path: /home/alejandro/VSLAM-LAB-Benchmark/Endomapper_raw
 
 # Depth in meters = depth_0 pixel value / depth_factor. The EXRs store depth in decimeters
 # (info.txt: "Depth image metric unities: dm"), quantized to multiples of 1/16384 dm, so
-# 163840 px/m (= 16384 px/dm) keeps every source value exact (max 0.4 m in uint16). Caveat: the
-# values only span 0.003-0.10 dm (0.3 mm - 1 cm) in Seq_0, which looks small for a colon lumen -
-# if they turn out to be meters, set this to 16384 and reprocess; the trajectory is in dm too
-# (same info.txt) and is converted to m in create_groundtruth_csv.
+# 163840 px/m (= 16384 px/dm) keeps every source value exact (max 0.4 m in uint16). Caveat (#152):
+# the values only span 0.003-0.10 dm (0.3 mm - 1 cm) in Seq_0, which looks small for a colon
+# lumen - if they turn out to be meters, set this to 16384 and reprocess; the trajectory is in dm
+# too (same info.txt) and is converted to m in create_groundtruth_csv.
 depth_factor: 163840.0
 
 target_resolution: [640, 480]
 
-# Seq_<N>: one simulated colon flythrough (the paper lists seq_0 .. seq_5; only Seq_0 is in the
-# raw folder so far - append the others here once their zips are in place). Only frames that have
-# both an RGB image and a depth map in the zip are kept (rgbd needs the 1:1 pairing); Seq_0's zip
-# ships 333 RGB frames but only 126 depth maps (0-124 and 126) and a trajectory.csv cut off after
-# 322 rows, so the sequence is 126 frames long until a complete download replaces it.
+# Seq_<N>: one simulated colon flythrough of a CT-derived colon model, 261-335 frames each
+# (Dataset Summary.xlsx), same endoscope trajectory rendered with increasingly aggressive
+# deformation (info.txt gives the amplitude/speed; Seq_0 is rigid). Only frames that have both an
+# RGB image and a depth map are kept (rgbd needs the 1:1 pairing).
 sequence_names:
   - Seq_0
+  - Seq_1
+  - Seq_2
+  - Seq_3
+  - Seq_4
+  - Seq_5
 
 about:
   license: CC BY 4.0

@@ -263,7 +263,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 <tr><td><code>soneva</code></td><td>📸🏞️🌊🤳</td><td><a href="https://huggingface.co/datasets/wildflow/soneva-corals"><strong>Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and...</strong></a></td><td><code>mono</code></td><td><code>pinhole</code></td></tr>
 <tr><td><code>sweetcorals</code></td><td>📸🏞️🌊🤳</td><td><a href="https://huggingface.co/datasets/wildflow/sweet-corals"><strong>Coral reef 3D photogrammetry (Indonesia), from Wildflow</strong></a></td><td><code>mono</code></td><td><code>pinhole</code> <code>unknown</code></td></tr>
 <tr><td colspan="5">🫀 Intracorporeal datasets<hr></td></tr>
-<tr><td><code>endomapper</code></td><td>📸🫀🤳</td><td><a href="https://www.synapse.org/Synapse:syn26707219"><strong>EndoMapper - complete calibrated colonoscopy and gastroscopy procedures...</strong></a></td><td><code>mono</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>endomapper</code></td><td>📸🫀🤳</td><td><a href="https://www.synapse.org/Synapse:syn26707219"><strong>EndoMapper - 93 complete calibrated colonoscopy and gastroscopy procedures...</strong></a></td><td><code>mono</code></td><td><code>equid4</code> <code>unknown</code></td></tr>
 <tr><td><code>hamlyn</code></td><td>📸🫀🤳</td><td><a href="https://davidrecasens.github.io/EndoDepthAndMotion/"><strong>Hamlyn rectified stereo endoscopy dataset with depth ground truth, from...</strong></a></td><td><code>mono</code> <code>rgbd</code> <code>stereo</code></td><td><code>pinhole</code></td></tr>
 </tbody>
 </table>

@@ -1,48 +1,148 @@
 dataset_name: endomapper
 
 # EndoMapper videos are 1440x1080 at 40 fps (Epiphan frame grabber; the paper also lists 50 fps
-# Magewell captures for other procedures - Seq_001's COLMAP project folder is "40fps_HCULB"). No
-# timestamps ship with the frames: rgb.csv derives each frame's time from its video frame index
-# (out<N>.png -> N / rgb_hz).
+# Magewell captures). Nominal rate: rgb.csv derives every timestamp from the video frame index
+# and the frame rate read from the .mov itself (Seq_001: exactly 40/1), so a 50 fps procedure
+# gets 20 ms steps regardless of this value.
 rgb_hz: 40.0
 modes: ['mono']
 # Official EndoMapper calibration: Kannala-Brandt (calibu "fu fv u0 v0 kb4" = fx, fy, cx, cy,
 # k1..k4), one file per endoscope, at the native 1440x1080 and rescaled to target_resolution.
-cam_models: ['equid4']
-raw_formats: ['zip', 'colmap']
+# 17 procedures have no endoscope recorded ("N/A" in their info json and in Dataset Summary.xlsx)
+# and get an 'unknown' camera entry (zero intrinsics) instead.
+cam_models: ['equid4', 'unknown']
+# video: rgb_0 is extracted from the procedure's H.264 .mov; colmap: the poses come from the
+# COLMAP sub-models shipped as meta-data for Seq_001/Seq_002 (a zip of sparse/<M>/*.bin).
+raw_formats: ['video', 'colmap']
 
-# All sequences are local - there is no remote source wired up. raw_data_path is the entry point:
-# a folder mirroring the Synapse project's layout,
-#   Sequences/Seq_<NNN>.zip            the COLMAP retrieval-training export of that procedure (see
-#                                      below), a single top-level folder (Seq_001: "33/") with
-#                                      img_train/out<N>.png (the video frames COLMAP registered,
-#                                      1440x1080), sparse/<M>/{cameras,images,points3D}.bin (one
-#                                      COLMAP sub-model per cluster M), cluster_list/<M>.txt (the
-#                                      frames of cluster M) and GT/<M>.txt (image-retrieval
-#                                      positives - not poses, ignored here)
-#   Sequences/Seq_<NNN>_info.json      {"seq_number", "endoscope_number", "type", ...}
-#   Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml    that endoscope's Kannala-Brandt
-#                                      calibration (the *_photometrical.xml next to it is unused)
-#   Simulated Sequences/               synthetic colon sequences - a different dataset (pinhole,
-#                                      rgbd, metric trajectory): see dataset_endomapper-sim.yaml
-# download_sequence_data symlinks the zip to VSLAM-LAB-Benchmark/ENDOMAPPER/<sequence>/raw.zip,
-# copies the info json + geometrical xml next to it and extracts the sequence's images.bin; the
-# create_* hooks read the frames straight out of the zip through that link.
-sequence_location: local
+# Hosted on Synapse (project syn26707219) behind registration + access conditions. Files are
+# fetched on demand with synapseclient - credentials via its own ~/.synapseConfig or the
+# SYNAPSE_AUTH_TOKEN env var, never a yaml field - into raw_data_path, which mirrors the project's
+# own layout and doubles as an offline cache (anything already there is used as-is, no login):
+#   Sequences/Seq_<NNN>/Seq_<NNN>.mov                  the procedure video (H.264, 7 Mbps)
+#   Sequences/Seq_<NNN>/Seq_<NNN>_info.json            {"seq_number", "endoscope_number", "type", "meta-data"}
+#   Sequences/Seq_<NNN>/meta-data/colmap/Seq_<NNN>.zip COLMAP export (Seq_001/Seq_002 only): one
+#                                                      top-level folder (Seq_001: "33/") with
+#                                                      sparse/<M>/{cameras,images,points3D}.bin per
+#                                                      sub-model M, cluster_list/<M>.txt, GT/<M>.txt
+#                                                      (retrieval positives, ignored) and img_train/
+#                                                      (the registered frames as PNG, unused - rgb_0
+#                                                      comes from the video)
+#   Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml   that endoscope's calibration
+# download_sequence_data symlinks the video to VSLAM-LAB-Benchmark/ENDOMAPPER/<sequence>/raw.mov,
+# copies the info json + geometrical xml next to it and extracts the sequence's images.bin.
+api_url: https://www.synapse.org/Synapse:syn26707219
+synapse_project_id: syn26707219
 raw_data_path: /home/alejandro/VSLAM-LAB-Benchmark/Endomapper_raw
 
 target_resolution: [640, 480]
 
-# Seq_<NNN>_<MM>: COLMAP sub-model MM of procedure NNN - rgb_0 holds exactly the frames registered
-# in sparse/MM/images.bin (a mostly-consecutive stretch of the video, occasionally with gaps), and
-# groundtruth.csv their COLMAP poses (camera-in-world, that sub-model's own arbitrary frame and
-# scale). Seq_001 has 50 sub-models of 14 to 953 frames; nine pairs overlap in time.
-# Seq_<NNN>: the whole procedure export - rgb_0 holds every img_train frame in video order (5809
-# for Seq_001, video indices 1328..14809 with long gaps between clusters), and groundtruth.csv the
-# poses of the *largest* sub-model only (Seq_001: sub-model 11, 953 frames) - poses from different
-# sub-models don't share a frame, so no other cluster's poses can be merged in.
+# Seq_<NNN>: one complete procedure (93 on Synapse: 001-096 minus 082/084/086; 72 colonoscopies,
+# 21 gastroscopies), every video frame in rgb_0 (Seq_001: 14760 frames, 6 min 9 s). groundtruth.csv
+# holds COLMAP poses only for Seq_001/Seq_002 - from their *largest* sub-model (Seq_001: sub-model
+# 11), on the frames it registered (camera-in-world, that sub-model's own arbitrary frame and
+# scale; poses from different sub-models don't share a frame, so no other cluster can be merged
+# in) - and is header-only for the other 91.
+# Seq_<NNN>_<MM>: sub-model MM of Seq_001/Seq_002 (50 each) as a *continuous* clip - every video
+# frame from the sub-model's first to its last registered frame (the COLMAP export itself skips
+# the frames COLMAP dropped) - with poses on the registered frames. Seq_001's sub-models span 14
+# to 953 registered frames; nine pairs overlap in time. COLMAP's frame names out<N>.png are
+# 1-based video frame numbers (verified pixel-wise against the .mov: out<N> == frame N-1), so
+# rgb_0's 0-based <N-1>.png carries pose out<N>.
 sequence_names:
   - Seq_001
+  - Seq_002
+  - Seq_003
+  - Seq_004
+  - Seq_005
+  - Seq_006
+  - Seq_007
+  - Seq_008
+  - Seq_009
+  - Seq_010
+  - Seq_011
+  - Seq_012
+  - Seq_013
+  - Seq_014
+  - Seq_015
+  - Seq_016
+  - Seq_017
+  - Seq_018
+  - Seq_019
+  - Seq_020
+  - Seq_021
+  - Seq_022
+  - Seq_023
+  - Seq_024
+  - Seq_025
+  - Seq_026
+  - Seq_027
+  - Seq_028
+  - Seq_029
+  - Seq_030
+  - Seq_031
+  - Seq_032
+  - Seq_033
+  - Seq_034
+  - Seq_035
+  - Seq_036
+  - Seq_037
+  - Seq_038
+  - Seq_039
+  - Seq_040
+  - Seq_041
+  - Seq_042
+  - Seq_043
+  - Seq_044
+  - Seq_045
+  - Seq_046
+  - Seq_047
+  - Seq_048
+  - Seq_049
+  - Seq_050
+  - Seq_051
+  - Seq_052
+  - Seq_053
+  - Seq_054
+  - Seq_055
+  - Seq_056
+  - Seq_057
+  - Seq_058
+  - Seq_059
+  - Seq_060
+  - Seq_061
+  - Seq_062
+  - Seq_063
+  - Seq_064
+  - Seq_065
+  - Seq_066
+  - Seq_067
+  - Seq_068
+  - Seq_069
+  - Seq_070
+  - Seq_071
+  - Seq_072
+  - Seq_073
+  - Seq_074
+  - Seq_075
+  - Seq_076
+  - Seq_077
+  - Seq_078
+  - Seq_079
+  - Seq_080
+  - Seq_081
+  - Seq_083
+  - Seq_085
+  - Seq_087
+  - Seq_088
+  - Seq_089
+  - Seq_090
+  - Seq_091
+  - Seq_092
+  - Seq_093
+  - Seq_094
+  - Seq_095
+  - Seq_096
   - Seq_001_00
   - Seq_001_01
   - Seq_001_02
@@ -93,10 +193,60 @@ sequence_names:
   - Seq_001_47
   - Seq_001_48
   - Seq_001_49
+  - Seq_002_00
+  - Seq_002_01
+  - Seq_002_02
+  - Seq_002_03
+  - Seq_002_04
+  - Seq_002_05
+  - Seq_002_06
+  - Seq_002_07
+  - Seq_002_08
+  - Seq_002_09
+  - Seq_002_10
+  - Seq_002_11
+  - Seq_002_12
+  - Seq_002_13
+  - Seq_002_14
+  - Seq_002_15
+  - Seq_002_16
+  - Seq_002_17
+  - Seq_002_18
+  - Seq_002_19
+  - Seq_002_20
+  - Seq_002_21
+  - Seq_002_22
+  - Seq_002_23
+  - Seq_002_24
+  - Seq_002_25
+  - Seq_002_26
+  - Seq_002_27
+  - Seq_002_28
+  - Seq_002_29
+  - Seq_002_30
+  - Seq_002_31
+  - Seq_002_32
+  - Seq_002_33
+  - Seq_002_34
+  - Seq_002_35
+  - Seq_002_36
+  - Seq_002_37
+  - Seq_002_38
+  - Seq_002_39
+  - Seq_002_40
+  - Seq_002_41
+  - Seq_002_42
+  - Seq_002_43
+  - Seq_002_44
+  - Seq_002_45
+  - Seq_002_46
+  - Seq_002_47
+  - Seq_002_48
+  - Seq_002_49
 
 about:
   license: CC BY 4.0
-  summary: EndoMapper - complete calibrated colonoscopy and gastroscopy procedures (Olympus EVIS EXERA III, 1440x1080 at 40 fps) with per-endoscope Kannala-Brandt calibration and COLMAP sub-model reconstructions as pseudo-groundtruth
+  summary: EndoMapper - 93 complete calibrated colonoscopy and gastroscopy procedures (Olympus EVIS EXERA III, 1440x1080 at 40 fps) with per-endoscope Kannala-Brandt calibration, plus COLMAP sub-model reconstructions of two procedures as pseudo-groundtruth
   homepage: https://www.synapse.org/Synapse:syn26707219
   features:
     - Real

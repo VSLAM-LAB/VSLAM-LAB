@@ -2,8 +2,9 @@
 Module: VSLAM-LAB - Datasets - dataset_endomapper.py
 - Author: Alejandro Fontan
 - Assisted by: Claude (Fable 5.1)
-- Version: 1.0
+- Version: 2.0
 - Created: 2026-09-10
+- Updated: 2026-09-10
 - License: GPLv3 License
 """
 
@@ -15,33 +16,44 @@ import re
 import shutil
 import xml.etree.ElementTree as ET
 import zipfile
-from io import BytesIO
 from pathlib import Path
 from typing import Any, Final
 
+import cv2
 import numpy as np
-from PIL import Image
 from tqdm import tqdm
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import compute_scaled_size, make_printers, read_colmap_images, scale_intrinsics, world_to_camera_to_pose, write_csv_rows
+from utilities import (
+    compute_scaled_size,
+    make_printers,
+    read_colmap_images,
+    scale_intrinsics,
+    synapse_client,
+    synapse_download_file,
+    synapse_resolve_path,
+    world_to_camera_to_pose,
+    write_csv_rows,
+)
 
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 print_info, print_warning = make_printers(SCRIPT_LABEL)
 
 # Seq_<NNN> is a whole procedure, Seq_<NNN>_<MM> its COLMAP sub-model MM (see the yaml).
 _SEQUENCE_NAME_RE: Final = re.compile(r"^(?P<procedure>Seq_\d{3})(?:_(?P<submodel>\d{2}))?$")
-# Video frames inside the zip's img_train/ folder, named by video frame index.
-_FRAME_RE: Final = re.compile(r"^out(?P<index>\d+)\.png$")
+# Frame names inside the COLMAP export: 1-based video frame numbers (out<N>.png == frame N-1).
+_COLMAP_FRAME_RE: Final = re.compile(r"^out(?P<number>\d+)\.png$")
 
-# Layout of raw_data_path (mirrors the Synapse project): Sequences/Seq_<NNN>.zip +
-# Sequences/Seq_<NNN>_info.json, Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml.
+# Layout of raw_data_path (mirrors the Synapse project, see the yaml).
 _SEQUENCES_DIR: Final = "Sequences"
 _CALIBRATIONS_DIR: Final = "Calibrations"
+_COLMAP_META_DIRS: Final = ("meta-data", "colmap")
+_COLMAP_INFO_TAG: Final = "Colmap Reconstructions"  # info json meta-data entry
 
 # Per-sequence files download_sequence_data leaves in the sequence folder.
-_RAW_ZIP_LINK: Final = "raw.zip"  # symlink onto raw_data_path/Sequences/Seq_<NNN>.zip
+_RAW_VIDEO_LINK: Final = "raw.mov"  # symlink onto raw_data_path/Sequences/Seq_<NNN>/Seq_<NNN>.mov
 _COLMAP_DIR: Final = "colmap"  # holds the sequence's sub-model images.bin
 
 # The calibu camera type EndoMapper's geometrical xml declares: fx, fy, cx, cy, k1, k2, k3, k4
@@ -60,26 +72,26 @@ def _split_sequence_name(sequence_name: str) -> tuple[str, int | None]:
     return match["procedure"], (int(submodel) if submodel is not None else None)
 
 
-def _frame_index(colmap_name: str) -> int:
-    """'out7199.png' (the zip's / COLMAP's frame name) -> 7199 (video frame index)."""
-    match = _FRAME_RE.match(Path(colmap_name).name)
+def _colmap_frame_index(colmap_name: str) -> int:
+    """'out7199.png' (COLMAP's 1-based frame name) -> 7198 (0-based video frame index)."""
+    match = _COLMAP_FRAME_RE.match(Path(colmap_name).name)
     if match is None:
-        raise ValueError(f"Unexpected frame name '{colmap_name}' - expected out<N>.png")
-    return int(match["index"])
+        raise ValueError(f"Unexpected COLMAP frame name '{colmap_name}' - expected out<N>.png")
+    return int(match["number"]) - 1
 
 
-def _rgb_name(frame_index: int) -> str:
+def _frame_name(frame_index: int) -> str:
     """rgb_0 file name of a video frame: zero-padded so lexicographic order is video order."""
     return f"{frame_index:06d}.png"
 
 
-def _colmap_name(rgb_name: str) -> str:
-    """Inverse of _rgb_name: '007199.png' -> 'out7199.png'."""
-    return f"out{int(Path(rgb_name).stem)}.png"
+def _colmap_name(frame_index: int) -> str:
+    """Inverse of _colmap_frame_index: 7198 -> 'out7199.png'."""
+    return f"out{frame_index + 1}.png"
 
 
 def _zip_root(zf: zipfile.ZipFile) -> str:
-    """The zip's single top-level folder (Seq_001.zip: '33', the procedure's internal id)."""
+    """The COLMAP export's single top-level folder (Seq_001.zip: '33', an internal id)."""
     roots = {name.split("/", 1)[0] for name in zf.namelist() if "/" in name}
     if len(roots) != 1:
         raise ValueError(f"{zf.filename}: expected one top-level folder, found {sorted(roots)}")
@@ -92,48 +104,53 @@ class EndomapperDataset(DatasetVSLAMLAB):
     def __init__(self, dataset_name: str = "endomapper") -> None:
         super().__init__(dataset_name)
 
-        # All sequences are local (scalar in the yaml): the raw folder is the only source, entered
-        # through raw_data_path.
-        self.sequence_location = self.cfg["sequence_location"]
+        self.dataset_homepage: str = self.cfg["api_url"]
+        self.synapse_project_id: str = self.cfg["synapse_project_id"]
+        # Local mirror of the Synapse project (fetched on demand, reused as-is when present).
         self.raw_data_path = Path(self.cfg["raw_data_path"])
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        procedure, _ = _split_sequence_name(sequence_name)
-        raw_link = self._raw_zip(sequence_name)
+        procedure, submodel = _split_sequence_name(sequence_name)
+        video = self._raw_video(procedure)
+        info_json = self._raw_info_json(procedure)
+        if not (
+            self._ensure_raw_file(video, _SEQUENCES_DIR, procedure, video.name)
+            and self._ensure_raw_file(info_json, _SEQUENCES_DIR, procedure, info_json.name)
+        ):
+            return
+
+        sequence_path = self.sequence_path(sequence_name)
+        sequence_path.mkdir(parents=True, exist_ok=True)
+        raw_link = sequence_path / _RAW_VIDEO_LINK
         if not (raw_link.is_symlink() or raw_link.exists()):
-            raw_zip = self.raw_data_path / _SEQUENCES_DIR / f"{procedure}.zip"
-            if not raw_zip.is_file():
-                print_info(
-                    f"Sequence '{sequence_name}' is marked as 'local'. Its raw zip was not found at {raw_zip} - "
-                    f"place it there, or point raw_data_path in dataset_{self.dataset_name}.yaml at your copy of "
-                    f"the EndoMapper raw folder."
-                )
-                return
-            self.sequence_path(sequence_name).mkdir(parents=True, exist_ok=True)
-            # Absolute target on purpose: the zip lives outside the benchmark folder.
-            os.symlink(raw_zip.resolve(), raw_link)
+            # Absolute target on purpose: the video lives outside the benchmark folder.
+            os.symlink(video.resolve(), raw_link)
+        if not (sequence_path / info_json.name).exists():
+            shutil.copy2(info_json, sequence_path / info_json.name)
 
-        # The endoscope calibration: Seq_<NNN>_info.json names the endoscope, whose geometrical xml
-        # holds the intrinsics. Both are tiny - copied in (flat) so the sequence folder is
-        # self-contained.
-        info_json = self.raw_data_path / _SEQUENCES_DIR / self._info_json_name(procedure)
-        xml_name = self._geometrical_xml_name(sequence_name)
-        geometrical_xml = self.raw_data_path / _CALIBRATIONS_DIR / xml_name.rsplit("_", 1)[0] / xml_name
-        for source in (info_json, geometrical_xml):
-            target = self.sequence_path(sequence_name) / source.name
-            if not target.exists():
-                shutil.copy2(source, target)
+        # The endoscope's calibration (none recorded for 17 procedures - see the yaml).
+        endoscope = self._endoscope(sequence_name)
+        if endoscope is not None:
+            xml = self._raw_geometrical_xml(endoscope)
+            if self._ensure_raw_file(xml, _CALIBRATIONS_DIR, xml.parent.name, xml.name) and not (sequence_path / xml.name).exists():
+                shutil.copy2(xml, sequence_path / xml.name)
 
-        # This sequence's COLMAP poses: sparse/<M>/images.bin of its sub-model (Seq_<NNN>: the
-        # largest one). Extracted into a temp folder and renamed once complete, so a crash midway
-        # can't leave a colmap/ that later looks finished.
+        # COLMAP poses (Seq_001/Seq_002 only): sparse/<M>/images.bin of this sequence's sub-model
+        # (Seq_<NNN>: the largest one), extracted into a temp folder and renamed once complete.
+        if not self._has_colmap(sequence_name):
+            if submodel is not None:
+                raise ValueError(f"{sequence_name}: {procedure} ships no COLMAP reconstructions - no sub-model sequences exist for it")
+            return
         colmap_dir = self._colmap_dir(sequence_name)
         if (colmap_dir / "images.bin").is_file():
+            return
+        colmap_zip = self._raw_colmap_zip(procedure)
+        if not self._ensure_raw_file(colmap_zip, _SEQUENCES_DIR, procedure, *_COLMAP_META_DIRS, colmap_zip.name):
             return
         tmp_dir = colmap_dir.with_name(colmap_dir.name + ".tmp")
         shutil.rmtree(tmp_dir, ignore_errors=True)
         tmp_dir.mkdir(parents=True)
-        with self._open_raw_zip(sequence_name) as zf:
+        with zipfile.ZipFile(colmap_zip) as zf:
             member = f"{_zip_root(zf)}/sparse/{self._submodel_index(sequence_name)}/images.bin"
             (tmp_dir / "images.bin").write_bytes(zf.read(member))
         tmp_dir.rename(colmap_dir)
@@ -143,27 +160,33 @@ class EndomapperDataset(DatasetVSLAMLAB):
         if rgb_path.exists():
             return
 
+        first, last = self._frame_span(sequence_name)
+        cap = self._open_video(sequence_name)
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if last is None or last >= total:
+            if last is not None:
+                print_warning(f"{sequence_name}: COLMAP registered frames up to {last} but the video has {total} - clipping")
+            last = total - 1
+
+        # Built in a sibling temp folder and renamed once complete, so a crash midway can't leave
+        # a partial rgb_0/ that later looks finished.
         tmp_path = rgb_path.with_name(rgb_path.name + ".tmp")
         shutil.rmtree(tmp_path, ignore_errors=True)
         tmp_path.mkdir(parents=True)
 
+        cap.set(cv2.CAP_PROP_POS_FRAMES, first)  # frame-exact on these H.264 files (verified)
         target_size = None
-        init_size = None
-        with self._open_raw_zip(sequence_name) as zf:
-            root = _zip_root(zf)
-            for colmap_name in tqdm(self._frame_names(sequence_name, zf), desc=f"    resizing frames -> {rgb_path.name}"):
-                data = zf.read(f"{root}/img_train/{colmap_name}")
-                out_path = tmp_path / _rgb_name(_frame_index(colmap_name))
-                if self.target_resolution is None:
-                    out_path.write_bytes(data)  # the original PNG, byte for byte
-                    continue
-                with Image.open(BytesIO(data)) as img:
-                    if target_size is None:
-                        init_size = img.size
-                        target_size = compute_scaled_size(img.size, self.target_resolution)
-                    if img.size != init_size:
-                        print_warning(f"{colmap_name} {img.size} != {init_size}")
-                    img.resize(target_size, Image.Resampling.LANCZOS).save(out_path)
+        for index in tqdm(range(first, last + 1), desc=f"    extracting frames {first}-{last} -> {rgb_path.name}"):
+            ok, frame = cap.read()
+            if not ok:
+                print_warning(f"{sequence_name}: video ended at frame {index - 1}, expected {last}")
+                break
+            if self.target_resolution is not None:
+                if target_size is None:
+                    target_size = compute_scaled_size((frame.shape[1], frame.shape[0]), self.target_resolution)
+                frame = cv2.resize(frame, target_size, interpolation=cv2.INTER_LANCZOS4)
+            cv2.imwrite(str(tmp_path / _frame_name(index)), frame)
+        cap.release()
 
         tmp_path.rename(rgb_path)
 
@@ -172,81 +195,140 @@ class EndomapperDataset(DatasetVSLAMLAB):
         if rgb_csv.exists():
             return
         rgb_path = self.rgb_path(sequence_name)
-        rows = [[self._ts_ns(int(p.stem)), f"{rgb_path.name}/{p.name}"] for p in self._rgb_frames(sequence_name)]
+        fps = self._video_fps(sequence_name)
+        rows = [[_ts_ns(int(p.stem), fps), f"{rgb_path.name}/{p.name}"] for p in self._rgb_frames(sequence_name)]
         write_csv_rows(rgb_csv, ["ts_rgb_0 (ns)", "path_rgb_0"], rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        # The endoscope's official EndoMapper calibration (geometrical xml), at the native
-        # 1440x1080, rescaled to the size create_rgb_folder produced. Note the COLMAP sub-models
-        # were reconstructed with a slightly different KB4 set (their cameras.bin: fx 717.21 vs
-        # 717.69 here, etc.) - the published calibration is the one written.
-        width, height, params = self._read_geometrical_xml(sequence_name)
-        fx, fy, cx, cy, k1, k2, k3, k4 = params
-        self._check_calibration_resolution(sequence_name, (width, height))
-        focal_length, principal_point = scale_intrinsics((fx, fy), (cx, cy), (width, height), self.target_resolution)
         rgb: dict[str, Any] = {
             "cam_name": "rgb_0",
             "cam_type": "rgb",
-            "cam_model": "pinhole",
-            "distortion_type": "equid4",
-            "distortion_coefficients": [k1, k2, k3, k4],
-            "focal_length": focal_length,
-            "principal_point": principal_point,
-            "fps": float(self.rgb_hz),
+            "fps": float(self._video_fps(sequence_name)),
             "T_BS": np.eye(4),
         }
+        endoscope = self._endoscope(sequence_name)
+        if endoscope is None:
+            # No endoscope recorded for this procedure: no calibration exists to write.
+            print_info(f"{sequence_name}: no endoscope recorded in its info json - writing an 'unknown' camera")
+            rgb.update({"cam_model": "unknown", "focal_length": [0.0, 0.0], "principal_point": [0.0, 0.0]})
+        else:
+            # The endoscope's official EndoMapper calibration (geometrical xml), at the native
+            # 1440x1080, rescaled to the size create_rgb_folder produced. Note the COLMAP
+            # sub-models were reconstructed with a slightly different KB4 set (their cameras.bin:
+            # fx 717.21 vs 717.69 here for Endoscope_01) - the published calibration is the one written.
+            width, height, params = self._read_geometrical_xml(sequence_name, endoscope)
+            fx, fy, cx, cy, k1, k2, k3, k4 = params
+            self._check_calibration_resolution(sequence_name, (width, height))
+            focal_length, principal_point = scale_intrinsics((fx, fy), (cx, cy), (width, height), self.target_resolution)
+            rgb.update({
+                "cam_model": "pinhole",
+                "distortion_type": "equid4",
+                "distortion_coefficients": [k1, k2, k3, k4],
+                "focal_length": focal_length,
+                "principal_point": principal_point,
+            })
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
         # COLMAP poses of this sequence's sub-model (camera-in-world, the sub-model's own frame and
-        # scale), one row per rgb_0 frame registered in it - every frame of a Seq_<NNN>_<MM>
-        # sequence, only the largest sub-model's frames of a whole-procedure Seq_<NNN>.
-        images = read_colmap_images(self._colmap_dir(sequence_name) / "images.bin")
+        # scale), one row per rgb_0 frame registered in it: the registered frames of a
+        # Seq_<NNN>_<MM> clip, the largest sub-model's frames of a whole procedure Seq_<NNN>, and
+        # nothing (header only) for the 91 procedures without COLMAP meta-data.
+        images_bin = self._colmap_dir(sequence_name) / "images.bin"
+        frames = self._rgb_frames(sequence_name)
         rows = []
-        for frame in self._rgb_frames(sequence_name):
-            registered = images.get(_colmap_name(frame.name))
-            if registered is None:
-                continue
-            _, qvec, tvec = registered
-            rows.append([self._ts_ns(int(frame.stem)), *world_to_camera_to_pose(qvec, tvec)])
-        n_frames = len(self._rgb_frames(sequence_name))
-        if len(rows) < n_frames:
-            print_info(
-                f"{sequence_name}: COLMAP poses (sub-model {self._submodel_index(sequence_name)}) cover "
-                f"{len(rows)} of {n_frames} frames"
-            )
+        if images_bin.is_file():
+            images = read_colmap_images(images_bin)
+            fps = self._video_fps(sequence_name)
+            for frame in frames:
+                registered = images.get(_colmap_name(int(frame.stem)))
+                if registered is None:
+                    continue
+                _, qvec, tvec = registered
+                rows.append([_ts_ns(int(frame.stem), fps), *world_to_camera_to_pose(qvec, tvec)])
+            print_info(f"{sequence_name}: COLMAP poses (sub-model {self._submodel_index(sequence_name)}) cover {len(rows)} of {len(frames)} frames")
         write_csv_rows(self.groundtruth_csv_path(sequence_name), _GROUNDTRUTH_HEADER, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
         # colmap/images.bin is a copy of a zip member, fully turned into groundtruth.csv - gone at
-        # STANDARD, re-extracted from the zip on demand. raw.zip is a symlink onto the raw folder
-        # (the only copy of the frames) and is never deleted, at any tier.
+        # STANDARD, re-extracted from the raw zip on demand. raw.mov is a symlink onto the raw
+        # folder (the Synapse mirror) and is never deleted, at any tier.
         if BENCHMARK_RETENTION != Retention.FULL:
             shutil.rmtree(self._colmap_dir(sequence_name), ignore_errors=True)
 
-    # --- helpers, all recomputed from sequence_name (no per-sequence state on self) -------------
-    def _raw_zip(self, sequence_name: str) -> Path:
-        return self.sequence_path(sequence_name) / _RAW_ZIP_LINK
+    def get_download_issues(self, sequence_names: list[str]) -> list[dict]:
+        # Only a problem when something must actually be fetched: a raw folder that already holds
+        # the requested videos needs no Synapse login at all.
+        missing = [s for s in sequence_names if not self._raw_video(_split_sequence_name(s)[0]).is_file()]
+        if not missing or synapse_client() is not None:
+            return []
+        return [_get_dataset_issue(issue_id="synapse_token", dataset_name=self.dataset_name, website=self.dataset_homepage)]
 
+    # --- raw-folder (Synapse mirror) paths and fetching ------------------------------------------
+    def _raw_video(self, procedure: str) -> Path:
+        return self.raw_data_path / _SEQUENCES_DIR / procedure / f"{procedure}.mov"
+
+    def _raw_info_json(self, procedure: str) -> Path:
+        return self.raw_data_path / _SEQUENCES_DIR / procedure / f"{procedure}_info.json"
+
+    def _raw_colmap_zip(self, procedure: str) -> Path:
+        return self.raw_data_path / _SEQUENCES_DIR / procedure / Path(*_COLMAP_META_DIRS) / f"{procedure}.zip"
+
+    def _raw_geometrical_xml(self, endoscope: int) -> Path:
+        folder = f"Endoscope_{endoscope:02d}"
+        return self.raw_data_path / _CALIBRATIONS_DIR / folder / f"{folder}_geometrical.xml"
+
+    def _ensure_raw_file(self, local: Path, *remote_names: str) -> bool:
+        """True once `local` exists - fetching it from the Synapse project (remote_names: the
+        entity names down from the project root) if it doesn't and credentials allow."""
+        if local.is_file():
+            return True
+        syn = synapse_client()
+        if syn is None:
+            print_info(
+                f"{local.name} is not in {local.parent} and no Synapse credentials are configured "
+                f"(~/.synapseConfig or SYNAPSE_AUTH_TOKEN) - place the file there yourself, or set up "
+                f"the credentials (see `pixi run get-resources`)."
+            )
+            return False
+        remote = "/".join(remote_names)
+        file_id = synapse_resolve_path(syn, self.synapse_project_id, *remote_names)
+        if file_id is None:
+            print_warning(f"{remote} not found in Synapse project {self.synapse_project_id}")
+            return False
+        print_info(f"Downloading {remote} from Synapse ({file_id}) -> {local.parent}")
+        synapse_download_file(syn, file_id, local)
+        return True
+
+    # --- helpers, all recomputed from sequence_name (no per-sequence state on self) -------------
     def _colmap_dir(self, sequence_name: str) -> Path:
         return self.sequence_path(sequence_name) / _COLMAP_DIR
 
-    def _open_raw_zip(self, sequence_name: str) -> zipfile.ZipFile:
-        raw_link = self._raw_zip(sequence_name)
-        if not raw_link.is_file():
-            raise FileNotFoundError(
-                f"Raw zip for '{sequence_name}' not found at {raw_link} (sequence marked as 'local'): run "
-                f"download_sequence_data with the raw folder in place, and keep it in place while processing."
-            )
-        return zipfile.ZipFile(raw_link)
+    def _info(self, sequence_name: str) -> dict[str, Any]:
+        """The procedure's info json - from the sequence folder if copied in, else the raw folder."""
+        procedure, _ = _split_sequence_name(sequence_name)
+        for info_json in (self.sequence_path(sequence_name) / f"{procedure}_info.json", self._raw_info_json(procedure)):
+            if info_json.is_file():
+                with open(info_json, encoding="utf-8") as f:
+                    return json.load(f)
+        raise FileNotFoundError(f"{sequence_name}: {procedure}_info.json not found - run download_sequence_data first")
+
+    def _endoscope(self, sequence_name: str) -> int | None:
+        """Endoscope number of the procedure, or None when none is recorded ("N/A" - the field is
+        an int for some procedures, a digit string for others)."""
+        value = str(self._info(sequence_name).get("endoscope_number", "")).strip()
+        return int(value) if value.isdigit() else None
+
+    def _has_colmap(self, sequence_name: str) -> bool:
+        return _COLMAP_INFO_TAG in (self._info(sequence_name).get("meta-data") or [])
 
     def _submodel_index(self, sequence_name: str) -> int:
         """The COLMAP sub-model this sequence's poses come from: its own for Seq_<NNN>_<MM>, the
         largest cluster (most frames in cluster_list/<M>.txt, lowest M on a tie) for Seq_<NNN>."""
-        _, submodel = _split_sequence_name(sequence_name)
+        procedure, submodel = _split_sequence_name(sequence_name)
         if submodel is not None:
             return submodel
-        with self._open_raw_zip(sequence_name) as zf:
+        with zipfile.ZipFile(self._raw_colmap_zip(procedure)) as zf:
             prefix = f"{_zip_root(zf)}/cluster_list/"
             sizes = [
                 (len(zf.read(name).split()), int(Path(name).stem))
@@ -254,48 +336,47 @@ class EndomapperDataset(DatasetVSLAMLAB):
                 if name.startswith(prefix) and name.endswith(".txt")
             ]
         if not sizes:
-            raise ValueError(f"{sequence_name}: no cluster_list/*.txt in {self._raw_zip(sequence_name)}")
+            raise ValueError(f"{sequence_name}: no cluster_list/*.txt in {self._raw_colmap_zip(procedure)}")
         return max(sizes, key=lambda item: (item[0], -item[1]))[1]
 
-    def _frame_names(self, sequence_name: str, zf: zipfile.ZipFile) -> list[str]:
-        """COLMAP frame names ('out<N>.png') that make up rgb_0, in video order: every img_train
-        frame for Seq_<NNN>, the frames registered in the sub-model's images.bin for Seq_<NNN>_<MM>."""
+    def _frame_span(self, sequence_name: str) -> tuple[int, int | None]:
+        """(first, last) 0-based video frame indices rgb_0 covers: the whole video for Seq_<NNN>
+        (last None = to the end), the sub-model's first..last registered frame for Seq_<NNN>_<MM>."""
         _, submodel = _split_sequence_name(sequence_name)
         if submodel is None:
-            prefix = f"{_zip_root(zf)}/img_train/"
-            names = [Path(name).name for name in zf.namelist() if name.startswith(prefix) and name.endswith(".png")]
-        else:
-            names = list(read_colmap_images(self._colmap_dir(sequence_name) / "images.bin"))
-        return sorted(names, key=_frame_index)
+            return 0, None
+        indices = [_colmap_frame_index(name) for name in read_colmap_images(self._colmap_dir(sequence_name) / "images.bin")]
+        return min(indices), max(indices)
+
+    def _open_video(self, sequence_name: str) -> cv2.VideoCapture:
+        raw_link = self.sequence_path(sequence_name) / _RAW_VIDEO_LINK
+        cap = cv2.VideoCapture(str(raw_link))
+        if not cap.isOpened():
+            raise FileNotFoundError(
+                f"Cannot open the video of '{sequence_name}' at {raw_link}: run download_sequence_data first, and keep "
+                f"raw_data_path in place while processing."
+            )
+        return cap
+
+    def _video_fps(self, sequence_name: str) -> float:
+        cap = self._open_video(sequence_name)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+        if fps <= 0:
+            raise ValueError(f"{sequence_name}: could not read the video frame rate")
+        return float(fps)
 
     def _rgb_frames(self, sequence_name: str) -> list[Path]:
         rgb_path = self.rgb_path(sequence_name)
         return sorted(p for p in rgb_path.iterdir() if p.is_file() and p.suffix.lower() == ".png")
 
-    def _ts_ns(self, frame_index: int) -> int:
-        """Video frame index -> timestamp in ns, at the nominal capture rate (no timestamps ship)."""
-        return int(round(frame_index * 1e9 / self.rgb_hz))
-
-    @staticmethod
-    def _info_json_name(procedure: str) -> str:
-        return f"{procedure}_info.json"
-
-    def _geometrical_xml_name(self, sequence_name: str) -> str:
-        """'Endoscope_<NN>_geometrical.xml' for this sequence's endoscope, from the procedure's info
-        json - read from the sequence folder if already copied in, else from the raw folder."""
-        procedure, _ = _split_sequence_name(sequence_name)
-        for folder in (self.sequence_path(sequence_name), self.raw_data_path / _SEQUENCES_DIR):
-            info_json = folder / self._info_json_name(procedure)
-            if info_json.is_file():
-                with open(info_json, encoding="utf-8") as f:
-                    return f"Endoscope_{int(json.load(f)['endoscope_number']):02d}_geometrical.xml"
-        raise FileNotFoundError(
-            f"{sequence_name}: {self._info_json_name(procedure)} not found in {self.raw_data_path / _SEQUENCES_DIR}"
-        )
-
-    def _read_geometrical_xml(self, sequence_name: str) -> tuple[int, int, list[float]]:
-        """(width, height, [fx, fy, cx, cy, k1, k2, k3, k4]) from the endoscope's calibu xml."""
-        xml_path = self.sequence_path(sequence_name) / self._geometrical_xml_name(sequence_name)
+    def _read_geometrical_xml(self, sequence_name: str, endoscope: int) -> tuple[int, int, list[float]]:
+        """(width, height, [fx, fy, cx, cy, k1, k2, k3, k4]) from the endoscope's calibu xml (the
+        copy in the sequence folder, else the raw folder's)."""
+        raw_xml = self._raw_geometrical_xml(endoscope)
+        xml_path = next((p for p in (self.sequence_path(sequence_name) / raw_xml.name, raw_xml) if p.is_file()), None)
+        if xml_path is None:
+            raise FileNotFoundError(f"{sequence_name}: {raw_xml.name} not found - run download_sequence_data first")
         camera_model = ET.parse(xml_path).getroot().find("./camera/camera_model")
         if camera_model is None or camera_model.get("type") != _KB4_CAMERA_TYPE:
             found = None if camera_model is None else camera_model.get("type")
@@ -312,9 +393,14 @@ class EndomapperDataset(DatasetVSLAMLAB):
         if not frames:
             return
         expected_size = compute_scaled_size(native_size, self.target_resolution)
-        with Image.open(frames[0]) as img:
-            if img.size != expected_size:
-                print_warning(
-                    f"{sequence_name}: rgb_0/{frames[0].name} is {img.size}, but the calibration is scaled for "
-                    f"{expected_size} - intrinsics may describe the wrong image size."
-                )
+        height, width = cv2.imread(str(frames[0])).shape[:2]
+        if (width, height) != expected_size:
+            print_warning(
+                f"{sequence_name}: rgb_0/{frames[0].name} is {(width, height)}, but the calibration is scaled for "
+                f"{expected_size} - intrinsics may describe the wrong image size."
+            )
+
+
+def _ts_ns(frame_index: int, fps: float) -> int:
+    """Video frame index -> timestamp in ns at the video's frame rate (no timestamps ship)."""
+    return int(round(frame_index * 1e9 / fps))

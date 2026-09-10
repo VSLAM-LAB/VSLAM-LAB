@@ -12,6 +12,7 @@ comment below for what's in this file and where each block is used.
 
 import argparse
 import csv
+import functools
 import http.client
 import os
 import re
@@ -63,6 +64,9 @@ from path_constants import (
 #   Hugging Face download helpers   - hf_token / download_hf_snapshot / ensure_hf_sequence_download,
 #                                      used by dataset_soneva.py and dataset_sweetcorals.py; other
 #                                      HF-based datasets (e.g. dataset_ariel.py) not yet migrated
+#   Synapse download helpers        - synapse_client / synapse_resolve_path / synapse_download_file /
+#                                      synapse_download_folder, used by dataset_endomapper.py and
+#                                      dataset_endomapper_sim.py (synapseclient imported lazily)
 #   ROS bag helpers                 - patch_ros2_qos_profiles_metadata / run_rosbag_frame_extraction,
 #                                      pulled out of dataset_pamir.py while fixing VSLAM-LAB issue
 #                                      #95; not yet adopted by dataset_ariel.py/dataset_hilti2022.py/
@@ -1110,5 +1114,64 @@ def read_csv(csv_file):
     except (pd.errors.EmptyDataError, FileNotFoundError):
         return pd.DataFrame()
     return csv_data
+##################################################################################################################################################
+
+
+##################################################################################################################################################
+# Synapse download helpers
+#
+# Sage Bionetworks' Synapse platform (synapse.org), where e.g. the EndoMapper project lives
+# (dataset_endomapper.py / dataset_endomapper_sim.py). synapseclient is a PyPI dependency of the
+# vslamlab feature only, so it is imported lazily inside these functions - importing utilities.py
+# from another pixi environment must not require it. Credentials come from synapseclient's own
+# sources (~/.synapseConfig's [authentication] authtoken, or the SYNAPSE_AUTH_TOKEN env var) -
+# never from a VSLAM-LAB yaml, so no token can end up committed (issue #147).
+##################################################################################################################################################
+@functools.lru_cache(maxsize=1)
+def synapse_client():
+    """A logged-in synapseclient.Synapse, or None when no (valid) credentials are configured.
+    Cached: one login per process, and a failed one isn't retried on every sequence."""
+    import synapseclient
+    from synapseclient.core.exceptions import SynapseAuthenticationError, SynapseNoCredentialsError
+
+    try:
+        return synapseclient.login(silent=True)
+    except (SynapseAuthenticationError, SynapseNoCredentialsError):
+        return None
+
+
+def synapse_resolve_path(syn, root_id: str, *names: str) -> str | None:
+    """Synapse id of the entity reached by walking `names` (folder, ..., file) down from root_id
+    by entity name, or None if any step doesn't exist."""
+    import asyncio
+    from synapseclient.api import get_children
+
+    async def children(parent: str) -> dict[str, str]:
+        return {c["name"]: c["id"] async for c in get_children(parent, include_types=["folder", "file"], synapse_client=syn)}
+
+    entity_id = root_id
+    for name in names:
+        entity_id = asyncio.run(children(entity_id)).get(name)
+        if entity_id is None:
+            return None
+    return entity_id
+
+
+def synapse_download_file(syn, file_id: str, dest: str | Path) -> Path:
+    """Downloads one Synapse file entity to exactly `dest` (parent folders created)."""
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    downloaded = Path(syn.get(file_id, downloadLocation=str(dest.parent)).path)
+    if downloaded != dest:
+        downloaded.replace(dest)
+    return dest
+
+
+def synapse_download_folder(syn, folder_id: str, dest_dir: str | Path) -> None:
+    """Downloads a Synapse folder recursively into dest_dir, keeping its sub-folder structure."""
+    import synapseutils
+
+    Path(dest_dir).mkdir(parents=True, exist_ok=True)
+    synapseutils.syncFromSynapse(syn, folder_id, path=str(dest_dir), manifest="suppress")
 ##################################################################################################################################################
 
