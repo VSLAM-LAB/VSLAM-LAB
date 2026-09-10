@@ -43,6 +43,7 @@ Baselines/Fast-FoundationStereo
 Baselines/AnyCalib
 Baselines/Refrax
 Baselines/refraction_simulator
+Baselines/placecell
 
 path_constants.py
 configs/config_demo.yaml

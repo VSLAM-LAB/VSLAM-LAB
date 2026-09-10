@@ -58,6 +58,7 @@ fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"],
 anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 refrax = { features = ["refrax"], solve-group = "refrax" }
+placecell = { features = ["placecell"], solve-group = "placecell" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
 ros2 = { features = ["ros2"], solve-group = "ros2" }
@@ -1327,6 +1328,47 @@ tqdm = "*"
 
 # What utilities.py imports at module level (the capability uses its sequence-target/CSV helpers)
 pandas = "*"
+pillow = "*"
+py7zr = "*"
+colorama = "*"
+cryptography = "*"
+huggingface_hub = "*"
+matplotlib = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# placecell (Capabilities/placecell.py, 'rgb_placecell: <n>'): keep the n least redundant frames of a sequence with
+# placecell's information culler on the VPR matrix (<sequence>/vpr-lab/D.npy, generated via the vpr-lab env when missing).
+# The compiled module (nanobind) is pip-installed from the Baselines/placecell clone; CMAKE_BUILD_PARALLEL_LEVEL keeps the
+# build light (one core library + one bindings TU).
+[feature.placecell]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.placecell.tasks]
+fetch-source.cmd = "./git-clone.sh alejandrofontan placecell placecell"
+fetch-source.outputs = ["Baselines/placecell"]
+install.cmd = "python -c 'import placecell' 2>/dev/null || CMAKE_BUILD_PARALLEL_LEVEL=2 pip install --no-build-isolation --no-deps Baselines/placecell"
+install.depends-on = ["fetch-source"]
+placecell-select = { cmd = "python Capabilities/placecell.py", depends-on = ["install"] }
+
+[feature.placecell.dependencies]
+python = "3.11.*"
+pip = "*"
+pixi = "*"
+# Building the placecell wheel (scikit-build-core + nanobind, C++17, Eigen)
+cxx-compiler = "*"
+cmake = "*"
+ninja = "*"
+eigen = "*"
+nanobind = "*"
+scikit-build-core = "*"
+numpy = "*"
+
+# What utilities.py imports at module level (the capability uses its sequence-target/CSV helpers)
+pandas = "*"
+scipy = "*"
+pyyaml = "*"
 pillow = "*"
 py7zr = "*"
 colorama = "*"

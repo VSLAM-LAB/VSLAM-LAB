@@ -18,6 +18,9 @@ from utilities import print_msg, write_csv_rows
 # sys.path directly (sample_vpr.py itself imports its artifact helper from the Capabilities package).
 sys.path.insert(0, str(VSLAM_LAB_DIR / "Datasets" / "extra-files"))
 from sample_vpr import sweep_thresholds, select_for_target, selected_rows
+# Capabilities/placecell.py is numpy-only at import time (the compiled placecell module is imported
+# lazily, inside the 'placecell' pixi environment), so its csv helper can be imported here.
+from Capabilities.placecell import SELECTION_CSV as PLACECELL_SELECTION_CSV, read_selection_csv as read_placecell_selection
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
@@ -119,8 +122,13 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
     has_rgb_step = 'rgb_step' in exp.parameters or (has_default and 'rgb_step' in default_parameters)
     has_rgb_max = 'rgb_max' in exp.parameters or (has_default and 'rgb_max' in default_parameters)
     has_rgb_vpr = 'rgb_vpr' in exp.parameters or (has_default and 'rgb_vpr' in default_parameters)
+    has_rgb_placecell = 'rgb_placecell' in exp.parameters or (has_default and 'rgb_placecell' in default_parameters)
+    if has_rgb_vpr and has_rgb_placecell:
+        print_msg(SCRIPT_LABEL, f"rgb_vpr and rgb_placecell both set for {sequence_name}: they are two different frame "
+                  f"selections on the same VPR matrix - keep only one of them", flag="error", verb='NONE')
+        sys.exit(1)
 
-    if has_rgb_idx or has_rgb_step or has_rgb_max or has_rgb_vpr:
+    if has_rgb_idx or has_rgb_step or has_rgb_max or has_rgb_vpr or has_rgb_placecell:
         filter_info = []
 
         full_df = pd.read_csv(rgb_csv)
@@ -158,10 +166,7 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
 
         if has_rgb_vpr:
             rgb_vpr_num = exp.parameters['rgb_vpr'] if 'rgb_vpr' in exp.parameters else default_parameters['rgb_vpr']
-            d_matrix_path = sequence_path / "vpr-lab" / "D.npy"
-            if not d_matrix_path.exists():
-                print_msg(SCRIPT_LABEL, f"rgb_vpr: {d_matrix_path} not found, running 'pixi run vpr {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-                subprocess.run(["pixi", "run", "-e", "vpr-lab", "vpr", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+            d_matrix_path = ensure_vpr_matrix(dataset, sequence_name, sequence_path, total_frames, 'rgb_vpr')
 
             if rgb_vpr_num >= len(rows):
                 filter_info.append(f"rgb_vpr={rgb_vpr_num} -> {len(rows)} frames (already <= target)")
@@ -171,6 +176,19 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
                 chosen_th, chosen_indexes = select_for_target(sweep, rgb_vpr_num)
                 rows = selected_rows(rows, chosen_indexes)
                 filter_info.append(f"rgb_vpr={rgb_vpr_num} -> {len(rows)} frames (threshold={chosen_th:.4f})")
+
+        if has_rgb_placecell:
+            rgb_placecell_num = exp.parameters['rgb_placecell'] if 'rgb_placecell' in exp.parameters else default_parameters['rgb_placecell']
+            ensure_vpr_matrix(dataset, sequence_name, sequence_path, total_frames, 'rgb_placecell')
+
+            if rgb_placecell_num >= len(rows):
+                filter_info.append(f"rgb_placecell={rgb_placecell_num} -> {len(rows)} frames (already <= target)")
+            else:
+                kept_idx = select_frames_with_placecell(dataset, sequence_name, exp_folder, orig_idx, rgb_placecell_num)
+                position = {idx: k for k, idx in enumerate(orig_idx)}
+                rows = [rows[position[idx]] for idx in kept_idx]
+                orig_idx = kept_idx
+                filter_info.append(f"rgb_placecell={rgb_placecell_num} -> {len(rows)} frames")
 
         header = list(rows[0].keys())
         write_csv_rows(rgb_exp_csv, header, [list(row.values()) for row in rows])
@@ -220,6 +238,54 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
             append_stereo_depth_columns(dataset, sequence_name, sequence_path, rgb_exp_csv, exp_folder / CALIBRATION_EXP_YAML)
         else:
             print_msg(SCRIPT_LABEL, f"depth='{depth}' not recognized (only 'fastfoundationstereo' is supported); ignoring", flag="error", verb='NONE')
+
+def ensure_vpr_matrix(dataset: Any, sequence_name: str, sequence_path: Path, total_frames: int, parameter: str) -> Path:
+    """<sequence>/vpr-lab/D.npy, the VPR distance matrix both rgb_vpr and rgb_placecell select
+    frames on. Generated with 'pixi run vpr' (Capabilities/vpr.py, vpr-lab environment) when
+    missing. Its row count must match the frame list the experiment indexes it with
+    (total_frames): a mismatch (e.g. rgb.csv sampled after the matrix was computed) would
+    silently pick the wrong frames, so it stops the run instead."""
+    d_matrix_path = sequence_path / "vpr-lab" / "D.npy"
+    if not d_matrix_path.exists():
+        print_msg(SCRIPT_LABEL, f"{parameter}: {d_matrix_path} not found, running 'pixi run vpr {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+        subprocess.run(["pixi", "run", "-e", "vpr-lab", "vpr", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+    if not d_matrix_path.exists():
+        print_msg(SCRIPT_LABEL, f"{parameter}: 'pixi run vpr' did not produce {d_matrix_path} (see its output above)", flag="error", verb='NONE')
+        sys.exit(1)
+    n_rows = np.load(d_matrix_path, mmap_mode="r").shape[0]
+    if n_rows != total_frames:
+        print_msg(SCRIPT_LABEL, f"{parameter}: {d_matrix_path} has {n_rows} rows but the sequence's frame list has {total_frames}; "
+                  f"recompute it with 'pixi run vpr {dataset.dataset_name} {sequence_name} --overwrite' (or revert a sampled rgb.csv first)",
+                  flag="error", verb='NONE')
+        sys.exit(1)
+    return d_matrix_path
+
+def select_frames_with_placecell(dataset: Any, sequence_name: str, exp_folder: Path, orig_idx: list[int], n_images: int) -> list[int]:
+    """The n_images least redundant frames among orig_idx (row indices of the sequence's frame
+    list, i.e. of D.npy), chosen by placecell's information culler: 'pixi run -e placecell
+    placecell-select ... --indices <file> --out <exp_folder>/rgb_placecell.csv' (Capabilities/
+    placecell.py, which never touches the sequence). The selection csv stays in the experiment
+    folder as a diagnostic (removal rank and unique information per frame); the returned indices
+    are the rows it marks kept, in frame order."""
+    indices_file = exp_folder / "rgb_placecell_indices.txt"
+    selection_csv = exp_folder / PLACECELL_SELECTION_CSV
+    indices_file.write_text("\n".join(str(i) for i in orig_idx) + "\n")
+    if selection_csv.exists():
+        selection_csv.unlink()
+    print_msg(SCRIPT_LABEL, f"rgb_placecell: selecting {n_images} of {len(orig_idx)} frames with 'pixi run placecell-select {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
+    subprocess.run(["pixi", "run", "-e", "placecell", "placecell-select", dataset.dataset_name, sequence_name,
+                    "--n-images", str(n_images), "--indices", str(indices_file), "--out", str(selection_csv)],
+                   cwd=VSLAM_LAB_DIR, check=True)
+    indices_file.unlink(missing_ok=True)
+    if not selection_csv.exists():
+        print_msg(SCRIPT_LABEL, f"rgb_placecell: 'pixi run placecell-select' did not produce {selection_csv} (see its output above)", flag="error", verb='NONE')
+        sys.exit(1)
+    kept_idx = read_placecell_selection(selection_csv)
+    candidates = set(orig_idx)
+    if not kept_idx or any(idx not in candidates for idx in kept_idx):
+        print_msg(SCRIPT_LABEL, f"rgb_placecell: {selection_csv} does not match the candidate frames (got {len(kept_idx)} kept rows)", flag="error", verb='NONE')
+        sys.exit(1)
+    return kept_idx
 
 def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str, default_parameters: dict | None = None) -> Path:
     """Seed the experiment's calibration yaml (<exp_folder>/calibration_exp.yaml) - the file every
