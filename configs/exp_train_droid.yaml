@@ -9,15 +9,15 @@ exp_train_droid_pth: # Original droid-slam
     verbose: 0
     weights: droid.pth
 
-exp_train_droid_eth_lr2e-5_ep8_092568_pth: # Overfitted to ETH(gt)
-  Config: config_train_droid.yaml
-  Module: droidslam-dev
-  NumRuns: 6
-  Parameters:
-    mode: mono
-    upsample: 0
-    verbose: 0
-    weights: checkpoints/eth_lr2e-5_ep8_092568.pth
+# exp_train_droid_eth_lr2e-5_ep8_092568_pth: # Overfitted to ETH(gt)
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/eth_lr2e-5_ep8_092568.pth
 
 exp_train_droid_eth_overfit_noaug_092568_pth: # Overfitted to ETH(gt) without augmentations
   Config: config_train_droid.yaml
@@ -29,7 +29,27 @@ exp_train_droid_eth_overfit_noaug_092568_pth: # Overfitted to ETH(gt) without au
     verbose: 0
     weights: checkpoints/eth_overfit_noaug_092568.pth
 
-exp_train_droid_replica-eth_semi_w4-05_015996_pth: # Fine-tuned on ETH(gt-free) and REPLICA(gt)
+# exp_train_droid_replica-eth_semi_w4-05_015996_pth: # Fine-tuned on ETH(gt-free) and REPLICA(gt)
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/replica-eth_semi_w4-05_015996.pth
+
+# exp_train_droid_replica_lr2e-5_ep8_031994_pth: # Fine-tuned on REPLICA(gt)
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/replica_lr2e-5_ep8_031994.pth
+
+exp_train_droid_replica_overfit_noaug_031994_pth: # Fine-tuned on REPLICA(gt) without augmentations
   Config: config_train_droid.yaml
   Module: droidslam-dev
   NumRuns: 6
@@ -37,4 +57,4 @@ exp_train_droid_replica-eth_semi_w4-05_015996_pth: # Fine-tuned on ETH(gt-free) 
     mode: mono
     upsample: 0
     verbose: 0
-    weights: checkpoints/replica-eth_semi_w4-05_015996.pth
+    weights: checkpoints/replica_overfit_noaug_031994.pth
