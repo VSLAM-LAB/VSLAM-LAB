@@ -10,17 +10,16 @@ raw_formats: ['images']
 
 # Hosted on Synapse (project syn26707219, folder "Simulated Sequences"), behind registration +
 # access conditions. Each Seq_<N> folder is fetched on demand with synapseclient - credentials via
-# its own ~/.synapseConfig or the SYNAPSE_AUTH_TOKEN env var, never a yaml field - into
-# raw_data_path (the same folder as dataset_endomapper.yaml's), which mirrors the project's own
-# layout and doubles as an offline cache (a complete folder already there is used as-is, no login):
+# its own ~/.synapseConfig or the SYNAPSE_AUTH_TOKEN env var, never a yaml field - into a mirror of
+# the project's own layout inside the dataset folder, VSLAM-LAB-Benchmark/ENDOMAPPER-SIM/, which
+# doubles as an offline cache (a complete folder already there is used as-is, no login):
 #   Simulated Sequences/Seq_<N>/rgb/image_<NNNN>.png          960x720 RGBA renders
 #   Simulated Sequences/Seq_<N>/depth/aov_image_<NNNN>.exr    float depth, one channel
 #   Simulated Sequences/Seq_<N>/{calibration,info,rgb,depth}.txt, trajectory.csv
-# download_sequence_data symlinks that folder to VSLAM-LAB-Benchmark/ENDOMAPPER-SIM/<sequence>/raw;
-# the create_* hooks read through the link.
+# download_sequence_data symlinks that folder to <sequence>/raw (relative); the create_* hooks read
+# through the link.
 api_url: https://www.synapse.org/Synapse:syn26707219
 synapse_project_id: syn26707219
-raw_data_path: /home/alejandro/VSLAM-LAB-Benchmark/Endomapper_raw
 
 # Depth in meters = depth_0 pixel value / depth_factor. The EXRs store depth in decimeters
 # (info.txt: "Depth image metric unities: dm"), quantized to multiples of 1/16384 dm, so

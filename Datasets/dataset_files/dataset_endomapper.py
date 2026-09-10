@@ -46,14 +46,14 @@ _SEQUENCE_NAME_RE: Final = re.compile(r"^(?P<procedure>Seq_\d{3})(?:_(?P<submode
 # Frame names inside the COLMAP export: 1-based video frame numbers (out<N>.png == frame N-1).
 _COLMAP_FRAME_RE: Final = re.compile(r"^out(?P<number>\d+)\.png$")
 
-# Layout of raw_data_path (mirrors the Synapse project, see the yaml).
+# Layout of the local mirror of the Synapse project, kept inside the dataset folder (see the yaml).
 _SEQUENCES_DIR: Final = "Sequences"
 _CALIBRATIONS_DIR: Final = "Calibrations"
 _COLMAP_META_DIRS: Final = ("meta-data", "colmap")
 _COLMAP_INFO_TAG: Final = "Colmap Reconstructions"  # info json meta-data entry
 
 # Per-sequence files download_sequence_data leaves in the sequence folder.
-_RAW_VIDEO_LINK: Final = "raw.mov"  # symlink onto raw_data_path/Sequences/Seq_<NNN>/Seq_<NNN>.mov
+_RAW_VIDEO_LINK: Final = "raw.mov"  # symlink onto ../Sequences/Seq_<NNN>/Seq_<NNN>.mov
 _COLMAP_DIR: Final = "colmap"  # holds the sequence's sub-model images.bin
 
 # The calibu camera type EndoMapper's geometrical xml declares: fx, fy, cx, cy, k1, k2, k3, k4
@@ -106,8 +106,9 @@ class EndomapperDataset(DatasetVSLAMLAB):
 
         self.dataset_homepage: str = self.cfg["api_url"]
         self.synapse_project_id: str = self.cfg["synapse_project_id"]
-        # Local mirror of the Synapse project (fetched on demand, reused as-is when present).
-        self.raw_data_path = Path(self.cfg["raw_data_path"])
+        # Local mirror of the Synapse project's Sequences/ and Calibrations/ folders, fetched on
+        # demand into the dataset folder itself (next to the sequence folders) and reused as-is.
+        self.mirror_path: Path = self.dataset_path
 
     def download_sequence_data(self, sequence_name: str) -> None:
         procedure, submodel = _split_sequence_name(sequence_name)
@@ -123,8 +124,8 @@ class EndomapperDataset(DatasetVSLAMLAB):
         sequence_path.mkdir(parents=True, exist_ok=True)
         raw_link = sequence_path / _RAW_VIDEO_LINK
         if not (raw_link.is_symlink() or raw_link.exists()):
-            # Absolute target on purpose: the video lives outside the benchmark folder.
-            os.symlink(video.resolve(), raw_link)
+            # Relative target so the benchmark folder stays relocatable as a whole.
+            os.symlink(os.path.relpath(video, sequence_path), raw_link)
         if not (sequence_path / info_json.name).exists():
             shutil.copy2(info_json, sequence_path / info_json.name)
 
@@ -251,32 +252,32 @@ class EndomapperDataset(DatasetVSLAMLAB):
 
     def remove_unused_files(self, sequence_name: str) -> None:
         # colmap/images.bin is a copy of a zip member, fully turned into groundtruth.csv - gone at
-        # STANDARD, re-extracted from the raw zip on demand. raw.mov is a symlink onto the raw
-        # folder (the Synapse mirror) and is never deleted, at any tier.
+        # STANDARD, re-extracted from the mirrored zip on demand. raw.mov is a symlink into the
+        # Synapse mirror (the only copy of the video) and is never deleted, at any tier.
         if BENCHMARK_RETENTION != Retention.FULL:
             shutil.rmtree(self._colmap_dir(sequence_name), ignore_errors=True)
 
     def get_download_issues(self, sequence_names: list[str]) -> list[dict]:
-        # Only a problem when something must actually be fetched: a raw folder that already holds
-        # the requested videos needs no Synapse login at all.
+        # Only a problem when something must actually be fetched: a mirror that already holds the
+        # requested videos needs no Synapse login at all.
         missing = [s for s in sequence_names if not self._raw_video(_split_sequence_name(s)[0]).is_file()]
         if not missing or synapse_client() is not None:
             return []
         return [_get_dataset_issue(issue_id="synapse_token", dataset_name=self.dataset_name, website=self.dataset_homepage)]
 
-    # --- raw-folder (Synapse mirror) paths and fetching ------------------------------------------
+    # --- Synapse mirror paths and fetching -------------------------------------------------------
     def _raw_video(self, procedure: str) -> Path:
-        return self.raw_data_path / _SEQUENCES_DIR / procedure / f"{procedure}.mov"
+        return self.mirror_path / _SEQUENCES_DIR / procedure / f"{procedure}.mov"
 
     def _raw_info_json(self, procedure: str) -> Path:
-        return self.raw_data_path / _SEQUENCES_DIR / procedure / f"{procedure}_info.json"
+        return self.mirror_path / _SEQUENCES_DIR / procedure / f"{procedure}_info.json"
 
     def _raw_colmap_zip(self, procedure: str) -> Path:
-        return self.raw_data_path / _SEQUENCES_DIR / procedure / Path(*_COLMAP_META_DIRS) / f"{procedure}.zip"
+        return self.mirror_path / _SEQUENCES_DIR / procedure / Path(*_COLMAP_META_DIRS) / f"{procedure}.zip"
 
     def _raw_geometrical_xml(self, endoscope: int) -> Path:
         folder = f"Endoscope_{endoscope:02d}"
-        return self.raw_data_path / _CALIBRATIONS_DIR / folder / f"{folder}_geometrical.xml"
+        return self.mirror_path / _CALIBRATIONS_DIR / folder / f"{folder}_geometrical.xml"
 
     def _ensure_raw_file(self, local: Path, *remote_names: str) -> bool:
         """True once `local` exists - fetching it from the Synapse project (remote_names: the
@@ -287,8 +288,8 @@ class EndomapperDataset(DatasetVSLAMLAB):
         if syn is None:
             print_info(
                 f"{local.name} is not in {local.parent} and no Synapse credentials are configured "
-                f"(~/.synapseConfig or SYNAPSE_AUTH_TOKEN) - place the file there yourself, or set up "
-                f"the credentials (see `pixi run get-resources`)."
+                f"(~/.synapseConfig or SYNAPSE_AUTH_TOKEN) - place the file there yourself (the folder mirrors "
+                f"the Synapse project's layout), or set up the credentials (see `pixi run get-resources`)."
             )
             return False
         remote = "/".join(remote_names)
@@ -352,10 +353,7 @@ class EndomapperDataset(DatasetVSLAMLAB):
         raw_link = self.sequence_path(sequence_name) / _RAW_VIDEO_LINK
         cap = cv2.VideoCapture(str(raw_link))
         if not cap.isOpened():
-            raise FileNotFoundError(
-                f"Cannot open the video of '{sequence_name}' at {raw_link}: run download_sequence_data first, and keep "
-                f"raw_data_path in place while processing."
-            )
+            raise FileNotFoundError(f"Cannot open the video of '{sequence_name}' at {raw_link}: run download_sequence_data first")
         return cap
 
     def _video_fps(self, sequence_name: str) -> float:

@@ -38,15 +38,15 @@ from utilities import (  # noqa: E402
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
 print_info, print_warning = make_printers(SCRIPT_LABEL)
 
-# Layout of raw_data_path (mirrors the Synapse project): Simulated Sequences/Seq_<N>/{rgb/
-# image_<NNNN>.png, depth/aov_image_<NNNN>.exr, calibration.txt, info.txt, rgb.txt, depth.txt,
-# trajectory.csv}. A marker records a completed Synapse folder download.
+# Layout of the local mirror of the Synapse project, kept inside the dataset folder: Simulated
+# Sequences/Seq_<N>/{rgb/image_<NNNN>.png, depth/aov_image_<NNNN>.exr, calibration.txt, info.txt,
+# rgb.txt, depth.txt, trajectory.csv}. A marker records a completed Synapse folder download.
 _SIMULATED_DIR: Final = "Simulated Sequences"
 _RGB_DIR: Final = "rgb"
 _DEPTH_DIR: Final = "depth"
 _TEXT_FILES: Final = ("calibration.txt", "info.txt", "trajectory.csv")
 _DOWNLOAD_MARKER: Final = ".download_complete"
-_RAW_LINK_NAME: Final = "raw"  # symlink in the sequence folder onto the raw Seq_<N> folder
+_RAW_LINK_NAME: Final = "raw"  # symlink in the sequence folder onto "../Simulated Sequences/Seq_<N>"
 
 _RGB_FRAME_RE: Final = re.compile(r"^image_(?P<index>\d+)\.png$")
 _DEPTH_FRAME_RE: Final = re.compile(r"^aov_image_(?P<index>\d+)\.exr$")
@@ -79,8 +79,9 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
 
         self.dataset_homepage: str = self.cfg["api_url"]
         self.synapse_project_id: str = self.cfg["synapse_project_id"]
-        # Local mirror of the Synapse project (fetched on demand, reused as-is when present).
-        self.raw_data_path = Path(self.cfg["raw_data_path"])
+        # Local mirror of the Synapse project's "Simulated Sequences" folder, fetched on demand
+        # into the dataset folder itself (next to the sequence folders) and reused as-is.
+        self.mirror_path: Path = self.dataset_path
         # Depth in meters = depth_0 pixel value / depth_factor (see the yaml).
         self.depth_factor: float = float(self.cfg["depth_factor"])
 
@@ -91,8 +92,8 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
             if syn is None:
                 print_info(
                     f"Sequence '{sequence_name}' is not in {raw_dir.parent} and no Synapse credentials are configured "
-                    f"(~/.synapseConfig or SYNAPSE_AUTH_TOKEN) - place its folder there yourself, or set up the "
-                    f"credentials (see `pixi run get-resources`)."
+                    f"(~/.synapseConfig or SYNAPSE_AUTH_TOKEN) - place its folder there yourself (the folder mirrors "
+                    f"the Synapse project's layout), or set up the credentials (see `pixi run get-resources`)."
                 )
                 return
             folder_id = synapse_resolve_path(syn, self.synapse_project_id, _SIMULATED_DIR, sequence_name)
@@ -103,11 +104,12 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
             synapse_download_folder(syn, folder_id, raw_dir)
             (raw_dir / _DOWNLOAD_MARKER).touch()
 
-        raw_link = self.sequence_path(sequence_name) / _RAW_LINK_NAME
+        sequence_path = self.sequence_path(sequence_name)
+        raw_link = sequence_path / _RAW_LINK_NAME
         if not (raw_link.is_symlink() or raw_link.exists()):
-            self.sequence_path(sequence_name).mkdir(parents=True, exist_ok=True)
-            # Absolute target on purpose: the raw folder lives outside the benchmark folder.
-            os.symlink(raw_dir.resolve(), raw_link)
+            sequence_path.mkdir(parents=True, exist_ok=True)
+            # Relative target so the benchmark folder stays relocatable as a whole.
+            os.symlink(os.path.relpath(raw_dir, sequence_path), raw_link)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
         rgb_path, depth_path = self.rgb_path(sequence_name), self.depth_path(sequence_name)
@@ -206,13 +208,13 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
         write_csv_rows(self.groundtruth_csv_path(sequence_name), _GROUNDTRUTH_HEADER, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        # Deliberate no-op at every retention tier: raw/ is a symlink onto the raw folder (the
-        # Synapse mirror, the only copy of the source frames), and nothing intermediate is written.
+        # Deliberate no-op at every retention tier: raw/ is a symlink into the Synapse mirror (the
+        # only copy of the source frames), and nothing intermediate is written.
         return
 
     def get_download_issues(self, sequence_names: list[str]) -> list[dict]:
-        # Only a problem when something must actually be fetched: a raw folder that already holds
-        # the requested sequences needs no Synapse login at all.
+        # Only a problem when something must actually be fetched: a mirror that already holds the
+        # requested sequences needs no Synapse login at all.
         missing = [s for s in sequence_names if not self._raw_complete(self._raw_dir(s))]
         if not missing or synapse_client() is not None:
             return []
@@ -220,15 +222,12 @@ class EndomapperSimDataset(DatasetVSLAMLAB):
 
     # --- helpers, all recomputed from sequence_name (no per-sequence state on self) -------------
     def _raw_dir(self, sequence_name: str) -> Path:
-        return self.raw_data_path / _SIMULATED_DIR / sequence_name
+        return self.mirror_path / _SIMULATED_DIR / sequence_name
 
     def _raw_link(self, sequence_name: str) -> Path:
         raw_link = self.sequence_path(sequence_name) / _RAW_LINK_NAME
         if not raw_link.is_dir():
-            raise FileNotFoundError(
-                f"Raw folder for '{sequence_name}' not found at {raw_link}: run download_sequence_data first, and keep "
-                f"raw_data_path in place while processing."
-            )
+            raise FileNotFoundError(f"Raw folder for '{sequence_name}' not found at {raw_link}: run download_sequence_data first")
         return raw_link
 
     @staticmethod

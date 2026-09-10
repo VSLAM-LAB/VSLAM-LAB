@@ -17,8 +17,9 @@ raw_formats: ['video', 'colmap']
 
 # Hosted on Synapse (project syn26707219) behind registration + access conditions. Files are
 # fetched on demand with synapseclient - credentials via its own ~/.synapseConfig or the
-# SYNAPSE_AUTH_TOKEN env var, never a yaml field - into raw_data_path, which mirrors the project's
-# own layout and doubles as an offline cache (anything already there is used as-is, no login):
+# SYNAPSE_AUTH_TOKEN env var, never a yaml field - into a mirror of the project's own layout inside
+# the dataset folder, VSLAM-LAB-Benchmark/ENDOMAPPER/ (next to the sequence folders), which doubles
+# as an offline cache (anything already there is used as-is, no login):
 #   Sequences/Seq_<NNN>/Seq_<NNN>.mov                  the procedure video (H.264, 7 Mbps)
 #   Sequences/Seq_<NNN>/Seq_<NNN>_info.json            {"seq_number", "endoscope_number", "type", "meta-data"}
 #   Sequences/Seq_<NNN>/meta-data/colmap/Seq_<NNN>.zip COLMAP export (Seq_001/Seq_002 only): one
@@ -29,11 +30,10 @@ raw_formats: ['video', 'colmap']
 #                                                      (the registered frames as PNG, unused - rgb_0
 #                                                      comes from the video)
 #   Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml   that endoscope's calibration
-# download_sequence_data symlinks the video to VSLAM-LAB-Benchmark/ENDOMAPPER/<sequence>/raw.mov,
-# copies the info json + geometrical xml next to it and extracts the sequence's images.bin.
+# download_sequence_data symlinks the video to <sequence>/raw.mov (relative), copies the info json
+# + geometrical xml next to it and extracts the sequence's images.bin.
 api_url: https://www.synapse.org/Synapse:syn26707219
 synapse_project_id: syn26707219
-raw_data_path: /home/alejandro/VSLAM-LAB-Benchmark/Endomapper_raw
 
 target_resolution: [640, 480]
 
