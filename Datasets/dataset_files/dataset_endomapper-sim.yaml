@@ -1,0 +1,75 @@
+dataset_name: endomapper-sim
+
+# VR-Caps renders at 30 fps (trajectory.csv's time column steps by 1/30 s). No timestamps ship
+# with the frames: rgb.csv derives each frame's time from its index (image_<N>.png -> N / rgb_hz).
+rgb_hz: 30.0
+modes: ['mono', 'rgbd']
+# calibration.txt in each zip: fx, fy, cx, cy at 960x720, no distortion (a rendered pinhole).
+cam_models: ['pinhole']
+raw_formats: ['zip']
+
+# All sequences are local - there is no remote source wired up. raw_data_path is the same folder
+# as dataset_endomapper.yaml's (a mirror of the Synapse project); this dataset reads its
+# "Simulated Sequences" subfolder, one Seq_<N>.zip per simulated sequence holding (flat, or under
+# rgb/ and depth/ as the paper draws it) image_<NNNN>.png (960x720 RGBA), aov_image_<NNNN>.exr
+# (float depth, one channel), rgb.txt, depth.txt, trajectory.csv, calibration.txt and info.txt.
+# download_sequence_data symlinks the zip to VSLAM-LAB-Benchmark/ENDOMAPPER-SIM/<sequence>/raw.zip
+# and copies the three small text files next to it; create_rgb_folder reads the frames straight
+# out of the zip through that link.
+sequence_location: local
+raw_data_path: /home/alejandro/VSLAM-LAB-Benchmark/Endomapper_raw
+
+# Depth in meters = depth_0 pixel value / depth_factor. The EXRs store depth in decimeters
+# (info.txt: "Depth image metric unities: dm"), quantized to multiples of 1/16384 dm, so
+# 163840 px/m (= 16384 px/dm) keeps every source value exact (max 0.4 m in uint16). Caveat: the
+# values only span 0.003-0.10 dm (0.3 mm - 1 cm) in Seq_0, which looks small for a colon lumen -
+# if they turn out to be meters, set this to 16384 and reprocess; the trajectory is in dm too
+# (same info.txt) and is converted to m in create_groundtruth_csv.
+depth_factor: 163840.0
+
+target_resolution: [640, 480]
+
+# Seq_<N>: one simulated colon flythrough (the paper lists seq_0 .. seq_5; only Seq_0 is in the
+# raw folder so far - append the others here once their zips are in place). Only frames that have
+# both an RGB image and a depth map in the zip are kept (rgbd needs the 1:1 pairing); Seq_0's zip
+# ships 333 RGB frames but only 126 depth maps (0-124 and 126) and a trajectory.csv cut off after
+# 322 rows, so the sequence is 126 frames long until a complete download replaces it.
+sequence_names:
+  - Seq_0
+
+about:
+  license: CC BY 4.0
+  summary: EndoMapper simulated colon - photorealistic VR-Caps renders of a CT-derived colon model (960x720 at 30 fps) with ground-truth depth and camera trajectory, released alongside the real EndoMapper procedures
+  homepage: https://www.synapse.org/Synapse:syn26707219
+  features:
+    - Synthetic
+    - Intracorporeal
+    - Handheld
+  authors:
+    - Pablo Azagra
+    - Juan J. Gómez-Rodríguez
+    - Juan D. Tardós
+    - José M. M. Montiel
+    - Others
+  access: Registration Required
+  publication: "Endomapper dataset of complete calibrated endoscopy procedures"
+  publication_url: "https://www.nature.com/articles/s41597-023-02564-7"
+  year: 2023
+  bibtex_key: azagra2023endomapper
+  bibtex: |
+    @article{azagra2023endomapper,
+      title={Endomapper dataset of complete calibrated endoscopy procedures},
+      author={Azagra, Pablo and Sostres, Carlos and Ferr{\'a}ndez, {\'A}ngel and Riazuelo, Luis and Tomasini, Clara and Barbed, O Le{\'o}n and Morlana, Javier and Recasens, David and Batlle, V{\'i}ctor M and G{\'o}mez-Rodr{\'i}guez, Juan J and others},
+      journal={Scientific Data},
+      volume={10},
+      number={1},
+      pages={671},
+      year={2023},
+      publisher={Nature Publishing Group}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5.1)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-09-10

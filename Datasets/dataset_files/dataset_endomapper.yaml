@@ -24,7 +24,7 @@ raw_formats: ['zip', 'colmap']
 #   Calibrations/Endoscope_<NN>/Endoscope_<NN>_geometrical.xml    that endoscope's Kannala-Brandt
 #                                      calibration (the *_photometrical.xml next to it is unused)
 #   Simulated Sequences/               synthetic colon sequences - a different dataset (pinhole,
-#                                      rgbd, metric trajectory), not part of this one
+#                                      rgbd, metric trajectory): see dataset_endomapper-sim.yaml
 # download_sequence_data symlinks the zip to VSLAM-LAB-Benchmark/ENDOMAPPER/<sequence>/raw.zip,
 # copies the info json + geometrical xml next to it and extracts the sequence's images.bin; the
 # create_* hooks read the frames straight out of the zip through that link.
