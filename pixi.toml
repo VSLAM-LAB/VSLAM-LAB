@@ -47,7 +47,7 @@ orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "or
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
 okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"], solve-group = "okvis" }
-vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11", "vggt"], solve-group = "vggt" }
+vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11"], solve-group = "vggt" }
 
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
@@ -873,46 +873,40 @@ channels = ["https://prefix.dev/conda-forge" , "fontan"]
 platforms = ["linux-64"]
 
 [feature.vggtslam-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
-install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['fetch-source']}
+# VGGT-SLAM 2.0 fork; --recursive brings third_party/vggt (MIT-SPARK/VGGT_SPARK) and third_party/salad (Dominic101/salad) pinned as submodules
+fetch-source = "./git-clone.sh alejandrofontan VGGT-SLAM-2-VSLAM-LAB VGGT-SLAM-DEV"
+install = { cmd = 'pip install --no-deps --no-build-isolation -e third_party/salad && pip install --no-deps --no-build-isolation -e third_party/vggt && pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['fetch-source'] }
 execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV" }
 
 [feature.vggtslam-dev.dependencies]
-# Build Tools
-compilers = "*"
-cmake = "*"
-make = "*"
-
-boost = "*"
-unzip = "*"
-
-# Core Libraries
+# Torch
 pytorch-gpu = "*"
 torchvision = "*"
 numpy = "<2"
-Pillow = "*"
-huggingface_hub = "*"
-einops = "*"
-safetensors = "*"
-opencv = "*"
-tqdm = "*"
-hydra-core = "*"
-omegaconf = "*"
-scipy = "*"
-onnxruntime = "*"
-requests = "*"
-trimesh = "*"
-matplotlib = "*"
-gradio = "==6.2.0"
-viser = "*"
+
+# vggt_slam / vggt
+gtsam = { channel = "fontan" }  # SL4 factors (borglab main, not the conda-forge 4.x release)
 open3d = "*"
-pytorch-metric-learning = "*"
-pytorch-lightning = "*"
+viser = "=0.2.23"               # upstream pin; the viewer API moved in later releases
+opencv = "*"
+scipy = "*"
+matplotlib = "*"
 termcolor = "*"
-virtualenv = ">=20.10.0"
-lz4 = "*"
-gtsam = { channel = "fontan" }
-nodeenv = "*"
+tqdm = "*"
+pillow = "*"
+einops = "*"
+huggingface_hub = "*"
+safetensors = "*"
+
+# salad (loop closure retrieval): salad.eval imports the validation utilities at module level
+pytorch-lightning = "*"
+pytorch-metric-learning = "*"
+faiss = "*"
+prettytable = "*"
+
+# vslamlab_vggtslam_mono.py
+pandas = "*"
+pyyaml = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
