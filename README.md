@@ -201,7 +201,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**OKVIS2**](https://github.com/ethz-mrl/okvis2)               | VSLAM  | `mono-vi` |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ | `radtan5` `equid4` |
 | **----------** | **-------** | **-------** | **----------** | **--------** | **---** | **----------** |
 | [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `radtan5` `equid4` `unknown` |
-| [**VGGT**](https://vgg-t.github.io/) |  SfM   |  `mono`  |  [VGGT](https://github.com/facebookresearch/vggt/blob/main/LICENSE.txt)  |   `vggt`   | ➖ | `pinhole` |
+| [**VGGT**](https://vgg-t.github.io/) |  Feed-forward   |  `mono`  |  [VGGT](https://github.com/facebookresearch/vggt/blob/main/LICENSE.txt)  |   `vggt`   | ➖ | `pinhole` |
 
 <table>
 <thead>
@@ -328,7 +328,6 @@ Section dividers only (not per-row features) — Construction Site / Planetary-a
 - [ ] AnyFeature VSLAM implement `mono`, `rgbd`, `stereo`
 - [ ] DSO VSLAM implement `mono`
 - [ ] MonoGS re-implement `mono`, `rgbd`
-- [ ] VGGT implement SfM
 - [ ] ORBSLAM3 implement `mono`, `rgbd`, `stereo`, `stereo-vi`, `rgbd-vi`
 - [ ] OKVIS2 implement `mono`, `stereo-vi`
 - [ ] pyCuVSLAM implement `mono`, `rgbd`, `stereo`, `mono-vi`, `stereo-vi`

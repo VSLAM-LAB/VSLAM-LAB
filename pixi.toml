@@ -412,27 +412,26 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.vggt.dependencies]
-
-# Core Libraries
+# Torch
 pytorch-gpu = "*"
 torchvision = "*"
-
 numpy = "<2"
-Pillow = "*"
+
+# vggt
+pillow = "*"
 huggingface_hub = "*"
 einops = "*"
 safetensors = "*"
 opencv = "*"
 tqdm = "*"
-hydra-core = "*"
-omegaconf = "*"
 scipy = "*"
-onnxruntime = "*"
-requests = "*"
-trimesh = "*"
 matplotlib = "*"
-gradio = "==6.2.0"
 viser = "*"
+
+# vslamlab_vggt.py
+pandas = "*"
+pyyaml = "*"
+# --mask_sky (visual_util: gradio, trimesh, requests, onnxruntime) is an upstream demo extra, not shipped here
 
 [feature.vggt.tasks]
 fetch-source = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
