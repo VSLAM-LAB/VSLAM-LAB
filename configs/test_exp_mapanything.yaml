@@ -1,0 +1,17 @@
+test_exp_mapanything:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono}
+  Module: mapanything
+
+test_exp_mapanything_calib:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, use_calibration: 1}
+  Module: mapanything
+
+test_exp_mapanything_rgbd:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: rgbd}
+  Module: mapanything

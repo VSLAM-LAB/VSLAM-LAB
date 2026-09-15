@@ -205,6 +205,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**VGGT-Ω**](https://vggt-omega.github.io/) |  Feed-forward   |  `mono`  |  [VGGT-Ω](https://github.com/facebookresearch/vggt-omega/blob/main/LICENSE) (gated weights)  |   `vggt-omega`   | ➖ | `pinhole` |
 | [**Depth Anything 3**](https://depth-anything-3.github.io/) |  Feed-forward   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE) (giant/nested weights CC BY-NC 4.0)  |   `da3`   | ➖ | `pinhole` |
 | [**DA3-Streaming**](https://github.com/ByteDance-Seed/Depth-Anything-3/tree/main/da3_streaming) |  VSLAM   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE)  |   `da3-streaming`   | ➖ | `pinhole` |
+| [**MapAnything**](https://map-anything.github.io/) |  Feed-forward   |  `mono` `rgbd`  |  [Apache-2.0](https://github.com/facebookresearch/map-anything/blob/main/LICENSE) (default weights CC BY-NC 4.0)  |   `mapanything`   | ➖ | `pinhole` |
 
 <table>
 <thead>

@@ -39,6 +39,7 @@ pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 vggt = { features = ["vggt", "cuda126", "py11"], solve-group = "vggt" }
 vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
 vggt-omega = { features = ["vggt-omega", "cuda126", "py11"], solve-group = "vggt" }
+mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
 droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid-dev" }
@@ -487,6 +488,53 @@ opencv = "*"
 
 # vslamlab_vggt_omega.py: gated weights from Hugging Face, csv/yaml io, pose conversion, viser viewer
 huggingface_hub = "*"
+pandas = "*"
+pyyaml = "*"
+scipy = "*"
+viser = "=0.2.23"
+
+# ########################################################################################################################
+# mapanything
+[feature.mapanything]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.mapanything.tasks]
+# Fork of facebookresearch/map-anything with the VSLAM-LAB entry point. uniception (PyPI only) is installed without its
+# declared deps (torchaudio, rerun, minio, ... are not needed for inference); what the import chain uses is listed below.
+fetch-source = "./git-clone.sh VSLAM-LAB map-anything-VSLAM-LAB MapAnything"
+install = { cmd = 'pip install --no-deps uniception==0.1.7 && pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/MapAnything', depends-on = ['fetch-source'] }
+execute-mono = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything" }
+execute-rgbd = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything" }
+
+[feature.mapanything.dependencies]
+# Torch
+pytorch-gpu = "*"
+torchvision = "*"
+numpy = "<2"
+
+# mapanything (pyproject deps that inference imports) + uniception runtime
+huggingface_hub = "*"
+safetensors = "*"
+hydra-core = "*"        # mapanything.models imports hydra at module level
+omegaconf = "*"
+natsort = "*"
+opencv = "*"
+pillow = "*"
+pillow-heif = "*"
+plyfile = "*"
+python-box = "*"
+requests = "*"
+trimesh = "*"
+tqdm = "*"
+einops = "*"
+jaxtyping = "*"
+timm = "*"
+termcolor = "*"
+matplotlib = "*"
+scikit-learn = "*"
+
+# vslamlab_mapanything.py
 pandas = "*"
 pyyaml = "*"
 scipy = "*"

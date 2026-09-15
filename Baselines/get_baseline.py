@@ -33,6 +33,7 @@ from Baselines.baseline_files.baseline_vggt import VGGT_baseline
 from Baselines.baseline_files.baseline_vggt_omega import VGGTOMEGA_baseline
 from Baselines.baseline_files.baseline_da3 import DA3_baseline
 from Baselines.baseline_files.baseline_da3 import DA3STREAMING_baseline
+from Baselines.baseline_files.baseline_mapanything import MAPANYTHING_baseline
 
 # Development
 from Baselines.baseline_files.baseline_allfeature import ALLFEATURE_baseline
@@ -63,6 +64,7 @@ def get_baseline_switcher():
         "vggt-omega": lambda: VGGTOMEGA_baseline(),
         "da3": lambda: DA3_baseline(),
         "da3-streaming": lambda: DA3STREAMING_baseline(),
+        "mapanything": lambda: MAPANYTHING_baseline(),
         "vggtslam": lambda: VGGTSLAM_baseline(),
         "vggtslam-dev": lambda: VGGTSLAM_baseline_dev(),
         

@@ -26,6 +26,7 @@ Baselines/MonoGS
 Baselines/MonoGS-DEV
 Baselines/VGGT
 Baselines/VGGT-Omega
+Baselines/MapAnything
 Baselines/ORB-SLAM3
 Baselines/ORB-SLAM3-DEV
 Baselines/OKVIS2
