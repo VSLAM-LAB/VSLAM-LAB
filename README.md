@@ -202,6 +202,9 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | **----------** | **-------** | **-------** | **----------** | **--------** | **---** | **----------** |
 | [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `radtan5` `equid4` `unknown` |
 | [**VGGT**](https://vgg-t.github.io/) |  Feed-forward   |  `mono`  |  [VGGT](https://github.com/facebookresearch/vggt/blob/main/LICENSE.txt)  |   `vggt`   | ➖ | `pinhole` |
+| [**VGGT-Ω**](https://vggt-omega.github.io/) |  Feed-forward   |  `mono`  |  [VGGT-Ω](https://github.com/facebookresearch/vggt-omega/blob/main/LICENSE) (gated weights)  |   `vggt-omega`   | ➖ | `pinhole` |
+| [**Depth Anything 3**](https://depth-anything-3.github.io/) |  Feed-forward   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE) (giant/nested weights CC BY-NC 4.0)  |   `da3`   | ➖ | `pinhole` |
+| [**DA3-Streaming**](https://github.com/ByteDance-Seed/Depth-Anything-3/tree/main/da3_streaming) |  VSLAM   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE)  |   `da3-streaming`   | ➖ | `pinhole` |
 
 <table>
 <thead>

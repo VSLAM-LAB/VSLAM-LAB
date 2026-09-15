@@ -28,7 +28,7 @@ def parse_args():
     p.add_argument("--batch_size", type=int, default=8)
     p.add_argument(
         "--model_id",
-        default="depth-anything/DA3NESTED-GIANT-LARGE",
+        default="depth-anything/DA3NESTED-GIANT-LARGE-1.1",  # the retrained -1.1 checkpoints supersede the originals upstream
         help="DepthAnything3 model id",
     )
     p.add_argument("--depth_model_name", default="depth_anything")

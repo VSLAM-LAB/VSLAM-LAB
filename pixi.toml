@@ -38,6 +38,7 @@ okvis2 = { features = ["okvis2"], solve-group = "okvis" }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 vggt = { features = ["vggt", "cuda126", "py11"], solve-group = "vggt" }
 vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
+vggt-omega = { features = ["vggt-omega", "cuda126", "py11"], solve-group = "vggt" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
 droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid-dev" }
@@ -52,7 +53,8 @@ vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11"], solve-group = "
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
-depth-anything = { features = ["depth-anything", "cuda126",  "py11"], solve-group = "depth-anything" }
+da3 = { features = ["da3", "da3-core", "cuda126", "py11"], solve-group = "da3" }
+da3-streaming = { features = ["da3-streaming", "da3-core", "cuda126", "py11"], solve-group = "da3" }
 mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "mask2former" }
 fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"], solve-group = "fastfoundationstereo" }
 anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
@@ -458,6 +460,37 @@ nodeenv = "*"
 [feature.vggtslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
 execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
+
+########################################################################################################################
+########################################################################################################################
+# vggt-omega
+[feature.vggt-omega]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.vggt-omega.tasks]
+# Mirror of facebookresearch/vggt-omega plus the VSLAM-LAB entry point; run in place, no build step
+fetch-source = "./git-clone.sh VSLAM-LAB vggt-omega-VSLAM-LAB VGGT-Omega"
+execute-mono = { cmd = 'python vslamlab_vggt_omega.py', cwd = "Baselines/VGGT-Omega" }
+
+[feature.vggt-omega.dependencies]
+# Torch (upstream requires torch >= 2.6)
+pytorch-gpu = ">=2.6"
+torchvision = "*"
+numpy = "<2"
+
+# vggt_omega
+pillow = "*"
+einops = "*"
+safetensors = "*"
+opencv = "*"
+
+# vslamlab_vggt_omega.py: gated weights from Hugging Face, csv/yaml io, pose conversion, viser viewer
+huggingface_hub = "*"
+pandas = "*"
+pyyaml = "*"
+scipy = "*"
+viser = "=0.2.23"
 
 ########################################################################################################################
 ########################################################################################################################
@@ -1000,60 +1033,63 @@ pixi = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
-# depth-anything
-[feature.depth-anything]
+# da3 (Depth Anything 3): one checkout, one solve group, three uses
+#   env da3           = da3 + da3-core   -> `da3` baseline (vslamlab_da3.py) and the depth_anything capability
+#   env da3-streaming = da3-streaming + da3-core -> `da3-streaming` baseline (vslamlab_da3_streaming.py)
+[feature.da3-core]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
-[feature.depth-anything.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
-install = {cmd = 'pip install -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source']}
-depth-inference  = {cmd = 'python Capabilities/depth_anything.py', depends-on = ['install']}
-
-[feature.depth-anything.dependencies]
-# Torch libraries
+[feature.da3-core.dependencies]
+# Torch
 pytorch-gpu = "*"
 torchvision = "*"
-torchcodec = "*"
+xformers = "*"           # depth_anything_3.model.dinov2 (swiglu ffn)
+numpy = "<2"
 
-# Core
-pre-commit = "*"
-trimesh = "*"
+# depth_anything_3.api import chain (model + export modules are imported eagerly)
+pillow = "*"
 einops = "*"
 huggingface_hub = "*"
-imageio = "*"
-numpy = "<2"
-opencv = "*"
-xformers = "*"
-open3d = "*"
-
-# API / CLI
-fastapi = "*"
-uvicorn = "*"
-requests = "*"
-typer = "*"
-
-# Config / IO
-pillow = "*"
-omegaconf = "*"
 safetensors = "*"
-plyfile = "*"
-
-# 3D / geometry / eval / video
-evo = "*"
-e3nn = "*"
-moviepy = "*"
-pycolmap = "*"
+omegaconf = "*"
 addict = "*"
-
-pyyaml = "*"
-matplotlib = "*"
-pandas = "*"
-py-opencv = "*"
+opencv = "*"
+imageio = "*"
+trimesh = "*"
+plyfile = "*"
+evo = "*"                # utils.pose_align
+pycolmap = "*"           # utils.export.colmap
 scipy = "*"
-inputimeout = "*"
-scikit-learn = "*"
+matplotlib = "*"
 tqdm = "*"
+
+# vslamlab_da3*.py
+pandas = "*"
+pyyaml = "*"
+viser = "=0.2.23"
+
+# build backend of pyproject.toml, needed by the --no-build-isolation editable install
+hatchling = "*"
+hatch-vcs = "*"
+
+[feature.da3-core.pypi-dependencies]
+# utils.export.gs imports `moviepy.editor`, removed in moviepy 2.x (conda-forge only ships 2.x); upstream pins 1.0.3
+moviepy = "==1.0.3"
+
+# ########################################################################################################################
+[feature.da3]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.da3.tasks]
+fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
+install = { cmd = 'pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source'] }
+execute-mono = { cmd = 'python vslamlab_da3.py', cwd = "Baselines/Depth-Anything-3" }
+depth-inference = { cmd = 'python Capabilities/depth_anything.py', depends-on = ['install'] }
+
+[feature.da3.dependencies]
+# Capabilities/depth_anything.py imports Datasets.get_dataset, which pulls the dataset classes' dependencies
 google-api-python-client = "*"
 google-auth-oauthlib = "*"
 py7zr = "*"
@@ -1066,8 +1102,30 @@ psutil = "*"
 loguru = "*"
 utm = "*"
 7zip = "*"
-viser = "*"
 gdown = "*"
+inputimeout = "*"
+scikit-learn = "*"
+requests = "*"
+
+# ########################################################################################################################
+[feature.da3-streaming]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64-cuda"]
+
+[feature.da3-streaming.tasks]
+fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
+install = { cmd = 'pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source'] }
+execute-mono = { cmd = 'python vslamlab_da3_streaming.py', cwd = "Baselines/Depth-Anything-3" }
+
+[feature.da3-streaming.dependencies]
+# da3_streaming/ (VGGT-Long style chunking, SALAD loop closure, Sim(3) pose graph)
+faiss-gpu = "*"
+numba = "*"
+pypose = { channel = "fontan" }
+triton = "*"             # align_lib: triton
+scikit-learn = "*"
+rich = "*"
+prettytable = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################

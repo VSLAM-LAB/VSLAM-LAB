@@ -1,0 +1,5 @@
+test_exp_vggt-omega:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono}
+  Module: vggt-omega
