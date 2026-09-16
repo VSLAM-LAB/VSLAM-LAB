@@ -67,6 +67,8 @@ if $DO_BASELINES; then
     rm -rf "$BASELINES_DIR"/VGGT
     rm -rf "$BASELINES_DIR"/AllFeature-VSLAM
     rm -rf "$BASELINES_DIR"/Depth-Anything-3
+    rm -rf "$BASELINES_DIR"/VGGT-Omega
+    rm -rf "$BASELINES_DIR"/MapAnything
     rm -rf "$BASELINES_DIR"/VPR-LAB
     rm -rf "$BASELINES_DIR"/Fast-FoundationStereo
     rm -rf "$BASELINES_DIR"/AnyCalib

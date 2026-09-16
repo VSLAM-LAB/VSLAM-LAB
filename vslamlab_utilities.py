@@ -74,6 +74,122 @@ def print_datasets() -> None:
     for dataset in dataset_list:
         print(f" - {dataset}")
 
+def list_jobs() -> None:
+    """Prints every running VSLAM-LAB job (`pixi run list-jobs`): the processes whose command line matches
+    VSLAMLAB_JOBS_PATTERN (pixi.toml [activation.env]), i.e. exactly what `pixi run kill-all` would terminate.
+    The PATTERN column shows which alternative(s) of the pattern each process matched."""
+    import re, shutil, psutil
+    alternatives = os.environ.get('VSLAMLAB_JOBS_PATTERN', 'vslamlab').split('|')
+    me = psutil.Process(os.getpid())
+    excluded = {me.pid} | {p.pid for p in me.parents()}
+
+    def elapsed(seconds: float) -> str:
+        days, rem = divmod(int(seconds), 86400)
+        hours, rem = divmod(rem, 3600)
+        minutes, secs = divmod(rem, 60)
+        if days:
+            return f"{days}-{hours:02d}:{minutes:02d}:{secs:02d}"
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}" if hours else f"{minutes:02d}:{secs:02d}"
+
+    rows = []
+    now = time.time()
+    for proc in psutil.process_iter():
+        if proc.pid in excluded:
+            continue
+        try:
+            with proc.oneshot():
+                cmd = ' '.join(proc.cmdline())
+                matched = [alt for alt in alternatives if re.search(alt, cmd)]
+                if not matched:
+                    continue
+                age = max(now - proc.create_time(), 1e-3)
+                cpu_times = proc.cpu_times()
+                rows.append((proc.pid, proc.ppid(), elapsed(age), 100 * (cpu_times.user + cpu_times.system) / age,
+                             proc.memory_percent(), ','.join(matched), cmd))
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+
+    if not rows:
+        print_msg(f"\n{SCRIPT_LABEL}", "No VSLAM-LAB jobs running.")
+        return
+    pattern_width = max(len("PATTERN"), max(len(row[5]) for row in rows))
+    header = f"{'PID':>7} {'PPID':>7} {'ELAPSED':>11} {'%CPU':>5} {'%MEM':>5}  {'PATTERN':<{pattern_width}}  COMMAND"
+    width = shutil.get_terminal_size().columns if sys.stdout.isatty() else None  # only clip rows on a real terminal
+    print(header[:width])
+    for pid, ppid, age, cpu, mem, matched, cmd in sorted(rows):
+        print(f"{pid:>7} {ppid:>7} {age:>11} {cpu:>5.1f} {mem:>5.1f}  {matched:<{pattern_width}}  {cmd}"[:width])
+
+def kill_job(pid: int, timeout: float = 5.0) -> None:
+    """Kills the process `pid` (as listed by `pixi run list-jobs`) together with all its descendants.
+
+    The runner starts each baseline in its own process group (BaselineVSLAMLAB.execute, os.setsid), so a
+    plain kill/killpg on the parent `pixi run vslamlab` would leave the baseline binary running: walk the
+    tree instead. The parent is terminated first so it cannot launch the next run while its children die.
+    """
+    import psutil
+    try:
+        root = psutil.Process(pid)
+    except psutil.NoSuchProcess:
+        print_msg(f"\n{SCRIPT_LABEL}", f"No process with pid {pid}.", "error")
+        return
+
+    procs = [root] + root.children(recursive=True)
+    print_msg(f"\n{SCRIPT_LABEL}", f"Killing job {pid} ({len(procs)} processes):")
+    for proc in procs:
+        try:
+            print(f" - {proc.pid:>7}  {' '.join(proc.cmdline())[:120]}")
+            proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
+    _, alive = psutil.wait_procs(procs, timeout=timeout)
+    for proc in alive:
+        try:
+            proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+    if alive:
+        print_msg(f"{SCRIPT_LABEL}", f"{len(alive)} processes did not exit within {timeout:.0f}s and were force-killed.", "warning")
+
+def kill_jobs(pattern: str) -> None:
+    """Kills every VSLAM-LAB job with a process whose command line matches the regex `pattern`
+    (`pixi run kill-jobs orbslam3`, `pixi run kill-jobs exp_debug.yaml`).
+
+    A match is climbed up to the root of its job (the topmost ancestor still matching VSLAMLAB_JOBS_PATTERN,
+    typically the `pixi run vslamlab ...` process) before the whole tree is killed: killing only the matching
+    baseline processes would let the experiment carry on with its next run.
+    """
+    import re, psutil
+    jobs_pattern = re.compile(os.environ.get('VSLAMLAB_JOBS_PATTERN', 'vslamlab'))
+    match_pattern = re.compile(pattern)
+
+    def cmdline(proc: psutil.Process) -> str:
+        try:
+            return ' '.join(proc.cmdline())
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            return ''
+
+    # This command's own process tree (pixi run kill-jobs <pattern> -> python ...) also carries the pattern.
+    me = psutil.Process(os.getpid())
+    excluded = {me.pid} | {p.pid for p in me.parents()}
+
+    roots: dict[int, psutil.Process] = {}
+    for proc in psutil.process_iter():
+        if proc.pid in excluded or not match_pattern.search(cmdline(proc)):
+            continue
+        root = proc
+        for parent in proc.parents():
+            if parent.pid in excluded or not jobs_pattern.search(cmdline(parent)):
+                break
+            root = parent
+        roots[root.pid] = root
+
+    if not roots:
+        print_msg(f"\n{SCRIPT_LABEL}", f"No VSLAM-LAB jobs matching '{pattern}'.")
+        return
+    for root in roots.values():
+        kill_job(root.pid)
+
 def add_video(video_path):
     abs_path = os.path.abspath(video_path)
     video_name_ext = os.path.basename(abs_path)

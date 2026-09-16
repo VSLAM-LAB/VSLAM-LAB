@@ -13,9 +13,14 @@ platforms = [
     { name = "win-64-cuda129", platform = "win-64", cuda = "12.9" },
 ]
 
+[activation.env]
+# Regex matched against full command lines: defines what counts as a VSLAM-LAB job
+# for list-jobs and kill-all, so the two always agree.
+VSLAMLAB_JOBS_PATTERN = "droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
+
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
-kill-all = { cmd = "pkill -f -e 'droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+kill-all = { cmd = "pkill -f -e $VSLAMLAB_JOBS_PATTERN && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
@@ -115,6 +120,9 @@ compare-allfeature = [{ "task" = "compare", "args" = ["configs/exp_allfeature.ya
 baseline-info = "python vslamlab_gui.py baseline_info"
 print-baselines = "python vslamlab_gui.py print_baselines"
 print-datasets = "python vslamlab_gui.py print_datasets"
+list-jobs = "python vslamlab_gui.py list_jobs"
+kill-job = "python vslamlab_gui.py kill_job"
+kill-jobs = "python vslamlab_gui.py kill_jobs"
 generate-dataset-table = "python Datasets/extra-files/generate_dataset_table.py"
 generate-dataset-xlsx = "python Datasets/extra-files/generate_dataset_xlsx.py"
 set-benchmark-path  = "python path_constants.py set_VSLAMLAB_BENCHMARK_path"
@@ -277,7 +285,12 @@ rich = "*"
 trimesh = "*"
 evo = "*"
 torchmetrics = "*"
-open3d = "*"
+
+[feature.monogs.pypi-dependencies]
+# conda-forge's open3d is built with BUILD_GUI=OFF and lacks open3d.visualization.gui,
+# which MonoGS's gui/slam_gui.py imports unconditionally. The PyPI wheel ships the GUI.
+# Pinned by URL: a plain `open3d = "*"` gets mapped back onto the conda package by pixi.
+open3d = { url = "https://files.pythonhosted.org/packages/c7/45/13bc9414ee9db611cba90b9efa69f66f246560e8ade575f1ee5b7f7b5d31/open3d-0.19.0-cp310-cp310-manylinux_2_31_x86_64.whl" }
 
 ########################################################################################################################
 ########################################################################################################################
