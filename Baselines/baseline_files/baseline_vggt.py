@@ -3,12 +3,14 @@ Module: VSLAM-LAB - Baselines - baseline_vggt.py
 - Author: Alejandro Fontan Villacampa
 - Version: 1.1
 - Created: 2026-01-03
-- Updated: 2026-09-15
+- Updated: 2026-09-17
 - License: GPLv3 License
 
 VGGT (Wang et al., CVPR 2025): one feed-forward pass over a window of frames predicting cameras,
 depth and points; no tracking, no loop closure. The window is the experiment's rgb csv, so rgb_max /
 rgb_step / rgb_placecell decide which frames it covers. Source: https://github.com/VSLAM-LAB/vggt-VSLAM-LAB.
+Weights: VGGT-1B is pre-fetched by the `download-vggt-weights` pixi task into Baselines/torch_home
+(TORCH_HOME of the execute task), shared with vggtslam / vggtslam-dev.
 """
 
 from pathlib import Path

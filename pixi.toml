@@ -22,6 +22,13 @@ VSLAMLAB_JOBS_PATTERN = "droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyf
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 kill-all = { cmd = "pkill -f -e $VSLAMLAB_JOBS_PATTERN && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 
+# VGGT-1B weights (5 GB) shared by vggt, vggtslam and vggtslam-dev. Their entry points fetch them with
+# torch.hub.load_state_dict_from_url, which neither resumes nor checks the byte count, so a dropped
+# connection leaves a truncated model.pt that every later run trips over. `hf download` resumes and
+# verifies; the execute tasks depend on this and point TORCH_HOME at the same folder so torch.hub
+# finds the file already in place. Pixi skips it once the output exists (and re-runs if it changes).
+download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-dir Baselines/torch_home/hub/checkpoints", outputs = ["Baselines/torch_home/hub/checkpoints/model.pt"] }
+
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
 cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
@@ -451,7 +458,8 @@ pyyaml = "*"
 
 [feature.vggt.tasks]
 fetch-source = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
-execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT" }
+# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks])
+execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -473,7 +481,8 @@ nodeenv = "*"
 
 [feature.vggtslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
-execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
+# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
+execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -969,7 +978,8 @@ platforms = ["linux-64"]
 # VGGT-SLAM 2.0 fork; --recursive brings third_party/vggt (MIT-SPARK/VGGT_SPARK) and third_party/salad (Dominic101/salad) pinned as submodules
 fetch-source = "./git-clone.sh alejandrofontan VGGT-SLAM-2-VSLAM-LAB VGGT-SLAM-DEV"
 install = { cmd = 'pip install --no-deps --no-build-isolation -e third_party/salad && pip install --no-deps --no-build-isolation -e third_party/vggt && pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['fetch-source'] }
-execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV" }
+# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
+execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
 [feature.vggtslam-dev.dependencies]
 # Torch

@@ -3,12 +3,14 @@ Module: VSLAM-LAB - Baselines - baseline_vggtslam.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2026-01-05
-- Updated: 2026-09-15
+- Updated: 2026-09-17
 - License: GPLv3 License
 
 VGGT-SLAM 2.0 (Maggio & Carlone, RSS 2026): feed-forward dense monocular SLAM built on VGGT submaps
 aligned on the SL(4) manifold, with SALAD retrieval and attention-verified loop closures.
 Source: https://github.com/alejandrofontan/VGGT-SLAM-2-VSLAM-LAB (fork of MIT-SPARK/VGGT-SLAM).
+Weights: VGGT-1B is pre-fetched by the `download-vggt-weights` pixi task into Baselines/torch_home
+(TORCH_HOME of the execute tasks); SALAD and DINOv2 are pulled by torch.hub into the same folder.
 """
 
 from pathlib import Path
