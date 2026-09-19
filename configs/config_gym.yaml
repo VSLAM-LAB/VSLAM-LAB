@@ -1,0 +1,5 @@
+# Gym set of AllFeature-VSLAM (Baselines/AllFeature-VSLAM-DEV/docs/gym/protocol.md):
+# the sequences run daily against every measured change. Small on purpose; the
+# benchmark set (100 sequences, AllFeature-VSLAM issue #18) is run at milestones only.
+eth:
+  - table_3
