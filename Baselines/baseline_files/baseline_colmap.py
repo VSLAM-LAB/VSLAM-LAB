@@ -25,9 +25,19 @@ class COLMAP_baseline(BaselineVSLAMLAB):
         # distortion; the principal point stays fixed, as in COLMAP's default); 0 -> the intrinsics
         # from the calibration yaml are kept fixed. Ignored (forced to 1) when the calibration model
         # is 'unknown', since there are no intrinsics to keep (see Baselines/colmap/colmap_mapper.sh).
+        # dense: 1 -> after the sparse model and trajectory are written, run COLMAP's dense pipeline
+        # (image_undistorter -> patch_match_stereo -> stereo_fusion) on the best sub-model, into
+        # <exp_folder>/colmap_<id>/dense/ with the fused cloud copied to <exp_folder>/<id>_dense.ply.
+        # Needs the CUDA colmap build (linux-64 in pixi.toml) and use_gpu=1; otherwise it is skipped
+        # with a warning and the run still succeeds (see Baselines/colmap/colmap_dense.sh).
+        # dense_max_image_size: longest image side used for undistortion / patch match / fusion
+        # (COLMAP presets: 1000 low, 1600 medium, -1 high = full resolution).
+        # mesher: 'none' | 'delaunay' -> mesh the fused cloud, copied to <id>_mesh.ply (COLMAP's
+        # poisson_mesher is not offered: its surface trimmer segfaults in the 4.1.1 conda-forge build).
         default_parameters = {'verbose': 1, 'mode': 'mono', 'matcher_type': 'exhaustive',
                              'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap', 'rgb_max': 50000000,
-                             'use_mask': 0, 'optimize_intrinsics': 1}
+                             'use_mask': 0, 'optimize_intrinsics': 1,
+                             'dense': 0, 'dense_max_image_size': 1600, 'mesher': 'none'}
 
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)

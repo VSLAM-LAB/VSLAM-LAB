@@ -1,0 +1,11 @@
+test_exp_colmap_dense:
+  Config: config_demo.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3, dense: 1, dense_max_image_size: 1600}
+  Module: colmap
+
+test_exp_colmap_dense_delaunay:
+  Config: config_demo.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3, dense: 1, dense_max_image_size: 1000, mesher: delaunay}
+  Module: colmap
