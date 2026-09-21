@@ -1,11 +1,18 @@
-# exp_allfeature_mono:
+exp_allfeature_mono:
+  Config: config_vslamlabbench.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono}
+  Module: allfeature-dev
+
+# exp_allfeature_orbslam2_mono:
 #   Config: config_vslamlabbench.yaml
 #   NumRuns: 1
 #   Parameters: {verbose: 1, mode: mono}
-#   Module: allfeature-dev
+#   Module: orbslam2
 
-exp_allfeature_rgbd:
-  Config: config_vslamlabbench.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, mode: rgbd}
-  Module: allfeature-dev
+# exp_allfeature_droidslam_mono:
+#   Config: config_vslamlabbench.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 1, mode: mono}
+#   Module: droidslam
+
