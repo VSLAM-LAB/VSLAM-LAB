@@ -1,82 +1,104 @@
 dataset_name: blt
-dataset_folder: BLT_dataset
 
-rgb_hz: 10.0
-modes_env: BLT_MODES
-modes: ["mono", "rgbd"]
-cam_models: ["radtan5"]
+# Front ZED2 colour rate, as configured in the paper's sensor table and as measured on the real
+# ktima_2022_09_15 bag: 14.93 Hz over 748 frames, median frame gap 67.0 ms. Depth is recorded
+# more slowly (10.27 Hz there) and is associated per frame in create_rgb_csv. Only written to
+# calibration.yaml as `fps` - rgb.csv carries each frame's own header stamp, never a synthesized
+# rate.
+rgb_hz: 15.0
 
-source_root_env: BLT_KTIMA_ROOT
-image_topic_env: BLT_IMAGE_TOPIC
-image_topic: /front/zed_node/rgb/image_rect_color/compressed
-camera_info_topic_env: BLT_CAMERA_INFO_TOPIC
-camera_info_topics:
-  - /front/zed_node/rgb/camera_info
-  - /front/zed_node/left/camera_info
-  - /front/zed_node/rgb/image_rect_color/camera_info
-depth_topic_env: BLT_DEPTH_TOPIC
-depth_topic: /depth_republish/compressedDepth
-depth_camera_info_topic_env: BLT_DEPTH_CAMERA_INFO_TOPIC
-depth_camera_info_topics:
-  - /front/zed_node/depth/camera_info
-depth_factor_env: BLT_DEPTH_FACTOR
+# Front ZED2 only: rectified colour (rgb_0) plus the republished depth stream (depth_0). The
+# side-facing ZED2 is a second, independently-pointed camera rather than the other half of a
+# stereo pair, so it is not exposed as `stereo`; the 40 Hz RSX-UM7 IMU is recorded too but is not
+# extracted here, so no `-vi` mode is advertised.
+modes: ['mono', 'rgbd']
+
+# /front/zed_node/rgb/image_rect_color is rectified by the ZED SDK before recording and its
+# CameraInfo carries an all-zero distortion vector, so calibration.yaml writes a plain pinhole
+# camera with no distortion coefficients at all. Measured on ktima_2022_09_15: one single
+# CameraInfo across all 1476 messages of the scanned window, fx = fy = 1057.0009,
+# (cx, cy) = (952.2302, 553.5770) at 1920x1080, D = [0, 0, 0, 0, 0], and the depth stream's own
+# CameraInfo identical to it (depth is registered to the colour frame). create_calibration_yaml
+# still reads it per sequence rather than hardcoding it.
+cam_models: ['pinhole']
+
+raw_formats: ['ros1']
+
+# One ROS1 bag per recording session, delivered through the request form on the dataset page -
+# there is no direct download URL, so every sequence is local: fetch the bags yourself, then
+# either drop them under VSLAM-LAB-Benchmark/BLT/raw (the default when raw_data_path is empty,
+# below) or point raw_data_path at wherever you keep them. The layout inside that folder does not
+# matter: download_sequence_data searches it recursively for the bag whose file name carries the
+# session's date (e.g. rosbag_compressed_2022-09-15-14-23-20.bag for ktima_2022_09_15), so the
+# delivered NN_month/ folders work as-is and so does a flat dump of .bag files.
+sequence_location: local
+raw_data_path: ""
+
+# Depth in meters = depth_value / depth_factor. depth_0 is written as 16-bit millimetres,
+# whichever of compressedDepth's two payload encodings the bag carries (see
+# _decode_compressed_depth in dataset_blt.py).
 depth_factor: 1000.0
-image_transport: compressed
-decompressed_image_topic: /front/zed_node/rgb_decompressed
-groundtruth_topic_env: BLT_GROUNDTRUTH_TOPIC
-groundtruth_topic: /odometry/gps
-groundtruth_frame_source: tf
-tf_topics: [/tf_static, /tf]
-camera_frame_env: BLT_CAMERA_FRAME
-camera_frame: front_left_camera_optical_frame
-camera_frame_candidates:
-  - front_left_camera_optical_frame
-  - front_left_camera_frame
-  - front_camera_center
-  - front_base_link
-  - base_link
-max_frames_env: BLT_MAX_FRAMES
-max_frames: 200
-max_seconds_env: BLT_MAX_SECONDS
-max_seconds: 0
-allow_placeholder_calibration_env: BLT_ALLOW_PLACEHOLDER_CALIBRATION
-use_camera_info_calibration_env: BLT_USE_CAMERA_INFO_CALIBRATION
-use_camera_info_calibration: false
-calibration_file_env: BLT_CALIBRATION_FILE
-calibration_file: dataset_blt_calibration.yaml
-calibration_sanity_check_env: BLT_CALIBRATION_SANITY_CHECK
-calibration_sanity_check: true
-calibration_sanity_tolerance: 0.10
-experimental_calibration_override_env: BLT_EXPERIMENTAL_CALIBRATION_OVERRIDE
+
+target_resolution: [640, 480]
+
+# One sequence per recording session at the Ktima Gerovassiliou vineyard, named after its date:
+# the 11 sessions of the 2022 campaign listed on the dataset page (23 March; 6 and 20 April; 6 and
+# 18 May; 1, 8, 22 and 29 June; 13 July; 15 September). The five 2023 Riseholme sessions are not
+# included: two of them carry no RGB-D data at all, and `modes` applies dataset-wide, so they
+# would belong to a separate dataset rather than this one.
+sequence_names:
+  - ktima_2022_03_23
+  - ktima_2022_04_06
+  - ktima_2022_04_20
+  - ktima_2022_05_06
+  - ktima_2022_05_18
+  - ktima_2022_06_01
+  - ktima_2022_06_08
+  - ktima_2022_06_22
+  - ktima_2022_06_29
+  - ktima_2022_07_13
+  - ktima_2022_09_15
 
 about:
-  license: Local data only; raw BLT rosbags are not redistributed by this integration.
-  summary: BLT ktima 2022 vineyard rosbag sequences converted to VSLAM-LAB mono/RGB-D format with RTK-derived ground truth.
+  license: CC BY 4.0 (per the dataset's Zenodo record, 10.5281/zenodo.10103988) - the rosbags themselves are released through a request form on the dataset page
+  summary: BACCHUS Long-Term (BLT) dataset - a Thorvald II robot driving the same 500 m topological path through the Ktima Gerovassiliou vineyard (Epanomi, Greece) over the whole 2022 growing season, with front ZED2 RGB-D imagery and RTK-GNSS ground truth
   homepage: https://lcas.lincoln.ac.uk/wp/research/data-sets-software/blt/
   features:
     - Real
     - Outdoor
     - Robot
   authors:
-    - BLT dataset contributors
+    - Riccardo Polvara
+    - Sergi Molina
+    - Ibrahim Hroob
+    - Alexios Papadimitriou
+    - Konstantinos Tsiolis
+    - Dimitrios Giakoumis
+    - Spiridon Likothanassis
+    - Dimitrios Tzovaras
+    - Grzegorz Cielniak
+    - Marc Hanheide
+  access: Registration Required
+  publication: "Bacchus Long-Term (BLT) data set: Acquisition of the agricultural multimodal BLT data set with automated robot deployment"
+  publication_url: "https://doi.org/10.1002/rob.22228"
+  year: 2024
+  bibtex_key: polvara2024bacchus
+  bibtex: |
+    @article{polvara2024bacchus,
+      title={Bacchus Long-Term ({BLT}) data set: Acquisition of the agricultural multimodal {BLT} data set with automated robot deployment},
+      author={Polvara, Riccardo and Molina, Sergi and Hroob, Ibrahim and Papadimitriou, Alexios and Tsiolis, Konstantinos and Giakoumis, Dimitrios and Likothanassis, Spiridon and Tzovaras, Dimitrios and Cielniak, Grzegorz and Hanheide, Marc},
+      journal={Journal of Field Robotics},
+      volume={41},
+      number={7},
+      pages={2280--2298},
+      year={2024},
+      publisher={Wiley}
+    }
 
+# Seeded by Riccardo Polvara's own BLT integration (VSLAM-LAB PR #53), rewritten against the
+# repo's dataset conventions.
 vslamlab_maintainer:
-  name: Riccardo Polvara
-  email: "pulver22@lincoln.ac.uk"
-  date: 2026-06-20
-
-sequence_names:
-  - ktima_2022_03
-  - ktima_2022_04
-  - ktima_2022_05
-  - ktima_2022_06
-  - ktima_2022_07
-  - ktima_2022_09
-
-source_bags:
-  ktima_2022_03: 03_march/rosbag_certh_compressed_2022-03-23-12-27-15.bag
-  ktima_2022_04: 04_april/rosbag_compressed_2022-04-06-11-02-34.bag
-  ktima_2022_05: 05_may/rosbag_compressed_2022-05-06.bag
-  ktima_2022_06: 06_june/rosbag_compressed_2022-06-22-13-02-08.bag
-  ktima_2022_07: 07_july/rosbag_compressed_2022-07-13-15-38-32.bag
-  ktima_2022_09: 09_september/rosbag_compressed_2022-09-15-14-23-20.bag
+  name: Alejandro Fontan
+  assisted_by: Claude (Opus 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-09-22

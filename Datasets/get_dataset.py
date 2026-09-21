@@ -26,6 +26,7 @@ from Datasets.dataset_files.dataset_7scenes import SevenscenesDataset
 from Datasets.dataset_files.dataset_minimal import MinimalDataset
 from Datasets.dataset_files.dataset_bonn_rgbd import BonnRgbdDataset
 from Datasets.dataset_files.dataset_endomapper_sim import EndomapperSimDataset
+from Datasets.dataset_files.dataset_blt import BltDataset
 
 # Stereo datasets
 from Datasets.dataset_files.dataset_kitti import KittiDataset
@@ -58,7 +59,6 @@ from Datasets.dataset_files.dataset_rvp_car import RvpCarDataset
 from Datasets.dataset_files.dataset_aria_digital_twin import AriaDigitalTwinDataset
 from Datasets.dataset_files.dataset_newer_college_stereo_vi import NewerCollegeStereoViDataset
 from Datasets.dataset_files.dataset_uzh_fpv import UzhFpvDataset
-from Datasets.dataset_files.dataset_blt import BltDataset
 
 # Development
 from Datasets.dataset_files.dataset_videos import VideosDataset
@@ -94,6 +94,7 @@ def get_dataset(dataset_name):
         "7scenes": lambda: SevenscenesDataset(),
         "minimal": lambda: MinimalDataset(),
         "bonn-rgbd": lambda: BonnRgbdDataset(),
+        "blt": lambda: BltDataset(),
         "openloris-d400": lambda: OpenlorisD400Dataset(),
         "openloris-t265": lambda: OpenlorisT265Dataset(),
         "sweetcorals": lambda: SweetcoralsDataset(),
@@ -119,7 +120,6 @@ def get_dataset(dataset_name):
         "aria-digital-twin": lambda: AriaDigitalTwinDataset(),
         "newer-college-stereo-vi": lambda: NewerCollegeStereoViDataset(),
         "uzh-fpv": lambda: UzhFpvDataset(),
-        "blt": lambda: BltDataset(),
 
         # Development
         "videos": lambda: VideosDataset(),
@@ -134,12 +134,7 @@ def list_available_datasets() -> list[str]:
     dataset_scripts_path = VSLAM_LAB_DIR /  'Datasets' / 'dataset_files'
     dataset_scripts = []
     for filename in os.listdir(dataset_scripts_path):
-        if (
-            'dataset_' in filename
-            and filename.endswith('.yaml')
-            and 'utilities' not in filename
-            and '_calibration' not in filename
-        ):
+        if 'dataset_' in filename and filename.endswith('.yaml') and 'utilities' not in filename:
             dataset_scripts.append(filename)
 
     dataset_scripts = [item.replace('dataset_', '').replace('.yaml', '') for item in dataset_scripts]
