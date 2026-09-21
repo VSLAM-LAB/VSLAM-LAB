@@ -421,15 +421,10 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.vggtslam.dependencies]
-vggtslam-vslamlab = { channel = "fontan" }
+# The 2.0 package (noarch) carries VGGT-SLAM's full runtime dependency set; it needs gtsam 1.0 from fontan,
+# pinned to the channel here because strict channel priority would otherwise only offer conda-forge's 4.x.
+vggtslam-vslamlab = { version = ">=2.0", channel = "fontan" }
 gtsam = { channel = "fontan" }
-tqdm = "*"
-viser = "*"
-termcolor = "*"
-pytorch-lightning = "*"
-huggingface_hub = "*"
-pytorch-metric-learning = "*"
-nodeenv = "*"
 
 [feature.vggtslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
