@@ -188,7 +188,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 
 | Baselines                                                                   | System |      Modes       |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |
 |:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|:------------:|
-| [**AllFeature-VSLAM**](https://github.com/alejandrofontan/AllFeature-VSLAM) | VSLAM  | `mono` `rgbd` | [GPLv3](https://github.com/alejandrofontan/AnyFeature-VSLAM/blob/main/docs/License-gpl.txt) | `allfeature` | ✅ | `pinhole` `radtan4` `radtan5` |
+| [**AllFeature-VSLAM**](https://github.com/alejandrofontan/AllFeature-VSLAM) | VSLAM  | `mono` `rgbd` | [GPLv3](https://github.com/alejandrofontan/AnyFeature-VSLAM/blob/main/docs/License-gpl.txt) | `allfeature` | ➖ | `pinhole` `radtan4` `radtan5` |
 | [**VGGT-SLAM 2.0**](https://github.com/MIT-SPARK/VGGT-SLAM) |  VSLAM   |  `mono`  |  [BSD-2](https://github.com/MIT-SPARK/VGGT-SLAM/blob/main/LICENSE)  |   `vggtslam`   | ✅ | `pinhole` |
 | [**MASt3R-SLAM**](https://github.com/rmurai0610/MASt3R-SLAM)                | VSLAM  |       `mono`       |    [CC BY-NC-SA 4.0](https://github.com/rmurai0610/MASt3R-SLAM/blob/main/LICENSE.md)    | `mast3rslam`  | ✅ | `radtan5` `unknown` |
 | [**DPVO**](https://github.com/princeton-vl/DPVO)                            | VSLAM  |       `mono`       |    [License](https://github.com/princeton-vl/DPVO/blob/main/LICENSE)    | `dpvo`  | ✅ | `radtan5` |
