@@ -183,6 +183,7 @@ class BaselineVSLAMLAB(ABC):
 
     def monitor_memory(self, process, interval, comment_queue, success_flag, memory_stats):
         MAX_SWAP_PERC = 0.80
+        MIN_SWAP_GROWTH_GB = 0.5  # swap the run itself added before the swap threshold counts against it
         MAX_RAM_PERC= 0.95
 
         # Initialize NVML safely
@@ -228,8 +229,10 @@ class BaselineVSLAMLAB(ABC):
                     self.kill_process(process)
                     break
 
-                if sys.platform == "linux" and swap_perc > MAX_SWAP_PERC:
-                    msg = f"Swap threshold exceeded: {swap_used:.1f}/{swap_max:.1f} GB (> {MAX_SWAP_PERC:.0%})"
+                # Swap full of stale pages from other processes is harmless; only a run that is itself pushing the
+                # system into swap (swap grew since it started) is killed.
+                if sys.platform == "linux" and swap_perc > MAX_SWAP_PERC and swap_used - swap_0 > MIN_SWAP_GROWTH_GB:
+                    msg = f"Swap threshold exceeded: {swap_used:.1f}/{swap_max:.1f} GB (> {MAX_SWAP_PERC:.0%}, +{swap_used - swap_0:.1f} GB during the run)"
                     print_msg(SCRIPT_LABEL, msg, 'error')
                     success_flag[0] = False
                     comment_queue.put(msg + ". Process killed.")
