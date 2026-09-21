@@ -204,16 +204,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `radtan5` `equid4` `unknown` |
 | [**Depth Anything 3**](https://depth-anything-3.github.io/) |  Feed-forward   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE) (giant/nested weights CC BY-NC 4.0)  |   `da3`   | ➖ | `pinhole` |
 | [**DA3-Streaming**](https://github.com/ByteDance-Seed/Depth-Anything-3/tree/main/da3_streaming) |  VSLAM   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE)  |   `da3-streaming`   | ➖ | `pinhole` |
-| [**MapAnything**](https://map-anything.github.io/) |  Feed-forward   |  `mono` `rgbd`  |  [Apache-2.0](https://github.com/facebookresearch/map-anything/blob/main/LICENSE) (default weights CC BY-NC 4.0)  |   `mapanything`   | ➖ | `pinhole` |
-| ↳ [**VGGT**](https://vgg-t.github.io/) |  Feed-forward   |  `mono`  |  [VGGT](https://github.com/facebookresearch/vggt/blob/main/LICENSE.txt)  |   `mapanything` `module: vggt`   | ➖ | `pinhole` |
-| ↳ [**VGGT-Ω**](https://vggt-omega.github.io/) |  Feed-forward   |  `mono`  |  [FAIR Noncommercial](https://github.com/facebookresearch/vggt-omega/blob/main/LICENSE) (gated weights)  |   `mapanything` `module: vggt-omega`   | ➖ | `pinhole` |
-| ↳ [**π³**](https://yyfz.github.io/pi3/) |  Feed-forward   |  `mono`  |  [BSD-3](https://github.com/yyfz/Pi3/blob/main/LICENSE)  |   `mapanything` `module: pi3` / `pi3x`   | ➖ | `pinhole` |
-| ↳ [**DUSt3R**](https://github.com/naver/dust3r) |  Feed-forward   |  `mono`  |  [CC BY-NC-SA 4.0](https://github.com/naver/dust3r/blob/main/LICENSE)  |   `mapanything` `module: dust3r`   | ➖ | `pinhole` |
-| ↳ [**MASt3R**](https://github.com/naver/mast3r) |  Feed-forward   |  `mono`  |  [CC BY-NC-SA 4.0](https://github.com/naver/mast3r/blob/main/LICENSE)  |   `mapanything` `module: mast3r`   | ➖ | `pinhole` |
-| ↳ [**MUSt3R**](https://github.com/naver/must3r) |  Feed-forward   |  `mono`  |  [NAVER](https://github.com/naver/must3r/blob/main/LICENSE)  |   `mapanything` `module: must3r`   | ➖ | `pinhole` |
-| ↳ [**Pow3R**](https://github.com/naver/pow3r) |  Feed-forward   |  `mono`  |  [NAVER](https://github.com/naver/pow3r/blob/main/LICENSE)  |   `mapanything` `module: pow3r`   | ➖ | `pinhole` |
-
-*↳ rows are external models run through MapAnything's model factory: use `Module: mapanything` in the experiment yaml and pick the model with the `module` parameter, e.g. `Parameters: {mode: mono, module: vggt}`. They are `mono`, images only; `rgbd` is MapAnything's own model.*
+| [**MapAnything**](https://map-anything.github.io/) <br><sub>`module:` [VGGT](https://vgg-t.github.io/) · [VGGT-Ω](https://vggt-omega.github.io/) · [π³](https://yyfz.github.io/pi3/) · [DUSt3R](https://github.com/naver/dust3r) · [MASt3R](https://github.com/naver/mast3r) · [MUSt3R](https://github.com/naver/must3r) · [Pow3R](https://github.com/naver/pow3r) (`mono`, each under its own license)</sub> |  Feed-forward   |  `mono` `rgbd`  |  [Apache-2.0](https://github.com/facebookresearch/map-anything/blob/main/LICENSE) (default weights CC BY-NC 4.0)  |   `mapanything`   | ➖ | `pinhole` |
 
 <table>
 <thead>
