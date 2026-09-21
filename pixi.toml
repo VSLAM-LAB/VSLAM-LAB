@@ -32,7 +32,8 @@ download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-d
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
 cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
-py10 = { features = ["py10"], solve-group = "py10" }
+cuda129 = { features = ["cuda129"], solve-group = "cuda129" }
+py10 ={ features = ["py10"], solve-group = "py10" }
 py11 = { features = ["py11"], solve-group = "py11" }
 x11 = { features = ["x11"], solve-group = "x11" }
 opengl = { features = ["opengl"], solve-group = "opengl" }
@@ -56,7 +57,7 @@ mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "ma
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
 droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid-dev" }
 dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "droid" }
-monogs-dev = { features = ["monogs-dev", "cuda126", "py10"], solve-group = "monogs" }
+monogs-dev = { features = ["monogs-dev", "cuda129", "py10"], solve-group = "monogs" }
 orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
@@ -270,7 +271,9 @@ numba = "*"
 # monogs
 [feature.monogs]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+# CUDA 12.9: monogs-vslamlab >= 1.1 is built against the cuda129 pytorch, the only one that can share an
+# environment with the GUI-enabled conda-forge open3d (see [feature.monogs-dev.dependencies]).
+platforms = ["linux-64-cuda129"]
 
 [feature.monogs.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
@@ -278,26 +281,10 @@ execute-mono = 'vslamlab_monogs_mono'
 execute-rgbd = 'vslamlab_monogs_rgbd'
 
 [feature.monogs.dependencies]
-monogs-vslamlab = { channel = "fontan" }
-pytorch-gpu = "*"
-munch = "*"
-wandb = "*"
-plyfile = "*"
-opencv = "*"
-pyglfw = "*"
-imgviz = "*"
-pyopengl = "*"
-pyglm = "*"
-rich = "*"
-trimesh = "*"
-evo = "*"
-torchmetrics = "*"
-
-[feature.monogs.pypi-dependencies]
-# conda-forge's open3d is built with BUILD_GUI=OFF and lacks open3d.visualization.gui,
-# which MonoGS's gui/slam_gui.py imports unconditionally. The PyPI wheel ships the GUI.
-# Pinned by URL: a plain `open3d = "*"` gets mapped back onto the conda package by pixi.
-open3d = { url = "https://files.pythonhosted.org/packages/c7/45/13bc9414ee9db611cba90b9efa69f66f246560e8ade575f1ee5b7f7b5d31/open3d-0.19.0-cp310-cp310-manylinux_2_31_x86_64.whl" }
+# The package carries MonoGS's full runtime dependency set (torch pinned to the build's libtorch ABI, the
+# GUI-enabled open3d, no evo); only the spec that selects the right build is repeated here.
+monogs-vslamlab = { version = ">=1.1", channel = "fontan" }
+open3d = { version = "0.19.*", build-number = ">=103" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -601,6 +588,41 @@ libcusolver-dev = "*"
 cusparselt = "*"
 libnvjitlink = "*"
 
+########################################################################################################################
+# cuda129
+# Same toolchain as cuda126 on CUDA 12.9 (the linux-64-cuda129 workspace platform). Used by the environments whose
+# dependency set only solves against the cuda129 pytorch builds (monogs / monogs-dev: the GUI-enabled conda-forge
+# open3d needs a qt6-main / libprotobuf that the last cuda126 pytorch (2.7.1) cannot share).
+[feature.cuda129]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda129"]
+
+[feature.cuda129.dependencies]
+# CUDA Build Tools
+cuda-compiler = "*"
+cuda-version = "12.9.*"
+cuda-cudart-dev = "*"
+cuda-crt = "*"
+libcusparse-dev = "*"
+cuda-driver-dev = "*"
+cuda-nvcc = "*"
+cuda-nvrtc-dev = "*"
+cuda-nvtx = "*"
+cuda-nvtx-dev = "*"
+cuda-nvml-dev = "*"
+cuda-profiler-api = "*"
+
+# CUDA Libraries
+cudnn = "*"
+libcublas-dev = "*"
+libcudss-dev = "*"
+libcufile-dev = "*"
+libcufft-dev = "*"
+libcurand-dev = "*"
+libcusolver-dev = "*"
+cusparselt = "*"
+libnvjitlink = "*"
+
 # ########################################################################################################################
 # py10
 [feature.py10]
@@ -812,7 +834,7 @@ yacs = "*"
 # monogs-dev
 [feature.monogs-dev]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64-cuda129"]
 
 [feature.monogs-dev.tasks]
 fetch-source = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
@@ -830,12 +852,12 @@ make = "*"
 # Core Libraries
 pytorch-gpu = "*"
 torchvision = "*"
-pytorch_scatter = "*"
 numpy = "<2"
 opencv = "*"
 
 # Logging, Evaluation & Visualization
-evo = "*"
+# No evo: MonoGS only uses it in its own ATE evaluation (utils/eval_utils.evaluate_evo, imported lazily
+# in the fork), and its conda chain (contextily -> rasterio -> proj) cannot coexist with the GUI open3d on py310.
 plyfile = "*"
 munch = "*"
 trimesh = "*"
@@ -848,9 +870,17 @@ pyglm  = "*"
 lpips = "*"
 rich = "*"
 ruff = "*"
-nbformat = "==5.7.0"
 pyglfw = "*"
-open3d = "*"
+# Imported directly by MonoGS (utils/dataset.py, utils/eval_utils.py, ...); evo used to pull them in.
+pandas = "*"
+pyyaml = "*"
+scipy = "*"
+tqdm = "*"
+pillow = "*"
+matplotlib-base = "*"
+# gui/slam_gui.py imports open3d.visualization.gui unconditionally; conda-forge ships it only in the
+# BUILD_GUI=ON builds (build number >= 103, 2026-04-26 onwards). These solve only with the cuda129 pytorch.
+open3d = { version = "0.19.*", build-number = ">=103" }
 
 ########################################################################################################################
 ########################################################################################################################
