@@ -12,7 +12,8 @@
       "Edit(//home/alejandro/VSLAM-LAB-Benchmark/**)",
       "Bash(*)",
       "Write(//home/alejandro/VSLAM-LAB-Evaluation/**)",
-      "Edit(//home/alejandro/VSLAM-LAB-Evaluation/**)"
+      "Edit(//home/alejandro/VSLAM-LAB-Evaluation/**)",
+      "Write(//home/alejandro/conda-packages**)"
     ],
     "deny": [
       "Bash(git push *)",
@@ -32,6 +33,7 @@
     "additionalDirectories": [
       "/home/alejandro/VSLAM-LAB-Benchmark",
       "/home/alejandro/VSLAM-LAB-Evaluation",
+      "/home/alejandro/conda-packages",
       "/tmp/claude-1001/-home-alejandro-VSLAM-LAB"
     ]
   },
