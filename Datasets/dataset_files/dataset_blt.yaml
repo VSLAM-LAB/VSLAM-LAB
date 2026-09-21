@@ -53,6 +53,10 @@ about:
   license: Local data only; raw BLT rosbags are not redistributed by this integration.
   summary: BLT ktima 2022 vineyard rosbag sequences converted to VSLAM-LAB mono/RGB-D format with RTK-derived ground truth.
   homepage: https://lcas.lincoln.ac.uk/wp/research/data-sets-software/blt/
+  features:
+    - Real
+    - Outdoor
+    - Robot
   authors:
     - BLT dataset contributors
 

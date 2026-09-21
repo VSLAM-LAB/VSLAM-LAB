@@ -1,0 +1,422 @@
+dataset_name: tartanair-train
+
+rgb_hz: 30.0
+modes: ['mono', 'stereo', 'rgbd']
+cam_models: ['pinhole']
+raw_formats: ['zip']
+
+hf_repo_id: 'theairlabcmu/tartanair'
+
+depth_factor: 100.0 # Depth in meters = depth_value / depth_factor
+
+# TartanAir training split: 18 environments x Easy/Hard difficulty, one sequence per trajectory
+# (369 total). Trajectory IDs are non-contiguous per environment/difficulty - this list was
+# enumerated from the HF repo's <env>/<difficulty>/image_left.zip listings.
+sequence_names:
+  - abandonedfactory_Easy_P000
+  - abandonedfactory_Easy_P001
+  - abandonedfactory_Easy_P002
+  - abandonedfactory_Easy_P004
+  - abandonedfactory_Easy_P005
+  - abandonedfactory_Easy_P006
+  - abandonedfactory_Easy_P008
+  - abandonedfactory_Easy_P009
+  - abandonedfactory_Easy_P010
+  - abandonedfactory_Easy_P011
+  - abandonedfactory_Hard_P000
+  - abandonedfactory_Hard_P001
+  - abandonedfactory_Hard_P002
+  - abandonedfactory_Hard_P003
+  - abandonedfactory_Hard_P004
+  - abandonedfactory_Hard_P005
+  - abandonedfactory_Hard_P006
+  - abandonedfactory_Hard_P007
+  - abandonedfactory_Hard_P008
+  - abandonedfactory_Hard_P009
+  - abandonedfactory_Hard_P010
+  - abandonedfactory_Hard_P011
+  - abandonedfactory_night_Easy_P001
+  - abandonedfactory_night_Easy_P002
+  - abandonedfactory_night_Easy_P003
+  - abandonedfactory_night_Easy_P004
+  - abandonedfactory_night_Easy_P005
+  - abandonedfactory_night_Easy_P006
+  - abandonedfactory_night_Easy_P007
+  - abandonedfactory_night_Easy_P008
+  - abandonedfactory_night_Easy_P009
+  - abandonedfactory_night_Easy_P010
+  - abandonedfactory_night_Easy_P011
+  - abandonedfactory_night_Easy_P012
+  - abandonedfactory_night_Easy_P013
+  - abandonedfactory_night_Hard_P000
+  - abandonedfactory_night_Hard_P001
+  - abandonedfactory_night_Hard_P002
+  - abandonedfactory_night_Hard_P003
+  - abandonedfactory_night_Hard_P005
+  - abandonedfactory_night_Hard_P006
+  - abandonedfactory_night_Hard_P007
+  - abandonedfactory_night_Hard_P008
+  - abandonedfactory_night_Hard_P009
+  - abandonedfactory_night_Hard_P010
+  - abandonedfactory_night_Hard_P011
+  - abandonedfactory_night_Hard_P012
+  - abandonedfactory_night_Hard_P013
+  - abandonedfactory_night_Hard_P014
+  - amusement_Easy_P001
+  - amusement_Easy_P002
+  - amusement_Easy_P003
+  - amusement_Easy_P004
+  - amusement_Easy_P006
+  - amusement_Easy_P007
+  - amusement_Easy_P008
+  - amusement_Hard_P000
+  - amusement_Hard_P001
+  - amusement_Hard_P002
+  - amusement_Hard_P003
+  - amusement_Hard_P004
+  - amusement_Hard_P005
+  - amusement_Hard_P006
+  - amusement_Hard_P007
+  - carwelding_Easy_P001
+  - carwelding_Easy_P002
+  - carwelding_Easy_P004
+  - carwelding_Easy_P005
+  - carwelding_Easy_P006
+  - carwelding_Easy_P007
+  - carwelding_Hard_P000
+  - carwelding_Hard_P001
+  - carwelding_Hard_P002
+  - carwelding_Hard_P003
+  - endofworld_Easy_P000
+  - endofworld_Easy_P001
+  - endofworld_Easy_P002
+  - endofworld_Easy_P003
+  - endofworld_Easy_P004
+  - endofworld_Easy_P005
+  - endofworld_Easy_P006
+  - endofworld_Easy_P007
+  - endofworld_Easy_P008
+  - endofworld_Easy_P009
+  - endofworld_Hard_P000
+  - endofworld_Hard_P001
+  - endofworld_Hard_P002
+  - endofworld_Hard_P005
+  - endofworld_Hard_P006
+  - gascola_Easy_P001
+  - gascola_Easy_P003
+  - gascola_Easy_P004
+  - gascola_Easy_P005
+  - gascola_Easy_P006
+  - gascola_Easy_P007
+  - gascola_Easy_P008
+  - gascola_Hard_P000
+  - gascola_Hard_P001
+  - gascola_Hard_P002
+  - gascola_Hard_P003
+  - gascola_Hard_P004
+  - gascola_Hard_P005
+  - gascola_Hard_P006
+  - gascola_Hard_P007
+  - gascola_Hard_P008
+  - gascola_Hard_P009
+  - hospital_Easy_P000
+  - hospital_Easy_P001
+  - hospital_Easy_P002
+  - hospital_Easy_P003
+  - hospital_Easy_P004
+  - hospital_Easy_P005
+  - hospital_Easy_P006
+  - hospital_Easy_P007
+  - hospital_Easy_P008
+  - hospital_Easy_P009
+  - hospital_Easy_P010
+  - hospital_Easy_P011
+  - hospital_Easy_P012
+  - hospital_Easy_P013
+  - hospital_Easy_P014
+  - hospital_Easy_P015
+  - hospital_Easy_P016
+  - hospital_Easy_P017
+  - hospital_Easy_P018
+  - hospital_Easy_P019
+  - hospital_Easy_P020
+  - hospital_Easy_P021
+  - hospital_Easy_P022
+  - hospital_Easy_P023
+  - hospital_Easy_P024
+  - hospital_Easy_P025
+  - hospital_Easy_P026
+  - hospital_Easy_P027
+  - hospital_Easy_P028
+  - hospital_Easy_P029
+  - hospital_Easy_P030
+  - hospital_Easy_P031
+  - hospital_Easy_P032
+  - hospital_Easy_P033
+  - hospital_Easy_P034
+  - hospital_Easy_P035
+  - hospital_Easy_P036
+  - hospital_Hard_P037
+  - hospital_Hard_P038
+  - hospital_Hard_P039
+  - hospital_Hard_P040
+  - hospital_Hard_P041
+  - hospital_Hard_P042
+  - hospital_Hard_P043
+  - hospital_Hard_P044
+  - hospital_Hard_P045
+  - hospital_Hard_P046
+  - hospital_Hard_P047
+  - hospital_Hard_P048
+  - hospital_Hard_P049
+  - japanesealley_Easy_P001
+  - japanesealley_Easy_P002
+  - japanesealley_Easy_P003
+  - japanesealley_Easy_P004
+  - japanesealley_Easy_P005
+  - japanesealley_Easy_P007
+  - japanesealley_Hard_P000
+  - japanesealley_Hard_P001
+  - japanesealley_Hard_P002
+  - japanesealley_Hard_P003
+  - japanesealley_Hard_P004
+  - japanesealley_Hard_P005
+  - neighborhood_Easy_P000
+  - neighborhood_Easy_P001
+  - neighborhood_Easy_P002
+  - neighborhood_Easy_P003
+  - neighborhood_Easy_P004
+  - neighborhood_Easy_P005
+  - neighborhood_Easy_P007
+  - neighborhood_Easy_P008
+  - neighborhood_Easy_P009
+  - neighborhood_Easy_P010
+  - neighborhood_Easy_P012
+  - neighborhood_Easy_P013
+  - neighborhood_Easy_P014
+  - neighborhood_Easy_P015
+  - neighborhood_Easy_P016
+  - neighborhood_Easy_P017
+  - neighborhood_Easy_P018
+  - neighborhood_Easy_P019
+  - neighborhood_Easy_P020
+  - neighborhood_Easy_P021
+  - neighborhood_Hard_P000
+  - neighborhood_Hard_P001
+  - neighborhood_Hard_P002
+  - neighborhood_Hard_P003
+  - neighborhood_Hard_P004
+  - neighborhood_Hard_P005
+  - neighborhood_Hard_P006
+  - neighborhood_Hard_P007
+  - neighborhood_Hard_P008
+  - neighborhood_Hard_P009
+  - neighborhood_Hard_P010
+  - neighborhood_Hard_P011
+  - neighborhood_Hard_P012
+  - neighborhood_Hard_P013
+  - neighborhood_Hard_P014
+  - neighborhood_Hard_P015
+  - neighborhood_Hard_P016
+  - neighborhood_Hard_P017
+  - ocean_Easy_P000
+  - ocean_Easy_P001
+  - ocean_Easy_P002
+  - ocean_Easy_P004
+  - ocean_Easy_P005
+  - ocean_Easy_P006
+  - ocean_Easy_P008
+  - ocean_Easy_P009
+  - ocean_Easy_P010
+  - ocean_Easy_P011
+  - ocean_Easy_P012
+  - ocean_Easy_P013
+  - ocean_Hard_P000
+  - ocean_Hard_P001
+  - ocean_Hard_P002
+  - ocean_Hard_P003
+  - ocean_Hard_P004
+  - ocean_Hard_P005
+  - ocean_Hard_P006
+  - ocean_Hard_P007
+  - ocean_Hard_P008
+  - ocean_Hard_P009
+  - office_Easy_P000
+  - office_Easy_P001
+  - office_Easy_P002
+  - office_Easy_P003
+  - office_Easy_P004
+  - office_Easy_P005
+  - office_Easy_P006
+  - office_Hard_P000
+  - office_Hard_P001
+  - office_Hard_P002
+  - office_Hard_P003
+  - office_Hard_P004
+  - office_Hard_P005
+  - office_Hard_P006
+  - office_Hard_P007
+  - office2_Easy_P000
+  - office2_Easy_P003
+  - office2_Easy_P004
+  - office2_Easy_P005
+  - office2_Easy_P006
+  - office2_Easy_P007
+  - office2_Easy_P008
+  - office2_Easy_P009
+  - office2_Easy_P010
+  - office2_Easy_P011
+  - office2_Hard_P000
+  - office2_Hard_P001
+  - office2_Hard_P002
+  - office2_Hard_P003
+  - office2_Hard_P004
+  - office2_Hard_P005
+  - office2_Hard_P006
+  - office2_Hard_P007
+  - office2_Hard_P008
+  - office2_Hard_P009
+  - office2_Hard_P010
+  - oldtown_Easy_P000
+  - oldtown_Easy_P001
+  - oldtown_Easy_P002
+  - oldtown_Easy_P004
+  - oldtown_Easy_P005
+  - oldtown_Easy_P007
+  - oldtown_Hard_P000
+  - oldtown_Hard_P001
+  - oldtown_Hard_P002
+  - oldtown_Hard_P003
+  - oldtown_Hard_P004
+  - oldtown_Hard_P005
+  - oldtown_Hard_P006
+  - oldtown_Hard_P007
+  - oldtown_Hard_P008
+  - seasidetown_Easy_P000
+  - seasidetown_Easy_P001
+  - seasidetown_Easy_P002
+  - seasidetown_Easy_P003
+  - seasidetown_Easy_P004
+  - seasidetown_Easy_P005
+  - seasidetown_Easy_P006
+  - seasidetown_Easy_P007
+  - seasidetown_Easy_P008
+  - seasidetown_Easy_P009
+  - seasidetown_Hard_P000
+  - seasidetown_Hard_P001
+  - seasidetown_Hard_P002
+  - seasidetown_Hard_P003
+  - seasidetown_Hard_P004
+  - seasonsforest_Easy_P001
+  - seasonsforest_Easy_P002
+  - seasonsforest_Easy_P003
+  - seasonsforest_Easy_P004
+  - seasonsforest_Easy_P005
+  - seasonsforest_Easy_P007
+  - seasonsforest_Easy_P008
+  - seasonsforest_Easy_P009
+  - seasonsforest_Easy_P010
+  - seasonsforest_Easy_P011
+  - seasonsforest_Hard_P001
+  - seasonsforest_Hard_P002
+  - seasonsforest_Hard_P004
+  - seasonsforest_Hard_P005
+  - seasonsforest_Hard_P006
+  - seasonsforest_winter_Easy_P000
+  - seasonsforest_winter_Easy_P001
+  - seasonsforest_winter_Easy_P002
+  - seasonsforest_winter_Easy_P003
+  - seasonsforest_winter_Easy_P004
+  - seasonsforest_winter_Easy_P005
+  - seasonsforest_winter_Easy_P006
+  - seasonsforest_winter_Easy_P007
+  - seasonsforest_winter_Easy_P008
+  - seasonsforest_winter_Easy_P009
+  - seasonsforest_winter_Hard_P010
+  - seasonsforest_winter_Hard_P011
+  - seasonsforest_winter_Hard_P012
+  - seasonsforest_winter_Hard_P013
+  - seasonsforest_winter_Hard_P014
+  - seasonsforest_winter_Hard_P015
+  - seasonsforest_winter_Hard_P016
+  - seasonsforest_winter_Hard_P017
+  - seasonsforest_winter_Hard_P018
+  - soulcity_Easy_P000
+  - soulcity_Easy_P001
+  - soulcity_Easy_P002
+  - soulcity_Easy_P003
+  - soulcity_Easy_P004
+  - soulcity_Easy_P005
+  - soulcity_Easy_P006
+  - soulcity_Easy_P007
+  - soulcity_Easy_P008
+  - soulcity_Easy_P009
+  - soulcity_Easy_P010
+  - soulcity_Easy_P011
+  - soulcity_Easy_P012
+  - soulcity_Hard_P000
+  - soulcity_Hard_P001
+  - soulcity_Hard_P002
+  - soulcity_Hard_P003
+  - soulcity_Hard_P004
+  - soulcity_Hard_P005
+  - soulcity_Hard_P008
+  - soulcity_Hard_P009
+  - westerndesert_Easy_P001
+  - westerndesert_Easy_P002
+  - westerndesert_Easy_P004
+  - westerndesert_Easy_P005
+  - westerndesert_Easy_P006
+  - westerndesert_Easy_P007
+  - westerndesert_Easy_P008
+  - westerndesert_Easy_P009
+  - westerndesert_Easy_P010
+  - westerndesert_Easy_P011
+  - westerndesert_Easy_P012
+  - westerndesert_Easy_P013
+  - westerndesert_Hard_P000
+  - westerndesert_Hard_P001
+  - westerndesert_Hard_P002
+  - westerndesert_Hard_P003
+  - westerndesert_Hard_P004
+  - westerndesert_Hard_P005
+  - westerndesert_Hard_P006
+  - westerndesert_Hard_P007
+
+about:
+  license: CC BY 4.0
+  summary: TartanAir training split - photorealistic simulated stereo+depth sequences over 18 environments (Easy/Hard) with ground-truth poses, for SLAM under challenging conditions
+  homepage: https://theairlab.org/tartanair-dataset/
+  features:
+    - Synthetic
+    - Indoor
+    - Outdoor
+    - Handheld
+  authors:
+    - Wenshan Wang
+    - Delong Zhu
+    - Xiangwei Wang
+    - Yaoyu Hu
+    - Yuheng Qiu
+    - Chen Wang
+    - Yafei Hu
+    - Ashish Kapoor
+    - Sebastian Scherer
+  access: Public
+  publication: "TartanAir: A Dataset to Push the Limits of Visual SLAM"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/9341801"
+  year: 2020
+  bibtex_key: tartanair2020iros
+  bibtex: |
+    @article{tartanair2020iros,
+      title =   {TartanAir: A Dataset to Push the Limits of Visual SLAM},
+      author =  {Wang, Wenshan and Zhu, Delong and Wang, Xiangwei and Hu, Yaoyu and Qiu, Yuheng and Wang, Chen and Hu, Yafei and Kapoor, Ashish and Scherer, Sebastian},
+      booktitle = {2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      year =    {2020}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-24

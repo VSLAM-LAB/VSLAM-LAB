@@ -1,9 +1,11 @@
 dataset_name: rover-d435i
 
 rgb_hz: 30.0
-url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 modes: ['mono', 'rgbd', 'rgbd-vi']
 cam_models: ['radtan4']
+raw_formats: ['zip']
+
+url_download_root: "https://fdm.hs-esslingen.de/schmidt2025rover"
 depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -46,3 +48,35 @@ sequence_names:
   - park_dusk_d435i
   - park_night_d435i
   - park_night-light_d435i
+
+about:
+  license: MIT
+  summary: 'ROVER: A Multiseason Dataset for Visual SLAM'
+  homepage: https://iis-esslingen.github.io/rover/
+  features:
+    - Real
+    - Outdoor
+    - Robot
+  authors:
+    - Fabian Schmidt
+    - Others
+  access: Public
+  publication: "ROVER: A Multiseason Dataset for Visual SLAM"
+  publication_url: "https://arxiv.org/abs/2412.02506"
+  year: 2025
+  bibtex_key: schmidt2025rover
+  bibtex: |
+    @article{schmidt2025rover,
+      title={ROVER: A Multiseason Dataset for Visual SLAM},
+      author={Schmidt, Fabian and Daubermann, Julian and Mitschke, Marcel and Blessing, Constantin and Meyer, Stephan and Enzweiler, Markus and Valada, Abhinav},
+      journal={IEEE Transactions on Robotics},
+      volume={41},
+      pages={4005--4022},
+      year={2025}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-09-05

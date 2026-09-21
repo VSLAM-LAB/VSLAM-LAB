@@ -1,33 +1,37 @@
+"""
+Module: VSLAM-LAB - Datasets - dataset_eth.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 2.0
+- Created: 2024-07-13
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
+
 from __future__ import annotations
 
-import csv
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Final
 from urllib.parse import urljoin
 
 import numpy as np
-import yaml
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import decompressFile, downloadFile, write_csv_rows
 
 MAX_NICKNAME_LEN: Final = 15
 
 
-class ETH_dataset(DatasetVSLAMLab):
-    """ETH dataset helper for VSLAM-LAB benchmark."""
+class EthDataset(DatasetVSLAMLAB):
+    """ETH3D dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "eth") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
-
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
+    def __init__(self, dataset_name: str = "eth") -> None:
+        super().__init__(dataset_name)
 
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
+        self.url_download_root: str = self.cfg["url_download_root"]
 
         # Sequence nicknames
         self.sequence_nicknames = [
@@ -42,7 +46,7 @@ class ETH_dataset(DatasetVSLAMLab):
         ]
 
         # Depth factor
-        self.depth_factor = cfg["depth_factor"]
+        self.depth_factor = self.cfg["depth_factor"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
         for mode in self.modes:
@@ -50,7 +54,7 @@ class ETH_dataset(DatasetVSLAMLab):
             download_url = urljoin(self.url_download_root, f"datasets/{compressed_name}")
 
             compressed_file = self.dataset_path / compressed_name
-            decompressed_folder = self.dataset_path / sequence_name
+            decompressed_folder = self.sequence_path(sequence_name)
 
             if not compressed_file.exists():
                 downloadFile(download_url, str(self.dataset_path))
@@ -65,32 +69,29 @@ class ETH_dataset(DatasetVSLAMLab):
                 decompressFile(str(compressed_file), str(self.dataset_path))
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        for raw, dst in (("rgb", "rgb_0"), ("depth", "depth_0")):
+        sequence_path = self.sequence_path(sequence_name)
+        for raw, tgt in (("rgb", self.rgb_path(sequence_name)), ("depth", self.depth_path(sequence_name))):
             src = sequence_path / raw
-            tgt = sequence_path / dst
             if src.is_dir() and not tgt.exists():
                 src.replace(tgt)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt", "rgb/", "rgb_0/"))
-        depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", "depth_0/"))
+        sequence_path = self.sequence_path(sequence_name)
+        rgb0_entries = list(self._iter_entries(sequence_path / "rgb.txt", "rgb/", f"{self.rgb_path(sequence_name).name}/"))
+        depth_entries = list(self._iter_entries(sequence_path / "depth.txt", "depth/", f"{self.depth_path(sequence_name).name}/"))
 
-        rgb_csv = sequence_path / "rgb.csv"
-        tmp = rgb_csv.with_suffix(".csv.tmp")
+        rows = []
+        for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries, strict=True):
+            ts_r0_ns = int(float(ts_r0) * 1e9)
+            ts_d_ns = int(float(ts_d) * 1e9)
+            rows.append([ts_r0_ns, path_r0, ts_d_ns, path_d])
 
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"])
-            for (ts_r0, path_r0), (ts_d, path_d) in zip(rgb0_entries, depth_entries, strict=True):
-                ts_r0_ns = int(float(ts_r0) * 1e9)
-                ts_d_ns = int(float(ts_d) * 1e9)
-                w.writerow([ts_r0_ns, path_r0, ts_d_ns, path_d])
-        tmp.replace(rgb_csv)
+        write_csv_rows(
+            self.rgb_csv_path(sequence_name), ["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"], rows,
+        )
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         with open(sequence_path / "calibration.txt", "r", encoding="utf-8") as f:
             first = f.readline().split()
             fx, fy, cx, cy = map(float, first[:4])
@@ -108,17 +109,14 @@ class ETH_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "groundtruth.txt"
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
 
         if not groundtruth_txt.exists():
             raise FileNotFoundError(f"Missing groundtruth: {groundtruth_txt}")
 
-        with open(groundtruth_txt, "r", encoding="utf-8") as fin, open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
+        rows = []
+        with open(groundtruth_txt, "r", encoding="utf-8") as fin:
             for line in fin:
                 s = line.strip()
                 if not s or s.startswith("#"):
@@ -126,13 +124,12 @@ class ETH_dataset(DatasetVSLAMLab):
 
                 parts = s.split()
                 ts_ns = int(float(parts[0]) * 1e9)
-                w.writerow([ts_ns] + parts[1:])
+                rows.append([ts_ns] + parts[1:])
 
-        tmp.replace(groundtruth_csv)
+        write_csv_rows(self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
             for name in ("calibration.txt", "groundtruth.txt", "rgb.txt", "depth.txt", "associated.txt"):
                 (sequence_path / name).unlink(missing_ok=True)

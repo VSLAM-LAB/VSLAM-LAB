@@ -2,13 +2,13 @@ dataset_name: msd
 
 rgb_hz: 54.0
 imu_hz: 1000.0
-
-huggingface_repo_id: "collabora/monado-slam-datasets"
-huggingface_subfolder: "M_monado_datasets/MI_valve_index"
-calibration_file: "calibration.json"
-
 modes: ['mono', 'stereo', 'mono-vi', 'stereo-vi']
 cam_models: ['equid4']
+raw_formats: ['zip']
+
+hf_repo_id: "collabora/monado-slam-datasets"
+huggingface_subfolder: "M_monado_datasets/MI_valve_index"
+calibration_file: "calibration.json"
 
 sequence_names:
   - MIO01_hand_puncher_1
@@ -44,3 +44,36 @@ sequence_names:
   - MIPT01_thrillofthefight_setup
   - MIPT02_thrillofthefight_fight_1
   - MIPT03_thrillofthefight_fight_2
+
+about:
+  license: CC-BY 4.0
+  summary: Monado SLAM Dataset - Valve Index
+  homepage: https://huggingface.co/datasets/collabora/monado-slam-datasets
+  features:
+    - Real
+    - Indoor
+    - Headmounted
+  authors:
+    - Mateo de Mayo
+    - Daniel Cremers
+    - Taihú Pire
+  access: Public
+  publication: "The Monado SLAM Dataset for Egocentric Visual-Inertial Tracking"
+  publication_url: "https://arxiv.org/abs/2508.00088"
+  year: 2025
+  bibtex_key: deMayoCremersPireMSD
+  bibtex: |
+    @inproceedings{deMayoCremersPireMSD,
+      title={The Monado SLAM Dataset for Egocentric Visual-Inertial Tracking},
+      author={{de Mayo}, Mateo and Cremers, Daniel and Pire, Taih{\'u}},
+      booktitle={2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      pages={13111--13118},
+      doi={10.1109/IROS60139.2025.11247240},
+      year={2025}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-11-06

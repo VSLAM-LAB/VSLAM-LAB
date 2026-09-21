@@ -1,0 +1,59 @@
+dataset_name: malaysia-jul2026
+
+rgb_hz: 10.0
+modes: ['mono']
+cam_models: ['radtan4']
+raw_formats: ['images']
+
+# All sequences are local data on the campaign drive - there is no remote source. raw_data_path is
+# the entry point: the jul2026_malaysia folder, laid out as p<platform>/s<survey>/syncd/
+# p<platform>_s<survey>_C{1,2,3}/<ns-timestamp>.png (one folder per hardware-synchronized camera).
+# download_sequence_data derives each sequence's syncd folder from its name (p1_s01 ->
+# p1/s01/syncd) and symlinks the three camera folders to
+# VSLAM-LAB-Benchmark/MALAYSIA-JUL2026/<sequence_name>/<sequence_name>_C{1,2,3}; the create_*
+# hooks read through those links, so the drive must be mounted while a sequence is processed.
+sequence_location: local
+raw_data_path: /media/alejandro/Elements/jul2026_malaysia
+
+target_resolution: [640, 480]
+
+# p<platform>_s<survey>: a three-camera rig (C2/C1/C3 -> rgb_0/rgb_1/rgb_2: the central camera C2 is
+# rgb_0), hardware-synchronized.
+# The rig's inter-camera extrinsics were never calibrated, so calibration.yaml writes identity
+# T_BS for all three cameras and only 'mono' (on rgb_0) is advertised - no stereo mode.
+#
+# p<platform>_s<survey>_comb: the same survey with the three cameras interleaved into a single
+# rgb_0 (c2, c1, c3 frames of each capture instant back to back, i.e. rgb_0/rgb_1/rgb_2 order; c2 keeps the capture timestamp, c1/c3 sit
+# 1/3 and 2/3 of the way to the next capture instant so the stream stays strictly increasing; files symlinked onto the base sequence's
+# resized frames, named <camera>_<ts>.png, e.g. c2_<ts>.png) and C2's (rgb_0's) calibration. Requesting a *_comb sequence pulls in (downloads/processes) its base sequence.
+sequence_names:
+  - p1_s01
+  - p1_s02
+  - p1_s03
+  - p1_s01_comb
+  - p1_s02_comb
+  - p1_s03_comb
+
+about:
+  license: TODO
+  summary: Handheld underwater coral-reef transect surveys (Malaysia, July 2026 campaign) - three-camera hardware-synchronized rig (1920x1080 RGB at 10 Hz, rgb_0/rgb_1/rgb_2), extrinsics uncalibrated
+  homepage: N/A
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Handheld
+  authors:
+    - TODO
+  access: N/A
+  publication: TODO
+  publication_url: TODO
+  year: TODO
+  bibtex_key: TODO
+  bibtex: TODO
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-25

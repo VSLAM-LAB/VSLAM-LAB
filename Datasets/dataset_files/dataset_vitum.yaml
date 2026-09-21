@@ -1,54 +1,73 @@
 dataset_name: vitum
 
 rgb_hz: 20.0
-imu_hz:: 200.0
-modes: ['mono',  'mono-vi', 'stereo', 'stereo-vi']
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['equid4']
+raw_formats: ['tar']
 
-url_download_root: "https://vision.in.tum.de/tumvi/exported/euroc/512_16/"
+url_download_root: "https://cvg.cit.tum.de/tumvi/exported/euroc/512_16"
 
-sequence_names: 
- - corridor1
- - corridor2
- - corridor3
- - corridor4
- - corridor5
- - magistrale1
- - magistrale2
- - magistrale3
- - magistrale4
- - magistrale5
- - magistrale6
- - outdoors1
- - outdoors2
- - outdoors3
- - outdoors4
- - outdoors5
- - outdoors6
- - outdoors7
- - outdoors8
- - room1
- - room2
- - room3
- - room4
- - room5
- - room6
- - slides1
- - slides2
- - slides3
+sequence_names:
+  - corridor1
+  - corridor2
+  - corridor3
+  - corridor4
+  - corridor5
+  - magistrale1
+  - magistrale2
+  - magistrale3
+  - magistrale4
+  - magistrale5
+  - magistrale6
+  - outdoors1
+  - outdoors2
+  - outdoors3
+  - outdoors4
+  - outdoors5
+  - outdoors6
+  - outdoors7
+  - outdoors8
+  - room1
+  - room2
+  - room3
+  - room4
+  - room5
+  - room6
+  - slides1
+  - slides2
+  - slides3
 
 about:
   license: CC BY 4.0
-  summary: The TUM VI Benchmark for Evaluating Visual-Inertial Odometry
+  summary: TUM Visual-Inertial Dataset - stereo fisheye and IMU sequences from a handheld rig, with motion-capture ground truth, for visual-inertial odometry/SLAM evaluation
   homepage: https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Handheld
   authors:
     - David Schubert
     - Thore Goll
     - Nikolaus Demmel
     - Vladyslav Usenko
-    - Others
+    - Jörg Stückler
+    - Daniel Cremers
+  access: Public
+  publication: "The TUM VI Benchmark for Evaluating Visual-Inertial Odometry"
+  publication_url: "https://arxiv.org/abs/1804.06120"
+  year: 2018
+  bibtex_key: schubert2018vidataset
+  bibtex: |
+    @inproceedings{schubert2018vidataset,
+      title={The TUM VI Benchmark for Evaluating Visual-Inertial Odometry},
+      author={Schubert, D. and Goll, T. and Demmel, N. and Usenko, V. and Stueckler, J. and Cremers, D.},
+      booktitle={International Conference on Intelligent Robots and Systems (IROS)},
+      year={2018}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
-  date: 2026-03-07
+  date: 2026-08-03

@@ -29,8 +29,9 @@ from Baselines.baseline_files.baseline_pycuvslam import PYCUVSLAM_baseline
 
 # SfM baselines
 from Baselines.baseline_files.baseline_colmap import COLMAP_baseline
-from Baselines.baseline_files.baseline_glomap import GLOMAP_baseline
-from Baselines.baseline_files.baseline_vggt import VGGT_baseline
+from Baselines.baseline_files.baseline_da3 import DA3_baseline
+from Baselines.baseline_files.baseline_da3 import DA3STREAMING_baseline
+from Baselines.baseline_files.baseline_mapanything import MAPANYTHING_baseline
 
 # Development
 from Baselines.baseline_files.baseline_allfeature import ALLFEATURE_baseline
@@ -52,13 +53,14 @@ def get_baseline_switcher():
         "anyfeature": lambda: ANYFEATURE_baseline(),  
         "anyfeature-dev": lambda: ANYFEATURE_baseline_dev(),  
         "colmap": lambda: COLMAP_baseline(),
-        "glomap": lambda: GLOMAP_baseline(),
         "orbslam3": lambda: ORBSLAM3_baseline(),
         "orbslam3-dev": lambda: ORBSLAM3_baseline_dev(),
         "okvis2": lambda: OKVIS2_baseline(),
         "okvis2-dev": lambda: OKVIS2_baseline_dev(),
         "pycuvslam": lambda: PYCUVSLAM_baseline(),
-        "vggt": lambda: VGGT_baseline(),
+        "da3": lambda: DA3_baseline(),
+        "da3-streaming": lambda: DA3STREAMING_baseline(),
+        "mapanything": lambda: MAPANYTHING_baseline(),
         "vggtslam": lambda: VGGTSLAM_baseline(),
         "vggtslam-dev": lambda: VGGTSLAM_baseline_dev(),
         

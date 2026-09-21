@@ -1,0 +1,129 @@
+dataset_name: newer-college-stereo-vi
+
+rgb_hz: 30.0
+imu_hz: 250.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['radtan4']
+raw_formats: ['zip', 'ros1']
+
+# The whole Newer College Dataset (2020 stereo-inertial + 2021 multi-cam collections) lives in one
+# shared Google Drive folder; this link is the official share link from
+# https://ori-drs.github.io/newer-college-dataset/download/. Present so
+# generate_dataset_table.py's field-presence check (_download_labels) classifies this dataset as
+# google-drive; what download_sequence_data actually reads is google_drive_files below (the folder
+# isn't crawled at runtime - per-file ids are pinned here instead, same pattern as
+# dataset_vector.yaml).
+google_drive_link: "https://drive.google.com/drive/folders/15lTH5osZzZlDpcW7oXfR_2t8TNssNARS?usp=sharing"
+
+# Dataset-wide calibration files (2020-ouster-os1-64-realsense/04_calibration/kalibr_output/...):
+# one Kalibr cam-IMU camchain (intrinsics + T_cam_imu for both infra cameras) and the D435i IMU
+# noise yaml, shared by every sequence in this collection.
+calibration_files:
+  camchain_imucam: "1WZtKOZ_yeVl8ra_wu8l2YeONhQrfmcqm"  # camchain-realsense_imu-cam-rooster_2020-03-11-10-05-35_0.yaml
+  imu_noise: "1vP0hPnuLE5oYrzDjetS6tUgIsM5-At7p"        # imu.yaml (D435i noise densities)
+
+# Per-sequence Google Drive file ids, extracted from the official Drive folder's own structure
+# (2020-ouster-os1-64-realsense/<NN>_<sequence>/...). short_experiment is the only sequence the
+# dataset publishes in raw_format (per-camera image zips + an EuRoC-style IMU csv); every other
+# sequence only ships full sensor rosbags (which also carry the unused Ouster lidar streams -
+# nothing lighter exists upstream). ground_truth is registered_poses.csv (BLK360 prior-map ICP,
+# poses of the left camera frame RS_C1); time_offsets is the per-sequence camera-vs-lidar clock
+# offset log (long_experiment ships none upstream).
+google_drive_files:
+  short_experiment:
+    infra1_zips:
+      - "1-ZMksOXFNLcmrqt-yfLp6IMRKfA-IHiz"  # infra1_01.zip
+      - "1MQ4cRK8ZWehPaa8vjigUr7KPIidqV5Md"  # infra1_02.zip
+      - "1SRq2OSWAHiKSjyePKNRIjXQJxM-bk0-l"  # infra1_03.zip
+      - "1l8mXw_GWD-Yr7NkFmgASYaE6eaIjFair"  # infra1_04.zip
+    infra2_zips:
+      - "16QBxzHEP2yP0bequTxO-fs0ROd-y1TvB"  # infra2_01.zip
+      - "1TAnuqZ8xc4T9ds8I0JjMYNU-k33xM0aF"  # infra2_02.zip
+      - "18lcP8o8c4GBbLL-AMliqwbn-MBU75mV0"  # infra2_03.zip
+      - "1WbobG5Bot_6e8JFdEj-ZLf4xxnGKq1sa"  # infra2_04.zip
+    imu_csv: "1bmvLyTzsdjGzTu8UdZ5hqGsr5zIJhshf"
+    ground_truth: "11VWvHxjitd4ijARD4dJ3WjFuZ_QbInVy"
+    time_offsets: "1ZAddzVTZLWafq99ElmmDvz0Av4IUZlFO"
+  long_experiment:
+    rosbags:
+      - "115-iplr9cbPKdHfpGNCt00BH-Y1TQYZV"  # rooster_2020-03-10-11-36-51_0.bag
+      - "1KM56DWPuVVdbqYG7zwHRb5rb4aa_x-uS"  # rooster_2020-03-10-11-39-38_1.bag
+      - "1R5iLR9DOaj28FFipakKfiqBmL8Pi7p8_"  # rooster_2020-03-10-11-42-25_2.bag
+      - "1m0sOPPiazaEAfYnC1Z2XeRH05vVEEG96"  # rooster_2020-03-10-11-45-12_3.bag
+      - "1At3T7UtbbQpTVKGibJTm0DZ7p60YRqzd"  # rooster_2020-03-10-11-47-59_4.bag
+      - "12ppViSSzQrO8lYJnte4sePC5BXTVyNPO"  # rooster_2020-03-10-11-50-46_5.bag
+      - "1VjVtAImHU0OINTKeN0_WQW4KysNG81Kv"  # rooster_2020-03-10-11-53-33_6.bag
+      - "1iiT3CNgbuhAG6rVAqgldQ_NHzf4Yhq93"  # rooster_2020-03-10-11-56-20_7.bag
+      - "11ZI7j9vvBXc70FtO_wf36so5Bs85a11E"  # rooster_2020-03-10-11-59-07_8.bag
+      - "1BclGeUJDV0gy7K-__QiY_JAX66daVKda"  # rooster_2020-03-10-12-01-54_9.bag
+      - "10EjntFlLNqwN2nY_WHsGGS-eDFhIVJIP"  # rooster_2020-03-10-12-04-41_10.bag
+      - "1pEQWnkrYN3kr4oh6nd46MsM5-X1gtuSI"  # rooster_2020-03-10-12-07-28_11.bag
+      - "1HfoXr3AZj39nt4-AvuAzx5XHUdhQMcKE"  # rooster_2020-03-10-12-10-15_12.bag
+      - "1ifx0GnG2SRgIKrco79j1VaUIz8bwxuIB"  # rooster_2020-03-10-12-13-02_13.bag
+      - "1MAKB3hWBmRsfDxIDInTm08hy3YbaSClm"  # rooster_2020-03-10-12-15-49_14.bag
+      - "1NsAU7nhlMEqCENoP6WIeFGpUsro61l2C"  # rooster_2020-03-10-12-18-36_15.bag
+    ground_truth: "1fT1_MhFkCn_RWzLTzo4i-sjoKa_TbIUW"
+  quad_with_dynamics:
+    rosbags:
+      - "1HuGt3MBWsCn_OwHK67v6C8MMtW60vN6b"  # rooster_2020-07-10-09-13-52_0.bag
+      - "1Kx-argA6Ebd2iduHGkfWjL9AvIAoCtrR"  # rooster_2020-07-10-09-16-39_1.bag
+      - "15OPg8uMeSAvVS01paihW7p_4lpJJvtbJ"  # rooster_2020-07-10-09-19-26_2.bag
+    ground_truth: "1Cc7fiYUCtNL8qnvA0x-m4uQvRWQLdrWO"
+    time_offsets: "1bedphiPpE0Gkby8N_3Wg-5BZykvBpnjx"
+  dynamic_spinning:
+    rosbags:
+      - "1bvnJAuzvyxHgNQTHheQ0YHrFHq8A8xQq"  # rooster_2020-07-10-09-23-18_0.bag
+    ground_truth: "16lLgl2iqVs5qSz-N3OZv9bZWBbvAXyP3"
+    time_offsets: "1IC2j7_6V6NLy8WzWlj8qDIDJJ4dJVzn_"
+  parkland_mound:
+    rosbags:
+      - "1Z7T44ww6eJGris3IW6d765SyuOfLHdVd"  # rooster_2020-07-10-09-31-24_0.bag
+      - "1pnoWcdyDzmeuw2HRPzkcpz4xOXaQE80-"  # rooster_2020-07-10-09-34-11_1.bag
+      - "10UBt8_MxQ7ggtLEHX327-KViI-4vg2C2"  # rooster_2020-07-10-09-36-58_2.bag
+    ground_truth: "1CMcmw9pAT1Mm-Zh-nS87i015CO-xFHwl"
+    time_offsets: "1kK1myuNryG-JpfqLIsAII1nBMZDFIiPQ"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - short_experiment
+  - long_experiment
+  - quad_with_dynamics
+  - dynamic_spinning
+  - parkland_mound
+
+about:
+  license: CC BY-NC-SA 4.0
+  summary: The Newer College Dataset (stereo-inertial collection) - handheld RealSense D435i stereo-infrared and IMU sequences around New College, Oxford, with centimeter-accurate ground truth from a survey-grade BLK360 prior map
+  homepage: https://ori-drs.github.io/newer-college-dataset/
+  features:
+    - Real
+    - Outdoor
+    - Handheld
+  authors:
+    - Milad Ramezani
+    - Yiduo Wang
+    - Marco Camurri
+    - David Wisth
+    - Matias Mattamala
+    - Maurice Fallon
+  access: Public
+  publication: "The Newer College Dataset: Handheld LiDAR, Inertial and Vision with Ground Truth"
+  publication_url: "https://arxiv.org/abs/2003.05691"
+  year: 2020
+  bibtex_key: ramezani2020newer
+  bibtex: |
+    @inproceedings{ramezani2020newer,
+      title={The newer college dataset: Handheld lidar, inertial and vision with ground truth},
+      author={Ramezani, Milad and Wang, Yiduo and Camurri, Marco and Wisth, David and Mattamala, Matias and Fallon, Maurice},
+      booktitle={2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      pages={4353--4360},
+      year={2020},
+      organization={IEEE}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-15

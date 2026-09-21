@@ -1,0 +1,23 @@
+exp_premerge_smoke_demo_mast3rslam:
+  Config: premerge-smoke/config_premerge_smoke_demo_mast3rslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: mast3rslam
+
+exp_premerge_smoke_demo_droidslam:
+  Config: premerge-smoke/config_premerge_smoke_demo_droidslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: droidslam
+
+exp_premerge_smoke_demo_orbslam3:
+  Config: premerge-smoke/config_premerge_smoke_demo_orbslam3.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: orbslam3
+
+exp_premerge_smoke_demo_pycuvslam:
+  Config: premerge-smoke/config_premerge_smoke_demo_pycuvslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: pycuvslam

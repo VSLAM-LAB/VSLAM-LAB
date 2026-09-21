@@ -1,0 +1,29 @@
+test_exp_hilti2022_mono_droidslam:
+  Config: test_config_hilti2022.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: droidslam
+
+test_exp_hilti2022_mono_orbslam3:
+  Config: test_config_hilti2022.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_hilti2022_monovi_okvis2:
+  Config: test_config_hilti2022.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_idx: [0,2000]}
+  Module: okvis2
+
+test_exp_hilti2022_stereo_orbslam3:
+  Config: test_config_hilti2022.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_hilti2022_stereovi_orbslam3:
+  Config: test_config_hilti2022.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo-vi, rgb_idx: [0,2000]}
+  Module: orbslam3

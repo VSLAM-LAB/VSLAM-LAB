@@ -1,0 +1,62 @@
+dataset_name: malaga
+
+rgb_hz: 20.0
+modes: ['mono', 'stereo']
+cam_models: ['pinhole']
+raw_formats: ['zip']
+
+url_download_root: "https://ingmec.ual.es/~jlblanco/malaga-urban-dataset/extracts/"
+
+target_resolution: [640, 480]
+
+sequence_names:
+  - '01'
+  - '02'
+  - '03'
+  - '04'
+  - '05'
+  - '06'
+  - '07'
+  - '08'
+  - '09'
+  - '10'
+  - '11'
+  - '12'
+  - '13'
+  - '14'
+  - '15'
+
+about:
+  license: CC BY 4.0
+  summary: The Malaga Urban Dataset - high-rate rectified stereo images from a car driven through realistic urban scenarios, with GPS positioning
+  homepage: https://www.mrpt.org/MalagaUrbanDataset
+  features:
+    - Real
+    - Outdoor
+    - Vehicle
+  authors:
+    - Jose-Luis Blanco-Claraco
+    - Francisco-Angel Moreno-Duenas
+    - Javier Gonzalez-Jimenez
+  access: Public
+  publication: "The Malaga urban dataset: High-rate stereo and LiDAR in a realistic urban scenario"
+  publication_url: "https://doi.org/10.1177/0278364913507326"
+  year: 2014
+  bibtex_key: blanco2014malaga
+  bibtex: |
+    @article{blanco2014malaga,
+      title={The M{\'a}laga urban dataset: High-rate stereo and LiDAR in a realistic urban scenario},
+      author={Blanco-Claraco, Jos{\'e}-Luis and Moreno-Due{\~n}as, Francisco-{\'A}ngel and Gonz{\'a}lez-Jim{\'e}nez, Javier},
+      journal={The International Journal of Robotics Research},
+      volume={33},
+      number={2},
+      pages={207--214},
+      year={2014},
+      publisher={SAGE Publications}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-15

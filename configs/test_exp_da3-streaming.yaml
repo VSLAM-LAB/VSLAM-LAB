@@ -1,0 +1,19 @@
+test_exp_da3-streaming:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, chunk_size: 40, overlap: 20}
+  Module: da3-streaming
+
+# Sequence shorter than one chunk (upstream's pose export needs the single-chunk special case)
+test_exp_da3-streaming_short:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_max: 20}
+  Module: da3-streaming
+
+# Subsampled frames: loop indices must follow the csv frame list, not the sequence folder
+test_exp_da3-streaming_step:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_step: 3, chunk_size: 40, overlap: 20}
+  Module: da3-streaming

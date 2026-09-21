@@ -1,0 +1,54 @@
+test_exp_mapanything:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono}
+  Module: mapanything
+
+test_exp_mapanything_calib:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, use_calibration: 1}
+  Module: mapanything
+
+test_exp_mapanything_rgbd:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: rgbd}
+  Module: mapanything
+
+# External models through MapAnything's model factory (mono, images only)
+test_exp_mapanything_vggt:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, module: vggt, rgb_max: 40}
+  Module: mapanything
+
+test_exp_mapanything_vggt_bf16:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, module: vggt, precision: bf16, rgb_max: 80}
+  Module: mapanything
+
+test_exp_mapanything_vggt-omega:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, module: vggt-omega, rgb_max: 40}
+  Module: mapanything
+
+test_exp_mapanything_pi3:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, module: pi3, rgb_max: 40}
+  Module: mapanything
+
+test_exp_mapanything_dust3r:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, module: dust3r, rgb_max: 20, scene_graph: swin-5}
+  Module: mapanything
+
+test_exp_mapanything_mast3r:
+  Config: test_config_vggtslam.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, module: mast3r, rgb_max: 20, scene_graph: swin-5}
+  Module: mapanything

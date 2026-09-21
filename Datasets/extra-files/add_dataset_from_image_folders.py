@@ -104,7 +104,7 @@ def main():
     add_code_below_line(dataset_utilities_py, '# ADD your imports here',
                         f'from Datasets.dataset_{dataset_name} import {DATASET_NAME}_dataset')
     add_code_below_line(dataset_utilities_py, '# ADD your datasets here',
-                        f'        "{dataset_name}": lambda: {DATASET_NAME}_dataset(benchmark_path),')
+                        f'        "{dataset_name}": lambda: {DATASET_NAME}_dataset(),')
     #
     config_yaml = {}
     config_yaml[dataset_name] = data['sequence_names']

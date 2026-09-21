@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Any
 from pathlib import Path
 from inputimeout import inputimeout, TimeoutOccurred
- 
+
 
 from utilities import ws, load_yaml_file, print_msg, show_time, read_csv
 from Datasets.get_dataset import list_available_datasets, get_dataset
@@ -35,13 +35,13 @@ def write_demo_yaml_fles(baseline_name: str, dataset_name: str, sequence_name: s
     exp_data[exp_demo]['Module'] = baseline_name
     if mode:
         exp_data[exp_demo]['Parameters']['mode'] = mode
-    
+
     # Write experiment yaml
     with open(exp_yaml, "w", encoding="utf-8") as f:
         yaml.safe_dump(exp_data, f)
 
     # Write config yaml
-    exp_seq = { dataset_name: [sequence_name] }   
+    exp_seq = { dataset_name: [sequence_name] }
     with open(config_yaml, "w", encoding="utf-8") as f:
         yaml.safe_dump(exp_seq, f)
 
@@ -58,7 +58,7 @@ def baseline_info(baseline_name: str) -> None:
         print_baselines()
         exit(0)
 
-    baseline = get_baseline(baseline_name)    
+    baseline = get_baseline(baseline_name)
     baseline.info_print()
 
 def print_baselines() -> None:
@@ -73,6 +73,122 @@ def print_datasets() -> None:
     print(f"\n{SCRIPT_LABEL}Accessible datasets in VSLAM-LAB:")
     for dataset in dataset_list:
         print(f" - {dataset}")
+
+def list_jobs() -> None:
+    """Prints every running VSLAM-LAB job (`pixi run list-jobs`): the processes whose command line matches
+    VSLAMLAB_JOBS_PATTERN (pixi.toml [activation.env]), i.e. exactly what `pixi run kill-all` would terminate.
+    The PATTERN column shows which alternative(s) of the pattern each process matched."""
+    import re, shutil, psutil
+    alternatives = os.environ.get('VSLAMLAB_JOBS_PATTERN', 'vslamlab').split('|')
+    me = psutil.Process(os.getpid())
+    excluded = {me.pid} | {p.pid for p in me.parents()}
+
+    def elapsed(seconds: float) -> str:
+        days, rem = divmod(int(seconds), 86400)
+        hours, rem = divmod(rem, 3600)
+        minutes, secs = divmod(rem, 60)
+        if days:
+            return f"{days}-{hours:02d}:{minutes:02d}:{secs:02d}"
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}" if hours else f"{minutes:02d}:{secs:02d}"
+
+    rows = []
+    now = time.time()
+    for proc in psutil.process_iter():
+        if proc.pid in excluded:
+            continue
+        try:
+            with proc.oneshot():
+                cmd = ' '.join(proc.cmdline())
+                matched = [alt for alt in alternatives if re.search(alt, cmd)]
+                if not matched:
+                    continue
+                age = max(now - proc.create_time(), 1e-3)
+                cpu_times = proc.cpu_times()
+                rows.append((proc.pid, proc.ppid(), elapsed(age), 100 * (cpu_times.user + cpu_times.system) / age,
+                             proc.memory_percent(), ','.join(matched), cmd))
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+
+    if not rows:
+        print_msg(f"\n{SCRIPT_LABEL}", "No VSLAM-LAB jobs running.")
+        return
+    pattern_width = max(len("PATTERN"), max(len(row[5]) for row in rows))
+    header = f"{'PID':>7} {'PPID':>7} {'ELAPSED':>11} {'%CPU':>5} {'%MEM':>5}  {'PATTERN':<{pattern_width}}  COMMAND"
+    width = shutil.get_terminal_size().columns if sys.stdout.isatty() else None  # only clip rows on a real terminal
+    print(header[:width])
+    for pid, ppid, age, cpu, mem, matched, cmd in sorted(rows):
+        print(f"{pid:>7} {ppid:>7} {age:>11} {cpu:>5.1f} {mem:>5.1f}  {matched:<{pattern_width}}  {cmd}"[:width])
+
+def kill_job(pid: int, timeout: float = 5.0) -> None:
+    """Kills the process `pid` (as listed by `pixi run list-jobs`) together with all its descendants.
+
+    The runner starts each baseline in its own process group (BaselineVSLAMLAB.execute, os.setsid), so a
+    plain kill/killpg on the parent `pixi run vslamlab` would leave the baseline binary running: walk the
+    tree instead. The parent is terminated first so it cannot launch the next run while its children die.
+    """
+    import psutil
+    try:
+        root = psutil.Process(pid)
+    except psutil.NoSuchProcess:
+        print_msg(f"\n{SCRIPT_LABEL}", f"No process with pid {pid}.", "error")
+        return
+
+    procs = [root] + root.children(recursive=True)
+    print_msg(f"\n{SCRIPT_LABEL}", f"Killing job {pid} ({len(procs)} processes):")
+    for proc in procs:
+        try:
+            print(f" - {proc.pid:>7}  {' '.join(proc.cmdline())[:120]}")
+            proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
+    _, alive = psutil.wait_procs(procs, timeout=timeout)
+    for proc in alive:
+        try:
+            proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+    if alive:
+        print_msg(f"{SCRIPT_LABEL}", f"{len(alive)} processes did not exit within {timeout:.0f}s and were force-killed.", "warning")
+
+def kill_jobs(pattern: str) -> None:
+    """Kills every VSLAM-LAB job with a process whose command line matches the regex `pattern`
+    (`pixi run kill-jobs orbslam3`, `pixi run kill-jobs exp_debug.yaml`).
+
+    A match is climbed up to the root of its job (the topmost ancestor still matching VSLAMLAB_JOBS_PATTERN,
+    typically the `pixi run vslamlab ...` process) before the whole tree is killed: killing only the matching
+    baseline processes would let the experiment carry on with its next run.
+    """
+    import re, psutil
+    jobs_pattern = re.compile(os.environ.get('VSLAMLAB_JOBS_PATTERN', 'vslamlab'))
+    match_pattern = re.compile(pattern)
+
+    def cmdline(proc: psutil.Process) -> str:
+        try:
+            return ' '.join(proc.cmdline())
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            return ''
+
+    # This command's own process tree (pixi run kill-jobs <pattern> -> python ...) also carries the pattern.
+    me = psutil.Process(os.getpid())
+    excluded = {me.pid} | {p.pid for p in me.parents()}
+
+    roots: dict[int, psutil.Process] = {}
+    for proc in psutil.process_iter():
+        if proc.pid in excluded or not match_pattern.search(cmdline(proc)):
+            continue
+        root = proc
+        for parent in proc.parents():
+            if parent.pid in excluded or not jobs_pattern.search(cmdline(parent)):
+                break
+            root = parent
+        roots[root.pid] = root
+
+    if not roots:
+        print_msg(f"\n{SCRIPT_LABEL}", f"No VSLAM-LAB jobs matching '{pattern}'.")
+        return
+    for root in roots.values():
+        kill_job(root.pid)
 
 def add_video(video_path):
     abs_path = os.path.abspath(video_path)
@@ -89,13 +205,13 @@ def add_video(video_path):
             yaml.dump(data, f, sort_keys=False)
     if not os.path.exists(os.path.join(VSLAMLAB_VIDEOS, video_name_ext)):
         shutil.copy2(abs_path, os.path.join(VSLAMLAB_VIDEOS, video_name_ext))
-    
+
     return sequence_name
 
 ##################################################################################################################################################
 ##################################################################################################################################################
 class Experiment:
-    def __init__(self, name: str, settings):            
+    def __init__(self, name: str, settings):
         self.name = name
         self.folder = VSLAMLAB_EVALUATION / self.name
         self.num_runs = settings.get('NumRuns', 1)
@@ -137,7 +253,7 @@ def compare_exp(exp_yaml: str | Path) -> None:
 ##################################################################################################################################################
 ##################################################################################################################################################
 def evaluate_exp(exp_yaml: str | Path, overwrite: bool = False) -> None:
-    
+
     experiments = load_experiments(exp_yaml)
     first_evaluation_found = True
     for [_, exp] in experiments.items():
@@ -147,7 +263,7 @@ def evaluate_exp(exp_yaml: str | Path, overwrite: bool = False) -> None:
         with open(exp.config_yaml, 'r') as file:
             config_file_data = yaml.safe_load(file)
             for dataset_name, sequence_names in config_file_data.items():
-                dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+                dataset = get_dataset(dataset_name)
                 for sequence_name in sequence_names:
                     if first_evaluation_found:
                         print_msg(f"\n{SCRIPT_LABEL}", f"Evaluating (in {VSLAMLAB_EVALUATION}) ...")
@@ -173,18 +289,18 @@ def run_exp(exp_yaml: str | Path) -> None:
         remaining_iterations = 0
         for [exp_name, exp] in experiments.items():
             exp_log = read_csv(exp.log_csv)
-            completed_runs[exp_name] = (exp_log["STATUS"] == "completed").sum()  
-            not_completed_runs[exp_name] = (exp_log["STATUS"] != "completed").sum() 
+            completed_runs[exp_name] = (exp_log["STATUS"] == "completed").sum()
+            not_completed_runs[exp_name] = (exp_log["STATUS"] != "completed").sum()
             remaining_iterations += not_completed_runs[exp_name]
-            
+
             if not_completed_runs[exp_name] == 0:
                 all_experiments_completed[exp_name] = True
                 continue
-            
+
             first_not_finished_experiment = exp_log[exp_log["STATUS"] != "completed"].index.min()
             row = exp_log.loc[first_not_finished_experiment]
             baseline = get_baseline(row['method_name'])
-            dataset = get_dataset(row['dataset_name'], VSLAMLAB_BENCHMARK)    
+            dataset = get_dataset(row['dataset_name'])
 
             if num_executed_runs == 0:
                 print(f"\n{SCRIPT_LABEL}Running experiments (in {exp_yaml}) ...")
@@ -206,7 +322,7 @@ def run_exp(exp_yaml: str | Path) -> None:
             exp_log.loc[first_not_finished_experiment, "SWAP"] = results['swap']
             exp_log.loc[first_not_finished_experiment, "GPU"] = results['gpu']
             exp_log.to_csv(exp.log_csv, index=False)
-                
+
             all_experiments_completed[exp_name] = exp_log["STATUS"].eq("completed").fillna(False).all()
 
         if(duration_time_total > 1):
@@ -226,24 +342,24 @@ def run_exp(exp_yaml: str | Path) -> None:
 ##################################################################################################################################################
 
 def download_sequence(dataset_name: str, sequence_name: str) -> None:
-    dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+    dataset = get_dataset(dataset_name)
     dataset.download_sequence(sequence_name)
 
 def download_sequences(dataset_sequence_name: list[str]) -> None:
     for i in range(0, len(dataset_sequence_name), 2):
         dataset_name = dataset_sequence_name[i]
         sequence_name = dataset_sequence_name[i + 1]
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         dataset.download_sequence(sequence_name)
 
 def download_dataset(dataset_name: str) -> None:
-    dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+    dataset = get_dataset(dataset_name)
     for sequence_name in dataset.get_sequence_names():
         dataset.download_sequence(sequence_name)
 
 def download_datasets(dataset_names: list[str]) -> None:
     for dataset_name in dataset_names:
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         for sequence_name in dataset.get_sequence_names():
             dataset.download_sequence(sequence_name)
 
@@ -252,14 +368,10 @@ def download_datasets(dataset_names: list[str]) -> None:
 ##################################################################################################################################################
 ##################################################################################################################################################
 
-def install_baseline(baseline_name: list[str]) -> None:
-    baseline = get_baseline(baseline_name)
-    is_baseline_installed, _ = baseline.is_installed()
-    if not is_baseline_installed:
-        baseline.git_clone()
-        baseline.install()
+def install_baseline(baseline_name: str) -> None:
+    get_baseline(baseline_name).ensure_installed()
 
-def install_baselines(baselines_to_install: str) -> None:
+def install_baselines(baselines_to_install: list[str]) -> None:
     for baseline_name in baselines_to_install:
         install_baseline(baseline_name)
 
@@ -277,7 +389,7 @@ def check_experiment_state(exp_yaml: str | Path) -> None:
 
     total_num_runs = 0
     executed_num_runs = 0
-    
+
     for exp_name, settings in exp_data.items():
         exp_folder = VSLAMLAB_EVALUATION / exp_name
         exp_log_csv = exp_folder / "vslamlab_exp_log.csv"
@@ -288,9 +400,9 @@ def check_experiment_state(exp_yaml: str | Path) -> None:
         executed_num_runs_exp = 0
         if exp_folder.exists() & exp_log_csv.exists():
             exp_log = read_csv(exp_log_csv)
-            executed_num_runs_exp += (exp_log["STATUS"] == "completed").sum()  
+            executed_num_runs_exp += (exp_log["STATUS"] == "completed").sum()
             executed_num_runs += executed_num_runs_exp
-        
+
         if executed_num_runs_exp == total_num_runs_exp:
             print(f"{ws(4)}- {exp_name}: \033[92m{executed_num_runs_exp} / {total_num_runs_exp} ({100 * executed_num_runs_exp/total_num_runs_exp} %)\033[0m")
         else:
@@ -314,7 +426,7 @@ def check_experiment_baselines_installed(exp_data: Any, exp_yaml: str | Path) ->
         is_baseline_installed, install_msg = baseline.is_installed()
         if is_baseline_installed:
             print_msg(f"{ws(4)}", f"- {baseline.label}:\033[92m {install_msg}\033[0m", verb='LOW')
-        else:    
+        else:
             print_msg(f"{ws(4)}", f"- {baseline.label}:\033[93m {install_msg}\033[0m", verb='LOW')
             num_baselines_to_install += 1
             baselines_to_install.append(baseline_name)
@@ -324,27 +436,26 @@ def check_experiment_baselines_installed(exp_data: Any, exp_yaml: str | Path) ->
 
 def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) -> tuple[int, int, list[str]]:
     print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment sequences: {exp_yaml}", verb='LOW')
-    
+
     configs: set[str] = set()
     for _, settings in exp_data.items():
         configs.add(settings.get('Config'))
 
-    sequences : dict[str, str] = {}
+    sequences : set[tuple[str, str]] = set()
     for config_yaml in configs:
         config_file = os.path.join(VSLAM_LAB_DIR, 'configs', config_yaml)
         with open(config_file, 'r') as file:
             config_file_data = yaml.safe_load(file)
             for dataset_name, sequence_names in config_file_data.items():
-                dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
-                for sequence_name in sequence_names: 
-                    sequences[sequence_name] = dataset_name
-    
+                for sequence_name in sequence_names:
+                    sequences.add((dataset_name, sequence_name))
+
     # Check sequence availability
     sequences_to_download = {}
     num_total_sequences = len(sequences)
     num_available_sequences = 0
-    for sequence_name, dataset_name in sequences.items():
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+    for dataset_name, sequence_name in sequences:
+        dataset = get_dataset(dataset_name)
         if dataset_name not in sequences_to_download:
             sequences_to_download[dataset_name] = []
         if dataset.check_sequence_availability(sequence_name, verbose = False) == "available":
@@ -364,7 +475,7 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
     for dataset_name, sequence_names in sequences_to_download.items():
         if sequence_names == []:
             continue
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         issues_seq = dataset.get_download_issues(sequence_names)
         if issues_seq:
             if not first_download_issue_found:
@@ -382,10 +493,10 @@ def check_experiment_sequences_available(exp_data: Any, exp_yaml: str | Path) ->
 def check_experiment_resources(exp_yaml: str | Path) -> tuple[list[str], list[str]]:
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
-   
+
     num_baselines_to_install, num_automatic_install, baselines_to_install = check_experiment_baselines_installed(exp_data, exp_yaml)
     num_download_issues, num_automatic_download, sequences_to_download = check_experiment_sequences_available(exp_data, exp_yaml)
-    
+
     if num_baselines_to_install > 0 or num_download_issues > 0:
         print_msg(f"\n{SCRIPT_LABEL}",f"Your experiments have {num_baselines_to_install} install issues and {num_download_issues} download issues:",'warning')
         if(num_baselines_to_install - num_automatic_install) > 0:
@@ -395,7 +506,7 @@ def check_experiment_resources(exp_yaml: str | Path) -> tuple[list[str], list[st
         if num_download_issues - num_automatic_download > 0:
             print_msg(f"{ws(4)}", f"Some issues are  not automatically fixable. Please, fix them manually and run the experiment again.",'error')
             exit(1)
-        
+
         print(f"{ws(4)}All issues are \033[92mautomatically\033[0m fixable.")
 
     return baselines_to_install, sequences_to_download, num_download_issues
@@ -419,13 +530,13 @@ def get_experiment_resources(exp_yaml: str | Path) -> None:
             user_input = 'Y'
             print(f"{ws(4)}No input detected. Defaulting to 'Y'.")
         if user_input == 'n':
-            exit() 
+            exit()
 
     install_baselines(baselines_to_install)
 
     first_time = True
     for dataset_name, sequence_names in sequences_to_download.items():
-        dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+        dataset = get_dataset(dataset_name)
         for sequence_name in sequence_names:
             if first_time:
                 print(f"\n{SCRIPT_LABEL}Downloading (to {VSLAMLAB_BENCHMARK}) ...")
@@ -455,7 +566,7 @@ def update_experiment_csv_log(exp_name: str, settings: Any) -> bool:
     with open(config_file, 'r') as file:
         config_file_data = yaml.safe_load(file)
         for dataset_name, sequence_names in config_file_data.items():
-            for sequence_name in sequence_names: 
+            for sequence_name in sequence_names:
                 for iRun in range(0, num_runs):
                         subset = exp_log[
                             (exp_log["dataset_name"] == dataset_name) &
@@ -488,14 +599,14 @@ def update_experiment_csv_log(exp_name: str, settings: Any) -> bool:
     if updated:
         exp_log.to_csv(exp_log_csv, index=False)
     return updated
-         
+
 def create_experiment_csv_log(exp_name: str, settings: Any) -> None:
     exp_folder = VSLAMLAB_EVALUATION / exp_name
     exp_log_csv = exp_folder / "vslamlab_exp_log.csv"
     if not exp_folder.exists():
         exp_folder.mkdir(parents=True, exist_ok=True)
 
-    if exp_log_csv.exists(): 
+    if exp_log_csv.exists():
         return
 
     log_headers = ["method_name", "dataset_name", "sequence_name", "exp_it", "STATUS", "SUCCESS", "TIME", "RAM", "SWAP", "GPU", "COMMENTS", "EVALUATION"]
@@ -511,11 +622,11 @@ def create_experiment_csv_log(exp_name: str, settings: Any) -> None:
             for i in range(num_runs):
                 for dataset_name, sequence_names in config_file_data.items():
                     for sequence_name in sequence_names:
-                        exp_it = str(i).zfill(5)  
+                        exp_it = str(i).zfill(5)
                         writer.writerow([baseline_name, dataset_name, sequence_name, f"{exp_it}", "", "",0.0, 0.0, 0.0, 0.0, "", "none"])
 
 def update_experiment_csv_logs(exp_yaml: str | Path) -> None:
-    
+
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
 
@@ -526,7 +637,7 @@ def update_experiment_csv_logs(exp_yaml: str | Path) -> None:
         if not exp_folder.exists():
             exp_folder.mkdir(parents=True, exist_ok=True)
 
-        if not exp_log_csv.exists(): 
+        if not exp_log_csv.exists():
             if num_updates == 0:
                 print_msg(f"\n{SCRIPT_LABEL}", f"Update experiment csv logs: {exp_yaml}", verb='LOW')
             print(f"{ws(4)}- \033[92mCreate new\033[0m: {exp_log_csv}")
@@ -548,7 +659,8 @@ def update_experiment_csv_logs(exp_yaml: str | Path) -> None:
 def overwrite_exp(exp_yaml: str | Path) -> None:
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
-    print_msg(f"\n{SCRIPT_LABEL}", f"Overwrite experiment: '{exp_yaml}'", "warning")
+    print()
+    print_msg(SCRIPT_LABEL, f"Overwrite experiment: '{exp_yaml}'", "warning")
     for exp_name, _ in exp_data.items():
         exp_folder = VSLAMLAB_EVALUATION / exp_name
         exp_folder.mkdir(parents=True, exist_ok=True)
@@ -591,19 +703,19 @@ def check_experiment_sequence_names(exp_data: Any, exp_yaml: str | Path) -> None
     for _, settings in exp_data.items():
         config_yaml = settings.get("Config")
         configs.add(config_yaml)
-    
+
     dataset_list = set(list_available_datasets())
-    
+
     for config_yaml in configs:
         config_file = VSLAM_LAB_DIR / 'configs' / config_yaml
         config_file_data = load_yaml_file(config_file)
-        
+
         for dataset_name, sequence_names in config_file_data.items():
             if dataset_name not in dataset_list:
                 errors.append(f"[Error] Dataset '{dataset_name}' doesn't exist (in config '{config_file}').")
                 continue
 
-            dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
+            dataset = get_dataset(dataset_name)
 
             for sequence_name in sequence_names:
                 if not dataset.contains_sequence(sequence_name):
@@ -613,13 +725,13 @@ def check_experiment_sequence_names(exp_data: Any, exp_yaml: str | Path) -> None
 
     if not errors:
         return
-    
+
     print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment dataset and sequence names (in '{exp_yaml}'):", "info")
     for error in errors:
         print_msg(ws(4), error, "error")
 
     print_datasets()
-    sys.exit(1)    
+    sys.exit(1)
 
 ###################### Check experiment conflicts ######################
 def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) -> str:
@@ -630,14 +742,14 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
     for exp_name, settings in exp_data.items():
         baseline_name = settings.get("Module")
         baseline = get_baseline(baseline_name)
-    
+
         mode = (settings.get("Parameters", {}).get("mode") or baseline.default_parameters.get("mode"))
         if not mode in modes:
             modes.append(mode)
 
         if mode not in baseline.modes:
             errors.append(
-                f"[Error] Baseline '{baseline_name}' in '{exp_name}' doesn't handle "
+                f"Baseline '{baseline_name}' in '{exp_name}' doesn't handle "
                 f"mode '{mode}'. Available modes are: {baseline.modes}."
             )
     # if len(modes) > 1:
@@ -646,12 +758,12 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
     if errors:
         print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment baseline conflicts (in '{exp_yaml}'):", "info")
         for error in errors:
-            print_msg(ws(4), error, "error")
+            print_msg(SCRIPT_LABEL, error, "error")
         sys.exit(1)
 
     return modes[0]
 
-def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, config_mode: str) -> None:
+def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mode: str) -> None:
     errors: list[str] = []
     configs: set[str] = set()
     baselines: set[str] = set()
@@ -663,18 +775,18 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, co
     for config_yaml in configs:
         config_file = VSLAM_LAB_DIR / 'configs' / config_yaml
         config_file_data = load_yaml_file(config_file)
-    
+
         for dataset_name in config_file_data.keys():
-            dataset = get_dataset(dataset_name, VSLAMLAB_BENCHMARK)
-            if config_mode not in dataset.modes:
+            dataset = get_dataset(dataset_name)
+            if mode not in dataset.modes:
                 errors.append(
                     f"[Error] Dataset '{dataset_name}' (in config '{config_file}') doesn't handle mode "
-                    f"'{config_mode}'. Available modes are: {dataset.modes}."
+                    f"'{mode}'. Available modes are: {dataset.modes}."
                 )
             dataset_cam_models = dataset.cam_models
             for baseline_name in baselines:
                 baseline = get_baseline(baseline_name)
-                baseline_cam_models = baseline.camera_models
+                baseline_cam_models = baseline.cam_models
                 if not any(cam_model in baseline_cam_models for cam_model in dataset_cam_models):
                     errors.append(
                         f"[Error] Baseline '{baseline_name}' and dataset '{dataset_name}' "
@@ -682,7 +794,7 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, co
                         f"Baseline: {baseline_cam_models}. "
                         f"Dataset: {dataset_cam_models}."
                     )
-                
+
     if not errors:
         return
 
@@ -696,14 +808,14 @@ def validate_experiment_yaml(exp_yaml: str | Path) -> None:
     # Load experiments
     exp_yaml = Path(exp_yaml)
     exp_data = load_yaml_file(exp_yaml)
-   
+
     # Check syntax
     check_experiment_baseline_names(exp_data, exp_yaml)
     check_experiment_sequence_names(exp_data, exp_yaml)
 
     # Check conflicts
-    config_mode = check_experiment_baselines_conflicts(exp_data, exp_yaml)
-    check_experiment_sequence_conflicts(exp_data, exp_yaml, config_mode)
+    mode = check_experiment_baselines_conflicts(exp_data, exp_yaml)
+    check_experiment_sequence_conflicts(exp_data, exp_yaml, mode)
 
     # Print Summary
     print_msg(f"\n{SCRIPT_LABEL}", f"Experiment summary: {exp_yaml}", flag="info", verb='NONE')
@@ -711,4 +823,4 @@ def validate_experiment_yaml(exp_yaml: str | Path) -> None:
         baseline_name = settings.get("Module")
         config = settings.get("Config")
         numRuns = settings.get("NumRuns")
-        print(f"{ws(4)} - {exp_name}: \033[96m{baseline_name}\033[0m, \033[38;2;255;165;0m {config}\033[0m x{numRuns}")            
+        print(f"{ws(4)} - {exp_name}: \033[96m{baseline_name}\033[0m, \033[38;2;255;165;0m {config}\033[0m x{numRuns}")

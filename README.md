@@ -93,26 +93,47 @@ pixi run vslamlab configs/exp_vslamlab.yaml (--overwrite)
 
 Experiments in **VSLAM-LAB** are sequences of entries in a YAML file (see example **~/VSLAM-LAB/configs/exp_vslamlab.yaml**):
 ```yaml
+exp_demo_droidslam:
+  Config: config_vslamlab.yaml               # YAML file containing the sequences to be run
+  NumRuns: 1                                 # Maximum number of executions per sequence
+  Parameters: {verbose: 1, rgb_idx: [0,250]} # Vector with parameters that will be input to the baseline executable
+  Module: droidslam                          # droidslam/monogs/orbslam2/mast3rslam/dpvo/...
+
+exp_demo_orbslam2:
+  Config: config_vslamlab.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,250]}
+  Module: orbslam2
+
+exp_demo_colmap:
+  Config: config_vslamlab.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0,250], matcher_type: exhaustive}
+  Module: colmap
+```
+**Frame selection:** `Parameters` also accepts four optional flags to control which RGB frames of a sequence are fed to the baseline. They are independent and stack in this order — `rgb_idx` slices the frame range first, `rgb_step` then keeps 1 frame every *n* of what remains, `rgb_max` truncates that result to at most that many frames, and `rgb_vpr` finally downsamples to at most that many frames by visual dissimilarity (VPR) rather than a fixed stride, so visually redundant frames are dropped preferentially. If none are set, every frame of the sequence is used.
+
+| Parameter | Effect |
+|:----------|:-------|
+| `rgb_idx: [start, end]` | Keep only frames `start..end` (inclusive) |
+| `rgb_step: n` | Keep 1 frame every `n` frames of what remains |
+| `rgb_max: n` | Truncate the result to at most `n` frames |
+| `rgb_vpr: n` | Downsample the result to at most `n` frames, chosen by VPR dissimilarity - computes the sequence's VPR distance matrix via `pixi run vpr <dataset> <sequence>` first if it isn't already cached |
+
+```yaml
 exp_vslamlab:
-  Config: config_vslamlab.yaml  # YAML file containing the sequences to be run
-  NumRuns: 1                    # Maximum number of executions per sequence
-  Parameters: {verbose: 1}      # Vector with parameters that will be input to the baseline executable
-  Module: droidslam             # droidslam/monogs/orbslam2/mast3rslam/dpvo/...
+  Config: config_vslamlab.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, rgb_idx: [0, 250], rgb_step: 3, rgb_max: 50, rgb_vpr: 30}
+  Module: droidslam
 ```
 **Config** files are YAML files containing the list of sequences to be executed in the experiment (see example **~/VSLAM-LAB/configs/config_vslamlab.yaml**):
 ```yaml
-rgbdtum:
-  - 'rgbd_dataset_freiburg1_xyz'
-hamlyn:
-  - 'rectified01'
-7scenes:
-  - 'chess_seq-01'
 eth:
-  - 'table_3'
-euroc:
-  - 'MH_01_easy'
-monotum:
-  - 'sequence_01'
+- table_3
+
+rgbdtum:
+- 'rgbd_dataset_freiburg1_xyz'
 ```
 For a full list of available VSLAM systems and datasets, refer to the section [VSLAM-LAB Supported Baselines and Datasets](#vslam-lab-supported-baselines-and-datasets).
 
@@ -129,7 +150,7 @@ pixi run compare-exp <exp_yaml>                          # Example: pixi run com
 
 ## Add a new VSLAM Dataset
 
-Expand the evaluation suite by integrating custom datasets. Follow the instructions in [Wiki: Integrate a new VSLAM Dataset](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Integrate-a-new-VSLAM-Dataset).
+Expand the evaluation suite by integrating custom datasets. If you're using Claude Code, run the [`add-dataset`](.claude/skills/add-dataset/SKILL.md) skill (`/add-dataset <name> <source>`) to walk through the full workflow end to end. Otherwise, follow the instructions in [Wiki: Integrate a new VSLAM Dataset](https://github.com/VSLAM-LAB/VSLAM-LAB/wiki/Integrate-a-new-VSLAM-Dataset).
 
 ## Add a new VSLAM Baseline
 
@@ -163,9 +184,12 @@ If you're using **VSLAM-LAB** in your research, please cite:
 To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets) -->
 
 # VSLAM-LAB Supported Baselines and Datasets
-| Baselines                                                                   | System |     Sensors      |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |
+*For full per-dataset details — license, access requirements, and publication/BibTeX citation — see [`Datasets/extra-files/dataset_table.xlsx`](Datasets/extra-files/dataset_table.xlsx).*
+
+| Baselines                                                                   | System |      Modes       |                                   License                                   |    Label     |  Conda Pkg     |  Camera Models     |
 |:----------------------------------------------------------------------------|:------:|:------:|:----------------:|:---------------------------------------------------------------------------:|:------------:|:------------:|
-| [**VGGT-SLAM**](https://github.com/MIT-SPARK/VGGT-SLAM) |  VSLAM   |  `mono`  |  [BSD-2](https://github.com/MIT-SPARK/VGGT-SLAM/blob/main/LICENSE)  |   `vggtslam`   | ✅ | `pinhole` |
+| [**AllFeature-VSLAM**](https://github.com/alejandrofontan/AllFeature-VSLAM) | VSLAM  | `mono` `rgbd` | [GPLv3](https://github.com/alejandrofontan/AnyFeature-VSLAM/blob/main/docs/License-gpl.txt) | `allfeature` | ➖ | `pinhole` `radtan4` `radtan5` |
+| [**VGGT-SLAM 2.0**](https://github.com/MIT-SPARK/VGGT-SLAM) |  VSLAM   |  `mono`  |  [BSD-2](https://github.com/MIT-SPARK/VGGT-SLAM/blob/main/LICENSE)  |   `vggtslam`   | ✅ | `pinhole` |
 | [**MASt3R-SLAM**](https://github.com/rmurai0610/MASt3R-SLAM)                | VSLAM  |       `mono`       |    [CC BY-NC-SA 4.0](https://github.com/rmurai0610/MASt3R-SLAM/blob/main/LICENSE.md)    | `mast3rslam`  | ✅ | `radtan5` `unknown` |
 | [**DPVO**](https://github.com/princeton-vl/DPVO)                            | VSLAM  |       `mono`       |    [License](https://github.com/princeton-vl/DPVO/blob/main/LICENSE)    | `dpvo`  | ✅ | `radtan5` |
 | [**DROID-SLAM**](https://github.com/princeton-vl/DROID-SLAM)                | VSLAM  |`mono` `rgbd` `stereo`|    [BSD-3](https://github.com/princeton-vl/DROID-SLAM/blob/main/LICENSE)    | `droidslam`  | ✅ | `radtan5` |
@@ -177,39 +201,83 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | `mono(-vi)` `rgbd(-vi)` `stereo(-vi)` |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ | `radtan5` `equid4`|
 | [**OKVIS2**](https://github.com/ethz-mrl/okvis2)               | VSLAM  | `mono-vi` |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ | `radtan5` `equid4` |
 | **----------** | **-------** | **-------** | **----------** | **--------** | **---** | **----------** |
-| [**GLOMAP**](https://lpanaf.github.io/eccv24_glomap/)                       |  SfM   |       `mono`       |         [BSD-3](https://github.com/colmap/glomap/blob/main/LICENSE)         |   `glomap`   | ✅ | `radtan5` `equid4` `unknown` |
 | [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `radtan5` `equid4` `unknown` |
-| [**VGGT**](https://vgg-t.github.io/) |  SfM   |  `mono`  |  [VGGT](https://github.com/facebookresearch/vggt/blob/main/LICENSE.txt)  |   `vggt`   | ➖ | `pinhole` |
+| [**Depth Anything 3**](https://depth-anything-3.github.io/) |  Feed-forward   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE) (giant/nested weights CC BY-NC 4.0)  |   `da3`   | ➖ | `pinhole` |
+| [**DA3-Streaming**](https://github.com/ByteDance-Seed/Depth-Anything-3/tree/main/da3_streaming) |  VSLAM   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE)  |   `da3-streaming`   | ➖ | `pinhole` |
+| [**MapAnything**](https://map-anything.github.io/) <br><sub>`module:` [VGGT](https://vgg-t.github.io/) · [VGGT-Ω](https://vggt-omega.github.io/) · [π³](https://yyfz.github.io/pi3/) · [DUSt3R](https://github.com/naver/dust3r) · [MASt3R](https://github.com/naver/mast3r) · [MUSt3R](https://github.com/naver/must3r) · [Pow3R](https://github.com/naver/pow3r) (`mono`, each under its own license)</sub> |  Feed-forward   |  `mono` `rgbd`  |  [Apache-2.0](https://github.com/facebookresearch/map-anything/blob/main/LICENSE) (default weights CC BY-NC 4.0)  |   `mapanything`   | ➖ | `pinhole` |
 
-| Datasets                                                                                                                        | Features |   Label    |     Sensors      |  Camera Models     |
-|:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
-| [**ETH3D SLAM Benchmarks**](https://www.eth3d.net/slam_datasets)                                                                |  📸🏠🤳 |   `eth`    |`mono` `rgbd`| `pinhole` |
-| [**RGB-D SLAM Dataset and Benchmark**](https://cvg.cit.tum.de/data/datasets/rgbd-dataset)                                       |  📸🏠🤳 |  `rgbdtum`  |`mono` `rgbd`| `radtan5` |
-| [**The KITTI Vision Benchmark Suite**](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)                                 |  📸🏞️🚗 |   `kitti`   |`mono` `stereo` | `pinhole` |
-| [**The EuRoC MAV Dataset**](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)                       |  📸🏞️🚁 |   `euroc`   | `mono(-vi)` `stereo(-vi)` | `radtan4` |
-| [**The Replica Dataset**](https://github.com/facebookresearch/Replica-Dataset) - [**iMAP**](https://edgarsucar.github.io/iMAP/) |  💻🏠🤳 |  `replica`  | `mono` `rgbd`  | `pinhole` |
-| [**TartanAir: A Dataset to Push the Limits of Visual SLAM**](https://theairlab.org/tartanair-dataset/)                          |  💻🏞️🤳 | `tartanair` | `mono`  | `pinhole` |
-| [**ICL-NUIM RGB-D Benchmark Dataset**](https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html)                                    |  💻🏠🤳 |   `nuim`    | `mono` `rgbd`  | `pinhole` |
-| [**RGB-D Dataset 7-Scenes**](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)                          |  📸🏠🤳 |   `7scenes` | `mono` `rgbd`  | `pinhole` |
-| [**OpenLORIS-Scene Dataset**](https://lifelong-robotic-vision.github.io/dataset/scene.html) |  📸🏠🤳 |   `openloris-d400/t265` | `mono(-vi)` `rgbd(-vi)` `stereo(-vi)`  | `pinhole` `equid4` |
-| [**Monado SLAM Dataset - Valve Index**](https://huggingface.co/datasets/collabora/monado-slam-datasets)                         |  📸🏠🥽 | `msd` | `mono(-vi)` `stereo(-vi)` | `equid4` |
-| [**ROVER: A Multiseason Dataset for Visual SLAM**](https://iis-esslingen.github.io/rover/)   | 📸🏞️🚗 | `rover-picam/d435i/t265` |`mono(-vi)` `rgbd` `stereo(-vi)` | `radtan5` `equid4` |
-| [**The UT Campus Object Dataset**](https://amrl.cs.utexas.edu/coda/) | 📸🏞️🤖 |  `ut-coda`  |`mono` `stereo`| `radtan5` |
-| [**BLT ktima vineyard rosbags**](https://lcas.lincoln.ac.uk/wp/research/data-sets-software/blt/) | 📸🏞️🤖 | `blt` | `mono` `rgbd` | `radtan5` |
-| [**Sesoko campaign**](https://www.southampton.ac.uk/smmi/news/2017/06/20-southampton-tokyo-collaboration.page) | 📸🏞️🌊 |    `sesoko`    |`mono` | `pinhole` |
-| [**The MADMAX data set for visual-inertial rover navigation on Mars**](https://datasets.arches-projekt.de/morocco2018/) |  📸🏞️🤳 | `madmax` | `mono(-vi)` `stereo(-vi)`| `pinhole` |
+<table>
+<thead>
+<tr><th>Label</th><th>Features</th><th>Summary</th><th>Modes</th><th>Camera Models</th></tr>
+</thead>
+<tbody>
+<tr><td colspan="5">🏠 Indoor datasets<hr></td></tr>
+<tr><td><code>7scenes</code></td><td>📸🏠🤳</td><td><a href="https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/"><strong>Tracked RGB-D Kinect frames from seven indoor scenes, for camera...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>aria-digital-twin</code></td><td>📸🏠🥽</td><td><a href="https://www.projectaria.com/datasets/adt/"><strong>Aria Digital Twin (ADT) - egocentric dataset captured with Meta's Project Aria...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code> <code>rgbd(-vi)</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>bonn-rgbd</code></td><td>📸🏠🤳</td><td><a href="https://www.ipb.uni-bonn.de/data/rgbd-dynamic-dataset/index.html"><strong>Bonn RGB-D Dynamic Dataset - 24 highly dynamic indoor RGB-D sequences (people...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>radtan5</code></td></tr>
+<tr><td><code>eth</code></td><td>📸🏠🤳</td><td><a href="https://www.eth3d.net/"><strong>ETH3D SLAM & Stereo Benchmarks</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>minimal</code></td><td>📸🏠🤳</td><td><a href="https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/minimal-texture-dataset-for-rgb-d-slam"><strong>Minimal Texture Dataset for RGB-D SLAM - RealSense D435i RGB-D sequences over...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>monotum</code></td><td>📸🏠🏞️🤳</td><td><a href="https://cvg.cit.tum.de/data/datasets/mono-dataset"><strong>Photometrically calibrated monocular visual odometry benchmark with 50...</strong></a></td><td><code>mono</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>msd</code></td><td>📸🏠🥽</td><td><a href="https://huggingface.co/datasets/collabora/monado-slam-datasets"><strong>Monado SLAM Dataset - Valve Index</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>newer-college-stereo-vi</code></td><td>📸🏞️🤳</td><td><a href="https://ori-drs.github.io/newer-college-dataset/"><strong>The Newer College Dataset (stereo-inertial collection) - handheld RealSense...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>openloris-d400</code></td><td>📸🏠🤳</td><td><a href="https://lifelong-robotic-vision.github.io/dataset/scene.html"><strong>OpenLORIS-Scene - real-world lifelong SLAM dataset from real robots in real...</strong></a></td><td><code>mono(-vi)</code> <code>rgbd(-vi)</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>openloris-t265</code></td><td>📸🏠🤳</td><td><a href="https://lifelong-robotic-vision.github.io/dataset/scene.html"><strong>OpenLORIS-Scene - real-world lifelong SLAM dataset from real robots in real...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>pupil-labs</code></td><td>📸🥽</td><td><a href="https://pupil-labs.com/"><strong>Pupil Labs Neon eye-tracking glasses - user-recorded scene-camera video and IMU...</strong></a></td><td><code>mono(-vi)</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>rgbdtum</code></td><td>📸🏠🤳</td><td><a href="https://cvg.cit.tum.de/data/datasets/rgbd-dataset"><strong>RGB-D SLAM benchmark with motion-capture ground-truth trajectories</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>radtan5</code></td></tr>
+<tr><td><code>rvp-handheld</code></td><td>📸🏞️🤳</td><td><a href="https://rvp-group.net/slam-dataset.html"><strong>VBR - A Vision Benchmark in Rome (hand-held sequences) - hardware-synced stereo...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>vitum</code></td><td>📸🏠🏞️🤳</td><td><a href="https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset"><strong>TUM Visual-Inertial Dataset - stereo fisheye and IMU sequences from a handheld...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td colspan="5">💻 Synthetic datasets<hr></td></tr>
+<tr><td><code>drunkards</code></td><td>💻🏠🤳</td><td><a href="https://davidrecasens.github.io/TheDrunkard'sOdometry/"><strong>The Drunkard's Dataset - synthetic RGB-D exploratory camera trajectories with...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>endomapper-sim</code></td><td>💻🫀🤳</td><td><a href="https://www.synapse.org/Synapse:syn26707219"><strong>EndoMapper simulated colon - photorealistic VR-Caps renders of a CT-derived...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>nuim</code></td><td>💻🏠🤳</td><td><a href="https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html"><strong>ICL-NUIM RGB-D benchmark with ground-truth trajectories and 3D models for...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>replica</code></td><td>💻🏠🤳</td><td><a href="https://github.com/facebookresearch/Replica-Dataset"><strong>Photorealistic 3D indoor scene reconstructions (Replica), with RGB-D SLAM...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>tartanair</code></td><td>💻🏞️🤳</td><td><a href="https://theairlab.org/tartanair-dataset/"><strong>Large-scale photorealistic simulation dataset with multimodal ground truth for...</strong></a></td><td><code>mono</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>tartanair-train</code></td><td>💻🏠🏞️🤳</td><td><a href="https://theairlab.org/tartanair-dataset/"><strong>TartanAir training split - photorealistic simulated stereo+depth sequences over...</strong></a></td><td><code>mono</code> <code>stereo</code> <code>rgbd</code></td><td><code>pinhole</code></td></tr>
+<tr><td colspan="5">🚗 Vehicle datasets<hr></td></tr>
+<tr><td><code>kitti</code></td><td>📸🏞️🚗</td><td><a href="https://www.cvlibs.net/datasets/kitti/"><strong>KITTI Odometry Benchmark with stereo image sequences and ground-truth poses for...</strong></a></td><td><code>mono</code> <code>stereo</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>malaga</code></td><td>📸🏞️🚗</td><td><a href="https://www.mrpt.org/MalagaUrbanDataset"><strong>The Malaga Urban Dataset - high-rate rectified stereo images from a car driven...</strong></a></td><td><code>mono</code> <code>stereo</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>nsavp</code></td><td>📸🏞️🚗</td><td><a href="https://umautobots.github.io/nsavp"><strong>Novel Sensors for Autonomous Vehicle Perception - stereo thermal, event,...</strong></a></td><td><code>mono</code> <code>stereo</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>rvp-car</code></td><td>📸🏞️🚗</td><td><a href="https://rvp-group.net/slam-dataset.html"><strong>VBR - A Vision Benchmark in Rome (car sequences) - hardware-synced stereo...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>radtan4</code></td></tr>
+<tr><td colspan="5">🚁 UAV datasets<hr></td></tr>
+<tr><td><code>euroc</code></td><td>📸🏞️🚁</td><td><a href="https://projects.asl.ethz.ch/datasets/euroc-mav/"><strong>EuRoC MAV visual-inertial dataset with stereo images, IMU, and ground-truth...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>uzh-fpv</code></td><td>📸🏠🏞️🚁</td><td><a href="https://fpv.ifi.uzh.ch/"><strong>UZH-FPV Drone Racing Dataset - aggressive quadrotor flight sequences from an...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td colspan="5">🤖 Robot datasets<hr></td></tr>
+<tr><td><code>blt</code></td><td>📸🏞️🤖</td><td><a href="https://lcas.lincoln.ac.uk/wp/research/data-sets-software/blt/"><strong>BLT ktima 2022 vineyard rosbag sequences converted to VSLAM-LAB mono/RGB-D...</strong></a></td><td><code>mono</code> <code>rgbd</code></td><td><code>radtan5</code></td></tr>
+<tr><td><code>rover-d435i</code></td><td>📸🏞️🤖</td><td><a href="https://iis-esslingen.github.io/rover/"><strong>ROVER: A Multiseason Dataset for Visual SLAM</strong></a></td><td><code>mono</code> <code>rgbd(-vi)</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>rover-picam</code></td><td>📸🏞️🤖</td><td><a href="https://iis-esslingen.github.io/rover/"><strong>ROVER: A Multiseason Dataset for Visual SLAM</strong></a></td><td><code>mono</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>rover-t265</code></td><td>📸🏞️🤖</td><td><a href="https://iis-esslingen.github.io/rover/"><strong>ROVER: A Multiseason Dataset for Visual SLAM</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>ut-coda</code></td><td>📸🏞️🤖</td><td><a href="https://amrl.cs.utexas.edu/coda/"><strong>The UT Campus Object Dataset (CODa) - egocentric robot perception dataset...</strong></a></td><td><code>mono</code> <code>stereo</code></td><td><code>radtan5</code></td></tr>
+<tr><td><code>vector</code></td><td>📸🏠🤳🤖</td><td><a href="https://star-datasets.github.io/vector/"><strong>VECtor - a versatile event-centric benchmark for multi-sensor SLAM, with a...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>radtan4</code></td></tr>
+<tr><td colspan="5">🏗️ Construction Site datasets<hr></td></tr>
+<tr><td><code>hilti2022</code></td><td>📸🏠🏞️🏗️🤳</td><td><a href="https://hilti-challenge.com/dataset-2022"><strong>Hilti-Oxford SLAM Challenge 2022 - multi-camera, IMU and lidar dataset for SLAM...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>hilti2026</code></td><td>📸🏠🏞️🏗️🤳</td><td><a href="https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026"><strong>Hilti x Trimble 360 Visual-Inertial SLAM Challenge 2026 - construction-site...</strong></a></td><td><code>mono(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td colspan="5">🪐 Planetary-analog Terrain datasets<hr></td></tr>
+<tr><td><code>madmax</code></td><td>📸🏞️🪐🤳</td><td><a href="https://datasets.arches-projekt.de/morocco2018/"><strong>The MADMAX data set for visual-inertial rover navigation on Mars</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>s3li-etna</code></td><td>📸🏞️🪐🤳</td><td><a href="https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets"><strong>S3LI Etna - the DLR Planetary Stereo, Solid-State LiDAR, Inertial dataset,...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>s3li-vulcano</code></td><td>📸🏞️🪐🤳</td><td><a href="https://www.dlr.de/en/rm/research/publications-and-downloads/datasets/s3li-datasets"><strong>S3LI Vulcano - a multi-modal (RGB stereo, solid-state LiDAR, inertial) dataset...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>pinhole</code></td></tr>
+<tr><td colspan="5">🌊 Underwater datasets<hr></td></tr>
+<tr><td><code>ariel</code></td><td>📸🏠🏞️🌊🤖</td><td><a href="https://huggingface.co/datasets/ntnu-arl/underwater-datasets"><strong>Multi-Camera Underwater Visual-Inertial Dataset - a BlueROV2-based platform...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>equid4</code></td></tr>
+<tr><td><code>caves</code></td><td>📸🏞️🌊</td><td><a href="https://cirs.udg.edu/caves-dataset/"><strong>Underwater Caves Sonar and Vision Data Set - a diver-guided AUV exploration of...</strong></a></td><td><code>mono</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>eiffel-tower</code></td><td>📸🏞️🌊🤖</td><td><a href="https://www.seanoe.org/data/00810/92226/"><strong>Deep-sea hydrothermal vent imagery from four ROV Victor6000 survey campaigns...</strong></a></td><td><code>mono</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>lizard-island</code></td><td>📸🏞️🌊🤖</td><td><a href="N/A"><strong>Lizard Island (Great Barrier Reef) coral-reef surveys of South Palfrey reef - 2...</strong></a></td><td><code>mono</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>malaysia-jul2026</code></td><td>📸🏞️🌊🤳</td><td><a href="N/A"><strong>Handheld underwater coral-reef transect surveys (Malaysia, July 2026 campaign)...</strong></a></td><td><code>mono</code></td><td><code>radtan4</code></td></tr>
+<tr><td><code>pamir</code></td><td>📸🌊🤳</td><td><a href="https://huggingface.co/datasets/afrl-uw/Pamir_Visual-Inertial_Data"><strong>Multi-session visual-inertial SLAM dataset of the Pamir shipwreck (Barbados),...</strong></a></td><td><code>mono(-vi)</code></td><td><code>unknown</code></td></tr>
+<tr><td><code>pamir-rig</code></td><td>📸🌊🤳</td><td><a href="https://huggingface.co/datasets/afrl-uw/Pamir_Visual-Inertial_Data"><strong>Multi-session visual-inertial SLAM dataset of the Pamir shipwreck (Barbados),...</strong></a></td><td><code>mono(-vi)</code> <code>stereo(-vi)</code></td><td><code>unknown</code></td></tr>
+<tr><td><code>sesoko</code></td><td>📸🏞️🌊</td><td><a href="https://squidle.org/"><strong>AUV (TUNA-SAND) coral-reef mapping surveys off Sesoko Island, Okinawa, Japan...</strong></a></td><td><code>mono</code></td><td><code>unknown</code></td></tr>
+<tr><td><code>soneva</code></td><td>📸🏞️🌊🤳</td><td><a href="https://huggingface.co/datasets/wildflow/soneva-corals"><strong>Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and...</strong></a></td><td><code>mono</code></td><td><code>pinhole</code></td></tr>
+<tr><td><code>sweetcorals</code></td><td>📸🏞️🌊🤳</td><td><a href="https://huggingface.co/datasets/wildflow/sweet-corals"><strong>Coral reef 3D photogrammetry (Indonesia), from Wildflow</strong></a></td><td><code>mono</code></td><td><code>pinhole</code> <code>unknown</code></td></tr>
+<tr><td colspan="5">🫀 Intracorporeal datasets<hr></td></tr>
+<tr><td><code>endomapper</code></td><td>📸🫀🤳</td><td><a href="https://www.synapse.org/Synapse:syn26707219"><strong>EndoMapper - 93 complete calibrated colonoscopy and gastroscopy procedures...</strong></a></td><td><code>mono</code></td><td><code>equid4</code> <code>unknown</code></td></tr>
+<tr><td><code>hamlyn</code></td><td>📸🫀🤳</td><td><a href="https://davidrecasens.github.io/EndoDepthAndMotion/"><strong>Hamlyn rectified stereo endoscopy dataset with depth ground truth, from...</strong></a></td><td><code>mono</code> <code>rgbd</code> <code>stereo</code></td><td><code>pinhole</code></td></tr>
+</tbody>
+</table>
 
-| Tools                                                                                                                        | Features |   Label    |     Sensors      |  Camera Models     |
+
+| Tools                                                                                                                        | Features |   Label    |      Modes       |  Camera Models     |
 |:--------------------------------------------------------------------------------------------------------------------------------|:---------:|:-----------:|:----------:|:----------:|
 | [**Stray Scanner App**](https://github.com/strayrobots/scanner) |  📸🤳 | `strayscanner` | `mono` `rgbd` | `pinhole` |
-<!-- | [**Sweet Corals**](https://huggingface.co/datasets/wildflow/sweet-corals) | 📸🏞️🌊 |    `sweetcorals`    |`mono` | `pinhole` | -->
-<!-- | [**Ariel**](https://huggingface.co/datasets/ntnu-arl/underwater-datasets) | 📸🏞️🌊 |    `ariel`    |`mono(-vi)` `stereo(-vi)`  | `equid4` | -->
-<!-- | [**HILTI Challenge Dataset 2022**](https://hilti-challenge.com/dataset-2022) | 📸🏠🏞️🤳 |    `hilti2022`    |`mono(-vi)` `stereo(-vi)`  | `equid4` | -->
-<!-- | [**HILTI Challenge Dataset 2026**](https://github.com/Hilti-Research/hilti-trimble-slam-challenge-2026) | 📸🏠🏞️🤳 |    `hilti2026`    |`mono(-vi)` | `equid4` | -->
-<!-- | [**The Drunkard's Dataset**](https://davidrecasens.github.io/TheDrunkard%27sOdometry/#download-dataset)                                    |  💻🏠🤳 |   `drunkards`    | `mono` `rgbd`  | `pinhole` | -->
+| [**Pupil Labs Neon**](https://pupil-labs.com/) |  📸🥽 | `pupil-labs` | `mono(-vi)` | `pinhole` |
 <!-- | [**Underwater caves sonar and vision data set**](https://cirs.udg.edu/caves-dataset/)  |  📸🏞️🌊 |   `caves`  | `mono` | `pinhole` | -->
-<!-- | [**Hamlyn Rectified Dataset**](https://davidrecasens.github.io/EndoDepthAndMotion/) |   📸🫀🤳 |  `hamlyn`   | `mono` `rgbd` | `pinhole` | -->
-<!-- | [**The TUM VI Benchmark for Evaluating Visual-Inertial Odometry**](https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset) |  📸🏠🤳 | `vitum` | `mono(-vi)` `stereo(-vi)` | `equid4` | -->
 <!-- | [**ScanNet++: A High-Fidelity Dataset of 3D Indoor Scenes**](https://scannetpp.mlsg.cit.tum.de/scannetpp/) |  📸🏠🤳 | `scannetplusplus` | `mono`| `pinhole` | -->
 <!-- [**Monocular Visual Odometry Dataset**](https://cvg.cit.tum.de/data/datasets/mono-dataset) | 📸🏠🤳 |  `monotum`  | `mono` | `pinhole` | -->
 
@@ -218,6 +286,8 @@ Real / Synthetic : 📸 / 💻
 Indoor / Outdoor / Underwater / Intracorporeal : 🏠 / 🏞️ /  🌊 / 🫀
 
 Handheld / Headmounted / Vehicle / UAV  / Robot : 🤳 / 🥽 / 🚗 / 🚁 / 🤖
+
+Section dividers only (not per-row features) — Construction Site / Planetary-analog Terrain : 🏗️ / 🪐
 
 ## VSLAM-LAB  Roadmap
 ### Baselines
@@ -262,14 +332,13 @@ Handheld / Headmounted / Vehicle / UAV  / Robot : 🤳 / 🥽 / 🚗 / 🚁 / �
 - [ ] AnyFeature VSLAM implement `mono`, `rgbd`, `stereo`
 - [ ] DSO VSLAM implement `mono`
 - [ ] MonoGS re-implement `mono`, `rgbd`
-- [ ] VGGT implement SfM
 - [ ] ORBSLAM3 implement `mono`, `rgbd`, `stereo`, `stereo-vi`, `rgbd-vi`
 - [ ] OKVIS2 implement `mono`, `stereo-vi`
 - [ ] pyCuVSLAM implement `mono`, `rgbd`, `stereo`, `mono-vi`, `stereo-vi`
 
 ### Metrics
 - [ ] Include RPE
-- [ ] Link metrics with modalities
+- [ ] Link metrics with modes
 
 ### Tooling
 - [ ] Ablation tools

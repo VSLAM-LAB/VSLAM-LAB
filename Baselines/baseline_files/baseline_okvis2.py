@@ -3,12 +3,12 @@ from pathlib import Path
 
 
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class OKVIS2_baseline(BaselineVSLAMLab):
+class OKVIS2_baseline(BaselineVSLAMLAB):
     """OKVIS2 helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'okvis2', baseline_folder: str = 'OKVIS2') -> None:
@@ -20,13 +20,8 @@ class OKVIS2_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.470, 0.862, 0.628) # 'green'
         self.modes = ['mono-vi']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
-
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
-
-    def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
+        self.command_style = 'cpp'
 
 
 class OKVIS2_baseline_dev(OKVIS2_baseline):

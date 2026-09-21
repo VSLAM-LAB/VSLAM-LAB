@@ -1,0 +1,10 @@
+# Smoke test for 'refraction: refrax' (Capabilities/refrax.py): the baseline runs on
+# <sequence>/refrax_0/ frames (flat-port refraction removed, generated on first use by
+# 'pixi run refrax-inference') with the corrected pinhole calibration in calibration_exp.yaml.
+# Needs an underwater sequence whose calibration.yaml has a calibrated pinhole rgb_0 entry
+# (e.g. malaysia-jul2026, lizardisland).
+test_exp_refrax_allfeature-dev-mono:
+  Config: config_debug.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, refraction: refrax}
+  Module: allfeature-dev

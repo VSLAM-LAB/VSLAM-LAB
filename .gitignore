@@ -24,7 +24,8 @@ Baselines/DPVO
 Baselines/DPVO-DEV
 Baselines/MonoGS
 Baselines/MonoGS-DEV
-Baselines/VGGT
+Baselines/MapAnything
+Baselines/asmk
 Baselines/ORB-SLAM3
 Baselines/ORB-SLAM3-DEV
 Baselines/OKVIS2
@@ -35,8 +36,17 @@ Baselines/glomap
 Baselines/LightGlue
 Baselines/VGGT-SLAM-DEV
 Baselines/VGGT-SLAM
+Baselines/AllFeature-VSLAM
 Baselines/AllFeature-VSLAM-DEV
+Baselines/AllFeature-VSLAM-paper
 Baselines/Depth-Anything-3
+Baselines/VPR-LAB
+Baselines/Fast-FoundationStereo
+Baselines/AnyCalib
+Baselines/Refrax
+Baselines/refraction_simulator
+Baselines/placecell
+Baselines/torch_home
 
 path_constants.py
 configs/config_demo.yaml
@@ -46,6 +56,13 @@ configs/exp_demo.yaml
 .vscode/
 
 app.log
+imgui.ini
 
 # ROS
 Baselines/ros2_ws
+
+# Debug / personal experiment configs: tracked (fresh clones need them), so .gitignore can't hide
+# local edits. Silence them per clone instead:
+#   git update-index --skip-worktree configs/comp_complete.yaml configs/config_debug.yaml \
+#       configs/config_train_droid.yaml configs/exp_debug.yaml configs/exp_train_droid.yaml
+# (undo with --no-skip-worktree; list with: git ls-files -v | grep '^S')

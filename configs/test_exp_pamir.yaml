@@ -1,0 +1,11 @@
+test_exp_pamir_dpvo:
+  Config: test_config_pamir.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: dpvo
+
+test_exp_pamir_orbslam3:
+  Config: test_config_pamir.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_idx: [0,2000]}
+  Module: orbslam3

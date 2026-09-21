@@ -1,0 +1,11 @@
+test_exp_soneva_comb_colmap:
+  Config: test_config_soneva_comb_smoke.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 150, rgb_step: 1}
+  Module: colmap
+
+test_exp_soneva_comb_droid:
+  Config: test_config_soneva_comb_smoke.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 150, rgb_step: 1}
+  Module: droidslam

@@ -1,9 +1,11 @@
 dataset_name: rgbdtum
 
 rgb_hz: 30.0
-url_download_root: "https://cvg.cit.tum.de/rgbd/dataset"
 modes: ['mono', 'rgbd']
 cam_models: ['radtan5']
+raw_formats: ['tar']
+
+url_download_root: "https://cvg.cit.tum.de/rgbd/dataset"
 depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -14,7 +16,7 @@ sequence_names:
   - rgbd_dataset_freiburg1_360
   - rgbd_dataset_freiburg1_floor
   - rgbd_dataset_freiburg1_desk
-  - rgbd_dataset_freiburg1_desk2  
+  - rgbd_dataset_freiburg1_desk2
   - rgbd_dataset_freiburg1_room
   - rgbd_dataset_freiburg2_360_hemisphere
   - rgbd_dataset_freiburg2_360_kidnap
@@ -28,21 +30,21 @@ sequence_names:
   - rgbd_dataset_freiburg2_pioneer_slam3
   - rgbd_dataset_freiburg3_nostructure_notexture_far
   - rgbd_dataset_freiburg3_nostructure_notexture_near_withloop
-  - rgbd_dataset_freiburg3_nostructure_texture_far  
+  - rgbd_dataset_freiburg3_nostructure_texture_far
   - rgbd_dataset_freiburg3_nostructure_texture_near_withloop
   - rgbd_dataset_freiburg3_structure_notexture_far
-  - rgbd_dataset_freiburg3_structure_notexture_near  
+  - rgbd_dataset_freiburg3_structure_notexture_near
   - rgbd_dataset_freiburg3_structure_texture_far
   - rgbd_dataset_freiburg3_structure_texture_near
   - rgbd_dataset_freiburg2_desk_with_person
-  - rgbd_dataset_freiburg3_sitting_static  
-  - rgbd_dataset_freiburg3_sitting_xyz  
-  - rgbd_dataset_freiburg3_sitting_halfsphere   
-  - rgbd_dataset_freiburg3_sitting_rpy  
+  - rgbd_dataset_freiburg3_sitting_static
+  - rgbd_dataset_freiburg3_sitting_xyz
+  - rgbd_dataset_freiburg3_sitting_halfsphere
+  - rgbd_dataset_freiburg3_sitting_rpy
   - rgbd_dataset_freiburg3_walking_static
   - rgbd_dataset_freiburg3_walking_xyz
   - rgbd_dataset_freiburg3_walking_halfsphere
-  - rgbd_dataset_freiburg3_walking_rpy 
+  - rgbd_dataset_freiburg3_walking_rpy
   - rgbd_dataset_freiburg1_plant
   - rgbd_dataset_freiburg1_teddy
   - rgbd_dataset_freiburg2_coke
@@ -72,19 +74,55 @@ sequence_names:
   - rgbd_dataset_freiburg3_walking_static_validation
   - rgbd_dataset_freiburg3_walking_xyz_validation
   - rgbd_dataset_freiburg3_walking_halfsphere_validation
-  - rgbd_dataset_freiburg3_walking_rpy_validation    
+  - rgbd_dataset_freiburg3_walking_rpy_validation
 
   # - rgbd_dataset_freiburg1_xyz_validation
   # - rgbd_dataset_freiburg1_rpy_validation
   # - rgbd_dataset_freiburg1_desk_validation
-  # - rgbd_dataset_freiburg1_desk2_validation  
-  # - rgbd_dataset_freiburg1_360_validation       
-  # - rgbd_dataset_freiburg1_room_validation  
-  # - rgbd_dataset_freiburg1_plant_validation 
-  # - rgbd_dataset_freiburg2_xyz_validation 
-  # - rgbd_dataset_freiburg2_rpy_validation 
+  # - rgbd_dataset_freiburg1_desk2_validation
+  # - rgbd_dataset_freiburg1_360_validation
+  # - rgbd_dataset_freiburg1_room_validation
+  # - rgbd_dataset_freiburg1_plant_validation
+  # - rgbd_dataset_freiburg2_xyz_validation
+  # - rgbd_dataset_freiburg2_rpy_validation
   # - rgbd_dataset_freiburg2_360_hemisphere_validation
   # - rgbd_dataset_freiburg2_360_kidnap_validation
   # - rgbd_dataset_freiburg2_desk_validation
   # - rgbd_dataset_freiburg2_desk_with_person_validation
   # - rgbd_dataset_freiburg2_pioneer_360_validation
+
+about:
+  license: CC BY 4.0
+  summary: RGB-D SLAM benchmark with motion-capture ground-truth trajectories
+  homepage: https://cvg.cit.tum.de/data/datasets/rgbd-dataset
+  features:
+    - Real
+    - Indoor
+    - Handheld
+  authors:
+    - Jürgen Sturm
+    - Nikolas Engelhard
+    - Felix Endres
+    - Wolfram Burgard
+    - Daniel Cremers
+  access: Public
+  publication: "A benchmark for the evaluation of RGB-D SLAM systems"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/6385773"
+  year: 2012
+  bibtex_key: sturm2012benchmark
+  bibtex: |
+    @inproceedings{sturm2012benchmark,
+      title={A benchmark for the evaluation of RGB-D SLAM systems},
+      author={Sturm, J{\"u}rgen and Engelhard, Nikolas and Endres, Felix and Burgard, Wolfram and Cremers, Daniel},
+      booktitle={2012 IEEE/RSJ international conference on intelligent robots and systems},
+      pages={573--580},
+      year={2012},
+      organization={IEEE}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-07-13
+

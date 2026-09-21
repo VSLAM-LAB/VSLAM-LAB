@@ -1,0 +1,78 @@
+dataset_name: uzh-fpv
+
+rgb_hz: 30.0
+imu_hz: 500.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['equid4']
+raw_formats: ['zip']
+
+# Per-sequence zips (Snapdragon Flight variant): <sequence>_snapdragon[_with_gt].zip — the
+# _with_gt suffix applies only to the sequences whose Leica MS60 ground truth is public (see
+# dataset_uzh_fpv.py's _WITH_GT).
+url_download_root: "http://rpg.ifi.uzh.ch/datasets/uzh-fpv-newer-versions/v3"
+# Kalibr calibration zips, one per environment group: <group>_calib_snapdragon.zip
+url_download_root_calib: "http://rpg.ifi.uzh.ch/datasets/uzh-fpv/calib"
+
+sequence_names:
+  - indoor_forward_3
+  - indoor_forward_5
+  - indoor_forward_6
+  - indoor_forward_7
+  - indoor_forward_8
+  - indoor_forward_9
+  - indoor_forward_10
+  - indoor_forward_11
+  - indoor_forward_12
+  - indoor_45_1
+  - indoor_45_2
+  - indoor_45_3
+  - indoor_45_4
+  - indoor_45_9
+  - indoor_45_11
+  - indoor_45_12
+  - indoor_45_13
+  - indoor_45_14
+  - indoor_45_16
+  - outdoor_forward_1
+  - outdoor_forward_2
+  - outdoor_forward_3
+  - outdoor_forward_5
+  - outdoor_forward_6
+  - outdoor_forward_9
+  - outdoor_forward_10
+  - outdoor_45_1
+  - outdoor_45_2
+
+about:
+  license: CC BY-NC-SA 3.0
+  summary: UZH-FPV Drone Racing Dataset - aggressive quadrotor flight sequences from an FPV racing drone (Snapdragon Flight stereo fisheye camera and IMU), with Leica MS60 laser-tracker ground truth
+  homepage: https://fpv.ifi.uzh.ch/
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - UAV
+  authors:
+    - Jeffrey Delmerico
+    - Titus Cieslewski
+    - Henri Rebecq
+    - Matthias Faessler
+    - Davide Scaramuzza
+  access: Public
+  publication: "Are We Ready for Autonomous Drone Racing? The UZH-FPV Drone Racing Dataset"
+  publication_url: "https://rpg.ifi.uzh.ch/docs/ICRA19_Delmerico.pdf"
+  year: 2019
+  bibtex_key: delmerico2019uzhfpv
+  bibtex: |
+    @inproceedings{delmerico2019uzhfpv,
+      title={Are We Ready for Autonomous Drone Racing? {The UZH-FPV} Drone Racing Dataset},
+      author={Delmerico, Jeffrey and Cieslewski, Titus and Rebecq, Henri and Faessler, Matthias and Scaramuzza, Davide},
+      booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
+      year={2019}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-08-17

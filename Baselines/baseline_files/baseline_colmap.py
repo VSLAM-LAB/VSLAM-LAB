@@ -1,39 +1,60 @@
 import os.path
 from pathlib import Path
+from typing import TYPE_CHECKING
 from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
+if TYPE_CHECKING:
+    from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+    from vslamlab_utilities import Experiment
 
-class COLMAP_baseline(BaselineVSLAMLab):
+
+class COLMAP_baseline(BaselineVSLAMLAB):
     """colmap helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'colmap', baseline_folder: str = 'colmap') -> None:
 
-        default_parameters = {'verbose': 1, 'mode': 'mono',
-                              'matcher_type': 'exhaustive', 'use_gpu': 1, 'max_rgb': 2000000}
+        # use_mask: 1 -> feature extraction honours the rgb csv's path_mask_<i> column when the run
+        # pipeline provides one ('segmentation: mask2former', 'refraction: refrax', datasets that
+        # ship masks); 0 -> masks ignored (see Baselines/colmap/colmap_matcher.sh).
+        # optimize_intrinsics: 1 -> bundle adjustment refines the camera intrinsics (focal length and
+        # distortion; the principal point stays fixed, as in COLMAP's default); 0 -> the intrinsics
+        # from the calibration yaml are kept fixed. Ignored (forced to 1) when the calibration model
+        # is 'unknown', since there are no intrinsics to keep (see Baselines/colmap/colmap_mapper.sh).
+        # dense: 1 -> after the sparse model and trajectory are written, run COLMAP's dense pipeline
+        # (image_undistorter -> patch_match_stereo -> stereo_fusion) on the best sub-model, into
+        # <exp_folder>/colmap_<id>/dense/ with the fused cloud copied to <exp_folder>/<id>_dense.ply.
+        # Needs the CUDA colmap build (linux-64 in pixi.toml) and use_gpu=1; otherwise it is skipped
+        # with a warning and the run still succeeds (see Baselines/colmap/colmap_dense.sh).
+        # dense_max_image_size: longest image side used for undistortion / patch match / fusion
+        # (COLMAP presets: 1000 low, 1600 medium, -1 high = full resolution).
+        # mesher: 'none' | 'delaunay' -> mesh the fused cloud, copied to <id>_mesh.ply (COLMAP's
+        # poisson_mesher is not offered: its surface trimmer segfaults in the 4.1.1 conda-forge build).
+        default_parameters = {'verbose': 1, 'mode': 'mono', 'matcher_type': 'exhaustive',
+                             'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap', 'rgb_max': 50000000,
+                             'use_mask': 0, 'optimize_intrinsics': 1,
+                             'dense': 0, 'dense_max_image_size': 1600, 'mesher': 'none'}
 
         # Initialize the baseline
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.800, 0.400, 0.750)
         self.modes = ['mono']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
+        self.cam_models = ['unknown', 'pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
+        self.command_style = 'cpp'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
+    def build_execute_command(self, exp_it: int, exp: 'Experiment', dataset: 'DatasetVSLAMLAB', sequence_name: str) -> str:
         if 'matcher_type' in exp.parameters and exp.parameters['matcher_type'] == 'sequential':
             self.colmap_download_bag_of_words()
-        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+        return super().build_execute_command(exp_it, exp, dataset, sequence_name)
 
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         if self.default_parameters['matcher_type'] == 'sequential':
             self.colmap_download_bag_of_words()
-
-    def is_installed(self) -> tuple[bool, str]:
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
 
     def colmap_download_bag_of_words(self) -> None:
         files = [

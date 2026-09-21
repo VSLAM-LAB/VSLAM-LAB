@@ -4,12 +4,12 @@ from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class ORBSLAM3_baseline(BaselineVSLAMLab):
+class ORBSLAM3_baseline(BaselineVSLAMLAB):
     """ORB-SLAM3 helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'orbslam3', baseline_folder: str = 'ORB-SLAM3') -> None:
@@ -21,18 +21,13 @@ class ORBSLAM3_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.628, 0.47, 0.862) # 'violet'
         self.modes = ['mono', 'rgbd', 'stereo', 'mono-vi',  'rgbd-vi', 'stereo-vi']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5', 'equid4']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5', 'equid4']
+        self.command_style = 'cpp'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
-
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         self.orbslam2_download_vocabulary()
 
-    def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
-    
     def orbslam2_download_vocabulary(self) -> None: # Download ORBvoc.txt
         vocabulary_folder = self.baseline_path / 'Vocabulary'
         vocabulary_txt = vocabulary_folder / 'ORBvoc.txt'

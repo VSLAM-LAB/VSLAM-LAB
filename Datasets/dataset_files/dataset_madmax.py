@@ -1,49 +1,63 @@
-import csv
+"""
+Module: VSLAM-LAB - Datasets - dataset_madmax.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5)
+- Version: 1.0
+- Created: 2026-03-07
+- Updated: 2026-07-26
+- License: GPLv3 License
+"""
+
+from __future__ import annotations
+
 import os
 import re
 import shutil
-from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import yaml
+from PIL import Image
 from scipy.spatial.transform import Rotation as R
+from tqdm import tqdm
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from Datasets.DatasetVSLAMLab_issues import _get_dataset_issue
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
 from path_constants import BENCHMARK_RETENTION, Retention
-from utilities import decompressFile, downloadFile
+from utilities import compute_scaled_size, decompressFile, downloadFile, write_csv_rows
 
 
-class MADMAX_dataset(DatasetVSLAMLab):
-    """MADMAX dataset helper for VSLAM-LAB benchmark."""
+class MadmaxDataset(DatasetVSLAMLAB):
+    """MADMAX Mars rover navigation dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "madmax") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    _SEQUENCE_FILE_IDS = {
+        "A-0": [223, 224, 417, 335, 491],
+        "A-1": [18, 19, 417, 336, 492],
+        "B-0": [62, 63, 425, 371, 483],
+        "C-0": [54, 55, 418, 350, 480],
+        "D-0": [115, 116, 420, 353, 475],
+        "E-0": [145, 146, 421, 358, 472],
+    }
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
+    def __init__(self, dataset_name: str = "madmax") -> None:
+        super().__init__(dataset_name)
 
         # Get download url
-        self.url_download_root: str = cfg["url_download_root"]
-
-        # Sequence nicknames
-        self.sequence_nicknames = self.sequence_names
+        self.url_download_root: str = self.cfg["url_download_root"]
 
         # API token
-        self.api_token: str = cfg["api_token"]
+        self.api_token: str = self.cfg.get("api_token", "not_set")
 
         # Dataset homepage
-        self.dataset_homepage: str = cfg["about"]["homepage"]
+        self.dataset_homepage: str = self.cfg["about"]["homepage"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         sequence_path.mkdir(parents=True, exist_ok=True)
 
         remote_file_urls = self._get_file_url(sequence_name)
-        folders = ["rgb_0", "rgb_1", "calibration", "imu_raw.csv", "groundtruth", "depth_0"]
+        folders = ["rgb_0_raw", "rgb_1_raw", "calibration", "imu_raw.csv", "groundtruth", "depth_0"]
         for url, folder in zip(remote_file_urls, folders):
             download_url = f"{self.url_download_root}/{url}"
             downloaded_file = sequence_path / url
@@ -61,41 +75,57 @@ class MADMAX_dataset(DatasetVSLAMLab):
                 decompressFile(compressed_file, folder_path)
 
     def create_rgb_folder(self, sequence_name: str) -> None:
-        pass
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_path_0 = self.rgb_path(sequence_name)
+        rgb_path_1 = sequence_path / "rgb_1"
+        rgb_path_0_raw = sequence_path / "rgb_0_raw"
+        rgb_path_1_raw = sequence_path / "rgb_1_raw"
+
+        for raw_path, rgb_path in ((rgb_path_0_raw, rgb_path_0), (rgb_path_1_raw, rgb_path_1)):
+            if rgb_path.exists():
+                continue
+
+            if self.target_resolution is None:
+                shutil.copytree(raw_path, rgb_path)
+                continue
+
+            rgb_path.mkdir(parents=True, exist_ok=True)
+            target_size = None
+            for file_path in tqdm(sorted(raw_path.glob("*.png")), desc="    resizing images"):
+                with Image.open(file_path) as img:
+                    img.load()
+                    if target_size is None:
+                        target_size = compute_scaled_size(img.size, self.target_resolution)
+                    resized_img = img.resize(target_size, Image.Resampling.LANCZOS)
+                    resized_img.save(rgb_path / file_path.name)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_csv = sequence_path / "rgb.csv"
-
+        sequence_path = self.sequence_path(sequence_name)
+        rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
-        rgb_0_path = sequence_path / "rgb_0"
-        rgb_0_files_cam = [f for f in os.listdir(rgb_0_path) if (rgb_0_path / f).is_file()]
-        rgb_0_files_cam.sort()
+        rgb_0_path = self.rgb_path(sequence_name)
+        rgb_0_files = sorted(f for f in os.listdir(rgb_0_path) if (rgb_0_path / f).is_file())
 
         rgb_1_path = sequence_path / "rgb_1"
-        rgb_1_files_cam = [f for f in os.listdir(rgb_1_path) if (rgb_1_path / f).is_file()]
-        rgb_1_files_cam.sort()
+        rgb_1_files = sorted(f for f in os.listdir(rgb_1_path) if (rgb_1_path / f).is_file())
 
-        with open(rgb_csv, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["ts_rgb_0 (ns)", "path_rgb_0", "ts_rgb_1 (ns)", "path_rgb_1"])
-
-            for filename_0, filename_1 in zip(rgb_0_files_cam, rgb_1_files_cam):
-                name_0, _ = os.path.splitext(filename_0)
-                name_1, _ = os.path.splitext(filename_1)
-                name_0 = name_0.replace("img_rect_left_", "")
-                name_1 = name_1.replace("img_rect_right_", "")
-                ts_0 = float(name_0)
-                ts_1 = float(name_1)
-                ts_ns_0 = int(ts_0)
-                ts_ns_1 = int(ts_1)
-                writer.writerow([ts_ns_0, f"rgb_0/{filename_0}", ts_ns_1, f"rgb_1/{filename_1}"])
+        header = ["ts_rgb_0 (ns)", "path_rgb_0", "ts_rgb_1 (ns)", "path_rgb_1"]
+        rows = []
+        for filename_0, filename_1 in zip(rgb_0_files, rgb_1_files):
+            name_0, _ = os.path.splitext(filename_0)
+            name_1, _ = os.path.splitext(filename_1)
+            name_0 = name_0.replace("img_rect_left_", "")
+            name_1 = name_1.replace("img_rect_right_", "")
+            ts_ns_0 = int(float(name_0))
+            ts_ns_1 = int(float(name_1))
+            rows.append([ts_ns_0, f"rgb_0/{filename_0}", ts_ns_1, f"rgb_1/{filename_1}"])
+        write_csv_rows(rgb_csv, header, rows)
 
     def create_imu_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        imu_csv = sequence_path / "imu_0.csv"
+        sequence_path = self.sequence_path(sequence_name)
+        imu_csv = self.imu_csv_path(sequence_name)
         imu_raw_csv = sequence_path / "imu_raw.csv"
         df = pd.read_csv(imu_raw_csv)
         selected_columns = [
@@ -107,8 +137,7 @@ class MADMAX_dataset(DatasetVSLAMLab):
             "field.linear_acceleration.y",
             "field.linear_acceleration.z",
         ]
-        df_selected = df[selected_columns]
-        df_selected.columns = [
+        header = [
             "ts (ns)",
             "wx (rad s^-1)",
             "wy (rad s^-1)",
@@ -117,10 +146,12 @@ class MADMAX_dataset(DatasetVSLAMLab):
             "ay (m s^-2)",
             "az (m s^-2)",
         ]
-        df_selected.to_csv(imu_csv, index=False)
+        rows = df[selected_columns].astype(object).values.tolist()
+        write_csv_rows(imu_csv, header, rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        calibration_folder = self.dataset_path / sequence_name / "calibration" / "calibration"
+        sequence_path = self.sequence_path(sequence_name)
+        calibration_folder = sequence_path / "calibration" / "calibration"
         intrinsics_0_txt = calibration_folder / "camera_rect_left_info.txt"
         intrinsics_1_txt = calibration_folder / "camera_rect_right_info.txt"
 
@@ -139,12 +170,16 @@ class MADMAX_dataset(DatasetVSLAMLab):
         T_cam0_1, data_ext_0_1 = self._load_extrinsics_matrix(extrinsics_0_1_csv)
         T_cam1_imu = np.linalg.inv(T_cam0_1) @ T_cam0_imu
 
+        # Rescale intrinsics from the raw rgb_*_raw reference size to the resized rgb_0/rgb_1.
+        scale_x_0, scale_y_0 = self._raw_to_resized_scale(sequence_path / "rgb_0_raw", self.rgb_path(sequence_name))
+        scale_x_1, scale_y_1 = self._raw_to_resized_scale(sequence_path / "rgb_1_raw", sequence_path / "rgb_1")
+
         rgb0: dict[str, Any] = {
             "cam_name": "rgb_0",
             "cam_type": "gray",
             "cam_model": "pinhole",
-            "focal_length": [P_0[0][0], P_0[1][1]],
-            "principal_point": [P_0[0][2], P_0[1][2]],
+            "focal_length": [P_0[0][0] * scale_x_0, P_0[1][1] * scale_y_0],
+            "principal_point": [P_0[0][2] * scale_x_0, P_0[1][2] * scale_y_0],
             "fps": self.rgb_hz,
             "T_BS": np.linalg.inv(T_cam0_imu),
         }
@@ -153,8 +188,8 @@ class MADMAX_dataset(DatasetVSLAMLab):
             "cam_name": "rgb_1",
             "cam_type": "gray",
             "cam_model": "pinhole",
-            "focal_length": [P_1[0][0], P_1[1][1]],
-            "principal_point": [P_1[0][2], P_1[1][2]],
+            "focal_length": [P_1[0][0] * scale_x_1, P_1[1][1] * scale_y_1],
+            "principal_point": [P_1[0][2] * scale_x_1, P_1[1][2] * scale_y_1],
             "fps": self.rgb_hz,
             "T_BS": np.linalg.inv(T_cam1_imu),
         }
@@ -180,12 +215,11 @@ class MADMAX_dataset(DatasetVSLAMLab):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb0, rgb1], imu=[imu])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         gt_6DoF_gnss_and_imu_csv = (
             sequence_path / "groundtruth" / f"{sequence_name}_ground_truth" / "gt_6DoF_gnss_and_imu.csv"
         )
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-
+        groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         df = pd.read_csv(gt_6DoF_gnss_and_imu_csv, skiprows=13)
         selected_columns = [
             "% UNIX time",
@@ -197,23 +231,27 @@ class MADMAX_dataset(DatasetVSLAMLab):
             " orientation.z",
             " orientation.w",
         ]
-        df_selected = df[selected_columns]
-        df_selected["% UNIX time"] = (df_selected["% UNIX time"] * 1e9).astype("int64")
-        df_selected.columns = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
-        df_selected.to_csv(groundtruth_csv, index=False)
+        header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
+        df = df[selected_columns].copy()
+        df["% UNIX time"] = (df["% UNIX time"] * 1e9).astype("int64")
+        rows = df.astype(object).values.tolist()
+        write_csv_rows(groundtruth_csv, header, rows)
 
     def remove_unused_files(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
+        sequence_path = self.sequence_path(sequence_name)
         if BENCHMARK_RETENTION != Retention.FULL:
-            for zip_file in sequence_path.rglob("*.zip"):
-                zip_file.unlink(missing_ok=True)
-
-        if BENCHMARK_RETENTION == Retention.MINIMAL:
             shutil.rmtree(sequence_path / "calibration", ignore_errors=True)
             shutil.rmtree(sequence_path / "groundtruth", ignore_errors=True)
+            shutil.rmtree(sequence_path / "rgb_0_raw", ignore_errors=True)
+            shutil.rmtree(sequence_path / "rgb_1_raw", ignore_errors=True)
+
+        if BENCHMARK_RETENTION == Retention.MINIMAL:
+            for zip_file in sequence_path.rglob("*.zip"):
+                zip_file.unlink(missing_ok=True)
+            (sequence_path / "imu_raw.csv").unlink(missing_ok=True)
 
     def get_download_issues(self, _):
-        if self.api_token == "None":
+        if self.api_token == "not_set":
             return [
                 _get_dataset_issue(
                     issue_id="api_token",
@@ -223,6 +261,14 @@ class MADMAX_dataset(DatasetVSLAMLab):
                 )
             ]
         return []
+
+    @staticmethod
+    def _raw_to_resized_scale(raw_path, resized_path):
+        with Image.open(next(raw_path.glob("*.png"))) as raw_img:
+            raw_w, raw_h = raw_img.size
+        with Image.open(next(resized_path.glob("*.png"))) as resized_img:
+            resized_w, resized_h = resized_img.size
+        return resized_w / raw_w, resized_h / raw_h
 
     def _load_extrinsics_matrix(self, path):
         with path.open("r", encoding="utf-8") as f:
@@ -272,17 +318,5 @@ class MADMAX_dataset(DatasetVSLAMLab):
 
     def _get_file_url(self, sequence_name):
         base_url = "file?attachment=true&pid=b1584010878"
-        if sequence_name == "A-0":
-            ids = [223, 224, 417, 335, 491]
-        if sequence_name == "A-1":
-            ids = [18, 19, 417, 336, 492]
-        if sequence_name == "B-0":
-            ids = [62, 63, 425, 371, 483]
-        if sequence_name == "C-0":
-            ids = [54, 55, 418, 350, 480]
-        if sequence_name == "D-0":
-            ids = [115, 116, 420, 353, 475]
-        if sequence_name == "E-0":
-            ids = [145, 146, 421, 358, 472]
-
+        ids = self._SEQUENCE_FILE_IDS[sequence_name]
         return [f"{base_url}.{id}&access_token={self.api_token}" for id in ids]

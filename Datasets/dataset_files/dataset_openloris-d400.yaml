@@ -1,9 +1,10 @@
 dataset_name: openloris-d400
 
 rgb_hz: 30.0
-repo_id: "shixuesong/openloris-scene"
+hf_repo_id: "shixuesong/openloris-scene"
 modes: ['mono', 'rgbd', 'mono-vi', 'rgbd-vi']
 cam_models: ['pinhole']
+raw_formats: ['tar', '7z']
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -29,3 +30,34 @@ sequence_names:
   - office1-5
   - office1-6
   - office1-7
+
+about:
+  license: CC BY-ND 4.0
+  summary: OpenLORIS-Scene - real-world lifelong SLAM dataset from real robots in real scenes
+  homepage: https://lifelong-robotic-vision.github.io/dataset/scene.html
+  features:
+    - Real
+    - Indoor
+    - Handheld
+  authors:
+    - Xuesong Shi
+    - Others
+  access: Public
+  publication: "Are We Ready for Service Robots? The OpenLORIS-Scene Datasets for Lifelong SLAM"
+  publication_url: "https://arxiv.org/abs/1911.05603"
+  year: 2020
+  bibtex_key: shi2020openloris
+  bibtex: |
+    @inproceedings{shi2020openloris,
+      title={Are We Ready for Service Robots? The OpenLORIS-Scene Datasets for Lifelong SLAM},
+      author={Shi, Xuesong and Li, Dongjiang and Zhao, Pengpeng and Tian, Qinbin and Tian, Yuxin and Long, Qiwei and Zhu, Chunhao and Song, Jingwei and Qiao, Fei and Song, Le and Guo, Yangquan and Wang, Zhigang and Zhang, Yimin and Qin, Baoxing and Yang, Wei and Wang, Fangshi and Chan, Rosa H M and She, Qi},
+      booktitle={2020 IEEE International Conference on Robotics and Automation (ICRA)},
+      pages={3139--3145},
+      year={2020}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-01-07

@@ -1,197 +1,160 @@
-import csv
-import json
-import os
-from pathlib import Path
-from typing import Any
+"""
+Module: VSLAM-LAB - Datasets - dataset_sweetcorals.py
+- Author: Alejandro Fontan
+- Assisted by: Claude (Sonnet 5, Fable 5.1)
+- Version: 1.1
+- Created: 2026-07-22
+- Updated: 2026-09-04
+- License: GPLv3 License
+"""
+
+from __future__ import annotations
+
+from fnmatch import fnmatch
 
 import numpy as np
-import pandas as pd
-import yaml
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
-from huggingface_hub import HfApi, HfFileSystem, login
-from huggingface_hub.utils import disable_progress_bars
-from path_constants import HUGGINGFACE_TOKEN
-from PIL import Image
-from tqdm import tqdm
+
+from Datasets.dataset_files.dataset_soneva import HFColmapDatasetMixin
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
+from utilities import ensure_hf_sequence_download, hf_token, read_colmap_images
+
+# Every survey is shot with the same Wildflow two-GoPro rig as soneva (see dataset_soneva.py's
+# module comment): two independent, unsynchronized time-lapse cameras, exposed as two independent
+# monocular streams - rgb_0 is the Left camera, rgb_1 the Right one - never as a stereo pair.
+
+# Only tabuhan_p1 has been fully processed on the source (color-corrected pinhole images plus a
+# colmap reconstruction with real poses) — every other sequence ships only raw, uncalibrated
+# fisheye stills with no pose data.
+_PINHOLE_SEQUENCE = "tabuhan_p1"
+
+# tabuhan_p1's corrected/images/ folder merges both rig cameras into one flat directory: Left
+# frames are prefixed GPAA, Right frames GPAB (27 frames) then GPAC (the rest) - GoPro rolls the
+# two-letter prefix over as its file counter wraps, so both belong to the same Right time-lapse
+# and sort in capture order. One fnmatch pattern per stream (rgb_0, rgb_1) isolates each camera,
+# both for the download (snapshot_download's allow_patterns are fnmatch patterns too) and for
+# picking that camera's COLMAP camera_id from images.bin's image names. COLMAP confirms the split:
+# GPAA frames are all one camera_id, GPAB+GPAC all the other.
+_PINHOLE_STREAM_PATTERNS: tuple[str, ...] = ("GPAA*", "GPA[BC]*")
+
+# sequence_names are kept short (e.g. "tabuhan_p1"); every survey's actual top-level folder in
+# the HF repo carries an "indonesia_" prefix and a "_YYYYMMDD" capture-date suffix that doesn't
+# derive mechanically from the nickname, so it's kept as an explicit table. tabuhan_p1's folder
+# also carries a stray leading underscore in the source repo.
+_REMOTE_FOLDER = {
+    "banyuwangi_farm": "indonesia_banyuwangi_farm_20250211",
+    "pemuteran_p1": "indonesia_pemuteran_p1_20250213",
+    "pemuteran_p2": "indonesia_pemuteran_p2_20250213",
+    "pemuteran_p3": "indonesia_pemuteran_p3_20250213",
+    "tabuhan_p1": "_indonesia_tabuhan_p1_20250210",
+    "tabuhan_p2": "indonesia_tabuhan_p2_20250210",
+    "tabuhan_p3": "indonesia_tabuhan_p3_20250210",
+    "watudodol_p1": "indonesia_watudodol_p1_20250208",
+    "watudodol_p2": "indonesia_watudodol_p2_20250208",
+    "watudodol_p3": "indonesia_watudodol_p3_20250208",
+    "watudodol_p4": "indonesia_watudodol_p4_20250209",
+    "watudodol_p5": "indonesia_watudodol_p5_20250209",
+    "watudodol_p6": "indonesia_watudodol_p6_20250209",
+}
+
+# Every survey (other than tabuhan_p1, handled separately above) ships its two rig cameras under
+# raw/<tag>_Left and raw/<tag>_Right. Per sequence, one list of raw/ subfolders per stream, in
+# rgb_0/rgb_1 order: Left is rgb_0 (the canonical mono view) and Right is rgb_1 - except
+# watudodol_p2, which has no Left data at all, so its only stream (rgb_0) is the Right camera.
+# watudodol_p1 also ships an extra continuation folder from a second day for each side,
+# concatenated after the main one. (watudodol_p3's Right side is a 69-frame stub in the source.)
+_RAW_CAMERA_SUBFOLDERS: dict[str, tuple[list[str], ...]] = {
+    "banyuwangi_farm": (["F1_Left"], ["F1_Right"]),
+    "pemuteran_p1": (["B1_Left"], ["B1_Right"]),
+    "pemuteran_p2": (["B2_Left"], ["B2_Right"]),
+    "pemuteran_p3": (["B3_Left"], ["B3_Right"]),
+    "tabuhan_p2": (["Q8_Left"], ["Q8_Right"]),
+    "tabuhan_p3": (["Q9_Left"], ["Q9_Right"]),
+    "watudodol_p1": (["Q1_Left", "Q1_Left_extra_20250209"], ["Q1_Right", "Q1_Right_extra_20250209"]),
+    "watudodol_p2": (["Q2_Right"],),
+    "watudodol_p3": (["Q3_Left"], ["Q3_Right"]),
+    "watudodol_p4": (["Q4_Left"], ["Q4_Right"]),
+    "watudodol_p5": (["Q5_Left"], ["Q5_Right"]),
+    "watudodol_p6": (["Q6_Left"], ["Q6_Right"]),
+}
 
 
-class SWEETCORALS_dataset(DatasetVSLAMLab):
-    """SWEETCORALS dataset helper for VSLAM-LAB benchmark."""
+class SweetcoralsDataset(HFColmapDatasetMixin, DatasetVSLAMLAB):
+    """Sweet Corals dataset helper for VSLAM-LAB benchmark."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "sweetcorals") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "sweetcorals") -> None:
+        super().__init__(dataset_name)
 
-        # Load settings
-        with open(self.yaml_file, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-
-        # Get download url
-        self.repo_id = cfg["repo_id"]
-
-        # Create sequence_nicknames
-        self.sequence_nicknames = [s.replace("_", " ") for s in self.sequence_names]
-
-        # Get resolution size
-        self.target_resolution = cfg["target_resolution"]
+        # Get Hugging Face repo id
+        self.hf_repo_id = self.cfg["hf_repo_id"]
 
     def download_sequence_data(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0_raw"
+        remote_folder = self._remote_sequence_name(sequence_name)
 
-        if rgb_path.exists():
-            return
-        rgb_path.mkdir(parents=True, exist_ok=True)
-
-        remote_folder = self._remote_folder(sequence_name)
-
-        if HUGGINGFACE_TOKEN is not None:
-            login(token=HUGGINGFACE_TOKEN)
-            token = HUGGINGFACE_TOKEN
-        else:
-            token = os.environ.get("HF_TOKEN")
-
-        api = HfApi(token=token)
-        fs = HfFileSystem(token=token)
-
-        cache_file = self.dataset_path / "all_files_cache.json"
-        if cache_file.exists():
-            with open(cache_file, "r", encoding="utf-8") as f:
-                all_files = json.load(f)
-        else:
-            all_files = api.list_repo_files(repo_id=self.repo_id, repo_type="dataset")
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump(all_files, f, indent=2)
-
-        files = [f for f in all_files if f.startswith(remote_folder + "/")]
-
-        disable_progress_bars()
-        for remote_file in tqdm(files, desc="Downloading files", unit="file"):
-            local_file = rgb_path / Path(remote_file).name
-            fs.get_file(f"datasets/{self.repo_id}/{remote_file}", str(local_file))
-
-    def create_rgb_folder(self, sequence_name: str) -> None:
-        IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
-
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        rgb_raw_path = sequence_path / "rgb_0_raw"
-
-        if rgb_path.exists():
-            return
-        if not rgb_raw_path.exists():
+        if sequence_name == _PINHOLE_SEQUENCE:
+            remote_dir = f"{remote_folder}/corrected/images"
+            for cam_idx, pattern in enumerate(_PINHOLE_STREAM_PATTERNS):
+                ensure_hf_sequence_download(
+                    self.hf_repo_id, [remote_dir], self.rgb_raw_path(sequence_name, cam_idx),
+                    pattern=pattern, token=hf_token(),
+                )
             return
 
-        rgb_path.mkdir(parents=True, exist_ok=True)
-        target_size = None
-        init_size = None
-        for file_path in tqdm(sorted(rgb_raw_path.iterdir()), desc="    resizing images"):
-            if file_path.suffix.lower() not in IMAGE_SUFFIXES:
-                continue
-
-            with Image.open(file_path) as img:
-                img.load()
-                if target_size is None:
-                    init_size = img.size
-                    target_size = self._compute_scaled_size(img.size)
-
-                if img.size != init_size:
-                    print(f"{file_path.name} {img.size} != {init_size}")
-
-                resized_img = img.resize(target_size, Image.LANCZOS)
-                resized_img.save(rgb_path / file_path.name)
-
-    def create_rgb_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        rgb_path = sequence_path / "rgb_0"
-        rgb_csv = sequence_path / "rgb.csv"
-        if rgb_csv.exists():
-            return
-
-        rgb_files = sorted(file_path.name for file_path in rgb_path.iterdir() if file_path.is_file())
-
-        rgb = pd.DataFrame(
-            {
-                "ts_rgb_0 (ns)": [int(i * 1e9 / self.rgb_hz) for i in range(len(rgb_files))],
-                "path_rgb_0": [f"rgb_0/{filename}" for filename in rgb_files],
-            }
-        )
-
-        out = rgb[["ts_rgb_0 (ns)", "path_rgb_0"]]
-        tmp = rgb_csv.with_suffix(".csv.tmp")
-        try:
-            out.to_csv(tmp, index=False)
-            tmp.replace(rgb_csv)
-        finally:
-            tmp.unlink(missing_ok=True)
+        for cam_idx, subfolders in enumerate(_RAW_CAMERA_SUBFOLDERS[sequence_name]):
+            remote_dirs = [f"{remote_folder}/raw/{subfolder}" for subfolder in subfolders]
+            ensure_hf_sequence_download(
+                self.hf_repo_id, remote_dirs, self.rgb_raw_path(sequence_name, cam_idx), token=hf_token(),
+            )
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
-        fx, fy, cx, cy = 0.0, 0.0, 0.0, 0.0
-        rgb: dict[str, Any] = {
-            "cam_name": "rgb_0",
-            "cam_type": "rgb",
-            "cam_model": "unknown",
-            "focal_length": [fx, fy],
-            "principal_point": [cx, cy],
-            "fps": float(self.rgb_hz),
-            "T_BS": np.eye(4),
-        }
-        self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb])
+        rgb = []
+        if sequence_name == _PINHOLE_SEQUENCE:
+            images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
+            for cam_idx, pattern in enumerate(_PINHOLE_STREAM_PATTERNS):
+                # Any registered frame matching this stream's prefix pattern tells us which COLMAP
+                # camera_id is its camera.
+                camera_id = next(v[0] for name, v in images.items() if fnmatch(name, pattern))
+                rgb.append(self._pinhole_rgb_calibration(sequence_name, camera_id, cam_idx))
+        else:
+            # No calibration is published for this sequence's raw fisheye images - either stream.
+            for cam_idx in self._stream_indices(sequence_name):
+                rgb.append({
+                    "cam_name": f"rgb_{cam_idx}",
+                    "cam_type": "rgb",
+                    "cam_model": "unknown",
+                    "focal_length": [0.0, 0.0],
+                    "principal_point": [0.0, 0.0],
+                    "fps": float(self.rgb_hz),
+                    "T_BS": np.eye(4),
+                })
+
+        self.write_calibration_yaml(sequence_name=sequence_name, rgb=rgb)
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        sequence_path = self.dataset_path / sequence_name
-        groundtruth_csv = sequence_path / "groundtruth.csv"
-        tmp = groundtruth_csv.with_suffix(".csv.tmp")
+        if sequence_name != _PINHOLE_SEQUENCE:
+            # No calibration/pose data is published for this sequence's raw fisheye images -
+            # still write the file (header only, no rows) rather than leaving it missing.
+            for cam_idx in self._stream_indices(sequence_name):
+                self._write_empty_groundtruth(sequence_name, cam_idx)
+            return
 
-        with open(tmp, "w", newline="", encoding="utf-8") as fout:
-            w = csv.writer(fout)
-            w.writerow(["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"])
-        tmp.replace(groundtruth_csv)
+        # Both cameras are registered in the same COLMAP reconstruction, so groundtruth.csv (rgb_0)
+        # and groundtruth_1.csv (rgb_1) share one world frame. The corrected images keep their
+        # original filenames in COLMAP, so the frame -> COLMAP image name mapping is the identity.
+        images = read_colmap_images(self._fetch_colmap_file(sequence_name, "images.bin"))
+        for cam_idx in self._stream_indices(sequence_name):
+            self._write_colmap_groundtruth(sequence_name, cam_idx, images, lambda filename: filename)
 
-    def _compute_scaled_size(self, original_size: tuple[int, int]) -> tuple[int, int]:
-        target_w, target_h = self.target_resolution
-        orig_w, orig_h = original_size
-        target_area = target_w * target_h
+    @staticmethod
+    def _remote_sequence_name(sequence_name: str) -> str:
+        """The HFColmapDatasetMixin._fetch_colmap_file() override point - this dataset's remote
+        top-level folder names are a hardcoded table rather than looked up dynamically (contrast
+        SonevaDataset's HfApi-backed version)."""
+        return _REMOTE_FOLDER[sequence_name]
 
-        scaled_h = int(np.sqrt(target_area * orig_h / orig_w))
-        scaled_w = int(target_area / scaled_h)
-        return scaled_w, scaled_h
-
-    def _remote_folder(self, sequence_name: str) -> str:
-        if sequence_name == "indonesia_tabuhan_p1":
-            return "_indonesia_tabuhan_p1_20250210/corrected/images"
-
-        if sequence_name == "indonesia_tabuhan_p2":
-            return "indonesia_tabuhan_p2_20250210/raw/Q8_Left"
-
-        if sequence_name == "indonesia_tabuhan_p3":
-            return " indonesia_tabuhan_p3_20250210/raw/Q9_Left"
-
-        if sequence_name == "indonesia_pemuteran_p1":
-            return "indonesia_pemuteran_p1_20250213/raw/B1_Left"
-
-        if sequence_name == "indonesia_pemuteran_p2":
-            return "indonesia_pemuteran_p2_20250213/raw/B2_Left"
-
-        if sequence_name == "indonesia_pemuteran_p3":
-            return "indonesia_pemuteran_p3_20250213/raw/B3_Left"
-
-        if sequence_name == "indonesia_watudodol_p1":
-            return "indonesia_watudodol_p1_20250208/raw/Q1_Left"
-
-        if sequence_name == "indonesia_watudodol_p2":
-            return "indonesia_watudodol_p2_20250208/raw/Q2_Right"
-
-        if sequence_name == "indonesia_watudodol_p3":
-            return "indonesia_watudodol_p3_20250208/raw/Q3_Left"
-
-        if sequence_name == "indonesia_watudodol_p4":
-            return "indonesia_watudodol_p4_20250209/raw/Q4_Left"
-
-        if sequence_name == "indonesia_watudodol_p5":
-            return "indonesia_watudodol_p5_20250209/raw/Q5_Left"
-
-        if sequence_name == "indonesia_watudodol_p6":
-            return "indonesia_watudodol_p6_20250209/raw/Q6_Left"
-
-        if sequence_name == "indonesia_banyuwangi_farm":
-            return "indonesia_banyuwangi_farm_20250211/raw/F1_Left"
+    @staticmethod
+    def _stream_indices(sequence_name: str) -> list[int]:
+        """The HFColmapDatasetMixin hook: tabuhan_p1 has one stream per prefix pattern, every other
+        sequence one per entry of its _RAW_CAMERA_SUBFOLDERS row (two, or one for watudodol_p2)."""
+        if sequence_name == _PINHOLE_SEQUENCE:
+            return list(range(len(_PINHOLE_STREAM_PATTERNS)))
+        return list(range(len(_RAW_CAMERA_SUBFOLDERS[sequence_name])))

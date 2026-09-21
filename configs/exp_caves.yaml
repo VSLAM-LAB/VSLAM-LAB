@@ -1,5 +1,0 @@
-exp_caves_dpvo:
-  Config: config_caves.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
-  Module: dpvo

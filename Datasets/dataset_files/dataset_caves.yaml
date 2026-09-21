@@ -1,27 +1,50 @@
 dataset_name: caves
 
 rgb_hz: 5.0
+
 modes: ['mono']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_root: "https://zenodo.org/record/7828405/files/undistorted_frames.zip?download=1"
 url_download_timestamps: "https://zenodo.org/record/7828405/files/undistorted_frames_timestamps.txt?download=1"
-url_download_groundtruth: "https://zenodo.org/record/7828405/files/full_dataset.zip?download=1"
+url_download_root_gt: "https://zenodo.org/record/7828405/files/full_dataset.zip?download=1"
 
 sequence_names:
   - escala
 
 about:
-  license: License
-  summary: Underwater Caves Sonar and Vision Data Set
+  license: CC BY-NC-SA 4.0
+  summary: Underwater Caves Sonar and Vision Data Set - a diver-guided AUV exploration of an underwater cave complex, with sonar, DVL, dual-IMU and vertically-mounted camera data
   homepage: https://cirs.udg.edu/caves-dataset/
+  features:
+    - Real
+    - Outdoor
+    - Underwater
   authors:
     - Angelos Mallios
     - Eduard Vidal
-    - Ricard Campos 
+    - Ricard Campos
     - Marc Carreras
+  access: Public
+  publication: "Underwater caves sonar data set"
+  publication_url: "https://journals.sagepub.com/doi/10.1177/0278364917732838"
+  year: 2017
+  bibtex_key: mallios2017underwater
+  bibtex: |
+    @article{mallios2017underwater,
+      title={Underwater caves sonar data set},
+      author={Mallios, Angelos and Vidal, Eduard and Campos, Ricard and Carreras, Marc},
+      journal={The International Journal of Robotics Research},
+      volume={36},
+      number={12},
+      pages={1247--1251},
+      year={2017},
+      publisher={Sage Publications Sage UK: London, England}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
-  date: 2026-03-07
+  date: 2026-08-03

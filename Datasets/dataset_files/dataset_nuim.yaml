@@ -1,9 +1,11 @@
 dataset_name: nuim
 
 rgb_hz: 30.0
-url_download_root: "https://www.doc.ic.ac.uk/~ahanda"
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['tar']
+
+url_download_root: "https://www.doc.ic.ac.uk/~ahanda"
 depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -22,4 +24,39 @@ sequence_names:
   - traj0n_frei_png
   - traj1n_frei_png
   - traj2n_frei_png
-  - traj3n_frei_png    
+  - traj3n_frei_png
+
+about:
+  license: CC BY 3.0
+  summary: ICL-NUIM RGB-D benchmark with ground-truth trajectories and 3D models for SLAM/odometry evaluation
+  homepage: https://www.doc.ic.ac.uk/~ahanda/VaFRIC/iclnuim.html
+  features:
+    - Synthetic
+    - Indoor
+    - Handheld
+  authors:
+    - Ankur Handa
+    - Thomas Whelan
+    - John B. McDonald
+    - Andrew J. Davison
+  access: Public
+  publication: "A benchmark for RGB-D visual odometry, 3D reconstruction and SLAM"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/6907054"
+  year: 2014
+  bibtex_key: handa2014benchmark
+  bibtex: |
+    @inproceedings{handa2014benchmark,
+      title={A benchmark for RGB-D visual odometry, 3D reconstruction and SLAM},
+      author={Handa, Ankur and Whelan, Thomas and McDonald, John and Davison, Andrew J},
+      booktitle={2014 IEEE international conference on Robotics and automation (ICRA)},
+      pages={1524--1531},
+      year={2014},
+      organization={IEEE}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-07-13
+

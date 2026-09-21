@@ -1,0 +1,13 @@
+# equid4 dataset: only baselines listing equid4 in cam_models apply (colmap, orbslam3, okvis2,
+# pycuvslam) - droidslam/dpvo reject it (see #131).
+test_exp_endomapper_colmap:
+  Config: test_config_endomapper.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 1}
+  Module: colmap
+
+test_exp_endomapper_orbslam3:
+  Config: test_config_endomapper.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: orbslam3

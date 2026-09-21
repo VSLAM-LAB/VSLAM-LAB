@@ -5,89 +5,127 @@ from path_constants import VSLAM_LAB_DIR
 # ADD your imports here
 
 # Monocular datasets
-from Datasets.dataset_files.dataset_tartanair import TARTANAIR_dataset
-from Datasets.dataset_files.dataset_squidle import SESOKO_dataset
-from Datasets.dataset_files.dataset_sweetcorals import SWEETCORALS_dataset
-from Datasets.dataset_files.dataset_monotum import MONOTUM_dataset
-from Datasets.dataset_files.dataset_hamlyn import HAMLYN_dataset
-from Datasets.dataset_files.dataset_scannetplusplus import SCANNETPLUSPLUS_dataset
-from Datasets.dataset_files.dataset_caves import CAVES_dataset
+from Datasets.dataset_files.dataset_tartanair import TartanairDataset
+from Datasets.dataset_files.dataset_squidle import SesokoDataset
+from Datasets.dataset_files.dataset_sweetcorals import SweetcoralsDataset
+from Datasets.dataset_files.dataset_soneva import SonevaDataset
+from Datasets.dataset_files.dataset_eiffel_tower import EiffelTowerDataset
+from Datasets.dataset_files.dataset_monotum import MonotumDataset
+from Datasets.dataset_files.dataset_caves import CavesDataset
+from Datasets.dataset_files.dataset_malaysia_jul2026 import MalaysiaJul2026Dataset
+from Datasets.dataset_files.dataset_lizard_island import LizardIslandDataset
+from Datasets.dataset_files.dataset_endomapper import EndomapperDataset
 
 # RGBD datasets
-from Datasets.dataset_files.dataset_eth import ETH_dataset
-from Datasets.dataset_files.dataset_rgbdtum import RGBDTUM_dataset
-from Datasets.dataset_files.dataset_replica import REPLICA_dataset
-from Datasets.dataset_files.dataset_nuim import NUIM_dataset
-from Datasets.dataset_files.dataset_7scenes import SEVENSCENES_dataset
-from Datasets.dataset_files.dataset_drunkards import DRUNKARDS_dataset
+from Datasets.dataset_files.dataset_drunkards import DrunkardsDataset
+from Datasets.dataset_files.dataset_eth import EthDataset
+from Datasets.dataset_files.dataset_rgbdtum import RgbdtumDataset
+from Datasets.dataset_files.dataset_replica import ReplicaDataset
+from Datasets.dataset_files.dataset_nuim import NuimDataset
+from Datasets.dataset_files.dataset_7scenes import SevenscenesDataset
+from Datasets.dataset_files.dataset_minimal import MinimalDataset
+from Datasets.dataset_files.dataset_bonn_rgbd import BonnRgbdDataset
+from Datasets.dataset_files.dataset_endomapper_sim import EndomapperSimDataset
 
 # Stereo datasets
-from Datasets.dataset_files.dataset_kitti import KITTI_dataset
-from Datasets.dataset_files.dataset_ut_coda import UT_CODA_dataset
-from Datasets.dataset_files.dataset_ariel import ARIEL_dataset
+from Datasets.dataset_files.dataset_kitti import KittiDataset
+from Datasets.dataset_files.dataset_malaga import MalagaDataset
+from Datasets.dataset_files.dataset_ut_coda import UtCodaDataset
+from Datasets.dataset_files.dataset_nsavp import NsavpDataset
+from Datasets.dataset_files.dataset_hamlyn import HamlynDataset
+from Datasets.dataset_files.dataset_tartanair_train import TartanairTrainDataset
 
 # Stereo-VI datasets
-from Datasets.dataset_files.dataset_euroc import EUROC_dataset
-from Datasets.dataset_files.dataset_rover import ROVER_t265_dataset
-from Datasets.dataset_files.dataset_rover import ROVER_d435i_dataset
-from Datasets.dataset_files.dataset_rover import ROVER_picam_dataset
-from Datasets.dataset_files.dataset_s3li import S3LI_dataset
-from Datasets.dataset_files.dataset_msd import MSD_dataset
-from Datasets.dataset_files.dataset_openloris import OPENLORIS_d400_dataset
-from Datasets.dataset_files.dataset_openloris import OPENLORIS_t265_dataset
-from Datasets.dataset_files.dataset_blt import BLT_dataset
-from Datasets.dataset_files.dataset_hilti2022 import HILTI2022_dataset
-from Datasets.dataset_files.dataset_madmax import MADMAX_dataset
-from Datasets.dataset_files.dataset_hilti2026 import HILTI2026_dataset
-from Datasets.dataset_files.dataset_vitum import VITUM_dataset
+from Datasets.dataset_files.dataset_ariel import ArielDataset
+from Datasets.dataset_files.dataset_euroc import EurocDataset
+from Datasets.dataset_files.dataset_rover import RoverT265Dataset
+from Datasets.dataset_files.dataset_rover import RoverD435iDataset
+from Datasets.dataset_files.dataset_rover import RoverPicamDataset
+from Datasets.dataset_files.dataset_msd import MsdDataset
+from Datasets.dataset_files.dataset_openloris import OpenlorisD400Dataset
+from Datasets.dataset_files.dataset_openloris import OpenlorisT265Dataset
+from Datasets.dataset_files.dataset_hilti2022 import Hilti2022Dataset
+from Datasets.dataset_files.dataset_madmax import MadmaxDataset
+from Datasets.dataset_files.dataset_hilti2026 import Hilti2026Dataset
+from Datasets.dataset_files.dataset_pamir_rig import PamirRigDataset
+from Datasets.dataset_files.dataset_pamir import PamirDataset
+from Datasets.dataset_files.dataset_vitum import VitumDataset
+from Datasets.dataset_files.dataset_s3li_etna import S3liEtnaDataset
+from Datasets.dataset_files.dataset_s3li_vulcano import S3liVulcanoDataset
+from Datasets.dataset_files.dataset_vector import VectorDataset
+from Datasets.dataset_files.dataset_rvp_handheld import RvpHandheldDataset
+from Datasets.dataset_files.dataset_rvp_car import RvpCarDataset
+from Datasets.dataset_files.dataset_aria_digital_twin import AriaDigitalTwinDataset
+from Datasets.dataset_files.dataset_newer_college_stereo_vi import NewerCollegeStereoViDataset
+from Datasets.dataset_files.dataset_uzh_fpv import UzhFpvDataset
+from Datasets.dataset_files.dataset_blt import BltDataset
 
 # Development
-from Datasets.dataset_files.dataset_videos import VIDEOS_dataset
-from Datasets.dataset_files.dataset_iphone import IPHONE_dataset
-from Datasets.dataset_files.dataset_youtube import YOUTUBE_dataset
-from Datasets.dataset_files.dataset_strayscanner import StrayScanner_dataset
+from Datasets.dataset_files.dataset_videos import VideosDataset
+from Datasets.dataset_files.dataset_youtube import YoutubeDataset
+from Datasets.dataset_files.dataset_strayscanner import StrayscannerDataset
+from Datasets.dataset_files.dataset_pupil_labs import PupilLabsDataset
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
-def get_dataset(dataset_name, benchmark_path):
+def get_dataset(dataset_name):
     dataset_name = dataset_name.lower()
     switcher = {
         # ADD your datasets here
-        "tartanair": lambda: TARTANAIR_dataset(benchmark_path),
-        "eth": lambda: ETH_dataset(benchmark_path),
-        "rgbdtum": lambda: RGBDTUM_dataset(benchmark_path),
-        "replica": lambda: REPLICA_dataset(benchmark_path),
-        "nuim": lambda: NUIM_dataset(benchmark_path),
-        "kitti": lambda: KITTI_dataset(benchmark_path),
-        "ut-coda": lambda: UT_CODA_dataset(benchmark_path),
-        "euroc": lambda: EUROC_dataset(benchmark_path),
-        "rover-t265": lambda: ROVER_t265_dataset(benchmark_path),
-        "rover-d435i": lambda: ROVER_d435i_dataset(benchmark_path),
-        "rover-picam": lambda: ROVER_picam_dataset(benchmark_path),
-        "s3li": lambda: S3LI_dataset(benchmark_path),
-        "msd": lambda: MSD_dataset(benchmark_path),
-        "sesoko": lambda: SESOKO_dataset(benchmark_path),
-        "7scenes": lambda: SEVENSCENES_dataset(benchmark_path),
-        "openloris-d400": lambda: OPENLORIS_d400_dataset(benchmark_path),
-        "openloris-t265": lambda: OPENLORIS_t265_dataset(benchmark_path),
-        "blt": lambda: BLT_dataset(benchmark_path),
-        "sweetcorals": lambda: SWEETCORALS_dataset(benchmark_path),
-        "monotum": lambda: MONOTUM_dataset(benchmark_path),
-        "ariel": lambda: ARIEL_dataset(benchmark_path),
-        "hilti2022": lambda: HILTI2022_dataset(benchmark_path),
-        "madmax": lambda: MADMAX_dataset(benchmark_path),
-        "hamlyn": lambda: HAMLYN_dataset(benchmark_path),
-        "hilti2026": lambda: HILTI2026_dataset(benchmark_path),
-        "drunkards": lambda: DRUNKARDS_dataset(benchmark_path),
-        "scannetplusplus": lambda: SCANNETPLUSPLUS_dataset(benchmark_path),
-        "caves": lambda: CAVES_dataset(benchmark_path),
-        "vitum": lambda: VITUM_dataset(benchmark_path),
+        "tartanair": lambda: TartanairDataset(),
+        "tartanair-train": lambda: TartanairTrainDataset(),
+        "drunkards": lambda: DrunkardsDataset(),
+        "eth": lambda: EthDataset(),
+        "rgbdtum": lambda: RgbdtumDataset(),
+        "replica": lambda: ReplicaDataset(),
+        "nuim": lambda: NuimDataset(),
+        "kitti": lambda: KittiDataset(),
+        "malaga": lambda: MalagaDataset(),
+        "ut-coda": lambda: UtCodaDataset(),
+        "nsavp": lambda: NsavpDataset(),
+        "hamlyn": lambda: HamlynDataset(),
+        "ariel": lambda: ArielDataset(),
+        "euroc": lambda: EurocDataset(),
+        "rover-t265": lambda: RoverT265Dataset(),
+        "rover-d435i": lambda: RoverD435iDataset(),
+        "rover-picam": lambda: RoverPicamDataset(),
+        "msd": lambda: MsdDataset(),
+        "sesoko": lambda: SesokoDataset(),
+        "7scenes": lambda: SevenscenesDataset(),
+        "minimal": lambda: MinimalDataset(),
+        "bonn-rgbd": lambda: BonnRgbdDataset(),
+        "openloris-d400": lambda: OpenlorisD400Dataset(),
+        "openloris-t265": lambda: OpenlorisT265Dataset(),
+        "sweetcorals": lambda: SweetcoralsDataset(),
+        "soneva": lambda: SonevaDataset(),
+        "hilti2022": lambda: Hilti2022Dataset(),
+        "madmax": lambda: MadmaxDataset(),
+        "hilti2026": lambda: Hilti2026Dataset(),
+        "eiffel-tower": lambda: EiffelTowerDataset(),
+        "monotum": lambda: MonotumDataset(),
+        "caves": lambda: CavesDataset(),
+        "malaysia-jul2026": lambda: MalaysiaJul2026Dataset(),
+        "lizard-island": lambda: LizardIslandDataset(),
+        "endomapper": lambda: EndomapperDataset(),
+        "endomapper-sim": lambda: EndomapperSimDataset(),
+        "pamir-rig": lambda: PamirRigDataset(),
+        "pamir": lambda: PamirDataset(),
+        "vitum": lambda: VitumDataset(),
+        "s3li-etna": lambda: S3liEtnaDataset(),
+        "s3li-vulcano": lambda: S3liVulcanoDataset(),
+        "vector": lambda: VectorDataset(),
+        "rvp-handheld": lambda: RvpHandheldDataset(),
+        "rvp-car": lambda: RvpCarDataset(),
+        "aria-digital-twin": lambda: AriaDigitalTwinDataset(),
+        "newer-college-stereo-vi": lambda: NewerCollegeStereoViDataset(),
+        "uzh-fpv": lambda: UzhFpvDataset(),
+        "blt": lambda: BltDataset(),
 
         # Development
-        "videos": lambda: VIDEOS_dataset(benchmark_path),
-        "iphone": lambda: IPHONE_dataset(benchmark_path),
-        "youtube": lambda: YOUTUBE_dataset(benchmark_path),
-        "strayscanner": lambda: StrayScanner_dataset(benchmark_path)
+        "videos": lambda: VideosDataset(),
+        "youtube": lambda: YoutubeDataset(),
+        "strayscanner": lambda: StrayscannerDataset(),
+        "pupil-labs": lambda: PupilLabsDataset(),
     }
 
     return switcher.get(dataset_name, lambda: "Invalid case")()

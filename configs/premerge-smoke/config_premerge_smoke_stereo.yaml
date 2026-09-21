@@ -1,0 +1,7 @@
+# stereo
+kitti:
+ - '04'
+nsavp:
+ - 'R0_FA0'
+ut-coda:
+  - '0'

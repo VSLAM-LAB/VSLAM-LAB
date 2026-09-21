@@ -1,0 +1,93 @@
+dataset_name: soneva
+
+rgb_hz: 2.0
+modes: ['mono']
+cam_models: ['pinhole']
+raw_formats: ['images', 'colmap']
+
+hf_repo_id: "wildflow/soneva-corals"
+target_resolution: [640, 480]
+
+# <plot>_<yyyymmdd>: one survey of the two-GoPro rig, as two independent monocular streams - rgb_0
+# (LHS camera; what 'mono' runs on) plus rgb_1 (RHS camera) with its own rgb_1.csv, calibration
+# entry and groundtruth_1.csv. Not a stereo pair: unsynchronized shutters, no rig extrinsics.
+# <plot>_<yyyymmdd>_comb: the same survey with both cameras merged into one denser rgb_0 (RHS frames
+# warped into the rgb_0 intrinsics, both cropped to their common canvas, interleaved by a
+# groundtruth-estimated shutter offset) with a single rgb.csv / groundtruth.csv and the rgb_0
+# camera's calibration. Requesting a *_comb sequence pulls in (downloads/processes) its base survey.
+sequence_names:
+  - hb_20250710
+  - hb_20250728
+  - hb_20251029
+  - hb_20260304
+  - ootbm_20250624
+  - ootbm_20250703
+  - ootbm_20251007
+  - ootbr_20250709
+  - ootbr_20250728
+  - ootbr_20251029
+  - ootbr_20260304
+  - ootsl1_20250602
+  - ootsl1_20250620
+  - ootsl1_20251007
+  - ootsl1_20260218
+  - ootsr2_20250702
+  - ootsr2_20250704
+  - ootsr2_20251008
+  - ootsr2_20260303
+  - ootsr3_20250703
+  - ootsr3_20250704
+  - ootsr3_20251008
+  - ootsr3_20260303
+  - hb_20250710_comb
+  - hb_20250728_comb
+  - hb_20251029_comb
+  - hb_20260304_comb
+  - ootbm_20250624_comb
+  - ootbm_20250703_comb
+  - ootbm_20251007_comb
+  - ootbr_20250709_comb
+  - ootbr_20250728_comb
+  - ootbr_20251029_comb
+  - ootbr_20260304_comb
+  - ootsl1_20250602_comb
+  - ootsl1_20250620_comb
+  - ootsl1_20251007_comb
+  - ootsl1_20260218_comb
+  - ootsr2_20250702_comb
+  - ootsr2_20250704_comb
+  - ootsr2_20251008_comb
+  - ootsr2_20260303_comb
+  - ootsr3_20250703_comb
+  - ootsr3_20250704_comb
+  - ootsr3_20251008_comb
+  - ootsr3_20260303_comb
+
+about:
+  license: CC-BY-4.0
+  summary: Coral reef time-series photogrammetry (Maldives), from Soneva Conservation and Sustainability Maldives and Wildflow
+  homepage: https://huggingface.co/datasets/wildflow/soneva-corals
+  features:
+    - Real
+    - Outdoor
+    - Underwater
+    - Handheld
+  authors:
+    - Ben Yuen
+    - Ayla Kroon
+    - Tom Freer
+    - Ashley Wallis
+    - Johanna Leonhardt
+    - Wildflow
+  access: Public
+  publication: N/A
+  publication_url: N/A
+  year: N/A
+  bibtex_key: N/A
+  bibtex: N/A
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-07-21

@@ -3,8 +3,9 @@ dataset_name: strayscanner
 rgb_hz: 30.0
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['zip', 'video', 'local']
 
-huggingface_repo_id: vslamlab/strayscanner
+hf_repo_id: vslamlab/strayscanner
 target_resolution: [640, 480]
 
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
@@ -21,10 +22,19 @@ about:
   license: MIT
   summary: An app for collecting raw RGB-D scans on iOS devices.
   homepage: https://docs.strayrobots.io/
+  features:
+    - Real
+    - Handheld
   authors:
     - Kenneth Blomqvist
     - Martin Smith
     - Sihat Afnan
+  access: Public
+  publication: N/A
+  publication_url: N/A
+  year: N/A
+  bibtex_key: N/A
+  bibtex: N/A
 
 vslamlab_maintainer:
   name: Nicolas Marticorena

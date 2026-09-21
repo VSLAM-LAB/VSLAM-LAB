@@ -1,0 +1,17 @@
+test_exp_endomapper_sim_mono_colmap:
+  Config: test_config_endomapper_sim.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 1}
+  Module: colmap
+
+test_exp_endomapper_sim_mono_dpvo:
+  Config: test_config_endomapper_sim.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: dpvo
+
+test_exp_endomapper_sim_rgbd_droidslam:
+  Config: test_config_endomapper_sim.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: rgbd, rgb_idx: [0,2000]}
+  Module: droidslam

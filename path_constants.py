@@ -20,8 +20,15 @@ CONFIG_DEFAULT = 'config_debug.yaml'
 VSLAM_LAB_EVALUATION_FOLDER = 'vslamlab_evaluation'
 RGB_BASE_FOLDER = 'rgb'
 GROUNTRUTH_FILE = 'groundtruth.csv'
+CALIBRATION_EXP_YAML = 'calibration_exp.yaml'  # per-experiment copy of a sequence's calibration.yaml (Run/run_functions.py)
+RGB_EXP_CSV = f'{RGB_BASE_FOLDER}_exp.csv'  # per-experiment (filtered) copy of a sequence's rgb.csv (Run/run_functions.py)
 
 ABLATION_PARAMETERS_CSV = 'log_ablation_parameters.csv'
+
+# Experiment Parameters: keys consumed by the run pipeline itself (Run/run_functions.py) rather than
+# forwarded to the baseline; BaselineVSLAMLAB.build_execute_command warns about any other unknown key.
+EXP_FRAMEWORK_PARAMETERS = ('rgb_csv', 'rgb_idx', 'rgb_step', 'rgb_max', 'rgb_vpr', 'rgb_placecell',
+                            'refraction', 'segmentation', 'depth', 'calibration')
 
 TRAJECTORY_FILE_NAME = 'KeyFrameTrajectory'
 SCRIPT_LABEL = f"\033[95m[{os.path.basename(__file__)}]\033[0m "
@@ -39,19 +46,26 @@ VerbosityManager = {
     "NONE": 0
 }
 
-def set_VSLAMLAB_path(new_path, file_path, target_line_start):
-    new_line = f"{target_line_start} \"{new_path}\""
-    print(f"{SCRIPT_LABEL}Set {new_line}")
+def set_VSLAMLAB_path(new_path: str, file_path: str, target_line_start: str) -> None:
+    new_line = f"{target_line_start} Path(\"{Path(new_path).expanduser().resolve()}\")"
 
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
+    replaced = False
     with open(file_path, 'w') as file:
         for line in lines:
-            if line.strip().startswith(target_line_start):
+            if not replaced and line.startswith(target_line_start):
                 file.write(new_line + '\n')
+                replaced = True
             else:
                 file.write(line)
+
+    if replaced:
+        print(f"{SCRIPT_LABEL}Set {new_line}")
+    else:
+        print(f"{SCRIPT_LABEL}\033[91m[ERROR]\033[0m No line starting with '{target_line_start}' found in {file_path}")
+        sys.exit(1)
 
 if __name__ == "__main__":
 

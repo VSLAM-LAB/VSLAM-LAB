@@ -4,6 +4,8 @@ rgb_hz: 10.0
 url_download_root: "https://web.corral.tacc.utexas.edu/texasrobotics/web_CODa/CODa_vslam/"
 modes: ['mono', 'stereo']
 cam_models: ['radtan5']
+raw_formats: ['zip']
+target_resolution: [640, 480]
 
 sequence_names:
   - '0'
@@ -12,7 +14,7 @@ sequence_names:
   - '3'
   - '4'
   - '5'
-  - '6 '
+  - '6'
   - '7'
   - '8'
   - '9'
@@ -29,3 +31,36 @@ sequence_names:
   - '20'
   - '21'
   - '22'
+
+about:
+  license: CC BY-NC-SA 4.0
+  summary: The UT Campus Object Dataset (CODa) - egocentric robot perception dataset collected on the UT Austin campus
+  homepage: https://amrl.cs.utexas.edu/coda/
+  features:
+    - Real
+    - Outdoor
+    - Robot
+  authors:
+    - Arthur Zhang
+    - Joydeep Biswas
+    - Others
+  access: Public
+  publication: "Toward Robust Robot 3-D Perception in Urban Environments: The UT Campus Object Dataset"
+  publication_url: "https://doi.org/10.1109/TRO.2024.3400831"
+  year: 2024
+  bibtex_key: zhang2024coda
+  bibtex: |
+    @article{zhang2024coda,
+      title={Toward Robust Robot 3-D Perception in Urban Environments: The UT Campus Object Dataset},
+      author={Zhang, Arthur and Eranki, Chaitanya and Zhang, Christina and Park, Ji-Hwan and Hong, Raymond and Kalyani, Pranav and Kalyanaraman, Lochana and Gamare, Arsh and Bagad, Arnav and Esteva, Maria and Biswas, Joydeep},
+      journal={IEEE Transactions on Robotics},
+      volume={40},
+      publisher={IEEE},
+      year={2024}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2025-05-25

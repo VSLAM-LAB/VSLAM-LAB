@@ -1,0 +1,5 @@
+test_exp_monogs-dev_mono:
+  Config: config_demo.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono}
+  Module: monogs-dev

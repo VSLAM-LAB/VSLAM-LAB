@@ -1,0 +1,11 @@
+exp_premerge_smoke_mono_orbslam2:
+  Config: premerge-smoke/config_premerge_smoke_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: orbslam2
+
+exp_premerge_smoke_mono_droidslam:
+  Config: premerge-smoke/config_premerge_smoke_mono.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_max: 200, rgb_step: 3}
+  Module: droidslam

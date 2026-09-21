@@ -30,7 +30,7 @@ def full_comparison(experiments, VSLAMLAB_BENCHMARK, COMPARISONS_YAML_DEFAULT, c
             'accuracy_boxplot_shared_scale': lambda: plot_functions.boxplot_exp_seq(accuracies, dataset_sequences,
                                                                        'rmse', figures_path, experiments, shared_scale=True),
             'cumulated_error': lambda: plot_functions.plot_cum_error(accuracies, dataset_sequences, exp_names,
-                                                                     dataset_nicknames, 'rmse', figures_path, experiments),
+                                                                     'rmse', figures_path, experiments),
             'accuracy_radar': lambda: plot_functions.radar_seq(accuracies, dataset_sequences, exp_names,
                                                                dataset_nicknames, 'rmse', figures_path, experiments),
             'trajectories': lambda: plot_functions.plot_trajectories(dataset_sequences, exp_names, dataset_nicknames,
@@ -93,7 +93,7 @@ def get_experiments(experiments):
     sequence_nicknames = {}
     dataset_rgbHz = {}
     for dataset_name, sequence_names in dataset_sequences.items():
-        dataset = get_dataset(dataset_name, "-")
+        dataset = get_dataset(dataset_name)
         dataset_nicknames[dataset_name] = []
         dataset_rgbHz[dataset_name] = dataset.rgb_hz
         for sequence_name in sequence_names:

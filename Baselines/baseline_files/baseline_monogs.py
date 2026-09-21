@@ -2,12 +2,12 @@ import os.path
 from pathlib import Path
 
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class MONOGS_baseline(BaselineVSLAMLab):
+class MONOGS_baseline(BaselineVSLAMLAB):
     """MonoGS helper for VSLAM-LAB Baselines."""    
     def __init__(self, baseline_name: str = 'monogs', baseline_folder: str = 'MonoGS') -> None:    
 
@@ -17,14 +17,9 @@ class MONOGS_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.500, 0.550, 0.600)
         self.modes = ['mono', 'rgbd']       
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5']
+        self.command_style = 'python'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
-        
-    def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
-        
 
 class MONOGS_baseline_dev(MONOGS_baseline):
     """MonoGS-DEV helper for VSLAM-LAB Baselines."""     

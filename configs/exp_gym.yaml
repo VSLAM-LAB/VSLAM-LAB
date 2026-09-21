@@ -1,0 +1,11 @@
+# Gym experiments of AllFeature-VSLAM (Baselines/AllFeature-VSLAM-DEV/docs/gym/protocol.md).
+# Run from the VSLAM-LAB root with --overwrite, always:
+#   pixi run vslamlab configs/exp_gym.yaml --overwrite && pixi run evaluate configs/exp_gym.yaml
+# Then, from Baselines/AllFeature-VSLAM-DEV:
+#   python docs/tools/gym_compare.py <before_exp> exp_gym_mono
+# NumRuns: 3 is the minimum the protocol's rank test needs; do not lower it.
+exp_gym_mono:
+  Config: config_gym.yaml
+  NumRuns: 3
+  Parameters: {verbose: 0, mode: mono}
+  Module: allfeature-dev

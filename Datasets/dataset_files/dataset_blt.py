@@ -18,14 +18,14 @@ except ImportError:
     def tqdm(iterable, **_kwargs):
         return iterable
 
-from Datasets.DatasetVSLAMLab import DatasetVSLAMLab
+from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 
 
-class BLT_dataset(DatasetVSLAMLab):
+class BltDataset(DatasetVSLAMLAB):
     """BLT ktima local rosbag dataset helper."""
 
-    def __init__(self, benchmark_path: str | Path, dataset_name: str = "blt") -> None:
-        super().__init__(dataset_name, Path(benchmark_path))
+    def __init__(self, dataset_name: str = "blt") -> None:
+        super().__init__(dataset_name)
 
         with open(self.yaml_file, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
@@ -439,7 +439,7 @@ class BLT_dataset(DatasetVSLAMLab):
     def _rgb_images_cover_seconds(image_paths: list[Path], max_seconds: float) -> bool:
         if len(image_paths) < 2:
             return False
-        timestamps = [BLT_dataset._timestamp_from_image_name(path) for path in image_paths]
+        timestamps = [BltDataset._timestamp_from_image_name(path) for path in image_paths]
         duration_s = (max(timestamps) - min(timestamps)) / 1e9
         return duration_s >= max_seconds
 
@@ -718,7 +718,7 @@ class BLT_dataset(DatasetVSLAMLab):
     def _first_rgb_image_dimension(rgb_path: Path) -> tuple[int, int] | None:
         import cv2
 
-        image_paths = BLT_dataset._rgb_image_paths(rgb_path)
+        image_paths = BltDataset._rgb_image_paths(rgb_path)
         if not image_paths:
             return None
         image = cv2.imread(str(image_paths[0]))
@@ -947,7 +947,7 @@ class BLT_dataset(DatasetVSLAMLab):
                 p for p in rgb_path.iterdir()
                 if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg"}
             ),
-            key=BLT_dataset._timestamp_from_image_name,
+            key=BltDataset._timestamp_from_image_name,
         )
 
     @staticmethod
@@ -959,7 +959,7 @@ class BLT_dataset(DatasetVSLAMLab):
                 p for p in depth_path.iterdir()
                 if p.is_file() and p.suffix.lower() == ".png"
             ),
-            key=BLT_dataset._timestamp_from_image_name,
+            key=BltDataset._timestamp_from_image_name,
         )
 
     @staticmethod
@@ -1094,9 +1094,9 @@ class BLT_dataset(DatasetVSLAMLab):
         bag_path: Path,
         image_topics: list[str],
     ):
-        with BLT_dataset._open_fast_ros1_stream(bag_path) as reader:
+        with BltDataset._open_fast_ros1_stream(bag_path) as reader:
             available_topics = [c.topic for c in reader.connections]
-            selected_topic = BLT_dataset._select_first_available_topic(
+            selected_topic = BltDataset._select_first_available_topic(
                 image_topics,
                 available_topics,
                 label="Image",
@@ -1351,13 +1351,13 @@ class BLT_dataset(DatasetVSLAMLab):
     @staticmethod
     def _matrix_from_translation_quaternion(translation: np.ndarray, quaternion: np.ndarray) -> np.ndarray:
         matrix = np.eye(4)
-        matrix[:3, :3] = BLT_dataset._rotation_matrix_from_quaternion(quaternion)
+        matrix[:3, :3] = BltDataset._rotation_matrix_from_quaternion(quaternion)
         matrix[:3, 3] = translation
         return matrix
 
     @staticmethod
     def _rotation_matrix_from_quaternion(quaternion: np.ndarray) -> np.ndarray:
-        x, y, z, w = BLT_dataset._normalize_quaternion(quaternion)
+        x, y, z, w = BltDataset._normalize_quaternion(quaternion)
         return np.array([
             [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
             [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
@@ -1393,7 +1393,7 @@ class BLT_dataset(DatasetVSLAMLab):
                 x = (rotation[0, 2] + rotation[2, 0]) / scale
                 y = (rotation[1, 2] + rotation[2, 1]) / scale
                 z = 0.25 * scale
-        return BLT_dataset._normalize_quaternion(np.array([x, y, z, w]))
+        return BltDataset._normalize_quaternion(np.array([x, y, z, w]))
 
     @staticmethod
     def _normalize_quaternion(quaternion: np.ndarray) -> np.ndarray:
@@ -1423,7 +1423,7 @@ class BLT_dataset(DatasetVSLAMLab):
     def _available_tf_frames(tf_edges: dict[str, list[tuple[str, np.ndarray]]]) -> set[str]:
         frames = set(tf_edges.keys())
         for edges in tf_edges.values():
-            frames.update(BLT_dataset._edge_frame(edge) for edge in edges)
+            frames.update(BltDataset._edge_frame(edge) for edge in edges)
         return frames
 
     @staticmethod
@@ -1451,7 +1451,7 @@ class BLT_dataset(DatasetVSLAMLab):
         msgtype: str,
         msg: Any,
     ) -> Path:
-        image = BLT_dataset._message_to_bgr_image(msgtype, msg)
+        image = BltDataset._message_to_bgr_image(msgtype, msg)
         image_path = output_path / f"{timestamp_ns}.png"
         import cv2
 
@@ -1466,7 +1466,7 @@ class BLT_dataset(DatasetVSLAMLab):
         msgtype: str,
         msg: Any,
     ) -> Path:
-        depth = BLT_dataset._message_to_depth_image(msgtype, msg)
+        depth = BltDataset._message_to_depth_image(msgtype, msg)
         image_path = output_path / f"{timestamp_ns}.png"
         import cv2
 
@@ -1477,7 +1477,7 @@ class BLT_dataset(DatasetVSLAMLab):
     @staticmethod
     def _message_to_depth_image(msgtype: str, msg: Any) -> np.ndarray:
         if msgtype.endswith("/CompressedImage"):
-            return BLT_dataset._decode_compressed_depth_image(msg)
+            return BltDataset._decode_compressed_depth_image(msg)
 
         if not msgtype.endswith("/Image"):
             raise TypeError(f"Unsupported BLT depth image message type: {msgtype}")

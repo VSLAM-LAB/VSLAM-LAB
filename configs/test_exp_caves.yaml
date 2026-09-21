@@ -1,0 +1,11 @@
+test_exp_caves_droidslam:
+  Config: test_config_caves.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: droidslam
+
+test_exp_caves_colmap:
+  Config: test_config_caves.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: colmap

@@ -1,0 +1,9 @@
+# Smoke test for 'rgb_placecell: <n>' (Capabilities/placecell.py): rgb_exp.csv keeps the 100 least
+# redundant frames of the sequence, chosen by placecell's information culler on the VPR matrix
+# <sequence>/vpr-lab/D.npy (generated on first use by 'pixi run vpr'); the removal order lands in
+# <exp_folder>/rgb_placecell.csv.
+test_exp_placecell_colmap:
+  Config: test_config_placecell.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_placecell: 100}
+  Module: colmap

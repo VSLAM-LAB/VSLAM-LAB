@@ -1,11 +1,12 @@
 dataset_name: madmax
 
 rgb_hz: 30.0
-modes: ['mono', 'mono-vi', 'stereo','stereo-vi']
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
 url_download_root: "https://my.hidrive.com/api"
-api_token: "0i0PgRIzgOtYsjYUDRsU"
+api_token: "not_set"
 
 sequence_names:
   - A-0
@@ -16,15 +17,37 @@ sequence_names:
   - E-0
 
 about:
-  license: License
+  license: Academic use only (registration required)
   summary: The MADMAX data set for visual-inertial rover navigation on Mars
   homepage: https://datasets.arches-projekt.de/morocco2018/
+  features:
+    - Real
+    - Outdoor
+    - Planetary-analog Terrain
+    - Handheld
   authors:
     - Lukas Meyer
     - Michal Smíšek
     - Others
+  access: Registration Required
+  publication: "The MADMAX data set for visual-inertial rover navigation on Mars"
+  publication_url: "https://doi.org/10.1002/rob.22016"
+  year: 2021
+  bibtex_key: meyer2021madmax
+  bibtex: |
+    @article{meyer2021madmax,
+      title={The MADMAX data set for visual-inertial rover navigation on Mars},
+      author={Meyer, Lukas and Smisek, Michal and Fontan Villacampa, Alejandro and Oliva Maza, Laura and Medina, Daniel and Schuster, Martin J and Steidle, Florian and Vayugundla, Mallikarjuna and M{\"u}ller, Marcus G and Rebele, Bernhard and Wedler, Armin and Triebel, Rudolph},
+      journal={Journal of Field Robotics},
+      volume={38},
+      number={6},
+      pages={833--853},
+      publisher={Wiley Online Library},
+      year={2021}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
   date: 2026-03-07

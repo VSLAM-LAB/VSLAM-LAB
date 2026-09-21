@@ -1,10 +1,11 @@
 dataset_name: hamlyn
 
 rgb_hz: 30.0
-modes: ['mono', 'rgbd']
+modes: ['mono', 'rgbd', 'stereo']
 cam_models: ['pinhole']
+raw_formats: ['zip']
 
-repo_id: 'vslamlab/Hamlyn_Rectified_Dataset'
+hf_repo_id: 'Recasens/HamlynRectifiedDataset'
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -13,17 +14,57 @@ sequence_names:
   - rectified05
   - rectified06
   - rectified08
+  - rectified09
+  - rectified11
+  - rectified12
+  - rectified14
+  - rectified15
+  - rectified16
+  - rectified17
+  - rectified18
+  - rectified19
+  - rectified20
+  - rectified21
+  - rectified22
+  - rectified23
+  - rectified24
+  - rectified25
+  - rectified26
+  - rectified27
 
 about:
-  license: License
-  summary: Hamlyn rectified Dataset with ground truth, Endo-Depth Models and Splits
+  license: GPL-3.0 License
+  summary: Hamlyn rectified stereo endoscopy dataset with depth ground truth, from Endo-Depth-and-Motion
   homepage: https://davidrecasens.github.io/EndoDepthAndMotion/
+  features:
+    - Real
+    - Intracorporeal
+    - Handheld
   authors:
     - David Recasens
     - José Lamarca
-    - Others
+    - José M. Fácil
+    - J. M. M. Montiel
+    - Javier Civera
+  access: Public
+  publication: "Endo-Depth-and-Motion: Reconstruction and Tracking in Endoscopic Videos Using Depth Networks and Photometric Constraints"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/9478277"
+  year: 2021
+  bibtex_key: recasens2021endo
+  bibtex: |
+    @article{recasens2021endo,
+      title={Endo-depth-and-motion: Reconstruction and tracking in endoscopic videos using depth networks and photometric constraints},
+      author={Recasens, David and Lamarca, Jos{\'e} and F{\'a}cil, Jos{\'e} M and Montiel, JMM and Civera, Javier},
+      journal={IEEE Robotics and Automation Letters},
+      volume={6},
+      number={4},
+      pages={7225--7232},
+      year={2021},
+      publisher={IEEE}
+    }
 
 vslamlab_maintainer:
   name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
   email: alejandro.fontan@qut.edu.au
-  date: 2026-03-07
+  date: 2026-08-03

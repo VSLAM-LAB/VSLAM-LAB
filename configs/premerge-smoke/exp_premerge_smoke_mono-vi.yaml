@@ -1,0 +1,11 @@
+exp_premerge_smoke_mono_vi_orbslam3:
+  Config: premerge-smoke/config_premerge_smoke_mono-vi.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_max: 200, rgb_step: 3}
+  Module: orbslam3
+
+exp_premerge_smoke_mono_vi_okvis2:
+  Config: premerge-smoke/config_premerge_smoke_mono-vi.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_max: 200, rgb_step: 3}
+  Module: okvis2

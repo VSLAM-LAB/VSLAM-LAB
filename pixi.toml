@@ -3,16 +3,37 @@ name = "VSLAM-LAB"
 version = "0.1.0"
 description = "VSLAM-LAB"
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
+platforms = [
+    "linux-64", "osx-arm64", "win-64",
+    { name = "linux-64-cuda", platform = "linux-64", cuda = "12.6" },
+    { name = "osx-arm64-cuda", platform = "osx-arm64", cuda = "12.6" },
+    { name = "win-64-cuda", platform = "win-64", cuda = "12.6" },
+    { name = "linux-64-cuda129", platform = "linux-64", cuda = "12.9" },
+    { name = "osx-arm64-cuda129", platform = "osx-arm64", cuda = "12.9" },
+    { name = "win-64-cuda129", platform = "win-64", cuda = "12.9" },
+]
+
+[activation.env]
+# Regex matched against full command lines: defines what counts as a VSLAM-LAB job
+# for list-jobs and kill-all, so the two always agree.
+VSLAMLAB_JOBS_PATTERN = "mapanything|droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
-kill-all = { cmd = "pkill -f -e 'droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|glomap|vggt|pycuvslam|vslamlab' && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+kill-all = { cmd = "pkill -f -e $VSLAMLAB_JOBS_PATTERN && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+
+# VGGT-1B weights (5 GB) shared by vggtslam, vggtslam-dev and mapanything's vggt module. The vggtslam entry
+# points fetch them with torch.hub.load_state_dict_from_url, which neither resumes nor checks the byte count,
+# so a dropped connection leaves a truncated model.pt that every later run trips over. `hf download` resumes
+# and verifies; the execute tasks depend on this and point TORCH_HOME at the same folder so torch.hub finds
+# the file already in place (mapanything does the same download itself, only when its vggt module runs).
+# Pixi skips it once the output exists (and re-runs if it changes).
+download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-dir Baselines/torch_home/hub/checkpoints", outputs = ["Baselines/torch_home/hub/checkpoints/model.pt"] }
 
 [environments]
-vslamlab = { features = ["vslamlab"]}
-# development = { features = ["development", "vslamlab"]}
+vslamlab = { features = ["vslamlab", "development"] }
 cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
+cuda129 = { features = ["cuda129"], solve-group = "cuda129" }
 py10 = { features = ["py10"], solve-group = "py10" }
 py11 = { features = ["py11"], solve-group = "py11" }
 x11 = { features = ["x11"], solve-group = "x11" }
@@ -24,32 +45,40 @@ dpvo = { features = ["dpvo", "cuda126", "py11"], solve-group = "droid" }
 monogs = { features = ["monogs"], solve-group = "monogs" }
 orbslam2 = { features = ["orbslam2"], solve-group = "orb" }
 anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
+allfeature = { features = ["allfeature"] }
 colmap = { features = ["colmap"], solve-group = "colmap" }
-glomap = { features = ["glomap", "colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"], solve-group = "orb" }
 okvis2 = { features = ["okvis2"], solve-group = "okvis" }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
-vggt = { features = ["vggt", "cuda126", "py11"], solve-group = "vggt" }
 vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
+mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
-droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid" }
+droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid-dev" }
 dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "droid" }
-monogs-dev = { features = ["monogs-dev", "cuda126", "py10"], solve-group = "monogs" }
+monogs-dev = { features = ["monogs-dev", "cuda129", "py10"], solve-group = "monogs" }
 orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
 okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"], solve-group = "okvis" }
-vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11", "vggt"], solve-group = "vggt" }
+vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11"], solve-group = "vggt" }
 
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
-depth-anything = { features = ["depth-anything", "cuda126",  "py11"], solve-group = "depth-anything" }
+da3 = { features = ["da3", "da3-core", "cuda126", "py11"], solve-group = "da3" }
+da3-streaming = { features = ["da3-streaming", "da3-core", "cuda126", "py11"], solve-group = "da3" }
+mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "mask2former" }
+fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"], solve-group = "fastfoundationstereo" }
+anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
+vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
+refrax = { features = ["refrax"], solve-group = "refrax" }
+placecell = { features = ["placecell"], solve-group = "placecell" }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
 ros2 = { features = ["ros2"], solve-group = "ros2" }
 rerun = { features = ["rerun"], solve-group = "rerun" }
+projectaria = { features = ["projectaria"] }
 
 # VSLAM-LAB main pipeline
 [feature.vslamlab]
@@ -83,6 +112,12 @@ vslamlab-debug.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_debug
 vslamlab-allfeature = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
 demo = "python vslamlab_gui.py demo"
 
+premerge-smoke.cmd = "python vslamlab_gui.py vslamlab configs/premerge-smoke/exp_premerge_smoke_{{ mode }}.yaml {{ overwrite }}"
+premerge-smoke.args = [
+  { "arg" = "mode", "default" = "stereo" },
+  { "arg" = "overwrite", "default" = "--overwrite" },
+]
+
 evaluate-debug.depends-on = [{ "task" = "evaluate", "args" = ["configs/exp_debug.yaml", "--overwrite"] }]
 evaluate-allfeature = [{ "task" = "evaluate", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
 compare-debug.depends-on = [{ "task" = "compare", "args" = ["configs/exp_debug.yaml"] }]
@@ -92,6 +127,11 @@ compare-allfeature = [{ "task" = "compare", "args" = ["configs/exp_allfeature.ya
 baseline-info = "python vslamlab_gui.py baseline_info"
 print-baselines = "python vslamlab_gui.py print_baselines"
 print-datasets = "python vslamlab_gui.py print_datasets"
+list-jobs = "python vslamlab_gui.py list_jobs"
+kill-job = "python vslamlab_gui.py kill_job"
+kill-jobs = "python vslamlab_gui.py kill_jobs"
+generate-dataset-table = "python Datasets/extra-files/generate_dataset_table.py"
+generate-dataset-xlsx = "python Datasets/extra-files/generate_dataset_xlsx.py"
 set-benchmark-path  = "python path_constants.py set_VSLAMLAB_BENCHMARK_path"
 set-evaluation-path = "python path_constants.py set_VSLAMLAB_EVALUATION_path"
 
@@ -112,6 +152,9 @@ download-sequence = "python vslamlab_gui.py download_sequence"
 download-sequences = "python vslamlab_gui.py download_sequences"
 download-dataset = "python vslamlab_gui.py download_dataset"
 
+synch-gt = "python Datasets/extra-files/synch_gt.py"
+sample-vpr = "python Datasets/extra-files/sample_vpr.py"
+
 run-exp = "python vslamlab_gui.py run_exp"
 evaluate-exp = "python vslamlab_gui.py evaluate_exp"
 compare-exp = "python vslamlab_gui.py compare_exp"
@@ -123,6 +166,7 @@ matplotlib = "*"
 pandas = "*"
 py-opencv = "*"
 scipy = "*"
+h5py = "*"
 requests = "*"
 inputimeout = "*"
 scikit-learn = "*"
@@ -141,37 +185,38 @@ psutil = "*"
 loguru = "*"
 utm = "*"
 7zip = "*"
-viser = "*"
-open3d = "*"
 gdown = "*"
-yt-dlp = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
+cryptography = "*"
+openpyxl = "*"
 
-# [feature.development.tasks]
-# validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'
-# validate-dataset.cwd = 'Utilities'
-# validate-dataset.args = [
-#   { "arg" = "dataset_name", "default" = "eth" },
-# ]
+[feature.vslamlab.pypi-dependencies]
+synapseclient = "*"     # Synapse (sagebase) downloads, e.g. the EndoMapper project; not on conda-forge
 
+[feature.development.tasks]
+validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'
+validate-dataset.cwd = 'Utilities'
+validate-dataset.args = [
+  { "arg" = "dataset_name", "default" = "eth" },
+]
 
-# [feature.development.dependencies]
-# rich = "*"
-# pycodestyle = "*"
-# ruff = "*"
-# isort = "*"
+[feature.development.dependencies]
+rich = "*"
+pycodestyle = "*"
+ruff = "*"
+isort = "*"
 
 ########################################################################################################################
 ########################################################################################################################
 # droidslam
 [feature.droidslam]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.droidslam.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.droidslam.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
 execute-mono = 'vslamlab_droidslam_mono'
 execute-rgbd = 'vslamlab_droidslam_rgbd'
 execute-stereo = 'vslamlab_droidslam_stereo'
@@ -186,13 +231,10 @@ setuptools = "=80.9.0"
 # mast3rslam
 [feature.mast3rslam]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.mast3rslam.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.mast3rslam.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
 execute-mono = 'vslamlab_mast3rslam_mono'
 
 [feature.mast3rslam.dependencies]
@@ -206,13 +248,10 @@ roma = { channel = "fontan" }
 # dpvo
 [feature.dpvo]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.dpvo.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.dpvo.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
+fetch-source = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
 execute-mono = 'vslamlab_dpvo_mono'
 
 [feature.dpvo.dependencies]
@@ -231,32 +270,20 @@ numba = "*"
 # monogs
 [feature.monogs]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.monogs.system-requirements]
-cuda = "12.0"
+# CUDA 12.9: monogs-vslamlab >= 1.1 is built against the cuda129 pytorch, the only one that can share an
+# environment with the GUI-enabled conda-forge open3d (see [feature.monogs-dev.dependencies]).
+platforms = ["linux-64-cuda129"]
 
 [feature.monogs.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
+fetch-source = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
 execute-mono = 'vslamlab_monogs_mono'
 execute-rgbd = 'vslamlab_monogs_rgbd'
 
 [feature.monogs.dependencies]
-monogs-vslamlab = { channel = "fontan" }
-pytorch-gpu = "*"
-munch = "*"
-wandb = "*"
-plyfile = "*"
-opencv = "*"
-pyglfw = "*"
-imgviz = "*"
-pyopengl = "*"
-pyglm = "*"
-rich = "*"
-trimesh = "*"
-evo = "*"
-torchmetrics = "*"
-open3d = "*"
+# The package carries MonoGS's full runtime dependency set (torch pinned to the build's libtorch ABI, the
+# GUI-enabled open3d, no evo); only the spec that selects the right build is repeated here.
+monogs-vslamlab = { version = ">=1.1", channel = "fontan" }
+open3d = { version = "0.19.*", build-number = ">=103" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -266,7 +293,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan", "tobiasrobotics"]
 platforms = ["linux-64", "osx-arm64", "win-64"]
 
 [feature.orbslam2.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/orbslam2-vslamlab Baselines/ORB-SLAM2'
+fetch-source = 'git clone https://huggingface.co/vslamlab/orbslam2-vslamlab Baselines/ORB-SLAM2'
 execute-mono = 'vslamlab_orbslam2_mono'
 execute-rgbd = 'vslamlab_orbslam2_rgbd'
 execute-stereo = 'vslamlab_orbslam2_stereo'
@@ -283,7 +310,7 @@ channels = ["fontan", "https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
 [feature.anyfeature.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/anyfeature-vslamlab Baselines/AnyFeature-VSLAM'
+fetch-source = 'git clone https://huggingface.co/vslamlab/anyfeature-vslamlab Baselines/AnyFeature-VSLAM'
 execute-mono = 'vslamlab_anyfeature_mono'
 
 [feature.anyfeature.dependencies]
@@ -300,13 +327,10 @@ opencv = { channel = "fontan" }
 # colmap
 [feature.colmap]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
-
-[feature.colmap.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
 
 [feature.colmap.tasks]
-git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
+fetch-source = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
 execute-mono = './Baselines/colmap/colmap_reconstruction.sh'
 
 [feature.colmap.dependencies]
@@ -315,11 +339,12 @@ numpy = "*"
 scipy = "*"
 pandas = "*"
 sqlite = "*"
-opencv = "*"
 tqdm = "*"
+faiss = "*"
+openimageio = "*"
 
 [feature.colmap.target.linux-64.dependencies]
-colmap = { build = "*cuda*" }
+ colmap = {version="=4.1.1", build = "*cuda*" }
 
 [feature.colmap.target.osx-arm64.dependencies]
 colmap = "*"
@@ -329,31 +354,13 @@ colmap = "*"
 
 ########################################################################################################################
 ########################################################################################################################
-# glomap
-[feature.glomap]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.glomap.system-requirements]
-cuda = "12.6"
-
-[feature.glomap.tasks]
-git-clone = { cmd = 'git clone https://huggingface.co/vslamlab/glomap-vslamlab glomap', cwd = 'Baselines' }
-execute-mono = { cmd = './Baselines/glomap/glomap_reconstruction.sh' }
-
-[feature.glomap.target.linux-64.dependencies]
-glomap = { build = "*cuda*"}
-
-
-########################################################################################################################
-########################################################################################################################
 # orbslam3
 [feature.orbslam3]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/orbslam3-vslamlab Baselines/ORB-SLAM3'
+fetch-source = 'git clone https://huggingface.co/vslamlab/orbslam3-vslamlab Baselines/ORB-SLAM3'
 execute-mono = 'vslamlab_orbslam3_mono'
 execute-rgbd = 'vslamlab_orbslam3_rgbd'
 execute-stereo = 'vslamlab_orbslam3_stereo'
@@ -375,7 +382,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/okvis2-vslamlab Baselines/OKVIS2'
+fetch-source = 'git clone https://huggingface.co/vslamlab/okvis2-vslamlab Baselines/OKVIS2'
 execute-mono-vi = 'vslamlab_okvis2_mono_vi'
 
 [feature.okvis2.dependencies]
@@ -386,13 +393,10 @@ okvis2-vslamlab = { channel = "fontan" }
 # pycuvslam
 [feature.pycuvslam]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.pycuvslam.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.pycuvslam.tasks]
-git-clone = './git-clone.sh VSLAM-LAB PyCuVSLAM-VSLAM-LAB PyCuVSLAM'
+fetch-source = './git-clone.sh VSLAM-LAB PyCuVSLAM-VSLAM-LAB PyCuVSLAM'
 install = { cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM" }
 execute-mono = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_mono.py',  cwd = 'Baselines/PyCuVSLAM' }
 execute-rgbd = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM' }
@@ -409,40 +413,6 @@ scipy = "=1.14.1"
 pandas = "*"
 opencv = "*"
 
-# ########################################################################################################################
-# ########################################################################################################################
-# vggt
-[feature.vggt]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.vggt.dependencies]
-
-# Core Libraries
-pytorch-gpu = "*"
-torchvision = "*"
-
-numpy = "<2"
-Pillow = "*"
-huggingface_hub = "*"
-einops = "*"
-safetensors = "*"
-opencv = "*"
-tqdm = "*"
-hydra-core = "*"
-omegaconf = "*"
-scipy = "*"
-onnxruntime = "*"
-requests = "*"
-trimesh = "*"
-matplotlib = "*"
-gradio = "==6.2.0"
-viser = "*"
-
-[feature.vggt.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
-execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT" }
-
 ########################################################################################################################
 ########################################################################################################################
 # vggtslam
@@ -451,19 +421,79 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.vggtslam.dependencies]
-vggtslam-vslamlab = { channel = "fontan" }
+# The 2.0 package (noarch) carries VGGT-SLAM's full runtime dependency set; it needs gtsam 1.0 from fontan,
+# pinned to the channel here because strict channel priority would otherwise only offer conda-forge's 4.x.
+vggtslam-vslamlab = { version = ">=2.0", channel = "fontan" }
 gtsam = { channel = "fontan" }
-tqdm = "*"
-viser = "*"
-termcolor = "*"
-pytorch-lightning = "*"
-huggingface_hub = "*"
-pytorch-metric-learning = "*"
-nodeenv = "*"
 
 [feature.vggtslam.tasks]
-git-clone = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
-execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
+fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
+# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
+execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
+
+# ########################################################################################################################
+# mapanything: MapAnything plus the feed-forward models its model factory hosts (vggt, vggt-omega, pi3, pi3x, dust3r,
+# mast3r, must3r, pow3r), selected per experiment with the `module` parameter of the single `mapanything` baseline
+[feature.mapanything]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.mapanything.tasks]
+# Fork of facebookresearch/map-anything with the VSLAM-LAB entry point. uniception (PyPI only) is installed without its
+# declared deps (torchaudio, rerun, minio, ... are not needed for inference); what the import chain uses is listed below.
+# The external models are the pip extras of upstream's pyproject.toml, pinned to commits and installed without their
+# declared deps for the same reason (vggt, pi3 and moge are vendored in mapanything itself). asmk is MUSt3R's retrieval
+# library: its committed hamming.c predates Python 3.11, so it is cloned and its Cython source regenerated before the build.
+fetch-source = "./git-clone.sh VSLAM-LAB map-anything-VSLAM-LAB MapAnything"
+fetch-asmk = "./git-clone.sh jenicek asmk asmk"
+install-asmk = { cmd = 'git -C Baselines/asmk checkout -q 2a96d9c03a841dffdfddabc699a20512dcd09363 && cython Baselines/asmk/cython/hamming.pyx -o Baselines/asmk/cython/hamming.c && pip install --no-deps --no-build-isolation Baselines/asmk', depends-on = ['fetch-asmk'] }
+install = { cmd = '''pip install --no-deps uniception==0.1.7 && pip install --no-deps --no-build-isolation -e . && pip install --no-deps --no-build-isolation "vggt-omega @ git+https://github.com/facebookresearch/vggt-omega.git@a3ab0141f96838724423541044ff5ba301cfd36a" "pi3 @ git+https://github.com/yyfz/Pi3.git@9fa3ddb3f8d53041f8b2738df404f62223bbaa7b" "croco @ git+https://github.com/naver/croco.git@87244aa971caa4bae57ba7f9cb885761d323da93" "dust3r @ git+https://github.com/naver/dust3r.git@bb9f9f54826b4077ed9fd075308eb2fe2d4666f9" "mast3r @ git+https://github.com/Nik-V9/mast3r.git@6b9f16318a057d8f68ba110d4b638d3b74f69fee" "must3r @ git+https://github.com/naver/must3r.git@efc5b08fbbaba814706880932ba2497472096925" "pow3r @ git+https://github.com/Nik-V9/pow3r.git@8721c1b78816329cc8d87d929221e36ac9aba298"''', cwd = 'Baselines/MapAnything', depends-on = ['fetch-source', 'install-asmk'] }
+# TORCH_HOME: the external modules' weights go to Baselines/torch_home/hub/checkpoints, where download-vggt-weights
+# (see [tasks]) puts the VGGT-1B model.pt shared with vggtslam; the entry point downloads what is missing itself
+execute-mono = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
+execute-rgbd = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
+
+[feature.mapanything.dependencies]
+# Torch (vggt-omega requires >= 2.6)
+pytorch-gpu = ">=2.6"
+torchvision = "*"
+numpy = "<2"
+
+# mapanything (pyproject deps that inference imports) + uniception runtime
+huggingface_hub = "*"
+safetensors = "*"
+hydra-core = "*"        # mapanything.models imports hydra at module level
+omegaconf = "*"
+natsort = "*"
+opencv = "*"
+pillow = "*"
+pillow-heif = "*"
+plyfile = "*"
+python-box = "*"
+requests = "*"
+trimesh = "*"
+tqdm = "*"
+einops = "*"
+jaxtyping = "*"
+timm = "*"
+termcolor = "*"
+matplotlib = "*"
+scikit-learn = "*"
+
+# external modules: dust3r family global alignment (roma, below), MUSt3R retrieval (faiss + asmk built with cython, pyaml)
+faiss = "*"
+pyaml = "*"
+cython = "*"
+
+# vslamlab_mapanything.py
+pandas = "*"
+pyyaml = "*"
+scipy = "*"
+viser = "=0.2.23"
+
+[feature.mapanything.pypi-dependencies]
+# roma (RoMa rotation utilities, naver) is PyPI only: dust3r.cloud_opt, mast3r sparse GA, must3r and pow3r import it
+roma = "*"
 
 ########################################################################################################################
 ########################################################################################################################
@@ -476,15 +506,47 @@ execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM" }
 # cuda126
 [feature.cuda126]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.cuda126.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda"]
 
 [feature.cuda126.dependencies]
 # CUDA Build Tools
 cuda-compiler = "*"
 cuda-version = "12.6.*"
+cuda-cudart-dev = "*"
+cuda-crt = "*"
+libcusparse-dev = "*"
+cuda-driver-dev = "*"
+cuda-nvcc = "*"
+cuda-nvrtc-dev = "*"
+cuda-nvtx = "*"
+cuda-nvtx-dev = "*"
+cuda-nvml-dev = "*"
+cuda-profiler-api = "*"
+
+# CUDA Libraries
+cudnn = "*"
+libcublas-dev = "*"
+libcudss-dev = "*"
+libcufile-dev = "*"
+libcufft-dev = "*"
+libcurand-dev = "*"
+libcusolver-dev = "*"
+cusparselt = "*"
+libnvjitlink = "*"
+
+########################################################################################################################
+# cuda129
+# Same toolchain as cuda126 on CUDA 12.9 (the linux-64-cuda129 workspace platform). Used by the environments whose
+# dependency set only solves against the cuda129 pytorch builds (monogs / monogs-dev: the GUI-enabled conda-forge
+# open3d needs a qt6-main / libprotobuf that the last cuda126 pytorch (2.7.1) cannot share).
+[feature.cuda129]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda129"]
+
+[feature.cuda129.dependencies]
+# CUDA Build Tools
+cuda-compiler = "*"
+cuda-version = "12.9.*"
 cuda-cudart-dev = "*"
 cuda-crt = "*"
 libcusparse-dev = "*"
@@ -566,28 +628,15 @@ libopengl-devel = "*"
 # droidslam-dev
 [feature.droidslam-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.droidslam-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.droidslam-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB DROID-SLAM-VSLAM-LAB DROID-SLAM-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB DROID-SLAM-VSLAM-LAB DROID-SLAM-DEV"
 install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
 execute-stereo = { cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
-#train = {cmd = 'python train.py --iters 1 --steps 50000 --lr 0.000025 --datapath /home/fontan/VSLAM-LAB-Benchmark/TartanAir --ckpt "droid.pth"',  cwd = 'Baselines/DROID-SLAM-DEV'}
-
-train.cmd =  'python train.py --iters {{ iters }} --steps {{ steps }} --lr {{ lr }} --datapath {{ datapath }} --ckpt {{ ckpt }}'
-train.cwd =  'Baselines/DROID-SLAM-DEV'
-train.args = [
-  { "arg" = "iters", "default" = "1" },
-  { "arg" = "steps", "default" = "50000" },
-  { "arg" = "lr", "default" = "0.000025" },
-  { "arg" = "datapath", "default" = "/home/fontan/VSLAM-LAB-Benchmark/TartanAir" },
-  { "arg" = "ckpt", "default" = "droid.pth" },
-]
+train = {cmd = 'python train.py --steps 250000 --datasets vslamlab --datapath ../../../VSLAM-LAB-Benchmark --ckpt droid.pth',  cwd = 'Baselines/DROID-SLAM-DEV'}
 
 [feature.droidslam-dev.dependencies]
 # Build Tools
@@ -596,7 +645,7 @@ cmake = "*"
 make = "*"
 
 # Specialized Libraries
-lietorch = { version = "*", channel = "fontan" }
+lietorch = { version = "=1.0.1", channel = "fontan" }
 
 # Core Libraries
 pytorch-gpu = "*"
@@ -617,19 +666,18 @@ pandas = "*"
 eigen = "*"
 moderngl = "*"
 moderngl-window = "=3.1.1"
+loguru = "*"
+setuptools = "<81"
 
 # ########################################################################################################################
 # ########################################################################################################################
 # mast3rslam-dev
 [feature.mast3rslam-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.mast3rslam-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.mast3rslam-dev.tasks]
-git-clone = './git-clone.sh VSLAM-LAB MASt3R-SLAM-VSLAM-LAB MASt3R-SLAM-DEV'
+fetch-source = './git-clone.sh VSLAM-LAB MASt3R-SLAM-VSLAM-LAB MASt3R-SLAM-DEV'
 install = { cmd = "pip install -e thirdparty/mast3r --no-build-isolation && pip install -e thirdparty/in3d --no-build-isolation && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
 
 execute-mono = { cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV' }
@@ -683,13 +731,10 @@ pyrealsense2 = "*"
 # dpvo-dev
 [feature.dpvo-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.dpvo-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.dpvo-dev.tasks]
-git-clone = './git-clone.sh VSLAM-LAB DPVO-VSLAM-LAB DPVO-DEV'
+fetch-source = './git-clone.sh VSLAM-LAB DPVO-VSLAM-LAB DPVO-DEV'
 install_DPViewer = { cmd = "pip install . --no-deps --no-build-isolation --use-pep517", cwd = "Baselines/DPVO-DEV/DPViewer" }
 install = { cmd = "pip install . --no-deps --no-build-isolation", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"] }
 execute-mono = { cmd = 'python vslamlab_dpvo_mono.py' ,cwd = 'Baselines/DPVO-DEV' }
@@ -735,13 +780,10 @@ yacs = "*"
 # monogs-dev
 [feature.monogs-dev]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.monogs-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda129"]
 
 [feature.monogs-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
 install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization --no-deps --no-build-isolation", cwd = "Baselines/MonoGS-DEV" }
 execute-mono = { cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV" }
 execute-rgbd = { cmd = 'python vslamlab_monogs_rgbd.py', cwd = "Baselines/MonoGS-DEV" }
@@ -756,12 +798,12 @@ make = "*"
 # Core Libraries
 pytorch-gpu = "*"
 torchvision = "*"
-pytorch_scatter = "*"
 numpy = "<2"
 opencv = "*"
 
 # Logging, Evaluation & Visualization
-evo = "*"
+# No evo: MonoGS only uses it in its own ATE evaluation (utils/eval_utils.evaluate_evo, imported lazily
+# in the fork), and its conda chain (contextily -> rasterio -> proj) cannot coexist with the GUI open3d on py310.
 plyfile = "*"
 munch = "*"
 trimesh = "*"
@@ -774,9 +816,17 @@ pyglm  = "*"
 lpips = "*"
 rich = "*"
 ruff = "*"
-nbformat = "==5.7.0"
 pyglfw = "*"
-open3d = "*"
+# Imported directly by MonoGS (utils/dataset.py, utils/eval_utils.py, ...); evo used to pull them in.
+pandas = "*"
+pyyaml = "*"
+scipy = "*"
+tqdm = "*"
+pillow = "*"
+matplotlib-base = "*"
+# gui/slam_gui.py imports open3d.visualization.gui unconditionally; conda-forge ships it only in the
+# BUILD_GUI=ON builds (build number >= 103, 2026-04-26 onwards). These solve only with the cuda129 pytorch.
+open3d = { version = "0.19.*", build-number = ">=103" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -786,7 +836,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam2-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB ORB-SLAM2-VSLAM-LAB ORB-SLAM2-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB ORB-SLAM2-VSLAM-LAB ORB-SLAM2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB-SLAM2-DEV" }
@@ -801,19 +851,17 @@ opencv = ">=4.10.0 ,<5"
 eigen = ">=3.4.0 ,<3.5.0"
 yaml-cpp = ">=0.8.0,<0.9"
 pangolin = { channel = "fontan" }
+python = "3.10.*"  # fontan's pangolin ships libpango_python linked against libpython3.10 without declaring it
 
 ########################################################################################################################
 ########################################################################################################################
 # anyfeature-dev
 [feature.anyfeature-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
-
-[feature.anyfeature-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.anyfeature-dev.tasks]
-git-clone = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
+fetch-source = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV" }
 
@@ -848,7 +896,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan"]
 platforms = ["linux-64"]
 
 [feature.orbslam3-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB ORB-SLAM3-VSLAM-LAB ORB-SLAM3-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB ORB-SLAM3-VSLAM-LAB ORB-SLAM3-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-mono = { cmd = "./bin/vslamlab_orbslam3_mono",  cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-rgbd = { cmd = "./bin/vslamlab_orbslam3_rgbd",  cwd = "Baselines/ORB-SLAM3-DEV" }
@@ -873,13 +921,10 @@ boost = ">=1.84.0 ,<1.85.0"
 # okvis2-dev
 [feature.okvis2-dev]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.okvis2-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.okvis2-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB okvis2-VSLAM-LAB OKVIS2-DEV"
+fetch-source = "./git-clone.sh VSLAM-LAB okvis2-VSLAM-LAB OKVIS2-DEV"
 install = { cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV" }
 execute-mono-vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
 
@@ -906,61 +951,53 @@ channels = ["https://prefix.dev/conda-forge" , "fontan"]
 platforms = ["linux-64"]
 
 [feature.vggtslam-dev.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB VGGT-SLAM-VSLAM-LAB VGGT-SLAM-DEV"
-install = {cmd = './setup.sh', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['git-clone']}
-execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV" }
+# VGGT-SLAM 2.0 fork; --recursive brings third_party/vggt (MIT-SPARK/VGGT_SPARK) and third_party/salad (Dominic101/salad) pinned as submodules
+fetch-source = "./git-clone.sh alejandrofontan VGGT-SLAM-2-VSLAM-LAB VGGT-SLAM-DEV"
+install = { cmd = 'pip install --no-deps --no-build-isolation -e third_party/salad && pip install --no-deps --no-build-isolation -e third_party/vggt && pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['fetch-source'] }
+# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
+execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
 [feature.vggtslam-dev.dependencies]
-# Build Tools
-compilers = "*"
-cmake = "*"
-make = "*"
-
-boost = "*"
-unzip = "*"
-
-# Core Libraries
+# Torch
 pytorch-gpu = "*"
 torchvision = "*"
 numpy = "<2"
-Pillow = "*"
-huggingface_hub = "*"
-einops = "*"
-safetensors = "*"
-opencv = "*"
-tqdm = "*"
-hydra-core = "*"
-omegaconf = "*"
-scipy = "*"
-onnxruntime = "*"
-requests = "*"
-trimesh = "*"
-matplotlib = "*"
-gradio = "==6.2.0"
-viser = "*"
+
+# vggt_slam / vggt
+gtsam = { channel = "fontan" }  # SL4 factors (borglab main, not the conda-forge 4.x release)
 open3d = "*"
-pytorch-metric-learning = "*"
-pytorch-lightning = "*"
+viser = "=0.2.23"               # upstream pin; the viewer API moved in later releases
+opencv = "*"
+scipy = "*"
+matplotlib = "*"
 termcolor = "*"
-virtualenv = ">=20.10.0"
-lz4 = "*"
-gtsam = { channel = "fontan" }
-nodeenv = "*"
+tqdm = "*"
+pillow = "*"
+einops = "*"
+huggingface_hub = "*"
+safetensors = "*"
+
+# salad (loop closure retrieval): salad.eval imports the validation utilities at module level
+pytorch-lightning = "*"
+pytorch-metric-learning = "*"
+faiss = "*"
+prettytable = "*"
+
+# vslamlab_vggtslam_mono.py
+pandas = "*"
+pyyaml = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
 # lightglue
 [feature.lightglue]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.lightglue.system-requirements]
-cuda = "12.6"
+platforms = ["linux-64-cuda"]
 
 [feature.lightglue.tasks]
-git-clone.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
-git-clone.cwd = 'Baselines'
-install = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['git-clone']}
+fetch-source.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
+fetch-source.cwd = 'Baselines'
+install = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['fetch-source']}
 
 [feature.lightglue.dependencies]
 # Core Libraries
@@ -997,18 +1034,45 @@ timm = ">=1.0.15,<2"
 
 ########################################################################################################################
 ########################################################################################################################
+# allfeature (conda package `allfeature-vslamlab`, fontan channel; TensorRT packages from spqr-tests)
+[feature.allfeature]
+channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev/spqr-tests"]
+platforms = ["linux-64-cuda"]
+
+[feature.allfeature.tasks]
+# The executables resolve `megaloc_models/` and `segmentation_models/` relative to their cwd, so the
+# models are downloaded into the baseline folder and the execute tasks run from there.
+# GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
+# download task below fetches it into segmentation_models/ instead.
+fetch-source = { cmd = "git clone https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
+download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
+download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
+download-lightglue-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'lightglue_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/lightglue_models/*.pt"] }
+# Settings shipped inside the conda package fill in whatever the HF clone does not provide (cp -n: never overwrite)
+copy-package-settings = { cmd = "bash -c 'mkdir -p Baselines/AllFeature-VSLAM/settings && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/settings/*.yaml Baselines/AllFeature-VSLAM/settings/ && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/vslamlab_allfeature-dev_settings.yaml Baselines/AllFeature-VSLAM/vslamlab_allfeature_settings.yaml'" }
+install = { cmd = "ls Baselines/AllFeature-VSLAM", depends-on = ["download-megaloc-models", "download-segmentation-models", "download-superpoint-models", "download-lightglue-models", "copy-package-settings"] }
+execute-mono = { cmd = "vslamlab_allfeature_mono", cwd = "Baselines/AllFeature-VSLAM" }
+execute-rgbd = { cmd = "vslamlab_allfeature_rgbd", cwd = "Baselines/AllFeature-VSLAM" }
+stream = { cmd = "vslamlab_allfeature_mono_stream", cwd = "Baselines/AllFeature-VSLAM" }
+
+[feature.allfeature.dependencies]
+allfeature = { channel = "fontan" }
+cuda-version = "12.6.*"   # the package is compiled against the cuda126 libtorch build; without the pin the solver picks cuda129
+
+########################################################################################################################
+########################################################################################################################
 # allfeature-dev
 [feature.allfeature-dev]
 channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev/spqr-tests"]
-platforms = ["linux-64"]
-
-[feature.allfeature-dev.system-requirements]
-cuda = "12.0"
+platforms = ["linux-64-cuda"]
 
 [feature.allfeature-dev.tasks]
-git-clone = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV"
-install = { cmd = "pixi run build", cwd = "Baselines/AllFeature-VSLAM-DEV"}
+fetch-source = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV cleanup"
+install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV"}
 execute-mono = { cmd = "pixi run execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+execute-rgbd = { cmd = "pixi run execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+
 stream = { cmd = "pixi run stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 
 [feature.allfeature-dev.dependencies]
@@ -1016,63 +1080,63 @@ pixi = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
-# depth-anything
-[feature.depth-anything]
+# da3 (Depth Anything 3): one checkout, one solve group, three uses
+#   env da3           = da3 + da3-core   -> `da3` baseline (vslamlab_da3.py) and the depth_anything capability
+#   env da3-streaming = da3-streaming + da3-core -> `da3-streaming` baseline (vslamlab_da3_streaming.py)
+[feature.da3-core]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64-cuda"]
 
-[feature.depth-anything.system-requirements]
-cuda = "12.6"
-
-[feature.depth-anything.tasks]
-git-clone = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
-install = {cmd = 'pip install -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['git-clone']}
-depth-inference  = {cmd = 'python -m Utilities.depth-anything', depends-on = ['install']}
-
-[feature.depth-anything.dependencies]
-# Torch libraries
+[feature.da3-core.dependencies]
+# Torch
 pytorch-gpu = "*"
 torchvision = "*"
-torchcodec = "*"
+xformers = "*"           # depth_anything_3.model.dinov2 (swiglu ffn)
+numpy = "<2"
 
-# Core
-pre-commit = "*"
-trimesh = "*"
+# depth_anything_3.api import chain (model + export modules are imported eagerly)
+pillow = "*"
 einops = "*"
 huggingface_hub = "*"
-imageio = "*"
-numpy = "<2"
-opencv = "*"
-xformers = "*"
-open3d = "*"
-
-# API / CLI
-fastapi = "*"
-uvicorn = "*"
-requests = "*"
-typer = "*"
-
-# Config / IO
-pillow = "*"
-omegaconf = "*"
 safetensors = "*"
-plyfile = "*"
-
-# 3D / geometry / eval / video
-evo = "*"
-e3nn = "*"
-moviepy = "*"
-pycolmap = "*"
+omegaconf = "*"
 addict = "*"
-
-pyyaml = "*"
-matplotlib = "*"
-pandas = "*"
-py-opencv = "*"
+opencv = "*"
+imageio = "*"
+trimesh = "*"
+plyfile = "*"
+evo = "*"                # utils.pose_align
+pycolmap = "*"           # utils.export.colmap
 scipy = "*"
-inputimeout = "*"
-scikit-learn = "*"
+matplotlib = "*"
 tqdm = "*"
+
+# vslamlab_da3*.py
+pandas = "*"
+pyyaml = "*"
+viser = "=0.2.23"
+
+# build backend of pyproject.toml, needed by the --no-build-isolation editable install
+hatchling = "*"
+hatch-vcs = "*"
+
+[feature.da3-core.pypi-dependencies]
+# utils.export.gs imports `moviepy.editor`, removed in moviepy 2.x (conda-forge only ships 2.x); upstream pins 1.0.3
+moviepy = "==1.0.3"
+
+# ########################################################################################################################
+[feature.da3]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.da3.tasks]
+fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
+install = { cmd = 'pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source'] }
+execute-mono = { cmd = 'python vslamlab_da3.py', cwd = "Baselines/Depth-Anything-3" }
+depth-inference = { cmd = 'python Capabilities/depth_anything.py', depends-on = ['install'] }
+
+[feature.da3.dependencies]
+# Capabilities/depth_anything.py imports Datasets.get_dataset, which pulls the dataset classes' dependencies
 google-api-python-client = "*"
 google-auth-oauthlib = "*"
 py7zr = "*"
@@ -1085,8 +1149,201 @@ psutil = "*"
 loguru = "*"
 utm = "*"
 7zip = "*"
-viser = "*"
 gdown = "*"
+inputimeout = "*"
+scikit-learn = "*"
+requests = "*"
+
+# ########################################################################################################################
+[feature.da3-streaming]
+channels = ["https://prefix.dev/conda-forge", "fontan"]
+platforms = ["linux-64-cuda"]
+
+[feature.da3-streaming.tasks]
+fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
+install = { cmd = 'pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source'] }
+execute-mono = { cmd = 'python vslamlab_da3_streaming.py', cwd = "Baselines/Depth-Anything-3" }
+
+[feature.da3-streaming.dependencies]
+# da3_streaming/ (VGGT-Long style chunking, SALAD loop closure, Sim(3) pose graph)
+faiss-gpu = "*"
+numba = "*"
+pypose = { channel = "fontan" }
+triton = "*"             # align_lib: triton
+scikit-learn = "*"
+rich = "*"
+prettytable = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# mask2former
+[feature.mask2former]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.mask2former.tasks]
+install = "python Capabilities/mask2former.py --prefetch"
+mask-inference = { cmd = "python Capabilities/mask2former.py", depends-on = ["install"] }
+
+[feature.mask2former.dependencies]
+# Torch / model libraries
+pytorch-gpu = "*"
+torchvision = "*"
+transformers = "*"
+huggingface_hub = "*"
+
+# Core
+numpy = "<2"
+pillow = "*"
+tqdm = "*"
+
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+scipy = "*"
+h5py = "*"
+requests = "*"
+inputimeout = "*"
+scikit-learn = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
+evo = "*"
+git-lfs = "*"
+piexif = "*"
+psutil = "*"
+loguru = "*"
+utm = "*"
+7zip = "*"
+viser = "*"
+open3d = "*"
+gdown = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
+cryptography = "*"
+openpyxl = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# fastfoundationstereo
+[feature.fastfoundationstereo]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.fastfoundationstereo.tasks]
+fetch-source.cmd = 'test -d Baselines/Fast-FoundationStereo || git clone https://github.com/NVlabs/Fast-FoundationStereo Baselines/Fast-FoundationStereo'
+fetch-source.outputs = ["Baselines/Fast-FoundationStereo"]
+install = { cmd = "python Capabilities/fastfoundationstereo.py --prefetch", depends-on = ["fetch-source"] }
+stereo-inference = { cmd = "python Capabilities/fastfoundationstereo.py", depends-on = ["install"] }
+
+[feature.fastfoundationstereo.dependencies]
+# Torch / model libraries (Fast-FoundationStereo requirements.txt)
+pytorch-gpu = "*"
+torchvision = "*"
+timm = "*"
+einops = "*"
+omegaconf = "*"
+scikit-image = "*"
+imageio = "*"
+
+# Core
+numpy = "*"
+pillow = "*"
+tqdm = "*"
+
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+scipy = "*"
+h5py = "*"
+requests = "*"
+inputimeout = "*"
+scikit-learn = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+huggingface_hub = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
+evo = "*"
+git-lfs = "*"
+piexif = "*"
+psutil = "*"
+loguru = "*"
+utm = "*"
+7zip = "*"
+viser = "*"
+open3d = "*"
+gdown = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
+cryptography = "*"
+openpyxl = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# anycalib
+[feature.anycalib]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64-cuda"]
+
+[feature.anycalib.tasks]
+fetch-source.cmd = 'test -d Baselines/AnyCalib || git clone https://github.com/javrtg/AnyCalib Baselines/AnyCalib'
+fetch-source.outputs = ["Baselines/AnyCalib"]
+install = { cmd = "python Capabilities/anycalib.py --prefetch", depends-on = ["fetch-source"] }
+calib-inference = { cmd = "python Capabilities/anycalib.py", depends-on = ["install"] }
+
+[feature.anycalib.dependencies]
+# Torch / model libraries (AnyCalib: torch + what its camera fitting and DINOv2 backbone import)
+pytorch-gpu = "*"
+scipy = "*"
+requests = "*"
+
+# Core
+numpy = "*"
+pillow = "*"
+tqdm = "*"
+
+python = "*"
+pyyaml = "*"
+matplotlib = "*"
+pandas = "*"
+py-opencv = "*"
+h5py = "*"
+inputimeout = "*"
+scikit-learn = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+huggingface_hub = "*"
+py7zr = "*"
+exifread = "*"
+pyproj = "*"
+nvidia-ml-py = "*"
+evo = "*"
+git-lfs = "*"
+piexif = "*"
+psutil = "*"
+loguru = "*"
+utm = "*"
+7zip = "*"
+viser = "*"
+open3d = "*"
+gdown = "*"
+yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
+yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
+deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
+cryptography = "*"
+openpyxl = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
@@ -1117,6 +1374,7 @@ extract-ros2bag-imu = "python Datasets/extra-files/extract_ros2bag_imu.py"
 
 [feature.ros2.dependencies]
 ros-humble-desktop = "*"
+ros-humble-rosbag2-storage-mcap = "*"
 colcon-common-extensions = "*"
 tqdm = "*"
 pandas = "*"
@@ -1138,10 +1396,128 @@ rerun-vis.args = [
 rerun-vis.cwd = "Utilities"
 
 [feature.rerun.dependencies]
-
-[dependencies]
 rerun-sdk = ">=0.22.1,<0.32"
 opencv = ">=4.11.0,<5"
 numpy = ">=1.26.4,<3"
 pandas = ">=2.3.3,<4"
 pyyaml = ">=6.0.2,<7"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# refrax
+[feature.refrax]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.refrax.tasks]
+fetch-source.cmd = "./git-clone.sh VSLAM-LAB Refrax Refrax"
+fetch-source.outputs = ["Baselines/Refrax"]
+install = { cmd = "python Capabilities/refrax.py --prefetch", depends-on = ["fetch-source"] }
+refrax-inference = { cmd = "python Capabilities/refrax.py", depends-on = ["install"] }
+
+[feature.refrax.dependencies]
+# Refrax (pure Python: numpy ray tracing + scipy map inversion/optimisation + opencv remap)
+python = "3.11.*"
+numpy = "*"
+scipy = "*"
+py-opencv = "*"
+pyyaml = "*"
+tqdm = "*"
+
+# What utilities.py imports at module level (the capability uses its sequence-target/CSV helpers)
+pandas = "*"
+pillow = "*"
+py7zr = "*"
+colorama = "*"
+cryptography = "*"
+huggingface_hub = "*"
+matplotlib = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# placecell (Capabilities/placecell.py, 'rgb_placecell: <n>'): keep the n least redundant frames of a sequence with
+# placecell's information culler on the VPR matrix (<sequence>/vpr-lab/D.npy, generated via the vpr-lab env when missing).
+# The compiled module (nanobind) is pip-installed from the Baselines/placecell clone; CMAKE_BUILD_PARALLEL_LEVEL keeps the
+# build light (one core library + one bindings TU).
+[feature.placecell]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.placecell.tasks]
+fetch-source.cmd = "./git-clone.sh alejandrofontan placecell placecell"
+fetch-source.outputs = ["Baselines/placecell"]
+install.cmd = "python -c 'import placecell' 2>/dev/null || CMAKE_BUILD_PARALLEL_LEVEL=2 pip install --no-build-isolation --no-deps Baselines/placecell"
+install.depends-on = ["fetch-source"]
+placecell-select = { cmd = "python Capabilities/placecell.py", depends-on = ["install"] }
+
+[feature.placecell.dependencies]
+python = "3.11.*"
+pip = "*"
+pixi = "*"
+# Building the placecell wheel (scikit-build-core + nanobind, C++17, Eigen)
+cxx-compiler = "*"
+cmake = "*"
+ninja = "*"
+eigen = "*"
+nanobind = "*"
+scikit-build-core = "*"
+numpy = "*"
+
+# What utilities.py imports at module level (the capability uses its sequence-target/CSV helpers)
+pandas = "*"
+scipy = "*"
+pyyaml = "*"
+pillow = "*"
+py7zr = "*"
+colorama = "*"
+cryptography = "*"
+huggingface_hub = "*"
+matplotlib = "*"
+
+# ########################################################################################################################
+# vpr-lab
+[feature.vpr-lab]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[feature.vpr-lab.tasks]
+fetch-source.cmd = "./git-clone.sh VSLAM-LAB VPR-LAB VPR-LAB"
+fetch-source.outputs = ["Baselines/VPR-LAB"]
+
+setup.cmd = "pixi run setup"
+setup.cwd = "Baselines/VPR-LAB"
+setup.depends-on = ["fetch-source"]
+setup.outputs = ["Baselines/VPR-LAB/LightGlue", "Baselines/VPR-LAB/VPR-methods-evaluation"]
+
+vpr.cmd = "python Capabilities/vpr.py"
+vpr.depends-on = ["setup"]
+
+[feature.vpr-lab.dependencies]
+pixi = "*"
+python = "*"
+pyyaml = "*"
+numpy = "*"
+pandas = "*"
+scipy = "*"
+pillow = "*"
+colorama = "*"
+cryptography = "*"
+huggingface_hub = "*"
+py7zr = "*"
+matplotlib = "*"
+opencv = "*"
+
+# ########################################################################################################################
+# ########################################################################################################################
+# projectaria
+[feature.projectaria]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+
+[feature.projectaria.dependencies]
+python = "3.12.*"
+pip = "*"
+
+[feature.projectaria.pypi-dependencies]
+projectaria-tools = "*"

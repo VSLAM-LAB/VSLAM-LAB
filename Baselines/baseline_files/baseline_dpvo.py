@@ -5,12 +5,12 @@ from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
-class DPVO_baseline(BaselineVSLAMLab):
+class DPVO_baseline(BaselineVSLAMLAB):
     """DPVO helper for VSLAM-LAB Baselines."""
 
     def __init__(self, baseline_name: str = 'dpvo', baseline_folder: str = 'DPVO') -> None:
@@ -22,18 +22,13 @@ class DPVO_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.862, 0.470, 0.470) # 'red'
         self.modes = ['mono']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5']
-        
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        return super().build_execute_command_python(exp_it, exp, dataset, sequence_name)
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5']
+        self.command_style = 'python'
 
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         self.dpvo_download_weights()
     
-    def is_installed(self) -> tuple[bool, str]: 
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
-
     def dpvo_download_weights(self) -> None: # Download dpvo.pth
         weights_pth = self.baseline_path / 'dpvo.pth'
         if not weights_pth.is_file():

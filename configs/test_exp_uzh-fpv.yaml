@@ -1,0 +1,23 @@
+test_exp_uzh_fpv_mono_pycuvslam:
+  Config: test_config_uzh-fpv.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: pycuvslam
+
+test_exp_uzh_fpv_monovi_okvis2:
+  Config: test_config_uzh-fpv.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_idx: [0,2000]}
+  Module: okvis2
+
+test_exp_uzh_fpv_stereo_orbslam3:
+  Config: test_config_uzh-fpv.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_uzh_fpv_stereovi_orbslam3:
+  Config: test_config_uzh-fpv.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo-vi, rgb_idx: [0,2000]}
+  Module: orbslam3

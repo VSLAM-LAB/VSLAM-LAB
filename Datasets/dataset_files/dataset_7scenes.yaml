@@ -1,9 +1,11 @@
 dataset_name: 7scenes
 
 rgb_hz: 30.0
-url_download_root: "https://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8"
 modes: ['mono', 'rgbd']
 cam_models: ['pinhole']
+raw_formats: ['zip']
+
+url_download_root: "https://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8"
 depth_factor: 1000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
@@ -19,16 +21,16 @@ sequence_names:
   - fire_seq-04
   - heads_seq-01
   - heads_seq-02
-  - office_seq-01 
+  - office_seq-01
   - office_seq-02
   - office_seq-03
   - office_seq-04
   - office_seq-05
   - office_seq-06
-  - office_seq-07 
+  - office_seq-07
   - office_seq-08
   - office_seq-09
-  - office_seq-10  
+  - office_seq-10
   - pumpkin_seq-01
   - pumpkin_seq-02
   - pumpkin_seq-03
@@ -53,3 +55,40 @@ sequence_names:
   - stairs_seq-04
   - stairs_seq-05
   - stairs_seq-06
+
+about:
+  license: Non-commercial use only (custom Microsoft Research license agreement)
+  summary: Tracked RGB-D Kinect frames from seven indoor scenes, for camera relocalization/SLAM research
+  homepage: https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/
+  features:
+    - Real
+    - Indoor
+    - Handheld
+  authors:
+    - Jamie Shotton
+    - Ben Glocker
+    - Christopher Zach
+    - Shahram Izadi
+    - Antonio Criminisi
+    - Andrew Fitzgibbon
+  access: Public
+  publication: "Real-time RGB-D camera relocalization"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/6671777"
+  year: 2013
+  bibtex_key: glocker2013real
+  bibtex: |
+    @inproceedings{glocker2013real,
+      title={Real-time RGB-D camera relocalization},
+      author={Glocker, Ben and Izadi, Shahram and Shotton, Jamie and Criminisi, Antonio},
+      booktitle={2013 IEEE International Symposium on Mixed and Augmented Reality (ISMAR)},
+      pages={173--179},
+      year={2013},
+      organization={IEEE}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-01-06
+

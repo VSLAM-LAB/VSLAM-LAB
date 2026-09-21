@@ -1,10 +1,12 @@
 dataset_name: tartanair
 
 rgb_hz: 30.0
-url_download_root: "https://drive.usercontent.google.com/download?id=1N9BkpQuibIyIBkLxVPUuoB-eDOMFqY8D&export=download&authuser=0&confirm=t&uuid=c93c9d2a-b03b-48b5-bd51-001aa888659f&at=APZUnTXTTMsg_q-Ak73e-LkVBgGb%3A1722478436077/"
-url_download_gt_root: "https://cmu.box.com/shared/static/3p1sf0eljfwrz4qgbpc6g95xtn2alyfk.zip"
 modes: ['mono']
 cam_models: ['pinhole']
+raw_formats: ['tar', 'zip']
+
+url_download_root: "https://drive.usercontent.google.com/download?id=1N9BkpQuibIyIBkLxVPUuoB-eDOMFqY8D&export=download&authuser=0&confirm=t&uuid=c93c9d2a-b03b-48b5-bd51-001aa888659f&at=APZUnTXTTMsg_q-Ak73e-LkVBgGb%3A1722478436077/"
+url_download_root_gt: "https://cmu.box.com/shared/static/3p1sf0eljfwrz4qgbpc6g95xtn2alyfk.zip"
 
 sequence_names:
   - ME000
@@ -23,3 +25,41 @@ sequence_names:
   - MH005
   - MH006
   - MH007
+
+about:
+  license: CC BY 4.0
+  summary: Large-scale photorealistic simulation dataset with multimodal ground truth for SLAM under challenging conditions
+  homepage: https://theairlab.org/tartanair-dataset/
+  features:
+    - Synthetic
+    - Outdoor
+    - Handheld
+  authors:
+    - Wenshan Wang
+    - Delong Zhu
+    - Xiangwei Wang
+    - Yaoyu Hu
+    - Yuheng Qiu
+    - Chen Wang
+    - Yafei Hu
+    - Ashish Kapoor
+    - Sebastian Scherer
+  access: Public
+  publication: "TartanAir: A Dataset to Push the Limits of Visual SLAM"
+  publication_url: "https://ieeexplore.ieee.org/abstract/document/9341801"
+  year: 2020
+  bibtex_key: tartanair2020iros
+  bibtex: |
+    @article{tartanair2020iros,
+      title =   {TartanAir: A Dataset to Push the Limits of Visual SLAM},
+      author =  {Wang, Wenshan and Zhu, Delong and Wang, Xiangwei and Hu, Yaoyu and Qiu, Yuheng and Wang, Chen and Hu, Yafei and Kapoor, Ashish and Scherer, Sebastian},
+      booktitle = {2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      year =    {2020}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Sonnet 5)
+  email: alejandro.fontan@qut.edu.au
+  date: 2024-08-01
+

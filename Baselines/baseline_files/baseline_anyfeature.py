@@ -1,16 +1,20 @@
 import os.path
 import pandas as pd
 from pathlib import Path
+from typing import TYPE_CHECKING
 from huggingface_hub import hf_hub_download
 
 from utilities import print_msg
 from path_constants import VSLAMLAB_BASELINES
-from Baselines.BaselineVSLAMLab import BaselineVSLAMLab
+from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
+if TYPE_CHECKING:
+    from vslamlab_utilities import Experiment
 
-class ANYFEATURE_baseline(BaselineVSLAMLab):
+
+class ANYFEATURE_baseline(BaselineVSLAMLAB):
     """AnyFeature-VSLAM helper for VSLAM-LAB Baselines."""    
 
     def __init__(self, baseline_name: str = 'anyfeature', baseline_folder: str = 'AnyFeature-VSLAM') -> None:    
@@ -24,25 +28,18 @@ class ANYFEATURE_baseline(BaselineVSLAMLab):
         super().__init__(baseline_name, baseline_folder, default_parameters)
         self.color = (0.350, 0.300, 0.700)
         self.modes = ['mono']
-        self.camera_models = ['pinhole', 'radtan4', 'radtan5']
+        self.cam_models = ['pinhole', 'radtan4', 'radtan5']
+        self.command_style = 'cpp'
 
-    def build_execute_command(self, exp_it, exp, dataset, sequence_name):
-        command = super().build_execute_command_cpp(exp_it, exp, dataset, sequence_name)
+    def resolve_parameters(self, exp: 'Experiment') -> dict:
+        # Unless feature_yaml is given explicitly, it follows the selected feature
+        parameters = super().resolve_parameters(exp)
+        parameters['feature_yaml'] = parameters['feature_yaml'].replace('feature_name_to_fill', parameters['feature'])
+        return parameters
 
-        # If feature_yaml has not been provided it has to match the feature selected
-        import re
-        match = re.search(r'feature:(\S+)', command)
-        feature_name = match.group(1)
-        command = command.replace('feature_name_to_fill', feature_name)
-
-        return command
-
-    def git_clone(self) -> None:
-        super().git_clone()
+    def fetch_source(self) -> None:
+        super().fetch_source()
         self.anyfeature_download_vocabulary()
-
-    def is_installed(self) -> tuple[bool, str]:  
-        return (True, 'is installed') if self.is_cloned() else (False, 'not installed (conda package available)')
 
     def anyfeature_download_vocabulary(self) -> None: 
         REPO_ID = "fontan/anyfeature_vocabulary"
