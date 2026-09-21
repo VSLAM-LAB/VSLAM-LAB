@@ -16,24 +16,25 @@ platforms = [
 [activation.env]
 # Regex matched against full command lines: defines what counts as a VSLAM-LAB job
 # for list-jobs and kill-all, so the two always agree.
-VSLAMLAB_JOBS_PATTERN = "droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
+VSLAMLAB_JOBS_PATTERN = "mapanything|droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 kill-all = { cmd = "pkill -f -e $VSLAMLAB_JOBS_PATTERN && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
 
-# VGGT-1B weights (5 GB) shared by vggt, vggtslam and vggtslam-dev. Their entry points fetch them with
-# torch.hub.load_state_dict_from_url, which neither resumes nor checks the byte count, so a dropped
-# connection leaves a truncated model.pt that every later run trips over. `hf download` resumes and
-# verifies; the execute tasks depend on this and point TORCH_HOME at the same folder so torch.hub
-# finds the file already in place. Pixi skips it once the output exists (and re-runs if it changes).
+# VGGT-1B weights (5 GB) shared by vggtslam, vggtslam-dev and mapanything's vggt module. The vggtslam entry
+# points fetch them with torch.hub.load_state_dict_from_url, which neither resumes nor checks the byte count,
+# so a dropped connection leaves a truncated model.pt that every later run trips over. `hf download` resumes
+# and verifies; the execute tasks depend on this and point TORCH_HOME at the same folder so torch.hub finds
+# the file already in place (mapanything does the same download itself, only when its vggt module runs).
+# Pixi skips it once the output exists (and re-runs if it changes).
 download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-dir Baselines/torch_home/hub/checkpoints", outputs = ["Baselines/torch_home/hub/checkpoints/model.pt"] }
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
 cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
 cuda129 = { features = ["cuda129"], solve-group = "cuda129" }
-py10 ={ features = ["py10"], solve-group = "py10" }
+py10 = { features = ["py10"], solve-group = "py10" }
 py11 = { features = ["py11"], solve-group = "py11" }
 x11 = { features = ["x11"], solve-group = "x11" }
 opengl = { features = ["opengl"], solve-group = "opengl" }
@@ -49,9 +50,7 @@ colmap = { features = ["colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"], solve-group = "orb" }
 okvis2 = { features = ["okvis2"], solve-group = "okvis" }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
-vggt = { features = ["vggt", "cuda126", "py11"], solve-group = "vggt" }
 vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
-vggt-omega = { features = ["vggt-omega", "cuda126", "py11"], solve-group = "vggt" }
 mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
@@ -414,40 +413,6 @@ scipy = "=1.14.1"
 pandas = "*"
 opencv = "*"
 
-# ########################################################################################################################
-# ########################################################################################################################
-# vggt
-[feature.vggt]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.vggt.dependencies]
-# Torch
-pytorch-gpu = "*"
-torchvision = "*"
-numpy = "<2"
-
-# vggt
-pillow = "*"
-huggingface_hub = "*"
-einops = "*"
-safetensors = "*"
-opencv = "*"
-tqdm = "*"
-scipy = "*"
-matplotlib = "*"
-viser = "*"
-
-# vslamlab_vggt.py
-pandas = "*"
-pyyaml = "*"
-# --mask_sky (visual_util: gradio, trimesh, requests, onnxruntime) is an upstream demo extra, not shipped here
-
-[feature.vggt.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB vggt-VSLAM-LAB VGGT"
-# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks])
-execute-mono = { cmd = 'python vslamlab_vggt.py', cwd = "Baselines/VGGT", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
-
 ########################################################################################################################
 ########################################################################################################################
 # vggtslam
@@ -471,39 +436,9 @@ fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Base
 # TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
 execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
-########################################################################################################################
-########################################################################################################################
-# vggt-omega
-[feature.vggt-omega]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.vggt-omega.tasks]
-# Mirror of facebookresearch/vggt-omega plus the VSLAM-LAB entry point; run in place, no build step
-fetch-source = "./git-clone.sh VSLAM-LAB vggt-omega-VSLAM-LAB VGGT-Omega"
-execute-mono = { cmd = 'python vslamlab_vggt_omega.py', cwd = "Baselines/VGGT-Omega" }
-
-[feature.vggt-omega.dependencies]
-# Torch (upstream requires torch >= 2.6)
-pytorch-gpu = ">=2.6"
-torchvision = "*"
-numpy = "<2"
-
-# vggt_omega
-pillow = "*"
-einops = "*"
-safetensors = "*"
-opencv = "*"
-
-# vslamlab_vggt_omega.py: gated weights from Hugging Face, csv/yaml io, pose conversion, viser viewer
-huggingface_hub = "*"
-pandas = "*"
-pyyaml = "*"
-scipy = "*"
-viser = "=0.2.23"
-
 # ########################################################################################################################
-# mapanything
+# mapanything: MapAnything plus the feed-forward models its model factory hosts (vggt, vggt-omega, pi3, pi3x, dust3r,
+# mast3r, must3r, pow3r), selected per experiment with the `module` parameter of the single `mapanything` baseline
 [feature.mapanything]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
@@ -511,14 +446,21 @@ platforms = ["linux-64-cuda"]
 [feature.mapanything.tasks]
 # Fork of facebookresearch/map-anything with the VSLAM-LAB entry point. uniception (PyPI only) is installed without its
 # declared deps (torchaudio, rerun, minio, ... are not needed for inference); what the import chain uses is listed below.
+# The external models are the pip extras of upstream's pyproject.toml, pinned to commits and installed without their
+# declared deps for the same reason (vggt, pi3 and moge are vendored in mapanything itself). asmk is MUSt3R's retrieval
+# library: its committed hamming.c predates Python 3.11, so it is cloned and its Cython source regenerated before the build.
 fetch-source = "./git-clone.sh VSLAM-LAB map-anything-VSLAM-LAB MapAnything"
-install = { cmd = 'pip install --no-deps uniception==0.1.7 && pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/MapAnything', depends-on = ['fetch-source'] }
-execute-mono = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything" }
-execute-rgbd = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything" }
+fetch-asmk = "./git-clone.sh jenicek asmk asmk"
+install-asmk = { cmd = 'git -C Baselines/asmk checkout -q 2a96d9c03a841dffdfddabc699a20512dcd09363 && cython Baselines/asmk/cython/hamming.pyx -o Baselines/asmk/cython/hamming.c && pip install --no-deps --no-build-isolation Baselines/asmk', depends-on = ['fetch-asmk'] }
+install = { cmd = '''pip install --no-deps uniception==0.1.7 && pip install --no-deps --no-build-isolation -e . && pip install --no-deps --no-build-isolation "vggt-omega @ git+https://github.com/facebookresearch/vggt-omega.git@a3ab0141f96838724423541044ff5ba301cfd36a" "pi3 @ git+https://github.com/yyfz/Pi3.git@9fa3ddb3f8d53041f8b2738df404f62223bbaa7b" "croco @ git+https://github.com/naver/croco.git@87244aa971caa4bae57ba7f9cb885761d323da93" "dust3r @ git+https://github.com/naver/dust3r.git@bb9f9f54826b4077ed9fd075308eb2fe2d4666f9" "mast3r @ git+https://github.com/Nik-V9/mast3r.git@6b9f16318a057d8f68ba110d4b638d3b74f69fee" "must3r @ git+https://github.com/naver/must3r.git@efc5b08fbbaba814706880932ba2497472096925" "pow3r @ git+https://github.com/Nik-V9/pow3r.git@8721c1b78816329cc8d87d929221e36ac9aba298"''', cwd = 'Baselines/MapAnything', depends-on = ['fetch-source', 'install-asmk'] }
+# TORCH_HOME: the external modules' weights go to Baselines/torch_home/hub/checkpoints, where download-vggt-weights
+# (see [tasks]) puts the VGGT-1B model.pt shared with vggtslam; the entry point downloads what is missing itself
+execute-mono = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
+execute-rgbd = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
 
 [feature.mapanything.dependencies]
-# Torch
-pytorch-gpu = "*"
+# Torch (vggt-omega requires >= 2.6)
+pytorch-gpu = ">=2.6"
 torchvision = "*"
 numpy = "<2"
 
@@ -543,11 +485,20 @@ termcolor = "*"
 matplotlib = "*"
 scikit-learn = "*"
 
+# external modules: dust3r family global alignment (roma, below), MUSt3R retrieval (faiss + asmk built with cython, pyaml)
+faiss = "*"
+pyaml = "*"
+cython = "*"
+
 # vslamlab_mapanything.py
 pandas = "*"
 pyyaml = "*"
 scipy = "*"
 viser = "=0.2.23"
+
+[feature.mapanything.pypi-dependencies]
+# roma (RoMa rotation utilities, naver) is PyPI only: dust3r.cloud_opt, mast3r sparse GA, must3r and pow3r import it
+roma = "*"
 
 ########################################################################################################################
 ########################################################################################################################

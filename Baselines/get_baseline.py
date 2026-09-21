@@ -29,8 +29,6 @@ from Baselines.baseline_files.baseline_pycuvslam import PYCUVSLAM_baseline
 
 # SfM baselines
 from Baselines.baseline_files.baseline_colmap import COLMAP_baseline
-from Baselines.baseline_files.baseline_vggt import VGGT_baseline
-from Baselines.baseline_files.baseline_vggt_omega import VGGTOMEGA_baseline
 from Baselines.baseline_files.baseline_da3 import DA3_baseline
 from Baselines.baseline_files.baseline_da3 import DA3STREAMING_baseline
 from Baselines.baseline_files.baseline_mapanything import MAPANYTHING_baseline
@@ -60,8 +58,6 @@ def get_baseline_switcher():
         "okvis2": lambda: OKVIS2_baseline(),
         "okvis2-dev": lambda: OKVIS2_baseline_dev(),
         "pycuvslam": lambda: PYCUVSLAM_baseline(),
-        "vggt": lambda: VGGT_baseline(),
-        "vggt-omega": lambda: VGGTOMEGA_baseline(),
         "da3": lambda: DA3_baseline(),
         "da3-streaming": lambda: DA3STREAMING_baseline(),
         "mapanything": lambda: MAPANYTHING_baseline(),
