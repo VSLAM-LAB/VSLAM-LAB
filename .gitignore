@@ -38,6 +38,7 @@ Baselines/VGGT-SLAM-DEV
 Baselines/VGGT-SLAM
 Baselines/AllFeature-VSLAM
 Baselines/AllFeature-VSLAM-DEV
+Baselines/AllFeature-VSLAM-paper
 Baselines/Depth-Anything-3
 Baselines/VPR-LAB
 Baselines/Fast-FoundationStereo
@@ -55,6 +56,7 @@ configs/exp_demo.yaml
 .vscode/
 
 app.log
+imgui.ini
 
 # ROS
 Baselines/ros2_ws
