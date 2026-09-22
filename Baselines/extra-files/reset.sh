@@ -73,6 +73,7 @@ if $DO_BASELINES; then
     rm -rf "$BASELINES_DIR"/Fast-FoundationStereo
     rm -rf "$BASELINES_DIR"/AnyCalib
     rm -rf "$BASELINES_DIR"/Refrax
+    rm -rf "$BASELINES_DIR"/torch_home
 fi
 
 if $DO_DATASETS; then

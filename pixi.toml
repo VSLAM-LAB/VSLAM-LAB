@@ -1068,7 +1068,7 @@ channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev
 platforms = ["linux-64-cuda"]
 
 [feature.allfeature-dev.tasks]
-fetch-source = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV cleanup"
+fetch-source = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV"
 install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV"}
 execute-mono = { cmd = "pixi run execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-rgbd = { cmd = "pixi run execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
