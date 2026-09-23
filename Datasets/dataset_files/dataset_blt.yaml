@@ -1,25 +1,27 @@
 dataset_name: blt
 
 # Front ZED2 colour rate, as configured in the paper's sensor table and as measured on the real
-# ktima_2022_09_15 bag: 14.93 Hz over 748 frames, median frame gap 67.0 ms. Depth is recorded
-# more slowly (10.27 Hz there) and is associated per frame in create_rgb_csv. Only written to
-# calibration.yaml as `fps` - rgb.csv carries each frame's own header stamp, never a synthesized
-# rate.
+# bags: 14.85 Hz on ktima_2022_07_13, 14.88 Hz on ktima_2022_09_15, median frame gap 67.0 ms.
+# Depth is computed for only a subset of those grabs (9.2 Hz / 11.8 Hz there), and rgb_0 keeps
+# just the grabs that have one (see create_rgb_folder), so each sequence's calibration.yaml
+# `fps` is its own measured rate rather than this value. rgb.csv carries each frame's own
+# header stamp, never a synthesized rate.
 rgb_hz: 15.0
 
 # Front ZED2 only: rectified colour (rgb_0) plus the republished depth stream (depth_0). The
 # side-facing ZED2 is a second, independently-pointed camera rather than the other half of a
-# stereo pair, so it is not exposed as `stereo`; the 40 Hz RSX-UM7 IMU is recorded too but is not
-# extracted here, so no `-vi` mode is advertised.
+# stereo pair, and only the front camera's left image is recorded, so there is no `stereo`. No
+# `-vi` mode either: the front ZED2's own ~394 Hz IMU is stamped on a separate clock (~0.8 s
+# behind the images on ktima_2022_07_13, ~0 on 09_15), and the RSX-UM7 is only 40 Hz.
 modes: ['mono', 'rgbd']
 
 # /front/zed_node/rgb/image_rect_color is rectified by the ZED SDK before recording and its
 # CameraInfo carries an all-zero distortion vector, so calibration.yaml writes a plain pinhole
-# camera with no distortion coefficients at all. Measured on ktima_2022_09_15: one single
-# CameraInfo across all 1476 messages of the scanned window, fx = fy = 1057.0009,
-# (cx, cy) = (952.2302, 553.5770) at 1920x1080, D = [0, 0, 0, 0, 0], and the depth stream's own
-# CameraInfo identical to it (depth is registered to the colour frame). create_calibration_yaml
-# still reads it per sequence rather than hardcoding it.
+# camera with no distortion coefficients at all. The CameraInfo is constant within a session but
+# not across them - fx = fy = 1051.0835 on ktima_2022_07_13 and 1057.0009 on ktima_2022_09_15,
+# (cx, cy) = (952.23, 553.58) at 1920x1080, D = [0, 0, 0, 0, 0] in both - so
+# create_calibration_yaml reads it from each sequence's own bag. The depth stream's CameraInfo is
+# identical to the colour one (depth is registered to the left lens).
 cam_models: ['pinhole']
 
 raw_formats: ['ros1']
@@ -36,14 +38,16 @@ raw_data_path: ""
 
 # Depth in meters = depth_value / depth_factor. depth_0 is written as 16-bit millimetres,
 # whichever of compressedDepth's two payload encodings the bag carries (see
-# _decode_compressed_depth in dataset_blt.py).
+# _decode_compressed_depth in dataset_blt.py); both measured bags carry '16UC1; compressedDepth',
+# capped at 10 m (the ZED's max_depth), with 13-56% of pixels valid per frame.
 depth_factor: 1000.0
 
 target_resolution: [640, 480]
 
 # One sequence per recording session at the Ktima Gerovassiliou vineyard, named after its date:
-# the 11 sessions of the 2022 campaign listed on the dataset page (23 March; 6 and 20 April; 6 and
-# 18 May; 1, 8, 22 and 29 June; 13 July; 15 September). The five 2023 Riseholme sessions are not
+# the 11 sessions of the 2022 campaign listed in the paper and on the dataset page, whose text
+# says "10 sessions" but lists 11 dates: 23 March; 6 and 20 April; 6 and 18 May; 1, 8, 22 and
+# 29 June; 13 July; 15 September. The five 2023 Riseholme sessions are not
 # included: two of them carry no RGB-D data at all, and `modes` applies dataset-wide, so they
 # would belong to a separate dataset rather than this one.
 sequence_names:

@@ -48,37 +48,28 @@ GROUNDTRUTH_TOPIC: Final = "/odometry/gps"
 TF_STATIC_TOPIC: Final = "/tf_static"
 
 # groundtruth.csv is written in the robot's body frame, so calibration.yaml's T_BS has to carry
-# base_link -> camera (see _camera_extrinsics for where each half of that comes from).
+# base_link -> camera (see CAMERA_OPTICAL_FRAME for where that comes from).
 BODY_FRAME: Final = "base_link"
-
-# Colour runs faster than depth, so the two streams are associated by nearest timestamp rather
-# than zipped by index, and a colour frame keeps whatever depth frame falls within this much of
-# it. Pairing every colour frame (rather than every depth frame) keeps mono mode, which reads the
-# same rgb.csv, at the full colour rate; the cost is that consecutive rows may reuse one depth
-# frame, which create_rgb_csv reports. 100 ms is one period of the ~10 Hz depth stream: measured
-# on ktima_2022_09_15, a colour frame's nearest depth frame is 0 ms away for 68% of frames and
-# 67 ms away for almost all of the rest, so this keeps 99.7% of them while still refusing a pair
-# straddling a depth dropout (the stream's largest gap there was 201 ms).
-RGB_DEPTH_TOLERANCE_NS: Final = 100_000_000
 
 # compressed_depth_image_transport's ConfigHeader, prepended to every compressedDepth payload:
 # int32 format enum + float32 depthQuantA + float32 depthQuantB.
 _DEPTH_HEADER_FORMAT: Final = "<iff"
 _DEPTH_HEADER_SIZE: Final = struct.calcsize(_DEPTH_HEADER_FORMAT)
 
-# base_link -> front ZED2, from Table 3 of the BLT paper (translation in m, rotation as
-# qx, qy, qz, qw). The bag's own static TF cannot supply this: the ZED wrapper publishes its
-# sub-tree unmounted, with base_link -> front_base_link as the identity (verified on
-# ktima_2022_09_15), which would put the camera 1.5 cm above the robot's ground-level body origin
-# instead of its real 0.763 m. What the bag does carry correctly is everything from the camera
-# body inwards, so _camera_extrinsics chains this transform with the bag's own
-# MOUNT_FRAME -> <colour lens optical frame> part.
-MOUNT_FRAME: Final = "front_camera_center"
-_MOUNT_TRANSLATION: Final = (0.345, 0.060, 0.763)
-_MOUNT_QUATERNION: Final = (0.000, 0.017, 0.000, 1.000)
-# REP-103 camera body frame (x forward, y left, z up) -> optical frame (x right, y down,
-# z forward). Only needed if a bag is missing the intra-camera chain, since the ZED wrapper
-# publishes exactly this rotation (plus the lens offsets) under MOUNT_FRAME.
+# The front ZED2's colour (left) lens optical frame as the robot's own URDF names it. The bag's
+# /tf_static carries two descriptions of this camera: the ZED wrapper's front_* sub-tree, which it
+# publishes unmounted (base_link -> front_base_link is the identity, putting the camera 1.5 cm
+# above the ground-level body origin), and the Thorvald URDF's 2_zed2_* one, mounted on the front
+# pipe. The URDF chain reproduces the paper's Table 3 "Zed2 Front" row exactly (0.345, 0.060,
+# 0.763, pitch 2 deg) as base_link -> 2_zed2_left_camera_frame - Table 3's y = 0.060 is the left
+# lens' own offset, not the camera centre's - so T_BS is read from it (verified on ktima_2022_07_13
+# and ktima_2022_09_15, whose static trees are identical).
+CAMERA_OPTICAL_FRAME: Final = "2_zed2_left_camera_optical_frame"
+# Fallback for a bag without that chain: Table 3's base_link -> left camera frame (translation in
+# m, rotation as qx, qy, qz, qw), followed by the REP-103 camera body (x forward, y left, z up) ->
+# optical (x right, y down, z forward) rotation.
+_TABLE3_TRANSLATION: Final = (0.345, 0.060, 0.763)
+_TABLE3_QUATERNION: Final = (0.000, 0.017, 0.000, 1.000)
 _BODY_TO_OPTICAL: Final = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
 
 _SEQUENCE_NAME_RE: Final = re.compile(r"^ktima_(?P<year>\d{4})_(?P<month>\d{2})_(?P<day>\d{2})$")
@@ -236,42 +227,40 @@ class BltDataset(DatasetVSLAMLAB):
                 else:
                     self._save_depth(_decode_compressed_depth(msg), depth_tmp / name)
 
+        # Depth is computed from a subset of the colour grabs and carries that grab's exact stamp
+        # (99.9% of depth frames on ktima_2022_07_13 and ktima_2022_09_15), so only grabs present
+        # in both streams are kept: a colour frame without its own depth map would otherwise have
+        # to borrow the neighbouring grab's, 67 ms away. mono reads the same rgb.csv, so it runs at
+        # the depth grab rate too (~12 Hz on 09_15, ~9 Hz on 07_13), still at the real stamps.
+        rgb_names = {p.name for p in rgb_tmp.iterdir()}
+        depth_names = {p.name for p in depth_tmp.iterdir()}
+        for folder, unpaired in ((rgb_tmp, rgb_names - depth_names), (depth_tmp, depth_names - rgb_names)):
+            for name in unpaired:
+                (folder / name).unlink()
+        print_info(f"{sequence_name}: kept {len(rgb_names & depth_names)} colour+depth grabs, dropped "
+                   f"{len(rgb_names - depth_names)} colour frames without a depth map and "
+                   f"{len(depth_names - rgb_names)} depth maps without a colour frame")
+
         rgb_tmp.rename(rgb_path)
         depth_tmp.rename(depth_path)
 
     def create_rgb_csv(self, sequence_name: str) -> None:
-        """Associate colour and depth by nearest timestamp, within one colour period.
-
-        The two streams are timestamped independently and, per the dataset's sensor table, are not
-        even configured at the same rate (15 fps colour against 10 fps depth), so a naive
-        index-zip would pair frames from different moments - see dataset_rgbdtum.py, which needs
-        the same treatment for TUM's Kinect.
-        """
+        # create_rgb_folder keeps only the grabs both streams share, so the two sorted folders
+        # correspond 1:1 with identical stamps - checked rather than assumed.
         rgb_csv = self.rgb_csv_path(sequence_name)
         if rgb_csv.exists():
             return
 
         rgb = self._stream_frame(self.rgb_path(sequence_name), "path_rgb_0")
         depth = self._stream_frame(self.depth_path(sequence_name), "path_depth_0")
+        if len(rgb) != len(depth) or not (rgb["ts"].values == depth["ts"].values).all():
+            raise ValueError(f"{sequence_name}: {self.rgb_path(sequence_name).name}/ and "
+                             f"{self.depth_path(sequence_name).name}/ do not hold the same stamps - delete both and "
+                             f"re-run create_rgb_folder")
 
-        merged = pd.merge_asof(rgb, depth, on="ts", direction="nearest", tolerance=RGB_DEPTH_TOLERANCE_NS)
-        merged = merged.dropna(subset=["path_depth_0"]).copy()
-        dropped = len(rgb) - len(merged)
-        if dropped:
-            print_warning(f"{sequence_name}: {dropped} of {len(rgb)} colour frames have no depth frame within "
-                          f"{RGB_DEPTH_TOLERANCE_NS / 1e6:.0f} ms - dropped")
-
-        # Back from the matched file name rather than through the merge: a nanosecond stamp needs
-        # more precision than the float64 an all-NaN-capable merge column would carry.
-        merged["ts_depth_0 (ns)"] = [int(Path(path).stem) for path in merged["path_depth_0"]]
-        reused = len(merged) - merged["ts_depth_0 (ns)"].nunique()
-        if reused:
-            print_info(f"{sequence_name}: {reused} rows reuse a depth frame already paired with an earlier colour "
-                       f"frame (depth is recorded at a lower rate than colour)")
-
-        merged = merged.rename(columns={"ts": "ts_rgb_0 (ns)"})
-        header = ["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"]
-        write_csv_rows(rgb_csv, header, merged[header].values.tolist())
+        rows = [[ts, path_rgb, ts, path_depth]
+                for ts, path_rgb, path_depth in zip(rgb["ts"], rgb["path_rgb_0"], depth["path_depth_0"])]
+        write_csv_rows(rgb_csv, ["ts_rgb_0 (ns)", "path_rgb_0", "ts_depth_0 (ns)", "path_depth_0"], rows)
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         camera_info, transforms = self._read_calibration_messages(sequence_name)
@@ -300,8 +289,8 @@ class BltDataset(DatasetVSLAMLAB):
             "focal_length": focal_length,
             "principal_point": principal_point,
             "depth_factor": float(self.depth_factor),
-            "fps": float(self.rgb_hz),
-            "T_BS": self._camera_extrinsics(sequence_name, camera_info, transforms),
+            "fps": self._paired_frame_rate(sequence_name),
+            "T_BS": self._camera_extrinsics(sequence_name, transforms),
         }
         self.write_calibration_yaml(sequence_name=sequence_name, rgbd=[rgbd0])
 
@@ -309,9 +298,14 @@ class BltDataset(DatasetVSLAMLAB):
         # /odometry/gps is a nav_msgs/Odometry pose of base_link in the session's map frame (all
         # sessions share one datum), so its poses are written straight through: this is the body
         # frame calibration.yaml's T_BS is relative to. It comes from robot_localization fusing
-        # wheel odometry with the RTK-GNSS and is planar - on ktima_2022_09_15 every pose has
-        # z = 0 exactly, with roll and pitch left at zero - and the EKF repeats a pose verbatim
-        # every few messages (123 of 577 in the scanned window), which _odometry_rows drops.
+        # wheel odometry with the dual-antenna RTK-GNSS (so the heading is measured, not derived
+        # from motion) and is planar: every pose has z = 0 exactly, with roll and pitch at zero.
+        # Measured on ktima_2022_07_13 / 09_15: ~20 Hz, the EKF repeats a pose verbatim under its
+        # original stamp for 15% / 32% of messages (dropped below), and the stream has gaps of up
+        # to 8 s / 15 s, left as gaps rather than interpolated - frames inside one are simply not
+        # evaluated. Its stamps trail the camera's by ~90 ms (yaw rate against the ZED's own
+        # odometry on both sessions, and the ATE minimum of a DROID-SLAM RGB-D run on 09_15 - which
+        # it lowers by only 8 mm, 0.112 -> 0.104 m), so no clock offset is applied.
         groundtruth_csv = self.groundtruth_csv_path(sequence_name)
         header = ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"]
         if groundtruth_csv.exists():
@@ -476,26 +470,17 @@ class BltDataset(DatasetVSLAMLAB):
             raise ValueError(f"{sequence_name}: {camera_info_topic} carries no message")
         return camera_info, transforms
 
-    def _camera_extrinsics(self, sequence_name: str, camera_info: Any,
-                           transforms: dict[str, tuple[str, np.ndarray]]) -> np.ndarray:
-        """T_BS for the colour camera: the pose, in the robot's body frame, of the frame its
-        CameraInfo names.
-
-        Built from the two sources that are each right about half of it (see MOUNT_FRAME above):
-        the paper's published mounting of the front ZED2 on the robot, then the bag's own static
-        chain from that camera body to the colour lens' optical frame - which carries the lens
-        offsets (60 mm off the camera centre) and the body-to-optical rotation.
-        """
-        mounting = _matrix(_MOUNT_TRANSLATION, _MOUNT_QUATERNION)
-        camera_frame = _clean_frame(getattr(getattr(camera_info, "header", None), "frame_id", ""))
-        inside_camera = self._static_transform(transforms, MOUNT_FRAME, camera_frame)
-        if inside_camera is None:
-            print_warning(f"{sequence_name}: no static TF chain from '{MOUNT_FRAME}' to the camera frame "
-                          f"'{camera_frame}' - placing the camera at the mounting published in the BLT paper, "
-                          f"without this ZED2's own lens offsets")
-            inside_camera = np.eye(4)
-            inside_camera[:3, :3] = _BODY_TO_OPTICAL
-        return mounting @ inside_camera
+    def _camera_extrinsics(self, sequence_name: str, transforms: dict[str, tuple[str, np.ndarray]]) -> np.ndarray:
+        """T_BS for the colour camera: base_link -> the front ZED2's left optical frame, from the
+        robot URDF's static chain (see CAMERA_OPTICAL_FRAME), or from Table 3 if a bag lacks it."""
+        T_BS = self._static_transform(transforms, BODY_FRAME, CAMERA_OPTICAL_FRAME)
+        if T_BS is not None:
+            return T_BS
+        print_warning(f"{sequence_name}: no static TF chain from '{BODY_FRAME}' to '{CAMERA_OPTICAL_FRAME}' - "
+                      f"using the front ZED2 mounting from Table 3 of the BLT paper")
+        body_to_optical = np.eye(4)
+        body_to_optical[:3, :3] = _BODY_TO_OPTICAL
+        return _matrix(_TABLE3_TRANSLATION, _TABLE3_QUATERNION) @ body_to_optical
 
     @staticmethod
     def _static_transform(transforms: dict[str, tuple[str, np.ndarray]],
@@ -522,6 +507,14 @@ class BltDataset(DatasetVSLAMLAB):
         if source_root != target_root:
             return None
         return np.linalg.inv(T_root_source) @ T_root_target
+
+    def _paired_frame_rate(self, sequence_name: str) -> float:
+        """The rate rgb_0 actually holds, not the camera's 15 fps: only colour+depth grabs are kept
+        (see create_rgb_folder), and how many of them carry depth differs by session."""
+        stamps = self._stream_frame(self.rgb_path(sequence_name), "path_rgb_0")["ts"]
+        if len(stamps) < 2:
+            return float(self.rgb_hz)
+        return round((len(stamps) - 1) / ((stamps.iloc[-1] - stamps.iloc[0]) / 1e9), 3)
 
     def _check_native_resolution(self, sequence_name: str, native_size: tuple[int, int]) -> None:
         """Warn if rgb_0's frames are not the size the CameraInfo resolution scales to - the
