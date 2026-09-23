@@ -26,6 +26,7 @@ from Datasets.dataset_files.dataset_7scenes import SevenscenesDataset
 from Datasets.dataset_files.dataset_minimal import MinimalDataset
 from Datasets.dataset_files.dataset_bonn_rgbd import BonnRgbdDataset
 from Datasets.dataset_files.dataset_endomapper_sim import EndomapperSimDataset
+from Datasets.dataset_files.dataset_blt import BltDataset
 
 # Stereo datasets
 from Datasets.dataset_files.dataset_kitti import KittiDataset
@@ -93,6 +94,7 @@ def get_dataset(dataset_name):
         "7scenes": lambda: SevenscenesDataset(),
         "minimal": lambda: MinimalDataset(),
         "bonn-rgbd": lambda: BonnRgbdDataset(),
+        "blt": lambda: BltDataset(),
         "openloris-d400": lambda: OpenlorisD400Dataset(),
         "openloris-t265": lambda: OpenlorisT265Dataset(),
         "sweetcorals": lambda: SweetcoralsDataset(),
