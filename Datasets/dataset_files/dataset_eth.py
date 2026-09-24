@@ -4,7 +4,7 @@ Module: VSLAM-LAB - Datasets - dataset_eth.py
 - Assisted by: Claude (Sonnet 5)
 - Version: 2.0
 - Created: 2024-07-13
-- Updated: 2026-07-26
+- Updated: 2026-09-24
 - License: GPLv3 License
 """
 
@@ -112,19 +112,19 @@ class EthDataset(DatasetVSLAMLAB):
         sequence_path = self.sequence_path(sequence_name)
         groundtruth_txt = sequence_path / "groundtruth.txt"
 
-        if not groundtruth_txt.exists():
-            raise FileNotFoundError(f"Missing groundtruth: {groundtruth_txt}")
-
+        # ETH3D withholds the ground truth of its SLAM test split (evaluated only via the online
+        # benchmark), so those sequences ship without groundtruth.txt and get a header-only csv.
         rows = []
-        with open(groundtruth_txt, "r", encoding="utf-8") as fin:
-            for line in fin:
-                s = line.strip()
-                if not s or s.startswith("#"):
-                    continue
+        if groundtruth_txt.exists():
+            with open(groundtruth_txt, "r", encoding="utf-8") as fin:
+                for line in fin:
+                    s = line.strip()
+                    if not s or s.startswith("#"):
+                        continue
 
-                parts = s.split()
-                ts_ns = int(float(parts[0]) * 1e9)
-                rows.append([ts_ns] + parts[1:])
+                    parts = s.split()
+                    ts_ns = int(float(parts[0]) * 1e9)
+                    rows.append([ts_ns] + parts[1:])
 
         write_csv_rows(self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows)
 

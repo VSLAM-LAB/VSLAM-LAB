@@ -9,6 +9,7 @@ url_download_root: "https://www.eth3d.net/data/slam/"
 depth_factor: 5000.0 # Depth in meters = depth_value / depth_factor
 
 sequence_names:
+  # Training split (groundtruth.txt published)
   - cables_1
   - cables_2
   - cables_3
@@ -64,6 +65,7 @@ sequence_names:
   - table_7
   - vicon_light_1
   - vicon_light_2
+  # Test split (ground truth withheld by ETH3D - groundtruth.csv is header-only)
   - boxes
   - buddha
   - cables_4
