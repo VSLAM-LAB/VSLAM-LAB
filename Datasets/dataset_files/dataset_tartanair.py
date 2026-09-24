@@ -4,7 +4,7 @@ Module: VSLAM-LAB - Datasets - dataset_tartanair.py
 - Assisted by: Claude (Sonnet 5)
 - Version: 1.0
 - Created: 2024-08-01
-- Updated: 2026-07-26
+- Updated: 2026-09-24
 - License: GPLv3 License
 """
 
@@ -22,6 +22,19 @@ from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import decompressFile, downloadFile, write_csv_rows
 
 CAMERA_PARAMS: Final = [320.0, 320.0, 320.0, 240.0] # Camera intrinsics (fx, fy, cx, cy)
+
+
+def ned_pose_to_camera(tx: str, ty: str, tz: str, qx: str, qy: str, qz: str, qw: str) -> list[str]:
+    """TartanAir pose files (pose_left.txt, tartanair_cvpr_gt/mono_gt/*.txt) express the camera
+    pose in a NED world frame (x forward, y right, z down). VSLAM-LAB groundtruth.csv is expected
+    in the camera/optical convention (x right, y down, z forward, T_BS identity), so the axes are
+    cyclically permuted NED (x, y, z) -> camera (y, z, x), for both the translation and the vector
+    part of the quaternion - the same `[1, 2, 0, 4, 5, 3, 6]` reindexing upstream DROID-SLAM
+    applies in tartan.py / test_tartanair.py. Values are passed through as the original strings
+    so no precision is lost. The permutation is a proper rotation, so alignment-based ATE is
+    invariant to it; relative-pose supervision against camera-frame depth (e.g. DROID training)
+    is not, which is why it has to be applied here rather than left to consumers."""
+    return [ty, tz, tx, qy, qz, qx, qw]
 
 
 class TartanairDataset(DatasetVSLAMLAB):
@@ -118,8 +131,8 @@ class TartanairDataset(DatasetVSLAMLAB):
                 parts = line.strip().split()
                 ts = frame_idx / float(self.rgb_hz)
                 ts_ns = int(1e10 + ts * 1e9)
-                tx, ty, tz, qx, qy, qz, qw = parts[:7]
-                rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+                # NED world frame -> camera frame (see ned_pose_to_camera)
+                rows.append([ts_ns, *ned_pose_to_camera(*parts[:7])])
 
         write_csv_rows(
             self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,

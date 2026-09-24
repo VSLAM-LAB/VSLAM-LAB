@@ -4,6 +4,7 @@ Module: VSLAM-LAB - Datasets - dataset_tartanair_train.py
 - Assisted by: Claude (Fable 5)
 - Version: 1.0
 - Created: 2026-08-24
+- Updated: 2026-09-24
 - License: GPLv3 License
 """
 
@@ -20,6 +21,7 @@ from huggingface_hub import hf_hub_download
 
 from Datasets.DatasetVSLAMLAB import DatasetVSLAMLAB
 from Datasets.DatasetVSLAMLAB_issues import _get_dataset_issue
+from Datasets.dataset_files.dataset_tartanair import ned_pose_to_camera
 from path_constants import BENCHMARK_RETENTION, Retention
 from utilities import hf_token, write_csv_rows
 
@@ -148,9 +150,9 @@ class TartanairTrainDataset(DatasetVSLAMLAB):
         self.write_calibration_yaml(sequence_name=sequence_name, rgb=[rgb1], rgbd=[rgbd0])
 
     def create_groundtruth_csv(self, sequence_name: str) -> None:
-        # pose_left.txt: one "tx ty tz qx qy qz qw" line per frame, NED world frame - written
-        # as-is (same convention as dataset_tartanair.py), with timestamps synthesized to match
-        # create_rgb_csv.
+        # pose_left.txt: one "tx ty tz qx qy qz qw" line per frame in TartanAir's NED world
+        # frame, converted to the camera frame via ned_pose_to_camera (same convention as
+        # dataset_tartanair.py), with timestamps synthesized to match create_rgb_csv.
         pose_txt = self._raw_trajectory_path(sequence_name) / "pose_left.txt"
 
         rows = []
@@ -158,8 +160,7 @@ class TartanairTrainDataset(DatasetVSLAMLAB):
             for frame_idx, line in enumerate(fin):
                 parts = line.strip().split()
                 ts_ns = int(1e10 + frame_idx / self.rgb_hz * 1e9)
-                tx, ty, tz, qx, qy, qz, qw = parts[:7]
-                rows.append([ts_ns, tx, ty, tz, qx, qy, qz, qw])
+                rows.append([ts_ns, *ned_pose_to_camera(*parts[:7])])
 
         write_csv_rows(
             self.groundtruth_csv_path(sequence_name), ["ts (ns)", "tx (m)", "ty (m)", "tz (m)", "qx", "qy", "qz", "qw"], rows,
