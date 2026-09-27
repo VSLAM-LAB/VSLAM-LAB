@@ -1,0 +1,24 @@
+# Gym/label_definitions.yaml - the sequence labels and the rule behind each one.
+#
+# Gym/labels/facts_<n>.csv stores the facts a label is derived from next to labels_<n>.csv, so a
+# label can always be recomputed by re-running Gym/label_sequences.py after a change here. Each
+# entry has a function of the same name in Gym/labeling.py that applies its rule.
+
+version: 1
+
+labels:
+  length:
+    definition: Frame-count band, from the fact num_frames (rows of the sequence's rgb.csv).
+    values: [short, medium, long]
+    rule: short when num_frames <= short_max, medium when num_frames <= medium_max, else long
+    short_max: 500
+    medium_max: 3000
+
+  ate:
+    definition: Accuracy band of one baseline in one mode, from the fact
+      ate:median:<baseline>:<mode> (median ATE RMSE in metres over the evaluated runs). One label
+      ate:<baseline>:<mode> per such fact; empty when the fact is empty.
+    values: [low, medium, high]
+    rule: low when ate:median <= low_max, medium when ate:median <= medium_max, else high
+    low_max: 0.01
+    medium_max: 0.1

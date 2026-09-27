@@ -66,3 +66,6 @@ Baselines/ros2_ws
 #   git update-index --skip-worktree configs/comp_complete.yaml configs/config_debug.yaml \
 #       configs/config_train_droid.yaml configs/exp_debug.yaml configs/exp_train_droid.yaml
 # (undo with --no-skip-worktree; list with: git ls-files -v | grep '^S')
+
+# Gym: generated per-run label/fact csv pairs
+Gym/labels/

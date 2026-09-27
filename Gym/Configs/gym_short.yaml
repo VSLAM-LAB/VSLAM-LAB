@@ -1,0 +1,18 @@
+# Selected from Gym/labels/labels_000.csv with length=short: 16 sequences
+eth:
+- cables_2
+- cables_3
+- camera_shake_1
+- camera_shake_3
+- einstein_1
+- einstein_global_light_changes_2
+- mannequin_face_1
+- mannequin_face_2
+- plant_1
+- plant_2
+- plant_3
+- plant_4
+- plant_5
+- sfm_lab_room_1
+- sfm_lab_room_2
+- sofa_shake
