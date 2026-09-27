@@ -1,89 +1,89 @@
-# eth:
-#   - 'table_3'
-# rgbdtum:
-#   - 'rgbd_dataset_freiburg1_xyz'
-# kitti:
-#  - '04'
-# euroc:
-#   - MH_01_easy
-# replica:
-#   - 'office0'
-# tartanair:
-#   - 'ME000'
-# nuim:
-#   - 'traj0_frei_png'
-# 7scenes:
-#   - 'chess_seq-01'
-# openloris-d400:
-#   - cafe1-1
-# openloris-t265:
-#   - cafe1-1
-# msd:
-#   - 'MIO07_mapping_easy'
-# rover-t265:
-#   - 'campus_small_autumn_t265'
-# rover-d435i:
-#   - 'campus_small_autumn_d435i'
-# rover-picam:
-#   - 'campus_small_autumn_picam'
-# ut-coda:
-#   - '0'
-# s3li:
-#   - 'vegetation'
-# sesoko:
-#   - ssk16
-#   - ssk17
-#   - ssk18
-
-# ariel:
-# - 'mclab_1'
-# sweetcorals:
-# - 'indonesia_banyuwangi_farm'
-# - 'indonesia_pemuteran_p1'
-# - 'indonesia_pemuteran_p2'
-# - 'indonesia_pemuteran_p3'
-# - 'tabuhan_p1'
-# - 'indonesia_tabuhan_p2'
-# - 'indonesia_tabuhan_p3'
-# - 'indonesia_watudodol_p1'
-# - 'indonesia_watudodol_p2'
-# - 'indonesia_watudodol_p3'
-# - 'indonesia_watudodol_p4'
-# - 'indonesia_watudodol_p5'
-# - 'indonesia_watudodol_p6'
-
-# hilti2022:
-  #- exp04_construction_upper_level
-  # - exp14_basement_2
-# madmax:
-#   - A-0
-
-#hilti2022:
-  #- exp04_construction_upper_level
-  #- exp05_construction_upper_level_2
-  #- exp06_construction_upper_level_3
-#  - exp14_basement_2
-  #- exp16_attic_to_upper_gallery_2
-  #- exp18_corridor_lower_gallery_2
-# antarctica:
-  # - 'DJI_202401111904_001'
-  # - 'DJI_202401111932_002'
-#  - 'DJI_202401111932_003'
-#  - 'DJI_202401112014_004'
-
-#yandiwanba:
-  #- 'test1'
-#  - 'test4'
-#lizardisland:
-#  - 'LIRS_FEB1'
-
-#monotum:
-#  - 'sequence_01'
-# youtube:
- #- centum-cellas
-#  - acinipo
-
-nsavp:
-- R0_FA0
-# pamir :
-#   - 2025_Pamir_1
+eth:
+  # Training split (groundtruth.txt published)
+  - cables_1
+  - cables_2
+  - cables_3
+  - camera_shake_1
+  - camera_shake_2
+  - camera_shake_3
+  - ceiling_1
+  - ceiling_2
+  - desk_3
+  - desk_changing_1
+  - einstein_1
+  - einstein_2
+  - einstein_flashlight
+  - einstein_global_light_changes_1
+  - einstein_global_light_changes_2
+  - einstein_global_light_changes_3
+  - kidnap_1
+  - large_loop_1
+  - mannequin_1
+  - mannequin_3
+  - mannequin_4
+  - mannequin_5
+  - mannequin_7
+  - mannequin_face_1
+  - mannequin_face_2
+  - mannequin_face_3
+  - mannequin_head
+  - motion_1
+  - planar_2
+  - planar_3
+  - plant_1
+  - plant_2
+  - plant_3
+  - plant_4
+  - plant_5
+  - plant_scene_1
+  - plant_scene_2
+  - plant_scene_3
+  - reflective_1
+  - repetitive
+  - sfm_bench
+  - sfm_garden
+  - sfm_house_loop
+  - sfm_lab_room_1
+  - sfm_lab_room_2
+  - sofa_1
+  - sofa_2
+  - sofa_3
+  - sofa_4
+  - sofa_shake
+  - table_3
+  - table_4
+  - table_7
+  - vicon_light_1
+  - vicon_light_2
+  # Test split (ground truth withheld by ETH3D - groundtruth.csv is header-only)
+  # - boxes
+  # - buddha
+  # - cables_4
+  # - cables_5
+  # - desk_1
+  # - desk_2
+  # - desk_changing_2
+  # - desk_global_light_changes
+  # - desk_ir_light
+  # - dino
+  # - drone
+  # - foreground_occlusion
+  # - helmet
+  # - kidnap_2
+  # - lamp
+  # - large_loop_2
+  # - large_loop_3
+  # - large_non_loop
+  # - motion_2
+  # - motion_3
+  # - motion_4
+  # - planar_1
+  # - reflective_2
+  # - scale_change
+  # - table_1
+  # - table_2
+  # - table_5
+  # - table_6
+  # - table_global_light_changes
+  # - table_local_light_changes
+  # - table_scene

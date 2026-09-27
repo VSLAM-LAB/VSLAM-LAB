@@ -1,9 +1,8 @@
-exp_debug_allfeature-dev:
+gym_eth_droidslam:
   Config: config_debug.yaml
-  NumRuns: 1
-  Parameters: {verbose: 1, segmentation: mask2former, rgb_idx: [2000,21102], mode: rgbd, depth: fastfoundationstereo}
-
-  Module: allfeature-dev
+  NumRuns: 3
+  Parameters: {verbose: 0}
+  Module: droidslam
 
 
 
