@@ -74,6 +74,7 @@ if $DO_BASELINES; then
     rm -rf "$BASELINES_DIR"/AnyCalib
     rm -rf "$BASELINES_DIR"/Refrax
     rm -rf "$BASELINES_DIR"/torch_home
+    rm -rf "$BASELINES_DIR"/asmk
 fi
 
 if $DO_DATASETS; then
