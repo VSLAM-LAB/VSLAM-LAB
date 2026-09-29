@@ -1,5 +1,0 @@
-gym_droidslam_mono_eth:
-  Config: ../Gym/Configs/config_eth.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0, mode: mono}
-  Module: droidslam
