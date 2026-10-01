@@ -1,0 +1,11 @@
+test_exp_grandtour-zed2i_mono_droidslam:
+  Config: test_config_grandtour-zed2i.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: droidslam
+
+test_exp_grandtour-zed2i_stereo_orbslam3:
+  Config: test_config_grandtour-zed2i.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: orbslam3

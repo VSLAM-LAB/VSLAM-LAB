@@ -1,0 +1,104 @@
+dataset_name: grandtour-alphasense
+
+# Sevensense Alphasense/CoreResearch front stereo pair (alphasense_front_left / alphasense_front_right:
+# 1440x1080 monochrome, global shutter, hardware-triggered at 10 Hz) plus the camera unit's own
+# Bosch BMI085 IMU (alphasense_imu, 200 Hz). The sibling grandtour-zed2i dataset exposes the ZED2i
+# color stereo rig of the same missions.
+rgb_hz: 10.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['equid4']
+raw_formats: ['tar']
+
+hf_repo_id: "leggedrobotics/grand_tour_dataset"
+
+target_resolution: [640, 480]
+
+# Sequence names are the paper's mission tags (lower-cased, ASCII, underscore). The mapping to the
+# Hugging Face mission folders (JJJJ-MM-DD-hh-mm-ss) lives in dataset_grandtour.py's MISSIONS dict.
+# RIV-1 (2024-11-04-16-52-38) is omitted: Hugging Face ships only its LiDAR map, no sensor streams.
+sequence_names:
+  - eth_1
+  - eth_2
+  - eth_3
+  - spx_1
+  - spx_2
+  - spx_3
+  - ice_1
+  - snow_1
+  - snow_2
+  - snow_3
+  - eig_1
+  - eig_2
+  - gri_1
+  - cyn_1
+  - cyn_2
+  - hil_1
+  - pil_1
+  - pil_2
+  - root_1
+  - haus_1
+  - hoeb_1
+  - hoeb_2
+  - heap_1
+  - kaeb_1
+  - kaeb_2
+  - kaeb_3
+  - trim_1
+  - alb_1
+  - alb_2
+  - alb_3
+  - lmb_1
+  - lmb_2
+  - lee_1
+  - arc_1
+  - arc_2
+  - arc_3
+  - arc_4
+  - arc_5
+  - arc_6
+  - arc_7
+  - leica_1
+  - leica_2
+  - sbb_1
+  - sbb_2
+  - con_1
+  - con_2
+  - con_3
+  - con_4
+
+about:
+  license: CC BY-SA 4.0 (data, per the dataset homepage; the Hugging Face card is tagged MIT)
+  summary: GrandTour (Alphasense rig) - 48 ANYmal-D quadruped missions across alpine, forest, urban, industrial, construction and indoor sites with the Boxi payload, here the hardware-synchronized Sevensense Alphasense front monochrome stereo pair (1440x1080 at 10 Hz) and its BMI085 IMU, with post-processed RTK-GNSS/INS 6-DoF poses and Leica MS60 total-station prism positions as groundtruth
+  homepage: https://grand-tour.leggedrobotics.com/
+  features:
+    - Real
+    - Indoor
+    - Outdoor
+    - Robot
+  authors:
+    - Jonas Frey
+    - Turcan Tuna
+    - Frank Fu
+    - Katharine Patterson
+    - Tianao Xu
+    - Maurice Fallon
+    - Cesar Cadena
+    - Marco Hutter
+  access: Public
+  publication: "GrandTour: A Legged Robotics Dataset in the Wild for Multi-Modal Perception and State Estimation"
+  publication_url: "https://arxiv.org/abs/2602.18164"
+  year: 2026
+  bibtex_key: frey2026grandtour
+  bibtex: |
+    @article{frey2026grandtour,
+      title={GrandTour: A Legged Robotics Dataset in the Wild for Multi-Modal Perception and State Estimation},
+      author={Frey, Jonas and Tuna, Turcan and Fu, Frank and Patterson, Katharine and Xu, Tianao and Fallon, Maurice and Cadena, Cesar and Hutter, Marco},
+      journal={arXiv preprint arXiv:2602.18164},
+      year={2026}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5.1)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-10-01

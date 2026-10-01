@@ -1,0 +1,25 @@
+# equid4 (Alphasense fisheye) restricts the smoke test to orbslam3/okvis2/colmap - droidslam/dpvo
+# only accept pinhole/radtan calibrations.
+test_exp_grandtour-alphasense_mono_orbslam3:
+  Config: test_config_grandtour-alphasense.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_grandtour-alphasense_monovi_orbslam3:
+  Config: test_config_grandtour-alphasense.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono-vi, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_grandtour-alphasense_stereo_orbslam3:
+  Config: test_config_grandtour-alphasense.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo, rgb_idx: [0,2000]}
+  Module: orbslam3
+
+test_exp_grandtour-alphasense_stereovi_orbslam3:
+  Config: test_config_grandtour-alphasense.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: stereo-vi, rgb_idx: [0,2000]}
+  Module: orbslam3
