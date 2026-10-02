@@ -346,7 +346,11 @@ faiss = "*"
 openimageio = "*"
 
 [feature.colmap.target.linux-64.dependencies]
- colmap = {version="=4.1.1", build = "*cuda*" }
+colmap = {version="=4.1.1", build = "*cuda*" }
+# The conda-forge onnxruntime-cpp CUDA build (ALIKED / LightGlue feature types) dlopens libcudnn.so
+# at runtime without declaring it; without this the ALIKED feature_extractor aborts with
+# "cuDNN is unavailable or disabled for CUDA Execution Provider".
+libcudnn = "*"
 
 [feature.colmap.target.osx-arm64.dependencies]
 colmap = "*"
