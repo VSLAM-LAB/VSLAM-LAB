@@ -1,0 +1,124 @@
+dataset_name: fomo
+
+# Nominal ZED X rate. Measured on red_2024-11-21-10-34: 2537 frames over 253.9 s (10.0 Hz average)
+# but with jittery driver-side stamps (63 to 138 ms between consecutive frames).
+rgb_hz: 10.0
+modes: ['mono', 'mono-vi', 'stereo', 'stereo-vi']
+cam_models: ['pinhole']
+raw_formats: ['images']
+target_resolution: [640, 480]
+
+# The dataset website's "Download" button only generates an `aws s3 sync s3://fomo-dataset/...
+# --no-sign-request` script: the data lives in a public, anonymous S3 bucket laid out as
+# data/<deployment YYYY-MM-DD>/<recording>/<sensor>/<timestamp_us>.png. Every object is a plain
+# HTTPS GET and the bucket allows anonymous ListObjectsV2, so no AWS CLI, credentials or boto3 are
+# needed. Only the ZED X pair (zedx_left/, zedx_right/), calib/, gt.txt and the two IMU CSVs are
+# fetched per recording - the lidars, radar, audio and the rear Basler camera are left on the
+# server (the ZED pair alone is 10 to 160 GB per recording).
+url_download_root: "https://fomo-dataset.s3.amazonaws.com/data/"
+
+# Recording folders exactly as the bucket names them: <trajectory>_<YYYY-MM-DD-HH-MM>, grouped
+# under the deployment folder of their (first) day. Two week-long deployments hold recordings
+# dated after their folder (2025-01-30 under 2025-01-29, 2025-03-14 under 2025-03-10) - see
+# dataset_fomo.py. The six trajectories are the Red (~300 m on-road loop), Blue (~550 m), Green
+# (~700 m off-trail, steep), Magenta (~700 m off-trail, quarry), Yellow (~1.9 km forest road) and
+# Orange (~2.5 km forest road through a stone quarry) routes, repeated across 12 deployments from
+# November 2024 to November 2025; missing combinations were never recorded (ski-season access
+# restrictions, battery failures). red_2025-04-15-51-56 is kept verbatim despite its odd time.
+sequence_names:
+  - blue_2024-11-21-10-44
+  - green_2024-11-21-12-47
+  - magenta_2024-11-21-13-41
+  - orange_2024-11-21-11-10
+  - red_2024-11-21-10-34
+  - yellow_2024-11-21-14-26
+  - magenta_2024-11-28-12-31
+  - red_2024-11-28-09-30
+  - yellow_2024-11-28-09-44
+  - green_2025-01-10-11-38
+  - magenta_2025-01-10-11-05
+  - orange_2025-01-10-09-45
+  - red_2025-01-10-12-02
+  - blue_2025-01-30-10-08
+  - green_2025-01-30-14-45
+  - magenta_2025-01-30-15-03
+  - orange_2025-01-30-09-07
+  - red_2025-01-30-09-58
+  - yellow_2025-01-29-16-08
+  - blue_2025-03-10-16-59
+  - green_2025-03-14-08-48
+  - magenta_2025-03-14-10-27
+  - orange_2025-03-14-09-07
+  - red_2025-03-10-16-53
+  - yellow_2025-03-10-17-22
+  - blue_2025-04-15-16-16
+  - red_2025-04-15-51-56
+  - blue_2025-05-28-11-10
+  - green_2025-05-28-11-51
+  - red_2025-05-28-10-46
+  - blue_2025-06-26-10-35
+  - green_2025-06-26-11-20
+  - magenta_2025-06-26-12-04
+  - orange_2025-06-26-10-48
+  - red_2025-06-26-10-31
+  - yellow_2025-06-26-14-42
+  - blue_2025-08-20-11-25
+  - green_2025-08-20-11-39
+  - magenta_2025-08-20-12-41
+  - orange_2025-08-20-13-17
+  - red_2025-08-20-10-42
+  - yellow_2025-08-20-10-54
+  - blue_2025-09-24-10-50
+  - green_2025-09-24-12-56
+  - magenta_2025-09-24-13-41
+  - orange_2025-09-24-11-51
+  - red_2025-09-24-10-45
+  - yellow_2025-09-24-11-12
+  - blue_2025-10-14-11-46
+  - green_2025-10-14-13-51
+  - magenta_2025-10-14-14-15
+  - orange_2025-10-14-12-46
+  - red_2025-10-14-11-41
+  - yellow_2025-10-14-14-48
+  - blue_2025-11-03-18-37
+  - green_2025-11-03-20-05
+  - magenta_2025-11-03-20-32
+  - orange_2025-11-03-18-46
+  - red_2025-11-03-18-30
+  - yellow_2025-11-03-19-28
+
+about:
+  license: CC BY 4.0 (per the LICENSE.txt shipped in the data bucket; the dataset website states CC BY-SA 4.0)
+  summary: FoMo (Forêt Montmorency) - a Clearpath Warthog UGV repeating six on-road, forest-road and off-trail trajectories through a boreal forest over 12 deployments across one year (snow accumulation above 1 m, mud, vegetation growth), here the front-facing Stereolabs ZED X color stereo pair (factory-rectified 1920x1200 at 10 Hz) and the VectorNav VN100 IMU, with PPK-GNSS fused positions as groundtruth
+  homepage: https://fomo.norlab.ulaval.ca/
+  features:
+    - Real
+    - Outdoor
+    - Robot
+  authors:
+    - Matěj Boxan
+    - Gabriel Jeanson
+    - Alexander Krawciw
+    - Effie Daum
+    - Xinyuan Qiao
+    - Sven Lilge
+    - Timothy D. Barfoot
+    - François Pomerleau
+  access: Public
+  publication: "FoMo: A Multi-Season Dataset for Robot Navigation in Forêt Montmorency"
+  publication_url: "https://arxiv.org/abs/2603.08433"
+  year: 2026
+  bibtex_key: boxan2026fomo
+  bibtex: |
+    @article{boxan2026fomo,
+      title={FoMo: A Multi-Season Dataset for Robot Navigation in For{\^e}t Montmorency},
+      author={Boxan, Mat{\v{e}}j and Jeanson, Gabriel and Krawciw, Alexander and Daum, Effie and Qiao, Xinyuan and Lilge, Sven and Barfoot, Timothy D. and Pomerleau, Fran{\c{c}}ois},
+      journal={arXiv preprint arXiv:2603.08433},
+      year={2026}
+    }
+
+vslamlab_maintainer:
+  name: Alejandro Fontan
+  assisted_by: Claude (Fable 5.1)
+  email: alejandro.fontan@qut.edu.au
+  date: 2026-10-02
