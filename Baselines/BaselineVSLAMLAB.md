@@ -106,5 +106,5 @@ def build_execute_command(self, exp_it: int, exp: Experiment, dataset: DatasetVS
 ```
 - not abstract: builds `pixi run --frozen -e <baseline_name> execute-<mode> <tokens...>` from the fixed per-run arguments (paths under `<exp.folder>/<dataset_folder>/<sequence>`, all pre-written by `run_sequence`), then `resolve_parameters`. Exits with an error if `command_style` is unknown or `mode` is not in `self.modes` (this is what turns `mode: monoo` into a message instead of a pixi task-not-found later).
 - every value goes through `shlex.quote` (POSIX; a no-op for plain values) because `execute()` runs the string with `shell=True`. The result stays a plain string so `Run/ablations.prepare_ablation` can still post-process it.
-- override hook for side steps only (colmap downloads its vocabulary tree when `matcher_type: sequential`, then calls `super()`); parameter derivation belongs in `resolve_parameters`.
+- override hook for side steps only (e.g. a one-off download the entry point needs, then `super()`); parameter derivation belongs in `resolve_parameters`. No baseline overrides it at the moment.
 - called from: `run_sequence` (once per run, after `create_calibration_exp_yaml`/`create_rgb_exp_csv`).
