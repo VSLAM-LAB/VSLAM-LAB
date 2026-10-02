@@ -332,7 +332,7 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
 
 [feature.colmap.tasks]
-fetch-source = { cmd = 'git clone https://huggingface.co/vslamlab/colmap-vslamlab colmap', cwd = 'Baselines' }
+fetch-source = { cmd = 'git clone https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB colmap', cwd = 'Baselines' }
 execute-mono = 'python Baselines/colmap/vslamlab_colmap.py'
 
 [feature.colmap.dependencies]
