@@ -20,11 +20,11 @@ class COLMAP_baseline(BaselineVSLAMLAB):
 
         # use_mask: 1 -> feature extraction honours the rgb csv's path_mask_<i> column when the run
         # pipeline provides one ('segmentation: mask2former', 'refraction: refrax', datasets that
-        # ship masks); 0 -> masks ignored (see Baselines/colmap/colmap_matcher.sh).
+        # ship masks); 0 -> masks ignored (see Baselines/colmap/colmap_matcher.py).
         # optimize_intrinsics: 1 -> bundle adjustment refines the camera intrinsics (focal length and
         # distortion; the principal point stays fixed, as in COLMAP's default); 0 -> the intrinsics
         # from the calibration yaml are kept fixed. Ignored (forced to 1) when the calibration model
-        # is 'unknown', since there are no intrinsics to keep (see Baselines/colmap/colmap_mapper.sh).
+        # is 'unknown', since there are no intrinsics to keep (see Baselines/colmap/colmap_mapper.py).
         # dense: 1 -> after the sparse model and trajectory are written, run COLMAP's dense pipeline
         # (image_undistorter -> patch_match_stereo -> stereo_fusion) on the best sub-model, into
         # <exp_folder>/colmap_<id>/dense/ with the fused cloud copied to <exp_folder>/<id>_dense.ply.
@@ -44,7 +44,7 @@ class COLMAP_baseline(BaselineVSLAMLAB):
         self.color = (0.800, 0.400, 0.750)
         self.modes = ['mono']
         self.cam_models = ['unknown', 'pinhole', 'radtan4', 'radtan5', 'radtan8', 'equid4']
-        self.command_style = 'cpp'
+        self.command_style = 'python'  # Baselines/colmap/vslamlab_colmap.py
 
     def build_execute_command(self, exp_it: int, exp: 'Experiment', dataset: 'DatasetVSLAMLAB', sequence_name: str) -> str:
         if 'matcher_type' in exp.parameters and exp.parameters['matcher_type'] == 'sequential':
