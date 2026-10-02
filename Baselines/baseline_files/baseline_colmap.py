@@ -27,8 +27,8 @@ class COLMAP_baseline(BaselineVSLAMLAB):
         # with a warning and the run still succeeds (see Baselines/colmap/colmap_dense.sh).
         # dense_max_image_size: longest image side used for undistortion / patch match / fusion
         # (COLMAP presets: 1000 low, 1600 medium, -1 high = full resolution).
-        # mesher: 'none' | 'delaunay' -> mesh the fused cloud, copied to <id>_mesh.ply (COLMAP's
-        # poisson_mesher is not offered: its surface trimmer segfaults in the 4.1.1 conda-forge build).
+        # mesher: 'none' | 'delaunay' -> mesh the fused cloud, copied to <id>_mesh.ply (poisson_mesher
+        # crashed in the 4.1.1 conda-forge build; to be re-evaluated on 4.2.1 when the dense stage is restored).
         default_parameters = {'verbose': 1, 'mode': 'mono', 'matcher_type': 'exhaustive',
                              'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap', 'rgb_max': 50000000,
                              'use_mask': 0, 'optimize_intrinsics': 1,

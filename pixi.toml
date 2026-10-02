@@ -9,7 +9,7 @@ platforms = [
     { name = "osx-arm64-cuda", platform = "osx-arm64", cuda = "12.6" },
     { name = "win-64-cuda", platform = "win-64", cuda = "12.6" },
     { name = "linux-64-cuda129", platform = "linux-64", cuda = "12.9" },
-    { name = "osx-arm64-cuda129", platform = "osx-arm64", cuda = "12.9" },
+    { name = "osx-arm64-cuda129", platform = "osx-arm64", cuda = "12.9", macos = "13.3" },  # macos: colmap 4.2.1 -> libfaiss 1.14.3 needs __osx >= 13.3 (only the colmap feature uses this entry)
     { name = "win-64-cuda129", platform = "win-64", cuda = "12.9" },
 ]
 
@@ -343,20 +343,22 @@ pandas = "*"
 sqlite = "*"
 tqdm = "*"
 faiss = "*"
-openimageio = "*"
+# The conda-forge colmap package links libOpenImageIO.so.3.1 but does not declare openimageio as a
+# run dependency, so an unpinned solve drifts to 3.2 and `colmap` fails to start (missing .so.3.1).
+libopenimageio = "3.1.*"
 
 [feature.colmap.target.linux-64.dependencies]
-colmap = {version="=4.1.1", build = "*cuda*" }
+colmap = {version="=4.2.1", build = "*cuda*" }
 # The conda-forge onnxruntime-cpp CUDA build (ALIKED / LightGlue feature types) dlopens libcudnn.so
 # at runtime without declaring it; without this the ALIKED feature_extractor aborts with
 # "cuDNN is unavailable or disabled for CUDA Execution Provider".
 libcudnn = "*"
 
 [feature.colmap.target.osx-arm64.dependencies]
-colmap = "*"
+colmap = "=4.2.1"
 
 [feature.colmap.target.win-64.dependencies]
-colmap = "*"
+colmap = {version="=4.2.1", build = "*cuda*" }
 
 ########################################################################################################################
 ########################################################################################################################
