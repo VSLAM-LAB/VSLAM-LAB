@@ -12,7 +12,10 @@ class COLMAP_baseline(BaselineVSLAMLAB):
 
         # matcher_type: 'exhaustive' | 'sequential' (sequential with loop detection; the vocabulary
         # tree for the feature type is COLMAP's default, auto-downloaded once into ~/.cache/colmap).
-        # matching_type: feature extraction + matching pair, see Baselines/colmap/colmap_matcher.py.
+        # matching_type: feature extraction + matching pair (Baselines/colmap/colmap_matcher.py):
+        # sift_bruteforce | sift_lightglue | aliked_bruteforce | aliked_lightglue | loma_b_bruteforce |
+        # loma_b_loma | loma_b_loma_r | loma_b_loma_l | loma_b_loma_g | loma_b128_bruteforce | loma_b128_loma.
+        # ALIKED / LoMa / LightGlue are ONNX models COLMAP downloads once into ~/.cache/colmap.
         # use_mask: 1 -> feature extraction honours the rgb csv's path_mask_<i> column when the run
         # pipeline provides one ('segmentation: mask2former', 'refraction: refrax', datasets that
         # ship masks); 0 -> masks ignored (see Baselines/colmap/colmap_matcher.py).
