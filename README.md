@@ -108,7 +108,7 @@ exp_demo_orbslam2:
 exp_demo_colmap:
   Config: config_vslamlab.yaml
   NumRuns: 1
-  Parameters: {verbose: 1, rgb_idx: [0,250], matcher_type: exhaustive}
+  Parameters: {verbose: 1, rgb_idx: [0,250], matcher_type: exhaustive, matching_type: aliked_lightglue}  # baseline-specific keys: see Baselines/colmap/README.md
   Module: colmap
 ```
 **Frame selection:** `Parameters` also accepts four optional flags to control which RGB frames of a sequence are fed to the baseline. They are independent and stack in this order — `rgb_idx` slices the frame range first, `rgb_step` then keeps 1 frame every *n* of what remains, `rgb_max` truncates that result to at most that many frames, and `rgb_vpr` finally downsamples to at most that many frames by visual dissimilarity (VPR) rather than a fixed stride, so visually redundant frames are dropped preferentially. If none are set, every frame of the sequence is used.
@@ -201,7 +201,7 @@ To [awesome-slam-datasets](https://github.com/youngguncho/awesome-slam-datasets)
 | [**ORB-SLAM3**](https://github.com/UZ-SLAMLab/ORB_SLAM3)               | VSLAM  | `mono(-vi)` `rgbd(-vi)` `stereo(-vi)` |    [GPLv3](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/LICENSE)    |  `orbslam3`  | ✅ | `radtan5` `equid4`|
 | [**OKVIS2**](https://github.com/ethz-mrl/okvis2)               | VSLAM  | `mono-vi` |    [BSD-3](https://github.com/ethz-mrl/okvis2/blob/main/LICENSE)    |  `okvis2`  | ✅ | `radtan5` `equid4` |
 | **----------** | **-------** | **-------** | **----------** | **--------** | **---** | **----------** |
-| [**COLMAP**](https://colmap.github.io/)                                     |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `radtan5` `equid4` `unknown` |
+| [**COLMAP**](https://colmap.github.io/) <br><sub>`matching_type:` SIFT · ALIKED · [LoMa](https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB#parameters) features with brute-force or learned matchers · `mapper_type:` `colmap` · `glomap` · `dense: 1` with `mesher:` delaunay · poisson · advancing_front — [reference](https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB)</sub> |  SfM   |       `mono`       |                [BSD](https://colmap.github.io/license.html)                 |   `colmap`   | ✅ | `pinhole` `radtan4` `radtan5` `radtan8` `equid4` `unknown` |
 | [**Depth Anything 3**](https://depth-anything-3.github.io/) |  Feed-forward   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE) (giant/nested weights CC BY-NC 4.0)  |   `da3`   | ➖ | `pinhole` |
 | [**DA3-Streaming**](https://github.com/ByteDance-Seed/Depth-Anything-3/tree/main/da3_streaming) |  VSLAM   |  `mono`  |  [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/LICENSE)  |   `da3-streaming`   | ➖ | `pinhole` |
 | [**MapAnything**](https://map-anything.github.io/) <br><sub>`module:` [VGGT](https://vgg-t.github.io/) · [VGGT-Ω](https://vggt-omega.github.io/) · [π³](https://yyfz.github.io/pi3/) · [DUSt3R](https://github.com/naver/dust3r) · [MASt3R](https://github.com/naver/mast3r) · [MUSt3R](https://github.com/naver/must3r) · [Pow3R](https://github.com/naver/pow3r) (`mono`, each under its own license)</sub> |  Feed-forward   |  `mono` `rgbd`  |  [Apache-2.0](https://github.com/facebookresearch/map-anything/blob/main/LICENSE) (default weights CC BY-NC 4.0)  |   `mapanything`   | ➖ | `pinhole` |
