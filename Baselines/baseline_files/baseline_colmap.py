@@ -23,12 +23,13 @@ class COLMAP_baseline(BaselineVSLAMLAB):
         # dense: 1 -> after the sparse model and trajectory are written, run COLMAP's dense pipeline
         # (image_undistorter -> patch_match_stereo -> stereo_fusion) on the best sub-model, into
         # <exp_folder>/colmap_<id>/dense/ with the fused cloud copied to <exp_folder>/<id>_dense.ply.
-        # Needs the CUDA colmap build (linux-64 in pixi.toml) and use_gpu=1; otherwise it is skipped
-        # with a warning and the run still succeeds (see Baselines/colmap/colmap_dense.sh).
+        # Needs the CUDA colmap build (linux-64 / win-64 in pixi.toml) and use_gpu=1; otherwise, or if a
+        # dense command fails, it is skipped with a warning and the run still succeeds (see
+        # Baselines/colmap/colmap_dense.py).
         # dense_max_image_size: longest image side used for undistortion / patch match / fusion
         # (COLMAP presets: 1000 low, 1600 medium, -1 high = full resolution).
-        # mesher: 'none' | 'delaunay' -> mesh the fused cloud, copied to <id>_mesh.ply (poisson_mesher
-        # crashed in the 4.1.1 conda-forge build; to be re-evaluated on 4.2.1 when the dense stage is restored).
+        # mesher: 'none' | 'delaunay' | 'poisson' | 'advancing_front' -> mesh the fused cloud / dense
+        # workspace, copied to <id>_mesh.ply.
         default_parameters = {'verbose': 1, 'mode': 'mono', 'matcher_type': 'exhaustive',
                              'matching_type': 'sift_bruteforce', 'mapper_type': 'colmap', 'rgb_max': 50000000,
                              'use_mask': 0, 'optimize_intrinsics': 1,

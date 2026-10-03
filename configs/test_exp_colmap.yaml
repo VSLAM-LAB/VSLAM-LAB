@@ -9,3 +9,15 @@ test_exp_colmap_dense_delaunay:
   NumRuns: 1
   Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3, dense: 1, dense_max_image_size: 1000, mesher: delaunay}
   Module: colmap
+
+test_exp_colmap_dense_poisson:
+  Config: config_demo.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3, dense: 1, dense_max_image_size: 1000, mesher: poisson}
+  Module: colmap
+
+test_exp_colmap_dense_advancing_front:
+  Config: config_demo.yaml
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_max: 200, rgb_step: 3, dense: 1, dense_max_image_size: 1000, mesher: advancing_front}
+  Module: colmap
