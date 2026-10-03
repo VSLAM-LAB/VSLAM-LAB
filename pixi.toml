@@ -334,6 +334,9 @@ platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
 [feature.colmap.tasks]
 fetch-source = { cmd = 'git clone https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB colmap', cwd = 'Baselines' }
 execute-mono = 'python Baselines/colmap/vslamlab_colmap.py'
+# Pre-warm COLMAP's download cache (~/.cache/colmap: ALIKED / LightGlue / LoMa ONNX models and the FAISS vocabulary
+# trees for sequential loop detection) before running on nodes without internet; COLMAP fetches on demand otherwise.
+download-colmap-models = 'python Baselines/colmap/download_colmap_models.py'
 
 [feature.colmap.dependencies]
 numpy = "*"
