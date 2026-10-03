@@ -336,13 +336,10 @@ fetch-source = { cmd = 'git clone https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB 
 execute-mono = 'python Baselines/colmap/vslamlab_colmap.py'
 
 [feature.colmap.dependencies]
-yq = "*"
 numpy = "*"
 scipy = "*"
 pandas = "*"
-sqlite = "*"
-tqdm = "*"
-faiss = "*"
+pyyaml = "*"
 # The conda-forge colmap package links libOpenImageIO.so.3.1 but does not declare openimageio as a
 # run dependency, so an unpinned solve drifts to 3.2 and `colmap` fails to start (missing .so.3.1).
 libopenimageio = "3.1.*"

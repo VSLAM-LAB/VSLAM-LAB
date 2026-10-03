@@ -1536,7 +1536,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/dcmtk-3.7.0-h43deee3_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/eigen-5.0.1-h19c2612_3.conda
       - conda: https://prefix.dev/conda-forge/linux-64/eigen-abi-5.0.1.80-hf414acd_3.conda
-      - conda: https://prefix.dev/conda-forge/linux-64/faiss-1.14.3-py314cuda129ha568271_201_cuda.conda
       - conda: https://prefix.dev/conda-forge/linux-64/ffmpeg-9.0.2-gpl_h2f7cf13_903.conda
       - conda: https://prefix.dev/conda-forge/linux-64/flann-1.9.2-h7118410_6.conda
       - conda: https://prefix.dev/conda-forge/linux-64/fontconfig-2.18.3-h4db4eae_1.conda
@@ -1739,7 +1738,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/shaderc-2026.3-hcebf71c_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/snappy-1.2.2-h34e00bb_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/spirv-tools-2026.3-h7148c6a_1.conda
-      - conda: https://prefix.dev/conda-forge/linux-64/sqlite-3.53.4-h9ffa6c4_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/suitesparse-7.10.1-h5b2951e_7100101.conda
       - conda: https://prefix.dev/conda-forge/linux-64/svt-av1-4.2.0-hd2095e1_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/tbb-2023.1.0-haa8c3ee_2.conda
@@ -1774,7 +1772,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/yaml-cpp-0.8.0-h54a6638_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://prefix.dev/conda-forge/noarch/_x86_64-microarch-level-1-5_level1.conda
-      - conda: https://prefix.dev/conda-forge/noarch/argcomplete-3.7.2-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/cuda-cudart_linux-64-12.9.79-h3f2d84a_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/cuda-version-12.9-h4f385c5_3.conda
@@ -1788,14 +1785,9 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python-dateutil-2.9.0.post0-pyhe01879c_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-9_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/six-1.17.0-pyhe01879c_1.conda
-      - conda: https://prefix.dev/conda-forge/noarch/tomlkit-0.15.1-pyhcf101f3_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/tqdm-4.70.1-pyhfa0c392_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wayland-protocols-1.49-hd8ed1ab_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/yq-4.4.0-pyh5ded981_0.conda
       osx-arm64-cuda129:
-      - conda: https://prefix.dev/conda-forge/noarch/argcomplete-3.7.2-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
       - conda: https://prefix.dev/conda-forge/noarch/font-ttf-inconsolata-3.000-h77eed37_0.tar.bz2
@@ -1807,11 +1799,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python-dateutil-2.9.0.post0-pyhe01879c_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-9_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/six-1.17.0-pyhe01879c_1.conda
-      - conda: https://prefix.dev/conda-forge/noarch/tomlkit-0.15.1-pyhcf101f3_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/tqdm-4.70.1-pyhfa0c392_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/yq-4.4.0-pyh5ded981_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/_openmp_mutex-4.5-8_kmp_llvm.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/aom-3.14.1-pl5321hf79ea98_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/aws-c-auth-1.0.0-h7ad4001_2.conda
@@ -1833,7 +1821,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/dcmtk-3.7.0-hd9d6b7d_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/eigen-5.0.1-hdb59ae0_3.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/eigen-abi-5.0.1.100-h485a483_3.conda
-      - conda: https://prefix.dev/conda-forge/osx-arm64/faiss-1.14.3-py314h661204f_1_cpu.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/ffmpeg-9.0.2-gpl_h5aa8bce_103.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/flann-1.9.2-h54be3fd_6.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/fontconfig-2.18.3-h81aa574_1.conda
@@ -1995,7 +1982,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/shaderc-2026.3-hfd4ff19_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/spirv-tools-2026.3-hc0b298b_1.conda
-      - conda: https://prefix.dev/conda-forge/osx-arm64/sqlite-3.53.4-ha9f7ffe_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/suitesparse-7.10.1-h3071b36_7100102.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/svt-av1-4.2.0-h484c67d_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/tbb-2023.1.0-h81c76ee_2.conda
@@ -2015,9 +2001,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/yaml-cpp-0.8.0-h784d473_1.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       win-64-cuda129:
-      - conda: https://prefix.dev/conda-forge/noarch/argcomplete-3.7.2-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-h4c7d964_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/cuda-cudart_win-64-12.9.79-he0c23c2_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/cuda-version-12.9-h4f385c5_3.conda
       - conda: https://prefix.dev/conda-forge/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
@@ -2031,11 +2015,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python-tzdata-2026.4-pyh5ded981_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-9_cp314.conda
       - conda: https://prefix.dev/conda-forge/noarch/six-1.17.0-pyhe01879c_1.conda
-      - conda: https://prefix.dev/conda-forge/noarch/tomlkit-0.15.1-pyhcf101f3_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/tqdm-4.70.1-pyh6be1c34_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
-      - conda: https://prefix.dev/conda-forge/noarch/yq-4.4.0-pyh5ded981_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/_libavif_api-1.4.2-h11686cb_4.conda
       - conda: https://prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/win-64/aom-3.14.1-pl5321h06fc181_2.conda
@@ -2057,7 +2037,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/dcmtk-3.7.0-hd727a0f_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/eigen-5.0.1-h5112557_3.conda
       - conda: https://prefix.dev/conda-forge/win-64/eigen-abi-5.0.1.100-hc11354d_3.conda
-      - conda: https://prefix.dev/conda-forge/win-64/faiss-1.14.3-py314cuda129h11c2ff7_201_cuda.conda
       - conda: https://prefix.dev/conda-forge/win-64/ffmpeg-9.0.2-gpl_h928aae7_903.conda
       - conda: https://prefix.dev/conda-forge/win-64/flann-1.9.2-ha2d35b6_6.conda
       - conda: https://prefix.dev/conda-forge/win-64/fontconfig-2.18.3-hd47e2ca_1.conda
@@ -2186,7 +2165,6 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/scipy-1.18.1-py314h67d5eaa_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/sdl2-2.32.56-h5112557_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/sdl3-3.4.16-h5112557_0.conda
-      - conda: https://prefix.dev/conda-forge/win-64/sqlite-3.53.4-hdb435a2_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/suitesparse-7.10.1-hfa24a04_7100102.conda
       - conda: https://prefix.dev/conda-forge/win-64/svt-av1-4.2.0-hac47afa_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/tbb-2023.1.0-h272cf33_2.conda
@@ -29541,31 +29519,6 @@ packages:
   run_exports: {}
   size: 1901555
   timestamp: 1786492389454
-- conda: https://prefix.dev/conda-forge/linux-64/faiss-1.14.3-py314cuda129ha568271_201_cuda.conda
-  build_number: 201
-  sha256: 80aa3df9490355c545f3013bcc63b919462ae92ab6de48ad321f821275b60118
-  md5: 0ee6d3ba3aec6d4657dcb28ac3d0a1af
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - _openmp_mutex >=4.5
-  - _x86_64-microarch-level >=1
-  - cuda-version >=12.9,<13
-  - libcublas >=12.9.2.10,<13.0a0
-  - libfaiss 1.14.3.* *_cuda
-  - libgcc >=14
-  - libstdcxx >=14
-  - numpy >=1.25,<3
-  - packaging
-  - python >=3.14,<3.15.0a0
-  - python_abi 3.14.* *_cp314
-  constrains:
-  - faiss-cpu <0.0a0
-  - faiss-proc =*=cuda
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 2067650
-  timestamp: 1786497443295
 - conda: https://prefix.dev/conda-forge/linux-64/faiss-1.8.0-py311hbed6fca_2_cpu.conda
   build_number: 2
   sha256: af7137beb7e6047b63263890edc190d88b86ab457a4b9cafea2e2f58bfc1aec9
@@ -57083,28 +57036,6 @@ packages:
     - epoxy >=1.5.10,<1.6.0a0
   size: 296347
   timestamp: 1758743805063
-- conda: https://prefix.dev/conda-forge/osx-arm64/faiss-1.14.3-py314h661204f_1_cpu.conda
-  build_number: 1
-  sha256: a795ec044266587de6cbe2667a556ed978280f53b2e800900b42a0ec1a2f8b87
-  md5: 9ea96cad66e237781aff229d6b76c381
-  depends:
-  - __osx >=13.3
-  - libcxx >=19
-  - libfaiss 1.14.3.* *_cpu
-  - llvm-openmp >=19.1.7
-  - numpy >=1.25,<3
-  - packaging
-  - python >=3.14,<3.15.0a0
-  - python >=3.14,<3.15.0a0 *_cp314
-  - python_abi 3.14.* *_cp314
-  constrains:
-  - faiss-gpu <0.0a0
-  - faiss-proc =*=cpu
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 1647649
-  timestamp: 1787942725661
 - conda: https://prefix.dev/conda-forge/osx-arm64/ffmpeg-7.1.1-gpl_h20db955_106.conda
   sha256: b44b3aa9cd8e4a271ae7e4aa0707681076c047499c54fba510df0ffa4fdf1ca7
   md5: 23d6ecf002d2c8c2c694b5a7f3b41917
@@ -62889,29 +62820,6 @@ packages:
   run_exports: {}
   size: 13468
   timestamp: 1788951324422
-- conda: https://prefix.dev/conda-forge/win-64/faiss-1.14.3-py314cuda129h11c2ff7_201_cuda.conda
-  build_number: 201
-  sha256: 7688843401bc1ad2d49f6b0d3f959658ea3303c8a5514cd127431dd33541a508
-  md5: 9f45473a5751d9196d04c395a1faa098
-  depends:
-  - cuda-version >=12.9,<13
-  - libcublas >=12.9.2.10,<13.0a0
-  - libfaiss 1.14.3.* *_cuda
-  - numpy >=1.25,<3
-  - packaging
-  - python >=3.14,<3.15.0a0
-  - python_abi 3.14.* *_cp314
-  - ucrt >=10.0.20348.0
-  - vc >=14.3,<15
-  - vc14_runtime >=14.44.35208
-  constrains:
-  - faiss-cpu <0.0a0
-  - faiss-proc =*=cuda
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 1635854
-  timestamp: 1786498968455
 - conda: https://prefix.dev/conda-forge/win-64/ffmpeg-7.1.1-gpl_he3062b8_911.conda
   sha256: bac31f5392ffc12830dc160acf9131bd80f60bcfeaf49dd8c55fd401a55d7171
   md5: 8c2837096edb36b28fc0eefc6a763e2d
