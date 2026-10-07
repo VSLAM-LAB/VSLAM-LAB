@@ -32,6 +32,8 @@ class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
     def __init__(self):
         super().__init__(baseline_name = 'droidslam-dev', baseline_folder =  'DROID-SLAM-DEV')
         self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
+        # Std of gaussian image noise (0-255 units, 0 = off); only the dev scripts accept --noise_std
+        self.default_parameters['noise_std'] = 0.0
         
     def fetch_source(self):
         super().fetch_source()
