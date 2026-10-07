@@ -40,8 +40,8 @@ x11 = { features = ["x11"], solve-group = "x11" }
 opengl = { features = ["opengl"], solve-group = "opengl" }
 
 mast3rslam = { features = ["mast3rslam", "cuda126", "py11"], solve-group = "mast3r" }
-droidslam = { features = ["droidslam", "cuda126", "py11"], solve-group = "droid" }
-dpvo = { features = ["dpvo", "cuda126", "py11"], solve-group = "droid" }
+droidslam = { features = ["droidslam"], solve-group = "droid" }
+dpvo = { features = ["dpvo", "cuda126", "py11"], solve-group = "dpvo" }
 monogs = { features = ["monogs"], solve-group = "monogs" }
 orbslam2 = { features = ["orbslam2"], solve-group = "orb" }
 anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
@@ -54,8 +54,8 @@ vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
 mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
-droidslam-dev = { features = ["droidslam-dev", "cuda126", "py11"], solve-group = "droid-dev" }
-dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "droid" }
+droidslam-dev = { features = ["droidslam-dev"] }
+dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "dpvo-dev" }
 monogs-dev = { features = ["monogs-dev", "cuda129", "py10"], solve-group = "monogs" }
 orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
@@ -214,8 +214,8 @@ isort = "*"
 ########################################################################################################################
 # droidslam
 [feature.droidslam]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
+platforms = ["linux-64-cuda", "linux-64-cuda129"]
 
 [feature.droidslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
@@ -224,9 +224,7 @@ execute-rgbd = 'vslamlab_droidslam_rgbd'
 execute-stereo = 'vslamlab_droidslam_stereo'
 
 [feature.droidslam.dependencies]
-droidslam-vslamlab = "*"
-lietorch = { version = "*", channel = "fontan" }
-setuptools = "=80.9.0"
+droidslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 # ########################################################################################################################
 # ########################################################################################################################
@@ -635,47 +633,17 @@ libopengl-devel = "*"
 ########################################################################################################################
 # droidslam-dev
 [feature.droidslam-dev]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64-cuda129"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/droidslam), whose environment lives in
+# Baselines/DROID-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.droidslam-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB DROID-SLAM-VSLAM-LAB DROID-SLAM-DEV"
-install = { cmd = "python setup.py install", cwd = "Baselines/DROID-SLAM-DEV" }
-execute-mono = { cmd = 'python vslamlab_droidslam_mono.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
-execute-rgbd = { cmd = 'python vslamlab_droidslam_rgbd.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
-execute-stereo = { cmd = 'python vslamlab_droidslam_stereo.py',  cwd = 'Baselines/DROID-SLAM-DEV' }
-train = {cmd = 'python train.py --steps 250000 --datasets vslamlab --datapath ../../../VSLAM-LAB-Benchmark --ckpt droid.pth',  cwd = 'Baselines/DROID-SLAM-DEV'}
-
-[feature.droidslam-dev.dependencies]
-# Build Tools
-compilers = "*"
-cmake = "*"
-make = "*"
-
-# Specialized Libraries
-lietorch = { version = "=1.0.1", channel = "fontan" }
-
-# Core Libraries
-pytorch-gpu = "*"
-opencv = "*"
-torch-scatter = "*"
-torchvision = "*"
-tensorboard = "*"
-
-# Logging, Evaluation & Visualization
-open3d = "*"
-scipy = "*"
-suitesparse = "*"
-matplotlib = "*"
-pyyaml = "*"
-huggingface_hub = "*"
-tqdm = "*"
-pandas = "*"
-eigen = "*"
-moderngl = "*"
-moderngl-window = "=3.1.1"
-loguru = "*"
-setuptools = "<81"
+fetch-source = "./git-clone.sh VSLAM-LAB droidslam DROID-SLAM-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/DROID-SLAM-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/DROID-SLAM-DEV" }
+execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/DROID-SLAM-DEV" }
+execute-stereo = { cmd = "pixi run --frozen execute-stereo", cwd = "Baselines/DROID-SLAM-DEV" }
+train = { cmd = "pixi run --frozen train", cwd = "Baselines/DROID-SLAM-DEV" }
 
 # ########################################################################################################################
 # ########################################################################################################################

@@ -40,7 +40,9 @@ class DROIDSLAM_baseline_dev(DROIDSLAM_baseline):
         self.droidslam_download_weights()
         
     def is_installed(self) -> tuple[bool, str]:
-        is_installed = (self.baseline_path / 'build' / 'lib.linux-x86_64-cpython-311' / 'droid_backends.so').is_file()
+        # `install` (pip -e) compiles droid_backends in place and puts the entry points in the clone's own pixi env
+        entry_point = self.baseline_path / '.pixi' / 'envs' / 'default' / 'bin' / 'vslamlab_droidslam_mono'
+        is_installed = (self.baseline_path / 'droid_backends.so').is_file() and entry_point.is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
         
     def droidslam_download_weights(self): # Download droid.pth
