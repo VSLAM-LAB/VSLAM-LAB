@@ -4643,7 +4643,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/werkzeug-3.1.9-pyh5ded981_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wslink-2.5.7-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/zipp-4.1.1-pyh5ded981_0.conda
-      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/droidslam-1.0-py311he38a381_0.conda
+      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/droidslam-1.1-py311he38a381_0.conda
       - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/lietorch-1.0.1-py311he38a381_0.conda
       linux-64-cuda129:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
@@ -5027,7 +5027,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/werkzeug-3.1.9-pyh5ded981_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wslink-2.5.7-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/zipp-4.1.1-pyh5ded981_0.conda
-      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/droidslam-1.0-py311he38a381_0.conda
+      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/droidslam-1.1-py311he38a381_0.conda
       - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/lietorch-1.0.1-py311he38a381_0.conda
   droidslam-dev:
     channels:
@@ -68109,9 +68109,9 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 387535
   timestamp: 1786599623274
-- conda: https://prefix.dev/vslamlab/vslamlab/linux-64/droidslam-1.0-py311he38a381_0.conda
-  sha256: ff2c42f5e5de924b21cfb6f34e8f90c4c56359c8376eae3c43f592a066e12202
-  md5: 67a10f87e4c98c3dadd68131a24fada4
+- conda: https://prefix.dev/vslamlab/vslamlab/linux-64/droidslam-1.1-py311he38a381_0.conda
+  sha256: bd8936136c51885aacf9d5ea656b344a9ea95af067b38c1f32e5fe6139cbbdfa
+  md5: 03dd4d393e229127ca8d53f62969021f
   depends:
   - python
   - python >=3.9
@@ -68142,8 +68142,8 @@ packages:
   - libcusolver >=11.7.5.82,<12.0a0
   license: BSD-3-Clause
   run_exports: {}
-  size: 612029
-  timestamp: 1791354632972
+  size: 611607
+  timestamp: 1791368718712
 - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/lietorch-1.0.1-py311he38a381_0.conda
   sha256: 981b7695487e8aad1548a113cc4f48554d9ffd22932adfcef3b6ce1df6d9a168
   md5: d795a32c2ce5d0a5f8852eed12b005f9
