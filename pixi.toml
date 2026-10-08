@@ -39,7 +39,7 @@ py11 = { features = ["py11"], solve-group = "py11" }
 x11 = { features = ["x11"], solve-group = "x11" }
 opengl = { features = ["opengl"], solve-group = "opengl" }
 
-mast3rslam = { features = ["mast3rslam", "cuda126", "py11"], solve-group = "mast3r" }
+mast3rslam = { features = ["mast3rslam"], solve-group = "mast3r" }
 droidslam = { features = ["droidslam"], solve-group = "droid" }
 dpvo = { features = ["dpvo"], solve-group = "dpvo" }
 monogs = { features = ["monogs"], solve-group = "monogs" }
@@ -53,7 +53,7 @@ pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
 mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
-mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
+mast3rslam-dev = { features = ["mast3rslam-dev"] }
 droidslam-dev = { features = ["droidslam-dev"] }
 dpvo-dev = { features = ["dpvo-dev"] }
 monogs-dev = { features = ["monogs-dev", "cuda129", "py10"], solve-group = "monogs" }
@@ -230,18 +230,15 @@ droidslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # ########################################################################################################################
 # mast3rslam
 [feature.mast3rslam]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
+platforms = ["linux-64-cuda", "linux-64-cuda129"]
 
 [feature.mast3rslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
 execute-mono = 'vslamlab_mast3rslam_mono'
 
 [feature.mast3rslam.dependencies]
-mast3rslam-vslamlab = { channel = "fontan" }
-lietorch = { channel = "fontan" }
-moderngl-window = { channel = "fontan" }
-roma = { channel = "fontan" }
+mast3rslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -642,58 +639,14 @@ train = { cmd = "pixi run --frozen train", cwd = "Baselines/DROID-SLAM-DEV" }
 # ########################################################################################################################
 # mast3rslam-dev
 [feature.mast3rslam-dev]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64-cuda129"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/mast3rslam), whose environment lives in
+# Baselines/MASt3R-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.mast3rslam-dev.tasks]
-fetch-source = './git-clone.sh VSLAM-LAB MASt3R-SLAM-VSLAM-LAB MASt3R-SLAM-DEV'
-install = { cmd = "pip install -e thirdparty/mast3r --no-build-isolation && pip install -e thirdparty/in3d --no-build-isolation && pip install --no-build-isolation -e .", cwd = "Baselines/MASt3R-SLAM-DEV" }
-
-execute-mono = { cmd = 'python vslamlab_mast3rslam_mono.py',  cwd = 'Baselines/MASt3R-SLAM-DEV' }
-
-[feature.mast3rslam-dev.dependencies]
-# Build Tools
-compilers = "*"
-pkg-config = "*"
-cmake = "*"
-make = "*"
-
-# Torch libraries
-pytorch-gpu = "*"
-torchvision = "*"
-lietorch = { version = "*", channel = "fontan" }
-torchcodec = "*"
-
-# Other
-eigen = "*"
-einops = "*"
-evo = "*"
-faiss = "*"
-gradio = "*"
-huggingface_hub = "*"
-librealsense= "*"
-matplotlib = "*"
-moderngl = "*"
-moderngl-window = "=2.4.6"
-msgpack-python = "*"
-natsort = "*"
-numpy = "<2"
-opencv = "*"
-pillow = "*"
-plyfile = "*"
-pyaml = "*"
-pyglet = "*"
-pyglfw = "=2.9.0"
-pyglm = "*"
-pykdtree = "*"
-roma = { version = "*", channel = "fontan" }
-safetensors = "*"
-scikit-learn = "*"
-scipy = "*"
-tensorboard = "*"
-tqdm = "*"
-trimesh = "*"
-pyrealsense2 = "*"
+fetch-source = "./git-clone.sh VSLAM-LAB mast3rslam MASt3R-SLAM-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/MASt3R-SLAM-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MASt3R-SLAM-DEV" }
 
 ########################################################################################################################
 ########################################################################################################################

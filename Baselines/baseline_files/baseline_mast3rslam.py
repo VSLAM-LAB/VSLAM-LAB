@@ -52,5 +52,7 @@ class MAST3RSLAM_baseline_dev(MAST3RSLAM_baseline):
         self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
         
     def is_installed(self) -> tuple[bool, str]:
-        is_installed = os.path.isfile(os.path.join(self.baseline_path, 'mast3r_slam_backends.so'))
+        # `install` (pip -e) compiles the extensions in place and puts the entry point in the clone's own pixi env
+        entry_point = self.baseline_path / '.pixi' / 'envs' / 'default' / 'bin' / 'vslamlab_mast3rslam_mono'
+        is_installed = (self.baseline_path / 'mast3r_slam_backends.so').is_file() and entry_point.is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
