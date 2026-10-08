@@ -3,12 +3,12 @@ Module: VSLAM-LAB - Baselines - baseline_vggtslam.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2026-01-05
-- Updated: 2026-09-17
+- Updated: 2026-10-08
 - License: GPLv3 License
 
 VGGT-SLAM 2.0 (Maggio & Carlone, RSS 2026): feed-forward dense monocular SLAM built on VGGT submaps
 aligned on the SL(4) manifold, with SALAD retrieval and attention-verified loop closures.
-Source: https://github.com/alejandrofontan/VGGT-SLAM-2-VSLAM-LAB (fork of MIT-SPARK/VGGT-SLAM).
+Source: https://github.com/VSLAM-LAB/vggtslam (fork of MIT-SPARK/VGGT-SLAM), conda package `vggtslam`.
 Weights: VGGT-1B is pre-fetched by the `download-vggt-weights` pixi task into Baselines/torch_home
 (TORCH_HOME of the execute tasks); SALAD and DINOv2 are pulled by torch.hub into the same folder.
 """
@@ -16,13 +16,12 @@ Weights: VGGT-1B is pre-fetched by the `download-vggt-weights` pixi task into Ba
 from pathlib import Path
 
 from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
-from path_constants import VSLAM_LAB_DIR
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class VGGTSLAM_baseline(BaselineVSLAMLAB):
-    """VGGT-SLAM helper for VSLAM-LAB Baselines (conda package `vggtslam-vslamlab`)."""
+    """VGGT-SLAM helper for VSLAM-LAB Baselines (conda package `vggtslam`)."""
 
     def __init__(self, baseline_name: str = 'vggtslam', baseline_folder: str = 'VGGT-SLAM') -> None:
         # Tuning knobs mirror upstream main.py / evals/eval_tum.sh defaults
@@ -48,6 +47,6 @@ class VGGTSLAM_baseline_dev(VGGTSLAM_baseline):
         self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
 
     def is_installed(self) -> tuple[bool, str]:
-        # PEP 660 editable installs leave no egg-info in the source tree; the console script from setup.py is the build artifact
-        is_installed = (VSLAM_LAB_DIR / '.pixi' / 'envs' / self.baseline_name / 'bin' / 'vslamlab_vggtslam_mono').is_file()
+        # `install` (pip -e) puts the entry point in the clone's own pixi env
+        is_installed = (self.baseline_path / '.pixi' / 'envs' / 'default' / 'bin' / 'vslamlab_vggtslam_mono').is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')

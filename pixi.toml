@@ -50,7 +50,7 @@ colmap = { features = ["colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"], solve-group = "orb" }
 okvis2 = { features = ["okvis2"], solve-group = "okvis" }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
-vggtslam = { features = ["vggtslam", "cuda126", "py11"], solve-group = "vggt" }
+vggtslam = { features = ["vggtslam"], solve-group = "vggt" }
 mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
 mast3rslam-dev = { features = ["mast3rslam-dev"] }
@@ -61,7 +61,7 @@ orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "or
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
 okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"], solve-group = "okvis" }
-vggtslam-dev = { features = ["vggtslam-dev", "cuda126", "py11"], solve-group = "vggt" }
+vggtslam-dev = { features = ["vggtslam-dev"] }
 
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
@@ -413,14 +413,14 @@ opencv = "*"
 ########################################################################################################################
 # vggtslam
 [feature.vggtslam]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
+platforms = ["linux-64-cuda", "linux-64-cuda129"]
 
 [feature.vggtslam.dependencies]
-# The 2.0 package (noarch) carries VGGT-SLAM's full runtime dependency set; it needs gtsam 1.0 from fontan,
-# pinned to the channel here because strict channel priority would otherwise only offer conda-forge's 4.x.
-vggtslam-vslamlab = { version = ">=2.0", channel = "fontan" }
-gtsam = { channel = "fontan" }
+# noarch package (github.com/VSLAM-LAB/vggtslam) with VGGT-SLAM's full runtime dependency set (gtsam >=4.3 from
+# conda-forge); python is pinned here like in the other environments
+vggtslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
+python = "3.11.*"
 
 [feature.vggtslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
@@ -834,45 +834,15 @@ yaml-cpp = "*"
 # ########################################################################################################################
 # vggtslam-dev
 [feature.vggtslam-dev]
-channels = ["https://prefix.dev/conda-forge" , "fontan"]
-platforms = ["linux-64"]
+platforms = ["linux-64-cuda129"]
 
-[feature.vggtslam-dev.tasks]
-# VGGT-SLAM 2.0 fork; --recursive brings third_party/vggt (MIT-SPARK/VGGT_SPARK) and third_party/salad (Dominic101/salad) pinned as submodules
-fetch-source = "./git-clone.sh alejandrofontan VGGT-SLAM-2-VSLAM-LAB VGGT-SLAM-DEV"
-install = { cmd = 'pip install --no-deps --no-build-isolation -e third_party/salad && pip install --no-deps --no-build-isolation -e third_party/vggt && pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/VGGT-SLAM-DEV', depends-on = ['fetch-source'] }
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/vggtslam), whose environment lives in
+# Baselines/VGGT-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 # TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
-execute-mono = { cmd = 'python3 vslamlab_vggtslam_mono.py', cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
-
-[feature.vggtslam-dev.dependencies]
-# Torch
-pytorch-gpu = "*"
-torchvision = "*"
-numpy = "<2"
-
-# vggt_slam / vggt
-gtsam = { channel = "fontan" }  # SL4 factors (borglab main, not the conda-forge 4.x release)
-open3d = "*"
-viser = "=0.2.23"               # upstream pin; the viewer API moved in later releases
-opencv = "*"
-scipy = "*"
-matplotlib = "*"
-termcolor = "*"
-tqdm = "*"
-pillow = "*"
-einops = "*"
-huggingface_hub = "*"
-safetensors = "*"
-
-# salad (loop closure retrieval): salad.eval imports the validation utilities at module level
-pytorch-lightning = "*"
-pytorch-metric-learning = "*"
-faiss = "*"
-prettytable = "*"
-
-# vslamlab_vggtslam_mono.py
-pandas = "*"
-pyyaml = "*"
+[feature.vggtslam-dev.tasks]
+fetch-source = "./git-clone.sh VSLAM-LAB vggtslam VGGT-SLAM-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/VGGT-SLAM-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
 # ########################################################################################################################
 # ########################################################################################################################
