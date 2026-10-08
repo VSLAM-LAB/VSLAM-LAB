@@ -41,7 +41,7 @@ opengl = { features = ["opengl"], solve-group = "opengl" }
 
 mast3rslam = { features = ["mast3rslam", "cuda126", "py11"], solve-group = "mast3r" }
 droidslam = { features = ["droidslam"], solve-group = "droid" }
-dpvo = { features = ["dpvo", "cuda126", "py11"], solve-group = "dpvo" }
+dpvo = { features = ["dpvo"], solve-group = "dpvo" }
 monogs = { features = ["monogs"], solve-group = "monogs" }
 orbslam2 = { features = ["orbslam2"], solve-group = "orb" }
 anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
@@ -55,7 +55,7 @@ mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "ma
 
 mast3rslam-dev = { features = ["mast3rslam-dev", "cuda126", "py11"], solve-group = "mast3r" }
 droidslam-dev = { features = ["droidslam-dev"] }
-dpvo-dev = { features = ["dpvo-dev", "cuda126", "py11", "x11", "opengl"], solve-group = "dpvo-dev" }
+dpvo-dev = { features = ["dpvo-dev"] }
 monogs-dev = { features = ["monogs-dev", "cuda129", "py10"], solve-group = "monogs" }
 orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
@@ -247,23 +247,16 @@ roma = { channel = "fontan" }
 ########################################################################################################################
 # dpvo
 [feature.dpvo]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
+platforms = ["linux-64-cuda", "linux-64-cuda129"]
 
+# TORCH_HOME: DISK/LightGlue weights of the classic loop closure (loop_closure: 2) are downloaded there by torch.hub
 [feature.dpvo.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
-execute-mono = 'vslamlab_dpvo_mono'
+execute-mono = { cmd = 'vslamlab_dpvo_mono', env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
 
 [feature.dpvo.dependencies]
-dpvo-vslamlab = { channel = "fontan" }
-pangolin = { channel = "fontan" }
-pypose = { channel = "fontan" }
-opencv = "*"
-evo = "*"
-yacs = "*"
-pytorch_scatter = "*"
-einops = "*"
-numba = "*"
+dpvo = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -706,50 +699,15 @@ pyrealsense2 = "*"
 ########################################################################################################################
 # dpvo-dev
 [feature.dpvo-dev]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64-cuda129"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/dpvo), whose environment lives in
+# Baselines/DPVO-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
+# TORCH_HOME: DISK/LightGlue weights of the classic loop closure (loop_closure: 2) are downloaded there by torch.hub
 [feature.dpvo-dev.tasks]
-fetch-source = './git-clone.sh VSLAM-LAB DPVO-VSLAM-LAB DPVO-DEV'
-install_DPViewer = { cmd = "pip install . --no-deps --no-build-isolation --use-pep517", cwd = "Baselines/DPVO-DEV/DPViewer" }
-install = { cmd = "pip install . --no-deps --no-build-isolation", cwd = "Baselines/DPVO-DEV", depends-on = ["install_DPViewer"] }
-execute-mono = { cmd = 'python vslamlab_dpvo_mono.py' ,cwd = 'Baselines/DPVO-DEV' }
-
-[feature.dpvo-dev.dependencies]
-# Build Tools
-compilers = "*"
-pkg-config = "*"
-cmake = "*"
-make = "*"
-
-# Python & Build Tools
-pybind11 = "*"
-glew = "*"
-wayland = "*"
-
-# Torch libraries
-pytorch-gpu = "*"
-torchvision = "*"
-pytorch_scatter = "*"
-
-# Core Libraries
-numpy = "*"
-tqdm = "*"
-einops = "*"
-opencv = "*"
-eigen = "*"
-
-# Specialized Libraries
-pypose = { channel = "fontan" }
-plyfile = "*"
-
-# Logging, Evaluation & Visualization
-pangolin = { channel = "fontan" }
-tensorboard = "*"
-evo = "*"
-numba = "*"
-kornia  = "*"
-yacs = "*"
+fetch-source = "./git-clone.sh VSLAM-LAB dpvo DPVO-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/DPVO-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/DPVO-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
 
 ########################################################################################################################
 ########################################################################################################################
