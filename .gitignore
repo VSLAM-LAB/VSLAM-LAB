@@ -69,3 +69,6 @@ Baselines/ros2_ws
 
 # Gym: generated per-run label/fact csv pairs
 Gym/labels/
+
+# Clone of github.com/VSLAM-LAB/conda-recipes (third-party conda packages)
+recipes/
