@@ -42,7 +42,7 @@ opengl = { features = ["opengl"], solve-group = "opengl" }
 mast3rslam = { features = ["mast3rslam"], solve-group = "mast3r" }
 droidslam = { features = ["droidslam"], solve-group = "droid" }
 dpvo = { features = ["dpvo"], solve-group = "dpvo" }
-orbslam2 = { features = ["orbslam2"], solve-group = "orb" }
+orbslam2 = { features = ["orbslam2"] }
 anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
 allfeature = { features = ["allfeature"] }
 colmap = { features = ["colmap"], solve-group = "colmap" }
@@ -56,7 +56,7 @@ mast3rslam-dev = { features = ["mast3rslam-dev"] }
 droidslam-dev = { features = ["droidslam-dev"] }
 dpvo-dev = { features = ["dpvo-dev"] }
 monogs-dev = { features = ["monogs-dev"] }
-orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
+orbslam2-dev = { features = ["orbslam2-dev"] }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
 okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"], solve-group = "okvis" }
@@ -258,7 +258,7 @@ dpvo = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 ########################################################################################################################
 # orbslam2
 [feature.orbslam2]
-channels = ["https://prefix.dev/conda-forge", "fontan", "tobiasrobotics"]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
 platforms = ["linux-64", "osx-arm64", "win-64"]
 
 [feature.orbslam2.tasks]
@@ -268,8 +268,7 @@ execute-rgbd = 'vslamlab_orbslam2_rgbd'
 execute-stereo = 'vslamlab_orbslam2_stereo'
 
 [feature.orbslam2.dependencies]
-orbslam2-vslamlab = "*"
-pangolin = "*"
+orbslam2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -658,26 +657,16 @@ execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MonoGS
 ########################################################################################################################
 # orbslam2-dev
 [feature.orbslam2-dev]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64", "win-64"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/orbslam2), whose environment lives in
+# Baselines/ORB-SLAM2-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.orbslam2-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB ORB-SLAM2-VSLAM-LAB ORB-SLAM2-DEV"
-install = { cmd = "./build.sh", cwd = "Baselines/ORB-SLAM2-DEV" }
-execute-mono = { cmd = "./bin/vslamlab_orbslam2_mono",  cwd = "Baselines/ORB-SLAM2-DEV" }
-execute-rgbd = { cmd = "./bin/vslamlab_orbslam2_rgbd",  cwd = "Baselines/ORB-SLAM2-DEV" }
-execute-stereo = { cmd = "./bin/vslamlab_orbslam2_stereo",  cwd = "Baselines/ORB-SLAM2-DEV" }
-
-[feature.orbslam2-dev.dependencies]
-compilers = "*"
-ninja = ">=1.12.1 ,<1.13"
-cmake = ">=3.31.1 ,<3.32"
-pkg-config = ">=0.29.2 ,<0.30"
-opencv = ">=4.10.0 ,<5"
-eigen = ">=3.4.0 ,<3.5.0"
-yaml-cpp = ">=0.8.0,<0.9"
-pangolin = { channel = "fontan" }
-python = "3.10.*"  # fontan's pangolin ships libpango_python linked against libpython3.10 without declaring it
+fetch-source = "./git-clone.sh VSLAM-LAB orbslam2 ORB-SLAM2-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/ORB-SLAM2-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/ORB-SLAM2-DEV" }
+execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/ORB-SLAM2-DEV" }
+execute-stereo = { cmd = "pixi run --frozen execute-stereo", cwd = "Baselines/ORB-SLAM2-DEV" }
 
 ########################################################################################################################
 ########################################################################################################################
