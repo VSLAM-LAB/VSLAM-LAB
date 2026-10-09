@@ -19,9 +19,8 @@ from utilities import print_msg, write_csv_rows
 # sys.path directly (sample_vpr.py itself imports its artifact helper from the Capabilities package).
 sys.path.insert(0, str(VSLAM_LAB_DIR / "Datasets" / "extra-files"))
 from sample_vpr import sweep_thresholds, select_for_target, selected_rows
-# Capabilities/placecell.py is numpy-only at import time (the compiled placecell module is imported
-# lazily, inside the 'placecell' pixi environment), so its csv helper can be imported here.
-from Capabilities.placecell import SELECTION_CSV as PLACECELL_SELECTION_CSV, read_selection_csv as read_placecell_selection
+# The placecell driver runs the capability's own environment (Capabilities/sources/placecell) as a subprocess.
+from Capabilities.placecell import SELECTION_CSV as PLACECELL_SELECTION_CSV, run_selection as run_placecell_selection
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
@@ -183,12 +182,12 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
 
         if has_rgb_placecell:
             rgb_placecell_num = exp.parameters['rgb_placecell'] if 'rgb_placecell' in exp.parameters else default_parameters['rgb_placecell']
-            ensure_vpr_matrix(dataset, sequence_name, sequence_path, total_frames, 'rgb_placecell')
+            d_matrix_path = ensure_vpr_matrix(dataset, sequence_name, sequence_path, total_frames, 'rgb_placecell')
 
             if rgb_placecell_num >= len(rows):
                 filter_info.append(f"rgb_placecell={rgb_placecell_num} -> {len(rows)} frames (already <= target)")
             else:
-                kept_idx = select_frames_with_placecell(dataset, sequence_name, exp_folder, orig_idx, rgb_placecell_num)
+                kept_idx = select_frames_with_placecell(d_matrix_path, exp_folder, orig_idx, rgb_placecell_num)
                 position = {idx: k for k, idx in enumerate(orig_idx)}
                 rows = [rows[position[idx]] for idx in kept_idx]
                 orig_idx = kept_idx
@@ -264,27 +263,15 @@ def ensure_vpr_matrix(dataset: Any, sequence_name: str, sequence_path: Path, tot
         sys.exit(1)
     return d_matrix_path
 
-def select_frames_with_placecell(dataset: Any, sequence_name: str, exp_folder: Path, orig_idx: list[int], n_images: int) -> list[int]:
+def select_frames_with_placecell(d_matrix_path: Path, exp_folder: Path, orig_idx: list[int], n_images: int) -> list[int]:
     """The n_images least redundant frames among orig_idx (row indices of the sequence's frame
-    list, i.e. of D.npy), chosen by placecell's information culler: 'pixi run -e placecell
-    placecell-select ... --indices <file> --out <exp_folder>/rgb_placecell.csv' (Capabilities/
-    placecell.py, which never touches the sequence). The selection csv stays in the experiment
-    folder as a diagnostic (removal rank and unique information per frame); the returned indices
-    are the rows it marks kept, in frame order."""
-    indices_file = exp_folder / "rgb_placecell_indices.txt"
+    list, i.e. of D.npy), chosen by placecell's information culler (Capabilities/placecell.py,
+    which never touches the sequence). The selection csv stays in the experiment folder as a
+    diagnostic (removal rank and unique information per frame); the returned indices are the rows
+    it marks kept, in frame order."""
     selection_csv = exp_folder / PLACECELL_SELECTION_CSV
-    indices_file.write_text("\n".join(str(i) for i in orig_idx) + "\n")
-    if selection_csv.exists():
-        selection_csv.unlink()
-    print_msg(SCRIPT_LABEL, f"rgb_placecell: selecting {n_images} of {len(orig_idx)} frames with 'pixi run placecell-select {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-    subprocess.run(["pixi", "run", "-e", "placecell", "placecell-select", dataset.dataset_name, sequence_name,
-                    "--n-images", str(n_images), "--indices", str(indices_file), "--out", str(selection_csv)],
-                   cwd=VSLAM_LAB_DIR, check=True)
-    indices_file.unlink(missing_ok=True)
-    if not selection_csv.exists():
-        print_msg(SCRIPT_LABEL, f"rgb_placecell: 'pixi run placecell-select' did not produce {selection_csv} (see its output above)", flag="error", verb='NONE')
-        sys.exit(1)
-    kept_idx = read_placecell_selection(selection_csv)
+    print_msg(SCRIPT_LABEL, f"rgb_placecell: selecting {n_images} of {len(orig_idx)} frames with the placecell capability ...", verb='LOW')
+    kept_idx = run_placecell_selection(d_matrix_path, n_images, selection_csv, indices=orig_idx)
     candidates = set(orig_idx)
     if not kept_idx or any(idx not in candidates for idx in kept_idx):
         print_msg(SCRIPT_LABEL, f"rgb_placecell: {selection_csv} does not match the candidate frames (got {len(kept_idx)} kept rows)", flag="error", verb='NONE')

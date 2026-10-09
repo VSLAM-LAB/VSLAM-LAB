@@ -59,9 +59,14 @@ class CapabilityVSLAMLAB:
 
     def run(self, sequence_paths: list[Path], extra_args: list[str] | None = None) -> None:
         """The capability's `inference` task on explicit sequence folders (installs first if needed)."""
+        self.run_args(["--sequence-path", *map(str, sequence_paths), *(extra_args or [])])
+
+    def run_args(self, args: list[str]) -> None:
+        """The capability's `inference` task with arbitrary arguments, for a capability that does not work on
+        sequence folders (placecell takes a matrix). Installs first if needed."""
         if not self.is_installed():
             self.install()
-        self._pixi(self.inference_task, "--sequence-path", *map(str, sequence_paths), *(extra_args or []), frozen=True)
+        self._pixi(self.inference_task, *args, frozen=True)
 
     def _pixi(self, task: str, *args: str, frozen: bool = False) -> None:
         # --manifest-path: run in the capability's own environment, not the calling (vslamlab) one
