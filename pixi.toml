@@ -69,7 +69,7 @@ da3 = { features = ["da3", "da3-core", "cuda126", "py11"], solve-group = "da3" }
 da3-streaming = { features = ["da3-streaming", "da3-core", "cuda126", "py11"], solve-group = "da3" }
 mask2former = { features = ["mask2former"] }
 fastfoundationstereo = { features = ["fastfoundationstereo"] }
-anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
+anycalib = { features = ["anycalib"] }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 refrax = { features = ["refrax"], solve-group = "refrax" }
 placecell = { features = ["placecell"], solve-group = "placecell" }
@@ -163,6 +163,7 @@ compare-exp = "python vslamlab_gui.py compare_exp"
 # Capabilities: the driver resolves dataset/sequence targets and runs the capability repo in its own environment
 stereo-inference = "python Capabilities/fastfoundationstereo.py"
 mask-inference = "python Capabilities/mask2former.py"
+calib-inference = "python Capabilities/anycalib.py"
 
 [feature.vslamlab.dependencies]
 python = "3.13.*"
@@ -927,56 +928,13 @@ install = { cmd = "pixi run install", cwd = "Capabilities/sources/fastfoundation
 # ########################################################################################################################
 # anycalib
 [feature.anycalib]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64"]
 
+# Capability repository (github.com/VSLAM-LAB/anycalib) cloned to Capabilities/sources/, with its own environment and
+# weights; `calib-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.anycalib.tasks]
-fetch-source.cmd = 'test -d Baselines/AnyCalib || git clone https://github.com/javrtg/AnyCalib Baselines/AnyCalib'
-fetch-source.outputs = ["Baselines/AnyCalib"]
-install = { cmd = "python Capabilities/anycalib.py --prefetch", depends-on = ["fetch-source"] }
-calib-inference = { cmd = "python Capabilities/anycalib.py", depends-on = ["install"] }
-
-[feature.anycalib.dependencies]
-# Torch / model libraries (AnyCalib: torch + what its camera fitting and DINOv2 backbone import)
-pytorch-gpu = "*"
-scipy = "*"
-requests = "*"
-
-# Core
-numpy = "*"
-pillow = "*"
-tqdm = "*"
-
-python = "*"
-pyyaml = "*"
-matplotlib = "*"
-pandas = "*"
-py-opencv = "*"
-h5py = "*"
-inputimeout = "*"
-scikit-learn = "*"
-google-api-python-client = "*"
-google-auth-oauthlib = "*"
-huggingface_hub = "*"
-py7zr = "*"
-exifread = "*"
-pyproj = "*"
-nvidia-ml-py = "*"
-evo = "*"
-git-lfs = "*"
-piexif = "*"
-psutil = "*"
-loguru = "*"
-utm = "*"
-7zip = "*"
-viser = "*"
-open3d = "*"
-gdown = "*"
-yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
-yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
-deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
-cryptography = "*"
-openpyxl = "*"
+fetch-source = "test -d Capabilities/sources/anycalib || git clone --recursive https://github.com/VSLAM-LAB/anycalib.git Capabilities/sources/anycalib"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/anycalib", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
 # ########################################################################################################################

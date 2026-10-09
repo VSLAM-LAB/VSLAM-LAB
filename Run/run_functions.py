@@ -307,10 +307,11 @@ def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str, defa
         if calibration == 'anycalib':
             anycalib_yaml = sequence_path / ANYCALIB_FOLDER / 'calibration.yaml'
             if not anycalib_yaml.exists():
-                print_msg(SCRIPT_LABEL, f"calibration: {anycalib_yaml} not found, running 'pixi run calib-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-                subprocess.run(["pixi", "run", "-e", "anycalib", "calib-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+                print_msg(SCRIPT_LABEL, f"calibration: {anycalib_yaml} not found, running the anycalib capability ...", verb='LOW')
+                from Capabilities.anycalib import estimate_intrinsics
+                estimate_intrinsics([(dataset.dataset_name, sequence_name)])
             if not anycalib_yaml.exists():
-                print_msg(SCRIPT_LABEL, f"calibration: 'pixi run calib-inference' did not produce {anycalib_yaml} (see its output above)", flag="error", verb='NONE')
+                print_msg(SCRIPT_LABEL, f"calibration: the anycalib capability did not produce {anycalib_yaml} (see its output above)", flag="error", verb='NONE')
                 sys.exit(1)
             calibration_yaml = anycalib_yaml
             print_msg(SCRIPT_LABEL, f"calibration: using AnyCalib intrinsics ({anycalib_yaml.relative_to(sequence_path)}) for {sequence_name}", verb='LOW')
