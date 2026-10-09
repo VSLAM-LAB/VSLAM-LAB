@@ -24,9 +24,7 @@ from Capabilities.placecell import SELECTION_CSV as PLACECELL_SELECTION_CSV, rea
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
-# Mask folders written by Capabilities/mask2former.py ('pixi run mask-inference'). Kept as
-# local constants rather than imported: importing mask2former.py pulls in torch/transformers,
-# which the vslamlab environment doesn't ship.
+# Mask folders written by the mask2former capability (Capabilities/mask2former.py, 'pixi run mask-inference').
 MASK_FOLDER_BASE = "mask2former"
 MASK_COMPLETE_MARKER = ".mask2former_complete"
 
@@ -331,7 +329,7 @@ def create_calibration_exp_yaml(exp: Any, dataset: Any, sequence_name: str, defa
 def append_mask2former_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path) -> None:
     """Append ts_mask_<i> (ns)/path_mask_<i> columns to the experiment's rgb_exp csv, one pair per
     path_rgb_<i> stream, pointing at the sequence's mask2former_<i> masks. Streams whose
-    .mask2former_complete marker is missing trigger 'pixi run mask-inference' first to generate
+    .mask2former_complete marker is missing run the mask2former capability first to generate
     them. Only rgb_exp_csv is rewritten - the sequence's rgb.csv is left untouched."""
     df = pd.read_csv(rgb_exp_csv)
     streams = sorted(
@@ -344,8 +342,9 @@ def append_mask2former_columns(dataset: Any, sequence_name: str, sequence_path: 
 
     missing = [i for i in streams if not (sequence_path / f"{MASK_FOLDER_BASE}_{i}" / MASK_COMPLETE_MARKER).exists()]
     if missing:
-        print_msg(SCRIPT_LABEL, f"segmentation: masks missing for {sequence_name} (streams {missing}), running 'pixi run mask-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-        subprocess.run(["pixi", "run", "-e", "mask2former", "mask-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+        print_msg(SCRIPT_LABEL, f"segmentation: masks missing for {sequence_name} (streams {missing}), running the mask2former capability ...", verb='LOW')
+        from Capabilities.mask2former import generate_masks
+        generate_masks([(dataset.dataset_name, sequence_name)])
 
     for i in streams:
         df[f"ts_mask_{i} (ns)"] = df[f"ts_rgb_{i} (ns)"]

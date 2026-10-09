@@ -10,7 +10,7 @@ demand.
 
 | Capability | Script | pixi env / task | Artifact (inside `<sequence>/`) | Experiment parameter | Run-side hook |
 |---|---|---|---|---|---|
-| Static/dynamic masks (Mask2Former) | `mask2former.py` | `mask2former` / `mask-inference` | `mask2former_<i>/` + `.mask2former_complete`, one PNG per `path_rgb_<i>` frame | `segmentation: mask2former` | `append_mask2former_columns` → `ts_mask_<i> (ns)`/`path_mask_<i>` in `rgb_exp.csv` |
+| Static/dynamic masks (Mask2Former) | `mask2former.py` (driver) + repo [VSLAM-LAB/mask2former](https://github.com/VSLAM-LAB/mask2former) | `mask2former` (`fetch-source`/`install`) / `mask-inference` (vslamlab env) | `mask2former_<i>/` + `.mask2former_complete`, one PNG per `path_rgb_<i>` frame | `segmentation: mask2former` | `append_mask2former_columns` → `ts_mask_<i> (ns)`/`path_mask_<i>` in `rgb_exp.csv` |
 | Stereo depth (Fast-FoundationStereo) | `fastfoundationstereo.py` (driver) + repo [VSLAM-LAB/fastfoundationstereo](https://github.com/VSLAM-LAB/fastfoundationstereo) | `fastfoundationstereo` (`fetch-source`/`install`) / `stereo-inference` (vslamlab env) | `fastfoundationstereo_0/` + `.fastfoundationstereo_complete` (records `depth_factor`) | `depth: fastfoundationstereo` | `append_stereo_depth_columns` → `ts_depth_0 (ns)`/`path_depth_0` + `register_depth_stream` in `calibration_exp.yaml` |
 | Intrinsics estimation (AnyCalib) | `anycalib.py` | `anycalib` / `calib-inference` | `anycalib/calibration.yaml` + `anycalib/estimates.csv` | `calibration: anycalib` | `create_calibration_exp_yaml` seeds `calibration_exp.yaml` from the artifact |
 | VPR distance matrix (VPR-LAB) | `vpr.py` | `vpr-lab` / `vpr` | `vpr-lab/D.npy` | `rgb_vpr: <n>` | `create_rgb_exp_csv` downsamples `rgb_exp.csv` with `sample_vpr`'s sampler |
