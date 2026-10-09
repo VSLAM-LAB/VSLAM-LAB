@@ -11,7 +11,6 @@ from Baselines.baseline_files.baseline_vggtslam import VGGTSLAM_baseline
 from Baselines.baseline_files.baseline_vggtslam import VGGTSLAM_baseline_dev
 
 # RGBD baselines
-from Baselines.baseline_files.baseline_monogs import MONOGS_baseline
 from Baselines.baseline_files.baseline_monogs import MONOGS_baseline_dev
 
 # Stereo baselines
@@ -46,7 +45,6 @@ def get_baseline_switcher():
         "mast3rslam-dev": lambda: MAST3RSLAM_baseline_dev(),
         "dpvo": lambda: DPVO_baseline(),
         "dpvo-dev": lambda: DPVO_baseline_dev(),
-        "monogs": lambda: MONOGS_baseline(),
         "monogs-dev": lambda: MONOGS_baseline_dev(),
         "orbslam2": lambda: ORBSLAM2_baseline(),
         "orbslam2-dev": lambda: ORBSLAM2_baseline_dev(),  

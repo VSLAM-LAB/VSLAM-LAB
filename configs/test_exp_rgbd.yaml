@@ -10,12 +10,6 @@ test_exp_rgbd_orbslam2:
   Parameters: {verbose: 0, rgb_idx: [0,999], mode: 'rgbd'}
   Module: orbslam2
 
-# test_exp_rgbd_monogs:
-#   Config: test_config_rgbd.yaml
-#   NumRuns: 2
-#   Parameters: {verbose: 0, rgb_idx: [0,999], mode: 'rgbd'}
-#   Module: monogs
-
 # test_exp_rgbd_pycuvslam:
 #   Config: test_config_rgbd.yaml
 #   NumRuns: 2

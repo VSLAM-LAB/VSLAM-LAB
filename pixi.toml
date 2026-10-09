@@ -42,7 +42,6 @@ opengl = { features = ["opengl"], solve-group = "opengl" }
 mast3rslam = { features = ["mast3rslam"], solve-group = "mast3r" }
 droidslam = { features = ["droidslam"], solve-group = "droid" }
 dpvo = { features = ["dpvo"], solve-group = "dpvo" }
-monogs = { features = ["monogs"], solve-group = "monogs" }
 orbslam2 = { features = ["orbslam2"], solve-group = "orb" }
 anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
 allfeature = { features = ["allfeature"] }
@@ -56,7 +55,7 @@ mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "ma
 mast3rslam-dev = { features = ["mast3rslam-dev"] }
 droidslam-dev = { features = ["droidslam-dev"] }
 dpvo-dev = { features = ["dpvo-dev"] }
-monogs-dev = { features = ["monogs-dev", "cuda129", "py10"], solve-group = "monogs" }
+monogs-dev = { features = ["monogs-dev"] }
 orbslam2-dev = { features = ["orbslam2-dev", "x11", "opengl"], solve-group = "orb" }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev", "x11", "opengl"], solve-group = "orb" }
@@ -254,26 +253,6 @@ execute-mono = { cmd = 'vslamlab_dpvo_mono', env = { TORCH_HOME = "$PIXI_PROJECT
 
 [feature.dpvo.dependencies]
 dpvo = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
-
-########################################################################################################################
-########################################################################################################################
-# monogs
-[feature.monogs]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-# CUDA 12.9: monogs-vslamlab >= 1.1 is built against the cuda129 pytorch, the only one that can share an
-# environment with the GUI-enabled conda-forge open3d (see [feature.monogs-dev.dependencies]).
-platforms = ["linux-64-cuda129"]
-
-[feature.monogs.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/monogs-vslamlab Baselines/MonoGS'
-execute-mono = 'vslamlab_monogs_mono'
-execute-rgbd = 'vslamlab_monogs_rgbd'
-
-[feature.monogs.dependencies]
-# The package carries MonoGS's full runtime dependency set (torch pinned to the build's libtorch ABI, the
-# GUI-enabled open3d, no evo); only the spec that selects the right build is repeated here.
-monogs-vslamlab = { version = ">=1.1", channel = "fontan" }
-open3d = { version = "0.19.*", build-number = ">=103" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -532,9 +511,7 @@ libnvjitlink = "*"
 
 ########################################################################################################################
 # cuda129
-# Same toolchain as cuda126 on CUDA 12.9 (the linux-64-cuda129 workspace platform). Used by the environments whose
-# dependency set only solves against the cuda129 pytorch builds (monogs / monogs-dev: the GUI-enabled conda-forge
-# open3d needs a qt6-main / libprotobuf that the last cuda126 pytorch (2.7.1) cannot share).
+# Same toolchain as cuda126 on CUDA 12.9 (the linux-64-cuda129 workspace platform).
 [feature.cuda129]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda129"]
@@ -666,54 +643,16 @@ execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/DPVO-D
 ########################################################################################################################
 # monogs-dev
 [feature.monogs-dev]
-channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda129"]
 
+# MonoGS is only available as this source build: its licence (Imperial College London) does not allow redistributing
+# copies, so there is no conda package. Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/monogs), whose
+# environment lives in Baselines/MonoGS-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.monogs-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB MonoGS-VSLAM-LAB MonoGS-DEV"
-install = { cmd = "pip install submodules/simple-knn submodules/diff-gaussian-rasterization --no-deps --no-build-isolation", cwd = "Baselines/MonoGS-DEV" }
-execute-mono = { cmd = 'python vslamlab_monogs_mono.py', cwd = "Baselines/MonoGS-DEV" }
-execute-rgbd = { cmd = 'python vslamlab_monogs_rgbd.py', cwd = "Baselines/MonoGS-DEV" }
-
-[feature.monogs-dev.dependencies]
-# Build Tools
-compilers = "*"
-pkg-config = "*"
-cmake = "*"
-make = "*"
-
-# Core Libraries
-pytorch-gpu = "*"
-torchvision = "*"
-numpy = "<2"
-opencv = "*"
-
-# Logging, Evaluation & Visualization
-# No evo: MonoGS only uses it in its own ATE evaluation (utils/eval_utils.evaluate_evo, imported lazily
-# in the fork), and its conda chain (contextily -> rasterio -> proj) cannot coexist with the GUI open3d on py310.
-plyfile = "*"
-munch = "*"
-trimesh = "*"
-wandb = "*"
-torchmetrics = "*"
-imgviz = "*"
-pyopengl = "*"
-glfw = "*"
-pyglm  = "*"
-lpips = "*"
-rich = "*"
-ruff = "*"
-pyglfw = "*"
-# Imported directly by MonoGS (utils/dataset.py, utils/eval_utils.py, ...); evo used to pull them in.
-pandas = "*"
-pyyaml = "*"
-scipy = "*"
-tqdm = "*"
-pillow = "*"
-matplotlib-base = "*"
-# gui/slam_gui.py imports open3d.visualization.gui unconditionally; conda-forge ships it only in the
-# BUILD_GUI=ON builds (build number >= 103, 2026-04-26 onwards). These solve only with the cuda129 pytorch.
-open3d = { version = "0.19.*", build-number = ">=103" }
+fetch-source = "./git-clone.sh VSLAM-LAB monogs MonoGS-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/MonoGS-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MonoGS-DEV" }
+execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MonoGS-DEV" }
 
 ########################################################################################################################
 ########################################################################################################################
