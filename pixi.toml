@@ -50,7 +50,7 @@ orbslam3 = { features = ["orbslam3"] }
 okvis2 = { features = ["okvis2"] }
 pycuvslam = { features = ["pycuvslam"] }
 vggtslam = { features = ["vggtslam"], solve-group = "vggt" }
-mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
+mapanything = { features = ["mapanything"] }
 
 mast3rslam-dev = { features = ["mast3rslam-dev"] }
 droidslam-dev = { features = ["droidslam-dev"] }
@@ -418,65 +418,16 @@ execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", en
 # mapanything: MapAnything plus the feed-forward models its model factory hosts (vggt, vggt-omega, pi3, pi3x, dust3r,
 # mast3r, must3r, pow3r), selected per experiment with the `module` parameter of the single `mapanything` baseline
 [feature.mapanything]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/mapanything), whose environment lives in
+# Baselines/MapAnything/.pixi (MapAnything is installed from the checkout, not published as a package). Run tasks use
+# --frozen so only `install` re-solves that environment.
 [feature.mapanything.tasks]
-# Fork of facebookresearch/map-anything with the VSLAM-LAB entry point. uniception (PyPI only) is installed without its
-# declared deps (torchaudio, rerun, minio, ... are not needed for inference); what the import chain uses is listed below.
-# The external models are the pip extras of upstream's pyproject.toml, pinned to commits and installed without their
-# declared deps for the same reason (vggt, pi3 and moge are vendored in mapanything itself). asmk is MUSt3R's retrieval
-# library: its committed hamming.c predates Python 3.11, so it is cloned and its Cython source regenerated before the build.
-fetch-source = "./git-clone.sh VSLAM-LAB map-anything-VSLAM-LAB MapAnything"
-fetch-asmk = "./git-clone.sh jenicek asmk asmk"
-install-asmk = { cmd = 'git -C Baselines/asmk checkout -q 2a96d9c03a841dffdfddabc699a20512dcd09363 && cython Baselines/asmk/cython/hamming.pyx -o Baselines/asmk/cython/hamming.c && pip install --no-deps --no-build-isolation Baselines/asmk', depends-on = ['fetch-asmk'] }
-install = { cmd = '''pip install --no-deps uniception==0.1.7 && pip install --no-deps --no-build-isolation -e . && pip install --no-deps --no-build-isolation "vggt-omega @ git+https://github.com/facebookresearch/vggt-omega.git@a3ab0141f96838724423541044ff5ba301cfd36a" "pi3 @ git+https://github.com/yyfz/Pi3.git@9fa3ddb3f8d53041f8b2738df404f62223bbaa7b" "croco @ git+https://github.com/naver/croco.git@87244aa971caa4bae57ba7f9cb885761d323da93" "dust3r @ git+https://github.com/naver/dust3r.git@bb9f9f54826b4077ed9fd075308eb2fe2d4666f9" "mast3r @ git+https://github.com/Nik-V9/mast3r.git@6b9f16318a057d8f68ba110d4b638d3b74f69fee" "must3r @ git+https://github.com/naver/must3r.git@efc5b08fbbaba814706880932ba2497472096925" "pow3r @ git+https://github.com/Nik-V9/pow3r.git@8721c1b78816329cc8d87d929221e36ac9aba298"''', cwd = 'Baselines/MapAnything', depends-on = ['fetch-source', 'install-asmk'] }
-# TORCH_HOME: the external modules' weights go to Baselines/torch_home/hub/checkpoints, where download-vggt-weights
-# (see [tasks]) puts the VGGT-1B model.pt shared with vggtslam; the entry point downloads what is missing itself
-execute-mono = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
-execute-rgbd = { cmd = 'python vslamlab_mapanything.py', cwd = "Baselines/MapAnything", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
-
-[feature.mapanything.dependencies]
-# Torch (vggt-omega requires >= 2.6)
-pytorch-gpu = ">=2.6"
-torchvision = "*"
-numpy = "<2"
-
-# mapanything (pyproject deps that inference imports) + uniception runtime
-huggingface_hub = "*"
-safetensors = "*"
-hydra-core = "*"        # mapanything.models imports hydra at module level
-omegaconf = "*"
-natsort = "*"
-opencv = "*"
-pillow = "*"
-pillow-heif = "*"
-plyfile = "*"
-python-box = "*"
-requests = "*"
-trimesh = "*"
-tqdm = "*"
-einops = "*"
-jaxtyping = "*"
-timm = "*"
-termcolor = "*"
-matplotlib = "*"
-scikit-learn = "*"
-
-# external modules: dust3r family global alignment (roma, below), MUSt3R retrieval (faiss + asmk built with cython, pyaml)
-faiss = "*"
-pyaml = "*"
-cython = "*"
-
-# vslamlab_mapanything.py
-pandas = "*"
-pyyaml = "*"
-scipy = "*"
-viser = "=0.2.23"
-
-[feature.mapanything.pypi-dependencies]
-# roma (RoMa rotation utilities, naver) is PyPI only: dust3r.cloud_opt, mast3r sparse GA, must3r and pow3r import it
-roma = "*"
+fetch-source = "./git-clone.sh VSLAM-LAB mapanything MapAnything"
+install = { cmd = "pixi run install", cwd = "Baselines/MapAnything" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MapAnything" }
+execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MapAnything" }
 
 ########################################################################################################################
 ########################################################################################################################

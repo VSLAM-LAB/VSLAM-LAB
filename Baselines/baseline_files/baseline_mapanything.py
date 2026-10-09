@@ -3,7 +3,7 @@ Module: VSLAM-LAB - Baselines - baseline_mapanything.py
 - Author: Alejandro Fontan Villacampa
 - Version: 2.0
 - Created: 2026-09-15
-- Updated: 2026-09-18
+- Updated: 2026-10-10
 - License: GPLv3 License
 
 MapAnything (Keetha et al., 3DV 2026) and the feed-forward models its model factory hosts, one pass over a window
@@ -14,19 +14,19 @@ of frames (the experiment's rgb csv: rgb_max / rgb_step / rgb_placecell). The `m
 - vggt (`precision`), vggt-omega (`weights`, gated HF checkpoints), pi3, pi3x, dust3r, mast3r, must3r, pow3r
   (`scene_graph` for the dust3r family): mono, images only, run through MapAnything's wrappers with each model's
   own image preprocessing. Weights land in Baselines/torch_home/hub/checkpoints (VGGT-1B shared with vggtslam).
-Source: https://github.com/VSLAM-LAB/map-anything-VSLAM-LAB (fork of facebookresearch/map-anything).
+Source: https://github.com/VSLAM-LAB/mapanything (fork of facebookresearch/map-anything); its pixi.toml defines
+the environment (Baselines/MapAnything/.pixi), VSLAM-LAB's `mapanything` tasks forward to it.
 """
 
 from pathlib import Path
 
 from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
-from path_constants import VSLAM_LAB_DIR
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class MAPANYTHING_baseline(BaselineVSLAMLAB):
-    """MapAnything helper for VSLAM-LAB Baselines (editable install of the checkout in the `mapanything` env)."""
+    """MapAnything helper for VSLAM-LAB Baselines (editable install of the checkout in its own pixi env)."""
 
     def __init__(self, baseline_name: str = 'mapanything', baseline_folder: str = 'MapAnything') -> None:
         default_parameters = {'verbose': 1, 'mode': 'mono',
@@ -52,8 +52,8 @@ class MAPANYTHING_baseline(BaselineVSLAMLAB):
         self.command_style = 'python'
 
     def is_installed(self) -> tuple[bool, str]:
-        # `pip install -e .` (pixi `install` task) leaves the package's dist-info next to the editable finder in the env;
+        # `pip install -e .` (the clone's `install` task) leaves the package's editable finder in the clone's env;
         # the external modules' packages are installed by the same task, so one check covers them
-        env = VSLAM_LAB_DIR / '.pixi' / 'envs' / self.baseline_name
+        env = self.baseline_path / '.pixi' / 'envs' / 'default'
         is_installed = any(env.glob('lib/python3.*/site-packages/__editable__.mapanything-*.pth'))
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
