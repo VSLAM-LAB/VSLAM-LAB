@@ -29,54 +29,14 @@ import argparse
 import sys
 from pathlib import Path
 
-import yaml
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from Capabilities.CapabilityVSLAMLAB import CapabilityVSLAMLAB  # noqa: E402
-from path_constants import VSLAM_LAB_DIR  # noqa: E402
-from utilities import add_sequence_target_args, make_printers, resolve_sequence_targets_or_exit, sequence_path  # noqa: E402
+from Capabilities.CapabilityVSLAMLAB import CapabilityVSLAMLAB, add_rgbd_modes  # noqa: E402
+from utilities import add_sequence_target_args, resolve_sequence_targets_or_exit, sequence_path  # noqa: E402
 
 DEPTH_FOLDER_BASE = "fastfoundationstereo"
 COMPLETE_MARKER = ".fastfoundationstereo_complete"
 CAPABILITY = CapabilityVSLAMLAB("fastfoundationstereo", "VSLAM-LAB/fastfoundationstereo")
-
-SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
-print_info, print_warning = make_printers(SCRIPT_LABEL)
-
-
-def update_dataset_modes(dataset_name: str) -> None:
-    """Once generated depth exists for a sequence, the dataset can run rgbd experiments: add 'rgbd' to the modes
-    list in Datasets/dataset_files/dataset_<name>.yaml, plus 'rgbd-vi' when the dataset already supports 'mono-vi'
-    (imu present). Follows the existing ordering convention ('rgbd' after 'mono', 'rgbd-vi' after 'mono-vi');
-    line-based and idempotent."""
-    dataset_yaml = VSLAM_LAB_DIR / "Datasets" / "dataset_files" / f"dataset_{dataset_name}.yaml"
-    if not dataset_yaml.exists():
-        print_warning(f"{dataset_yaml} not found; cannot add 'rgbd' to the dataset modes")
-        return
-
-    lines = dataset_yaml.read_text().splitlines()
-    idx = next((i for i, line in enumerate(lines) if line.startswith("modes:")), None)
-    modes = yaml.safe_load(lines[idx].split("modes:", 1)[1]) if idx is not None else None
-    if not isinstance(modes, list):
-        print_warning(f"no parseable 'modes:' list in {dataset_yaml.name}; cannot add 'rgbd'")
-        return
-
-    def insert_after(mode: str, anchor: str) -> None:
-        if mode not in new_modes:
-            pos = new_modes.index(anchor) + 1 if anchor in new_modes else len(new_modes)
-            new_modes.insert(pos, mode)
-
-    new_modes = list(modes)
-    insert_after("rgbd", "mono")
-    if "mono-vi" in new_modes:
-        insert_after("rgbd-vi", "mono-vi")
-    if new_modes == modes:
-        return  # already up to date
-
-    lines[idx] = "modes: [" + ", ".join(f"'{mode}'" for mode in new_modes) + "]"
-    dataset_yaml.write_text("\n".join(lines) + "\n")
-    print_info(f"{dataset_name} - modes updated to {new_modes} in {dataset_yaml.name}")
 
 
 def generate_stereo_depth(pairs: list[tuple[str, str]], extra_args: list[str] | None = None,
@@ -87,7 +47,7 @@ def generate_stereo_depth(pairs: list[tuple[str, str]], extra_args: list[str] | 
     for dataset in sorted({dataset for dataset, _ in pairs}):
         if any((sequence_path(dataset, sequence) / f"{depth_folder_base}_0" / COMPLETE_MARKER).exists()
                for d, sequence in pairs if d == dataset):
-            update_dataset_modes(dataset)
+            add_rgbd_modes(dataset)
 
 
 def main() -> None:

@@ -1,133 +1,85 @@
+"""
+Module: VSLAM-LAB - Capabilities - depth_anything.py
+- Author: Alejandro Fontan Villacampa
+- Version: 2.0
+- Created: 2026-09-15
+- Updated: 2026-10-10
+- License: GPLv3 License
+
+Monocular depth capability (Depth Anything 3, default the metric nested DA3NESTED-GIANT-LARGE-1.1 model): per-frame
+metric depth for the rgb_0 frames of one or more sequences, batches of 8 frames processed jointly. The entry point
+(vslamlab_depth_anything.py) lives in the da3 baselines' checkout (github.com/VSLAM-LAB/depthanything3,
+Baselines/Depth-Anything-3) and runs in its environment; this driver runs in the vslamlab environment, resolves the
+sequence targets (CLAUDE.md's sequence-target argument convention) into sequence folders and runs its
+`depth-inference` task on them.
+
+Artifact (inside each sequence folder): depth_anything_0/<rgb_0 frame stem>.png, 16-bit, depth (m) = pixel /
+depth_factor (default 256), 0 = invalid, plus the depth_anything_0/.depth_anything_complete marker holding the
+depth_factor. Frames already written are skipped (resume); complete sequences are skipped unless --overwrite.
+Neither rgb.csv nor calibration.yaml is modified: when an experiment sets 'depth: depth_anything',
+Run/run_functions.py appends the depth columns to its rgb_exp.csv (running this capability first if the marker is
+missing) and registers the depth stream in calibration_exp.yaml. Once a sequence has depth, the dataset's modes gain
+'rgbd' (and 'rgbd-vi' with 'mono-vi') so rgbd experiments validate.
+"""
+
 from __future__ import annotations
 
 import argparse
-import os, torch
 import sys
-import numpy as np
-import imageio.v2 as imageio
-import pandas as pd
-import yaml
-import re
-import math
-import shutil
-import cv2
 from pathlib import Path
-from tqdm import tqdm
-from depth_anything_3.api import DepthAnything3
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from Datasets.get_dataset import get_dataset
+from Capabilities.CapabilityVSLAMLAB import CapabilityVSLAMLAB, add_rgbd_modes  # noqa: E402
+from path_constants import VSLAMLAB_BASELINES  # noqa: E402
+from utilities import add_sequence_target_args, resolve_sequence_targets_or_exit, sequence_path  # noqa: E402
 
-def parse_args():
-    p = argparse.ArgumentParser(prog="depth-inference")
-    p.add_argument("dataset_name", help="e.g. eth")
-    p.add_argument("sequence_name", help="e.g. table3")
+DEPTH_FOLDER_BASE = "depth_anything"
+COMPLETE_MARKER = ".depth_anything_complete"
+# Shares the da3 / da3-streaming baselines' checkout and environment
+CAPABILITY = CapabilityVSLAMLAB("depth_anything", "VSLAM-LAB/depthanything3",
+                                path=VSLAMLAB_BASELINES / "Depth-Anything-3", inference_task="depth-inference")
 
-    p.add_argument("--batch_size", type=int, default=8)
-    p.add_argument(
-        "--model_id",
-        default="depth-anything/DA3NESTED-GIANT-LARGE-1.1",  # the retrained -1.1 checkpoints supersede the originals upstream
-        help="DepthAnything3 model id",
+
+def generate_mono_depth(pairs: list[tuple[str, str]], extra_args: list[str] | None = None,
+                        depth_folder_base: str = DEPTH_FOLDER_BASE) -> None:
+    """Run the capability on (dataset, sequence) pairs, then add 'rgbd' to the modes of every dataset that now has
+    complete depth for one of them."""
+    CAPABILITY.run([sequence_path(dataset, sequence) for dataset, sequence in pairs], extra_args)
+    for dataset in sorted({dataset for dataset, _ in pairs}):
+        if any((sequence_path(dataset, sequence) / f"{depth_folder_base}_0" / COMPLETE_MARKER).exists()
+               for d, sequence in pairs if d == dataset):
+            add_rgbd_modes(dataset)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Per-frame metric depth (16-bit PNG) for rgb_0 with Depth Anything 3 "
+                    "(runs vslamlab_depth_anything.py in the da3 checkout's environment)."
     )
-    p.add_argument("--depth_model_name", default="depth_anything")
-    p.add_argument("--device", default="cuda")
-    return p.parse_args()
+    add_sequence_target_args(parser)
+    # Forwarded to the capability's entry point, only when given
+    parser.add_argument("--model_id", help="Depth Anything 3 model id (default: DA3NESTED-GIANT-LARGE-1.1, metric)")
+    parser.add_argument("--batch_size", type=int, help="Frames per DA3 forward pass, processed jointly (default 8)")
+    parser.add_argument("--device")
+    parser.add_argument("--depth-factor", type=float, dest="depth_factor", help="Depth (m) = png_value / depth_factor (default 256)")
+    parser.add_argument("--depth-folder-base", default=DEPTH_FOLDER_BASE, dest="depth_folder_base",
+                        help="Depth folder prefix; depth is written to <base>_0 (default: depth_anything)")
+    parser.add_argument("--overwrite", action="store_true", help="Recompute depth even if it already exists")
+    parser.add_argument("--prefetch", action="store_true", help="Clone + install the checkout, then exit")
+    args = parser.parse_args()
 
-def main():
-    cam_name = "rgb_0"
-    args = parse_args()
+    if args.prefetch:
+        CAPABILITY.install()
+        return
 
-    device = torch.device(args.device)
-    torch.backends.cudnn.benchmark = True
+    extra_args = [f"--{flag}={value}" for flag, value in (
+        ("model_id", args.model_id), ("batch_size", args.batch_size), ("device", args.device),
+        ("depth-factor", args.depth_factor), ("depth-folder-base", args.depth_folder_base)) if value is not None]
+    if args.overwrite:
+        extra_args.append("--overwrite")
 
-    dataset = get_dataset(args.dataset_name)
-    sequence_path = dataset.sequence_path(args.sequence_name)
-    if not sequence_path.exists():
-        raise FileNotFoundError(f"Sequence path does not exist: {sequence_path}")
-
-    rgb_csv = sequence_path / "rgb.csv"
-    rgb_csv_raw = sequence_path / "rgb_raw.csv"
-
-    depth_folder = f"{args.depth_model_name}_0"
-    depth_path = sequence_path / depth_folder
-
-    # Load calibration.yaml and find the camera section for cam_name
-    calibration_yaml = sequence_path / "calibration.yaml"
-
-    with open(calibration_yaml, 'r') as file:
-        data = yaml.safe_load(file)
-
-    cameras = data.get('cameras', [])
-    for cam_ in cameras:
-        if cam_['cam_name'] == cam_name:
-            cam = cam_;
-            break;
-    
-    print(f"\nCamera Name: {cam['cam_name']}")
-    if 'depth_factor' in cam:
-        depth_factor = cam['depth_factor']
-    else:
-        depth_factor = 5000.0
-   
-    # Load model
-    model = DepthAnything3.from_pretrained(args.model_id).to(device)
-
-    # Clear depth output unless user wants to keep it
-    if depth_path.exists():
-        shutil.rmtree(depth_path)
-
-    # Keep original csv as rgb_raw.csv once
-    if rgb_csv.exists() and (not rgb_csv_raw.exists()):
-        rgb_csv.rename(rgb_csv_raw)
-
-    if not rgb_csv_raw.exists():
-        raise FileNotFoundError(f"Missing {rgb_csv_raw}. (Expected it to exist or be created from rgb.csv)")
-
-    df = pd.read_csv(rgb_csv_raw)
-    if "ts_rgb_0 (ns)" not in df.columns or "path_rgb_0" not in df.columns:
-        raise ValueError("rgb_raw.csv must contain columns: 'ts_rgb_0 (ns)' and 'path_rgb_0'")
-
-    df.sort_values(by="ts_rgb_0 (ns)", inplace=True)
-
-    images = [(sequence_path / p).as_posix() for p in df["path_rgb_0"].astype(str).tolist()]
-
-    os.makedirs(depth_path, exist_ok=True)
-
-    B = args.batch_size
-    num_batches = math.ceil(len(images) / B)
-
-    with torch.inference_mode():
-        for s in tqdm(range(0, len(images), B), total=num_batches, desc="DepthAnything3 batches"):
-            batch_paths = images[s : s + B]
-
-            pred = model.inference(batch_paths)
-            depth = pred.depth  # [b,h,w] float32
-
-            for i in range(depth.shape[0]):
-                in_path = batch_paths[i]
-                fname = os.path.basename(in_path)
-
-                rgb = imageio.imread(in_path)
-                H0, W0 = rgb.shape[:2]
-
-                d = depth[i]
-                d = np.nan_to_num(d, nan=0.0, posinf=0.0, neginf=0.0)
-
-                d_up = cv2.resize(d, (W0, H0), interpolation=cv2.INTER_NEAREST_EXACT)
-                d16 = np.clip(d_up * depth_factor, 0, 65535).astype(np.uint16)
-
-                imageio.imwrite(depth_path / fname, d16)
-
-            del pred
-            torch.cuda.empty_cache()
-
-    df["ts_depth_0 (ns)"] = df["ts_rgb_0 (ns)"]
-    df["path_depth_0"] = df["path_rgb_0"].astype(str).str.replace(r"^rgb_0/", f"{depth_folder}/", regex=True)
-
-    df.to_csv(rgb_csv, index=False)
-    print(f"Done.\nSequence: {args.dataset_name}/{args.sequence_name}\nDepth folder: {depth_folder}\nWrote: {rgb_csv}")
+    generate_mono_depth(resolve_sequence_targets_or_exit(args, parser), extra_args, args.depth_folder_base)
 
 
 if __name__ == "__main__":

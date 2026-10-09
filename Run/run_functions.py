@@ -3,6 +3,7 @@
 import sys
 import time
 import shutil
+import importlib
 import subprocess
 import numpy as np
 import pandas as pd
@@ -28,11 +29,16 @@ SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 MASK_FOLDER_BASE = "mask2former"
 MASK_COMPLETE_MARKER = ".mask2former_complete"
 
-# Depth folder written by Capabilities/fastfoundationstereo.py ('pixi run stereo-inference').
-# Same reasoning as the mask constants above: not imported to avoid torch deps.
-DEPTH_FOLDER_BASE = "fastfoundationstereo"
-DEPTH_COMPLETE_MARKER = ".fastfoundationstereo_complete"
-DEPTH_FACTOR_DEFAULT = 256.0  # the script's default; only used for markers that don't record their depth_factor
+# Depth capabilities an experiment can request with 'depth: <name>': the artifact folder (<folder>_0) and marker they
+# write, whether they need a stereo pair, and their driver (module, function) in Capabilities/, called when the
+# marker is missing ('pixi run stereo-inference' / 'pixi run depth-inference').
+DEPTH_CAPABILITIES = {
+    'fastfoundationstereo': {'folder': "fastfoundationstereo", 'marker': ".fastfoundationstereo_complete",
+                             'stereo': True, 'driver': ("Capabilities.fastfoundationstereo", "generate_stereo_depth")},
+    'depth_anything': {'folder': "depth_anything", 'marker': ".depth_anything_complete",
+                       'stereo': False, 'driver': ("Capabilities.depth_anything", "generate_mono_depth")},
+}
+DEPTH_FACTOR_DEFAULT = 256.0  # the capabilities' default; only used for markers that don't record their depth_factor
 
 # Calibration artifact written by Capabilities/anycalib.py ('pixi run calib-inference').
 # Same reasoning as above: not imported to avoid torch deps.
@@ -232,10 +238,10 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
 
     if has_depth:
         depth = exp.parameters['depth'] if 'depth' in exp.parameters else default_parameters['depth']
-        if depth == 'fastfoundationstereo':
-            append_stereo_depth_columns(dataset, sequence_name, sequence_path, rgb_exp_csv, exp_folder / CALIBRATION_EXP_YAML)
+        if depth in DEPTH_CAPABILITIES:
+            append_depth_columns(dataset, sequence_name, sequence_path, rgb_exp_csv, exp_folder / CALIBRATION_EXP_YAML, depth)
         else:
-            print_msg(SCRIPT_LABEL, f"depth='{depth}' not recognized (only 'fastfoundationstereo' is supported); ignoring", flag="error", verb='NONE')
+            print_msg(SCRIPT_LABEL, f"depth='{depth}' not recognized (supported: {', '.join(DEPTH_CAPABILITIES)}); ignoring", flag="error", verb='NONE')
 
 def ensure_vpr_matrix(dataset: Any, sequence_name: str, sequence_path: Path, total_frames: int, parameter: str) -> Path:
     """<sequence>/vpr-lab/D.npy, the VPR distance matrix both rgb_vpr and rgb_placecell select
@@ -353,29 +359,31 @@ def append_mask2former_columns(dataset: Any, sequence_name: str, sequence_path: 
     df.to_csv(rgb_exp_csv, index=False)
     print_msg(SCRIPT_LABEL, f"segmentation: appended mask2former columns for streams {streams} to {rgb_exp_csv.name}", verb='LOW')
 
-def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path, calibration_exp_yaml: Path) -> None:
+def append_depth_columns(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path,
+                         calibration_exp_yaml: Path, capability: str) -> None:
     """Append ts_depth_0 (ns)/path_depth_0 columns to the experiment's rgb_exp csv, pointing at the
-    sequence's fastfoundationstereo_0 depth maps computed from the rgb_0/rgb_1 stereo pair, and
-    register that depth stream in the experiment's calibration_exp.yaml (register_depth_stream) so
-    rgbd baselines can consume it. If the .fastfoundationstereo_complete marker is missing,
-    the fastfoundationstereo capability is run first to generate the depth (it resumes per frame,
-    never recomputing existing depth PNGs). A sequence that already ships depth columns (a real
-    RGBD dataset) is left untouched, as are the sequence's own rgb.csv and calibration.yaml -
-    only the experiment's rgb_exp.csv and calibration_exp.yaml are rewritten."""
+    sequence's <capability>_0 depth maps (DEPTH_CAPABILITIES: fastfoundationstereo from the rgb_0/rgb_1
+    stereo pair, depth_anything from rgb_0 alone), and register that depth stream in the experiment's
+    calibration_exp.yaml (register_depth_stream) so rgbd baselines can consume it. If the capability's
+    completion marker is missing, the capability is run first to generate the depth (it resumes per
+    frame, never recomputing existing depth PNGs). A sequence that already ships depth columns (a real
+    RGBD dataset) is left untouched, as are the sequence's own rgb.csv and calibration.yaml - only the
+    experiment's rgb_exp.csv and calibration_exp.yaml are rewritten."""
+    spec = DEPTH_CAPABILITIES[capability]
     df = pd.read_csv(rgb_exp_csv)
     if 'path_depth_0' in df.columns:
         print_msg(SCRIPT_LABEL, f"depth: {rgb_exp_csv.name} already has depth columns; leaving them untouched", verb='LOW')
         return
-    if 'path_rgb_1' not in df.columns:
-        print_msg(SCRIPT_LABEL, f"depth=fastfoundationstereo requires a stereo sequence (path_rgb_0 and path_rgb_1) but {rgb_exp_csv} has no path_rgb_1; skipping depth columns", flag="error", verb='NONE')
+    if spec['stereo'] and 'path_rgb_1' not in df.columns:
+        print_msg(SCRIPT_LABEL, f"depth={capability} requires a stereo sequence (path_rgb_0 and path_rgb_1) but {rgb_exp_csv} has no path_rgb_1; skipping depth columns", flag="error", verb='NONE')
         return
 
-    depth_folder = f"{DEPTH_FOLDER_BASE}_0"
-    marker = sequence_path / depth_folder / DEPTH_COMPLETE_MARKER
+    depth_folder = f"{spec['folder']}_0"
+    marker = sequence_path / depth_folder / spec['marker']
     if not marker.exists():
-        print_msg(SCRIPT_LABEL, f"depth: depth missing for {sequence_name}, running the fastfoundationstereo capability ...", verb='LOW')
-        from Capabilities.fastfoundationstereo import generate_stereo_depth
-        generate_stereo_depth([(dataset.dataset_name, sequence_name)])
+        print_msg(SCRIPT_LABEL, f"depth: depth missing for {sequence_name}, running the {capability} capability ...", verb='LOW')
+        module, function = spec['driver']
+        getattr(importlib.import_module(module), function)([(dataset.dataset_name, sequence_name)])
 
     # The marker records the depth_factor the script encoded the PNGs with (empty markers predate
     # that and were written with the script's default).
@@ -387,7 +395,7 @@ def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path:
     df["ts_depth_0 (ns)"] = df["ts_rgb_0 (ns)"]
     df["path_depth_0"] = [f"{depth_folder}/{Path(p).stem}.png" for p in df["path_rgb_0"]]
     df.to_csv(rgb_exp_csv, index=False)
-    print_msg(SCRIPT_LABEL, f"depth: appended fastfoundationstereo depth columns to {rgb_exp_csv.name}", verb='LOW')
+    print_msg(SCRIPT_LABEL, f"depth: appended {capability} depth columns to {rgb_exp_csv.name}", verb='LOW')
 
     register_depth_stream(calibration_exp_yaml, depth_folder, depth_factor)
 

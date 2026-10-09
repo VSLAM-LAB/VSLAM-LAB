@@ -164,6 +164,7 @@ compare-exp = "python vslamlab_gui.py compare_exp"
 stereo-inference = "python Capabilities/fastfoundationstereo.py"
 mask-inference = "python Capabilities/mask2former.py"
 calib-inference = "python Capabilities/anycalib.py"
+depth-inference = "python Capabilities/depth_anything.py"
 
 [feature.vslamlab.dependencies]
 python = "3.13.*"
