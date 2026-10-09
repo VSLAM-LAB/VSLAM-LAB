@@ -68,7 +68,7 @@ lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightg
 da3 = { features = ["da3", "da3-core", "cuda126", "py11"], solve-group = "da3" }
 da3-streaming = { features = ["da3-streaming", "da3-core", "cuda126", "py11"], solve-group = "da3" }
 mask2former = { features = ["mask2former", "cuda126", "py11"], solve-group = "mask2former" }
-fastfoundationstereo = { features = ["fastfoundationstereo", "cuda126", "py11"], solve-group = "fastfoundationstereo" }
+fastfoundationstereo = { features = ["fastfoundationstereo"] }
 anycalib = { features = ["anycalib", "cuda126", "py11"], solve-group = "anycalib" }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
 refrax = { features = ["refrax"], solve-group = "refrax" }
@@ -159,6 +159,9 @@ select-sequences = "python Gym/select_sequences.py"
 run-exp = "python vslamlab_gui.py run_exp"
 evaluate-exp = "python vslamlab_gui.py evaluate_exp"
 compare-exp = "python vslamlab_gui.py compare_exp"
+
+# Capabilities: the driver resolves dataset/sequence targets and runs the capability repo in its own environment
+stereo-inference = "python Capabilities/fastfoundationstereo.py"
 
 [feature.vslamlab.dependencies]
 python = "3.13.*"
@@ -954,62 +957,13 @@ openpyxl = "*"
 # ########################################################################################################################
 # fastfoundationstereo
 [feature.fastfoundationstereo]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64"]
 
+# Capability repository (github.com/VSLAM-LAB/fastfoundationstereo) cloned to Capabilities/sources/, with its own
+# environment and weights; `stereo-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.fastfoundationstereo.tasks]
-fetch-source.cmd = 'test -d Baselines/Fast-FoundationStereo || git clone https://github.com/NVlabs/Fast-FoundationStereo Baselines/Fast-FoundationStereo'
-fetch-source.outputs = ["Baselines/Fast-FoundationStereo"]
-install = { cmd = "python Capabilities/fastfoundationstereo.py --prefetch", depends-on = ["fetch-source"] }
-stereo-inference = { cmd = "python Capabilities/fastfoundationstereo.py", depends-on = ["install"] }
-
-[feature.fastfoundationstereo.dependencies]
-# Torch / model libraries (Fast-FoundationStereo requirements.txt)
-pytorch-gpu = "*"
-torchvision = "*"
-timm = "*"
-einops = "*"
-omegaconf = "*"
-scikit-image = "*"
-imageio = "*"
-
-# Core
-numpy = "*"
-pillow = "*"
-tqdm = "*"
-
-python = "*"
-pyyaml = "*"
-matplotlib = "*"
-pandas = "*"
-py-opencv = "*"
-scipy = "*"
-h5py = "*"
-requests = "*"
-inputimeout = "*"
-scikit-learn = "*"
-google-api-python-client = "*"
-google-auth-oauthlib = "*"
-huggingface_hub = "*"
-py7zr = "*"
-exifread = "*"
-pyproj = "*"
-nvidia-ml-py = "*"
-evo = "*"
-git-lfs = "*"
-piexif = "*"
-psutil = "*"
-loguru = "*"
-utm = "*"
-7zip = "*"
-viser = "*"
-open3d = "*"
-gdown = "*"
-yt-dlp = ">=2026.8.19"  # older releases 403 on YouTube (dead ANDROID_VR client); new ones need a JS runtime
-yt-dlp-ejs = "*"        # yt-dlp's JS challenge solver scripts
-deno = "*"              # JS runtime yt-dlp uses to solve YouTube's n/sig challenges
-cryptography = "*"
-openpyxl = "*"
+fetch-source = "test -d Capabilities/sources/fastfoundationstereo || git clone --recursive https://github.com/VSLAM-LAB/fastfoundationstereo.git Capabilities/sources/fastfoundationstereo"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/fastfoundationstereo", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
 # ########################################################################################################################

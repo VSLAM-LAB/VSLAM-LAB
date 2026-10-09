@@ -358,7 +358,7 @@ def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path:
     sequence's fastfoundationstereo_0 depth maps computed from the rgb_0/rgb_1 stereo pair, and
     register that depth stream in the experiment's calibration_exp.yaml (register_depth_stream) so
     rgbd baselines can consume it. If the .fastfoundationstereo_complete marker is missing,
-    'pixi run stereo-inference' is triggered first to generate the depth (it resumes per frame,
+    the fastfoundationstereo capability is run first to generate the depth (it resumes per frame,
     never recomputing existing depth PNGs). A sequence that already ships depth columns (a real
     RGBD dataset) is left untouched, as are the sequence's own rgb.csv and calibration.yaml -
     only the experiment's rgb_exp.csv and calibration_exp.yaml are rewritten."""
@@ -373,8 +373,9 @@ def append_stereo_depth_columns(dataset: Any, sequence_name: str, sequence_path:
     depth_folder = f"{DEPTH_FOLDER_BASE}_0"
     marker = sequence_path / depth_folder / DEPTH_COMPLETE_MARKER
     if not marker.exists():
-        print_msg(SCRIPT_LABEL, f"depth: depth missing for {sequence_name}, running 'pixi run stereo-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-        subprocess.run(["pixi", "run", "-e", "fastfoundationstereo", "stereo-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+        print_msg(SCRIPT_LABEL, f"depth: depth missing for {sequence_name}, running the fastfoundationstereo capability ...", verb='LOW')
+        from Capabilities.fastfoundationstereo import generate_stereo_depth
+        generate_stereo_depth([(dataset.dataset_name, sequence_name)])
 
     # The marker records the depth_factor the script encoded the PNGs with (empty markers predate
     # that and were written with the script's default).

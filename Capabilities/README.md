@@ -11,7 +11,7 @@ demand.
 | Capability | Script | pixi env / task | Artifact (inside `<sequence>/`) | Experiment parameter | Run-side hook |
 |---|---|---|---|---|---|
 | Static/dynamic masks (Mask2Former) | `mask2former.py` | `mask2former` / `mask-inference` | `mask2former_<i>/` + `.mask2former_complete`, one PNG per `path_rgb_<i>` frame | `segmentation: mask2former` | `append_mask2former_columns` → `ts_mask_<i> (ns)`/`path_mask_<i>` in `rgb_exp.csv` |
-| Stereo depth (Fast-FoundationStereo) | `fastfoundationstereo.py` | `fastfoundationstereo` / `stereo-inference` | `fastfoundationstereo_0/` + `.fastfoundationstereo_complete` (records `depth_factor`) | `depth: fastfoundationstereo` | `append_stereo_depth_columns` → `ts_depth_0 (ns)`/`path_depth_0` + `register_depth_stream` in `calibration_exp.yaml` |
+| Stereo depth (Fast-FoundationStereo) | `fastfoundationstereo.py` (driver) + repo [VSLAM-LAB/fastfoundationstereo](https://github.com/VSLAM-LAB/fastfoundationstereo) | `fastfoundationstereo` (`fetch-source`/`install`) / `stereo-inference` (vslamlab env) | `fastfoundationstereo_0/` + `.fastfoundationstereo_complete` (records `depth_factor`) | `depth: fastfoundationstereo` | `append_stereo_depth_columns` → `ts_depth_0 (ns)`/`path_depth_0` + `register_depth_stream` in `calibration_exp.yaml` |
 | Intrinsics estimation (AnyCalib) | `anycalib.py` | `anycalib` / `calib-inference` | `anycalib/calibration.yaml` + `anycalib/estimates.csv` | `calibration: anycalib` | `create_calibration_exp_yaml` seeds `calibration_exp.yaml` from the artifact |
 | VPR distance matrix (VPR-LAB) | `vpr.py` | `vpr-lab` / `vpr` | `vpr-lab/D.npy` | `rgb_vpr: <n>` | `create_rgb_exp_csv` downsamples `rgb_exp.csv` with `sample_vpr`'s sampler |
 | Information-based frame selection (placecell) | `placecell.py` | `placecell` / `placecell-select` | reuses `vpr-lab/D.npy` (generated via `vpr` when missing); standalone mode writes `placecell/rgb_placecell.csv` | `rgb_placecell: <n>` | `select_frames_with_placecell` → `rgb_exp.csv` keeps the `n` least redundant frames (placecell's greedy joint-information culler, `CullParameters.target_alive`), removal order in `<exp_folder>/rgb_placecell.csv`; mutually exclusive with `rgb_vpr` |
@@ -22,7 +22,35 @@ demand.
 `path_depth_0` into the sequence's `rgb.csv` instead of an artifact + run-side hook) and is
 listed here as the next migration target, not as a model to copy.
 
-## The contract
+## Capability repositories (the layout to follow)
+
+Capabilities are moving out of this repository so each one owns its model stack without growing
+VSLAM-LAB's `pixi.toml`/`pixi.lock` (the same split as the baselines). `fastfoundationstereo` is the
+template; the others still follow the legacy contract below until they are migrated.
+
+- **Repository** `github.com/VSLAM-LAB/<name>` (a fork of the upstream model repo when one exists),
+  cloned to `Capabilities/sources/<name>/` (gitignored). It holds:
+  - `vslamlab_<name>.py`, the entry point: takes explicit `--sequence-path <dir> [<dir> ...]`
+    VSLAM-LAB sequence folders (no dataset names, no VSLAM-LAB imports), plus `--prefetch`,
+    `--overwrite`, `--device` and its model flags; writes the artifact and marker described in
+    "Output" below, with the same idempotence/resume rules. Small helpers it needs (reading
+    `rgb.csv`, the `_raw` backup name) are copied in, so the repo works standalone.
+  - `pixi.toml` + `pixi.lock`: only the model stack (CUDA 12.9 / PyTorch 2.7 to share the pixi cache
+    with the baselines), tasks `install` (= `--prefetch`, weights into the repo), `inference` and
+    `test`. Nothing is published, so no GitHub Actions are needed.
+- **Driver** `Capabilities/<name>.py` (vslamlab environment, no torch): keeps the sequence-target
+  argument convention, resolves targets into sequence folders and runs the repo through
+  `CapabilityVSLAMLAB(<name>, "VSLAM-LAB/<name>").run(folders, extra_args)` (clones/installs on
+  first use, then `pixi run --manifest-path <repo>/pixi.toml --frozen inference --sequence-path ...`).
+  Anything that touches VSLAM-LAB itself stays here (e.g. `update_dataset_modes`). It exposes a
+  function the run pipeline calls (`generate_stereo_depth(pairs)`).
+- **pixi wiring**: `<name> = { features = ["<name>"] }` with only `fetch-source` (git clone into
+  `Capabilities/sources/<name>`) and `install` (forwarded to the repo); the user-facing task
+  (`stereo-inference`) lives in the vslamlab environment and runs the driver.
+- **Run-side hook**: `Run/run_functions.py` imports the driver function directly (it carries no
+  model dependencies) instead of shelling out to another environment.
+
+## The contract (legacy single-file capabilities)
 
 Every capability script follows the same shape; copy `fastfoundationstereo.py` (the most complete
 one) when adding a new one.
@@ -108,11 +136,14 @@ A capability may also *replace* a stream rather than add one (`refrax` rewrites
 `path_rgb_0` and the rgb_0 calibration entry); such capabilities run before the additive ones,
 which are keyed by frame name and geometry.
 
-`run_functions.py` runs in the `vslamlab` environment, so it must **not import the capability
+`run_functions.py` runs in the `vslamlab` environment, so it must **not import legacy capability
 scripts** (they pull in torch); it duplicates the folder/marker constants instead. Pure,
-dependency-free helpers (like `sample_vpr`'s sampler) may be imported.
+dependency-free helpers (like `sample_vpr`'s sampler) and the drivers of migrated capabilities
+(see "Capability repositories") may be imported.
 
 ## Adding a capability - checklist
+
+New capabilities follow "Capability repositories" above; this checklist is for the legacy layout.
 
 1. `Capabilities/<name>.py` with the module header docstring (Author/Assisted by/Version/
    Created/Updated/License, then what it produces, the encoding, and the run-side parameter).
