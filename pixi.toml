@@ -48,7 +48,7 @@ allfeature = { features = ["allfeature"] }
 colmap = { features = ["colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"] }
 okvis2 = { features = ["okvis2"] }
-pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
+pycuvslam = { features = ["pycuvslam"] }
 vggtslam = { features = ["vggtslam"], solve-group = "vggt" }
 mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
 
@@ -366,23 +366,35 @@ okvis2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda"]
 
+# cuVSLAM is closed source: NVIDIA publishes the Python wheel (with its own CUDA runtime) on the GitHub releases of
+# nvidia-isaac/cuVSLAM, installed from there below. The clone only provides the VSLAM-LAB entry scripts and settings
+# (github.com/VSLAM-LAB/pycuvslam).
 [feature.pycuvslam.tasks]
-fetch-source = './git-clone.sh VSLAM-LAB PyCuVSLAM-VSLAM-LAB PyCuVSLAM'
-install = { cmd = "pip install -e bin/x86_64", cwd = "Baselines/PyCuVSLAM" }
-execute-mono = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_mono.py',  cwd = 'Baselines/PyCuVSLAM' }
-execute-rgbd = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_rgbd.py',  cwd = 'Baselines/PyCuVSLAM' }
-execute-stereo = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_stereo.py',  cwd = 'Baselines/PyCuVSLAM' }
-execute-stereo-vi = { cmd = 'export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && python vslamlab_pycuvslam_stereo_vi.py',  cwd = 'Baselines/PyCuVSLAM' }
+fetch-source = './git-clone.sh VSLAM-LAB pycuvslam PyCuVSLAM'
+execute-rgbd = { cmd = 'python vslamlab_pycuvslam_rgbd.py', cwd = 'Baselines/PyCuVSLAM' }
+execute-stereo = { cmd = 'python vslamlab_pycuvslam_stereo.py', cwd = 'Baselines/PyCuVSLAM' }
+execute-stereo-vi = { cmd = 'python vslamlab_pycuvslam_stereo_vi.py', cwd = 'Baselines/PyCuVSLAM' }
 
 [feature.pycuvslam.dependencies]
-libstdcxx-ng = "*"
-numpy = "=2.2.4"
-pillow = "=11.1.0"
-pyyaml = "=6.0.2"
-rerun-sdk = "=0.22.1"
-scipy = "=1.14.1"
+python = "3.10.*"  # cp310 wheel: the cp312 ones need glibc >= 2.39 (manylinux_2_39)
+numpy = "*"
 pandas = "*"
-opencv = "*"
+scipy = "*"
+pillow = "*"
+pyyaml = "*"
+rerun-sdk = "0.22.*" # viewer (verbose: 1); the scripts use rr.set_time_sequence and rr.Scalar (renamed in later rerun)
+# The wheel bundles libcudart 12.6 but links the CUDA 12 math libraries from the system/environment
+cuda-version = "12.6.*"
+libcublas = "*"
+libcusolver = "*"
+libcusparse = "*"
+
+# The wheel's libraries only search their own folder (RPATH $ORIGIN): find the CUDA libraries in the environment
+[feature.pycuvslam.activation.env]
+LD_LIBRARY_PATH = "$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
+
+[feature.pycuvslam.pypi-dependencies]
+cuvslam = { url = "https://github.com/nvidia-isaac/cuVSLAM/releases/download/v17.0.0/cuvslam-17.0.0%2Bcu12-cp310-cp310-manylinux_2_35_x86_64.whl" }
 
 ########################################################################################################################
 ########################################################################################################################
