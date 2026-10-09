@@ -47,7 +47,7 @@ anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
 allfeature = { features = ["allfeature"] }
 colmap = { features = ["colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"] }
-okvis2 = { features = ["okvis2"], solve-group = "okvis" }
+okvis2 = { features = ["okvis2"] }
 pycuvslam = { features = ["pycuvslam","cuda126", "py10"] }
 vggtslam = { features = ["vggtslam"], solve-group = "vggt" }
 mapanything = { features = ["mapanything", "cuda126", "py11"], solve-group = "mapanything" }
@@ -59,7 +59,7 @@ monogs-dev = { features = ["monogs-dev"] }
 orbslam2-dev = { features = ["orbslam2-dev"] }
 anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev"] }
-okvis2-dev = { features = ["okvis2-dev", "cuda126", "py11"], solve-group = "okvis" }
+okvis2-dev = { features = ["okvis2-dev"] }
 vggtslam-dev = { features = ["vggtslam-dev"] }
 
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
@@ -349,7 +349,7 @@ orbslam3 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 ########################################################################################################################
 # okvis2
 [feature.okvis2]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
 platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
@@ -357,7 +357,7 @@ fetch-source = 'git clone https://huggingface.co/vslamlab/okvis2-vslamlab Baseli
 execute-mono-vi = 'vslamlab_okvis2_mono_vi'
 
 [feature.okvis2.dependencies]
-okvis2-vslamlab = { channel = "fontan" }
+okvis2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -722,28 +722,14 @@ execute-stereo-vi = { cmd = "pixi run --frozen execute-stereo-vi", cwd = "Baseli
 # ########################################################################################################################
 # okvis2-dev
 [feature.okvis2-dev]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/okvis2), whose environment lives in
+# Baselines/OKVIS2-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.okvis2-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB okvis2-VSLAM-LAB OKVIS2-DEV"
-install = { cmd = "./build.sh", cwd = "Baselines/OKVIS2-DEV" }
-execute-mono-vi = { cmd = "./bin/vslamlab_okvis2_mono_vi",  cwd = "Baselines/OKVIS2-DEV" }
-
-[feature.okvis2-dev.dependencies]
-cmake = "<4"
-glog = "*"
-blas = "*"
-lapack = "*"
-eigen = "*"
-suitesparse = "*"
-boost = "*"
-opencv = "*"
-libtorch = "*"
-librealsense = "*"
-openmp = "*"
-libgfortran = "3.*"
-yaml-cpp = "*"
+fetch-source = "./git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/OKVIS2-DEV" }
+execute-mono-vi = { cmd = "pixi run --frozen execute-mono-vi", cwd = "Baselines/OKVIS2-DEV" }
 
 ########################################################################################################################
 # ########################################################################################################################
