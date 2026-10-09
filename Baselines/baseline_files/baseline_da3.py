@@ -3,11 +3,12 @@ Module: VSLAM-LAB - Baselines - baseline_da3.py
 - Author: Alejandro Fontan Villacampa
 - Version: 1.0
 - Created: 2026-09-15
-- Updated: 2026-09-15
+- Updated: 2026-10-10
 - License: GPLv3 License
 
 Depth Anything 3 (Lin et al., 2025) as a 3D reconstruction baseline, in two forms sharing one source
-checkout (Baselines/Depth-Anything-3, fork of ByteDance-Seed/Depth-Anything-3):
+checkout and one pixi environment in it (Baselines/Depth-Anything-3, github.com/VSLAM-LAB/depthanything3, fork of
+ByteDance-Seed/Depth-Anything-3; VSLAM-LAB's da3 / da3-streaming tasks forward to its pixi.toml):
 - `da3`: one feed-forward pass over the experiment's frame window (rgb_max / rgb_step / rgb_placecell),
   like vggt / vggt-omega. The nested model returns metric depth and poses.
 - `da3-streaming`: upstream's DA3-Streaming (VGGT-Long style): the whole sequence in overlapping chunks,
@@ -19,13 +20,12 @@ Face (not gated) at first run.
 from pathlib import Path
 
 from Baselines.BaselineVSLAMLAB import BaselineVSLAMLAB
-from path_constants import VSLAM_LAB_DIR
 
 SCRIPT_LABEL = f"\033[95m[{Path(__file__).name}]\033[0m "
 
 
 class DA3_baseline(BaselineVSLAMLAB):
-    """Depth Anything 3, single window (editable install of the checkout in the `da3` env)."""
+    """Depth Anything 3, single window (editable install of the checkout in its own pixi env)."""
 
     def __init__(self, baseline_name: str = 'da3', baseline_folder: str = 'Depth-Anything-3') -> None:
         default_parameters = {'verbose': 1, 'mode': 'mono',
@@ -42,13 +42,13 @@ class DA3_baseline(BaselineVSLAMLAB):
         self.command_style = 'python'
 
     def is_installed(self) -> tuple[bool, str]:
-        # `pip install -e .` (pixi `install` task) leaves the upstream `da3` console script in the env
-        is_installed = (VSLAM_LAB_DIR / '.pixi' / 'envs' / self.baseline_name / 'bin' / 'da3').is_file()
+        # `pip install -e .` (the checkout's `install` task) leaves the upstream `da3` console script in its env
+        is_installed = (self.baseline_path / '.pixi' / 'envs' / 'default' / 'bin' / 'da3').is_file()
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)')
 
 
 class DA3STREAMING_baseline(DA3_baseline):
-    """DA3-Streaming: chunked full-sequence reconstruction with loop closure (own env `da3-streaming`, same checkout)."""
+    """DA3-Streaming: chunked full-sequence reconstruction with loop closure (same checkout and environment)."""
 
     def __init__(self) -> None:
         super().__init__(baseline_name='da3-streaming', baseline_folder='Depth-Anything-3')

@@ -65,8 +65,8 @@ vggtslam-dev = { features = ["vggtslam-dev"] }
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
 lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
-da3 = { features = ["da3", "da3-core", "cuda126", "py11"], solve-group = "da3" }
-da3-streaming = { features = ["da3-streaming", "da3-core", "cuda126", "py11"], solve-group = "da3" }
+da3 = { features = ["da3"] }
+da3-streaming = { features = ["da3-streaming"] }
 mask2former = { features = ["mask2former"] }
 fastfoundationstereo = { features = ["fastfoundationstereo"] }
 anycalib = { features = ["anycalib"] }
@@ -806,100 +806,32 @@ pixi = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
-# da3 (Depth Anything 3): one checkout, one solve group, three uses
-#   env da3           = da3 + da3-core   -> `da3` baseline (vslamlab_da3.py) and the depth_anything capability
-#   env da3-streaming = da3-streaming + da3-core -> `da3-streaming` baseline (vslamlab_da3_streaming.py)
-[feature.da3-core]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
-
-[feature.da3-core.dependencies]
-# Torch
-pytorch-gpu = "*"
-torchvision = "*"
-xformers = "*"           # depth_anything_3.model.dinov2 (swiglu ffn)
-numpy = "<2"
-
-# depth_anything_3.api import chain (model + export modules are imported eagerly)
-pillow = "*"
-einops = "*"
-huggingface_hub = "*"
-safetensors = "*"
-omegaconf = "*"
-addict = "*"
-opencv = "*"
-imageio = "*"
-trimesh = "*"
-plyfile = "*"
-evo = "*"                # utils.pose_align
-pycolmap = "*"           # utils.export.colmap
-scipy = "*"
-matplotlib = "*"
-tqdm = "*"
-
-# vslamlab_da3*.py
-pandas = "*"
-pyyaml = "*"
-viser = "=0.2.23"
-
-# build backend of pyproject.toml, needed by the --no-build-isolation editable install
-hatchling = "*"
-hatch-vcs = "*"
-
-[feature.da3-core.pypi-dependencies]
-# utils.export.gs imports `moviepy.editor`, removed in moviepy 2.x (conda-forge only ships 2.x); upstream pins 1.0.3
-moviepy = "==1.0.3"
-
+# da3 (Depth Anything 3): one checkout (Baselines/Depth-Anything-3), one environment in it, three uses
+#   da3           -> vslamlab_da3.py (single window)
+#   da3-streaming -> vslamlab_da3_streaming.py (chunked full sequence + SALAD loop closure)
+#   depth_anything capability (Capabilities/depth_anything.py)
 # ########################################################################################################################
 [feature.da3]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/depthanything3), whose single environment lives in
+# Baselines/Depth-Anything-3/.pixi and serves da3, da3-streaming and the depth_anything capability. Run tasks use
+# --frozen so only `install` re-solves that environment.
 [feature.da3.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
-install = { cmd = 'pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source'] }
-execute-mono = { cmd = 'python vslamlab_da3.py', cwd = "Baselines/Depth-Anything-3" }
-depth-inference = { cmd = 'python Capabilities/depth_anything.py', depends-on = ['install'] }
+fetch-source = "./git-clone.sh VSLAM-LAB depthanything3 Depth-Anything-3"
+install = { cmd = "pixi run install", cwd = "Baselines/Depth-Anything-3" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/Depth-Anything-3" }
 
-[feature.da3.dependencies]
-# Capabilities/depth_anything.py imports Datasets.get_dataset, which pulls the dataset classes' dependencies
-google-api-python-client = "*"
-google-auth-oauthlib = "*"
-py7zr = "*"
-exifread = "*"
-pyproj = "*"
-nvidia-ml-py = "*"
-git-lfs = "*"
-piexif = "*"
-psutil = "*"
-loguru = "*"
-utm = "*"
-7zip = "*"
-gdown = "*"
-inputimeout = "*"
-scikit-learn = "*"
-requests = "*"
+[feature.da3-streaming]
+platforms = ["linux-64"]
+
+# Same clone and environment as da3 (see above)
+[feature.da3-streaming.tasks]
+fetch-source = "./git-clone.sh VSLAM-LAB depthanything3 Depth-Anything-3"
+install = { cmd = "pixi run install", cwd = "Baselines/Depth-Anything-3" }
+execute-mono = { cmd = "pixi run --frozen execute-mono-streaming", cwd = "Baselines/Depth-Anything-3" }
 
 # ########################################################################################################################
-[feature.da3-streaming]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
-
-[feature.da3-streaming.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB Depth-Anything-3-VSLAM-LAB Depth-Anything-3"
-install = { cmd = 'pip install --no-deps --no-build-isolation -e .', cwd = 'Baselines/Depth-Anything-3', depends-on = ['fetch-source'] }
-execute-mono = { cmd = 'python vslamlab_da3_streaming.py', cwd = "Baselines/Depth-Anything-3" }
-
-[feature.da3-streaming.dependencies]
-# da3_streaming/ (VGGT-Long style chunking, SALAD loop closure, Sim(3) pose graph)
-faiss-gpu = "*"
-numba = "*"
-pypose = { channel = "fontan" }
-triton = "*"             # align_lib: triton
-scikit-learn = "*"
-rich = "*"
-prettytable = "*"
-
 # ########################################################################################################################
 # ########################################################################################################################
 # mask2former

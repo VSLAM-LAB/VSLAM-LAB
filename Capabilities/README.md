@@ -37,7 +37,9 @@ template; the others still follow the legacy contract below until they are migra
     `rgb.csv`, the `_raw` backup name) are copied in, so the repo works standalone.
   - `pixi.toml` + `pixi.lock`: only the model stack (CUDA 12.9 / PyTorch 2.7 to share the pixi cache
     with the baselines), tasks `install` (= `--prefetch`, weights into the repo), `inference` and
-    `test`. Nothing is published, so no GitHub Actions are needed.
+    `test`. Nothing is published, so no GitHub Actions are needed. If the model uses
+    `torch.compile` or Triton kernels, add `cuda-driver-dev` and `cuda-cudart-dev`: Triton builds
+    its launcher against `cuda.h` at run time (`fatal error: cuda.h: No such file or directory`).
 - **Driver** `Capabilities/<name>.py` (vslamlab environment, no torch): keeps the sequence-target
   argument convention, resolves targets into sequence folders and runs the repo through
   `CapabilityVSLAMLAB(<name>, "VSLAM-LAB/<name>").run(folders, extra_args)` (clones/installs on
