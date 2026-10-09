@@ -47,6 +47,6 @@ class ORBSLAM3_baseline_dev(ORBSLAM3_baseline):
         self.color = tuple(max(c / 2.0, 0.0) for c in self.color)
 
     def is_installed(self) -> tuple[bool, str]:
-        is_installed = (self.baseline_path / 'bin' / 'vslamlab_orbslam3_mono_vi').is_file()
+        is_installed = any((self.baseline_path / 'bin').glob('vslamlab_orbslam3_mono_vi*'))  # .exe on Windows
         return (True, 'is installed') if is_installed else (False, 'not installed (auto install available)') 
     
