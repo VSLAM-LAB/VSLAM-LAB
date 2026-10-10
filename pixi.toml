@@ -427,7 +427,8 @@ execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", en
 
 [feature.vggtslam.dependencies]
 # noarch package (github.com/VSLAM-LAB/vggtslam) with VGGT-SLAM's full runtime dependency set (gtsam >=4.3 from
-# conda-forge); python is pinned here like in the other environments
+# conda-forge); python is pinned here like in the other environments. Its libtorch is the `generic` build, not the
+# `mkl` one of droidslam/dpvo/mast3rslam/allfeature: gtsam 4.3 needs tbb >= 2023, MKL 2024 needs tbb 2021
 vggtslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 python = "3.11.*"
 
