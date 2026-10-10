@@ -110,9 +110,8 @@ vslamlab-debug.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_debug
 vslamlab-allfeature.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
 demo = "python vslamlab_gui.py demo"
 
-premerge-smoke.cmd = "python vslamlab_gui.py vslamlab configs/premerge-smoke/exp_premerge_smoke_{{ mode }}.yaml {{ overwrite }}"
+premerge-smoke.cmd = "python vslamlab_gui.py vslamlab configs/premerge-smoke/exp_premerge_smoke.yaml {{ overwrite }}"
 premerge-smoke.args = [
-  { "arg" = "mode", "default" = "stereo" },
   { "arg" = "overwrite", "default" = "--overwrite" },
 ]
 

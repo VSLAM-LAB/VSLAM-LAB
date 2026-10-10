@@ -1,109 +1,109 @@
 0000_premerge_smoke_orbslam2_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: orbslam2
 
 0001_premerge_smoke_orbslam3_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: orbslam3
 
 0002_premerge_smoke_droidslam_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: droidslam
 
 0003_premerge_smoke_dpvo_mono_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, rgb_max: 500, rgb_step: 2}
   Module: dpvo
 
 0004_premerge_smoke_allfeature_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: allfeature
 
 0005_premerge_smoke_mast3rslam_mono_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, rgb_max: 500, rgb_step: 2}
   Module: mast3rslam
 
 0006_premerge_smoke_vggtslam_mono_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, rgb_max: 500, rgb_step: 2}
   Module: vggtslam
 
 0007_premerge_smoke_orbslam2-dev_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: orbslam2-dev
 
 0008_premerge_smoke_orbslam3-dev_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: orbslam3-dev
 
 0009_premerge_smoke_droidslam-dev_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: droidslam-dev
 
 0010_premerge_smoke_dpvo-dev_mono_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, rgb_max: 500, rgb_step: 2}
   Module: dpvo-dev
 
 0011_premerge_smoke_allfeature-dev_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: allfeature-dev
 
 0012_premerge_smoke_mast3rslam-dev_mono_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, rgb_max: 500, rgb_step: 2}
   Module: mast3rslam-dev
 
 0013_premerge_smoke_colmap_mono_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono}
+  Parameters: {verbose: 0, mode: mono, rgb_max: 500, rgb_step: 2}
   Module: colmap
 
 0014_premerge_smoke_okvis2_mono-vi_euroc_MH_01_easy:
   Config: premerge-smoke/config_premerge_smoke_euroc_mh_01_easy.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono-vi}
+  Parameters: {verbose: 0, mode: mono-vi, rgb_idx: [1000, 2000], rgb_max: 500, rgb_step: 2}
   Module: okvis2
 
 0015_premerge_smoke_pycuvslam_stereo-vi_euroc_MH_01_easy:
   Config: premerge-smoke/config_premerge_smoke_euroc_mh_01_easy.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: stereo-vi}
+  Parameters: {verbose: 0, mode: stereo-vi, rgb_idx: [1000, 2000], rgb_max: 500, rgb_step: 2}
   Module: pycuvslam
 
 0016_premerge_smoke_okvis2-dev_mono-vi_euroc_MH_01_easy:
   Config: premerge-smoke/config_premerge_smoke_euroc_mh_01_easy.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: mono-vi}
+  Parameters: {verbose: 0, mode: mono-vi, rgb_idx: [1000, 2000], rgb_max: 500, rgb_step: 2}
   Module: okvis2-dev
 
 0017_premerge_smoke_monogs-dev_rgbd_eth_table_3:
   Config: premerge-smoke/config_premerge_smoke_eth_table_3.yaml
   NumRuns: 1
-  Parameters: {verbose: 0, mode: rgbd}
+  Parameters: {verbose: 0, mode: rgbd, rgb_max: 500, rgb_step: 2}
   Module: monogs-dev
 
 0018_premerge_smoke_da3-streaming_mono_eth_table_3:
