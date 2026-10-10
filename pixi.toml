@@ -32,9 +32,6 @@ download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-d
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
-cuda129 = { features = ["cuda129"] }
-py10 = { features = ["py10"] }
-py11 = { features = ["py11"] }
 
 mast3rslam = { features = ["mast3rslam"] }
 droidslam = { features = ["droidslam"] }
@@ -417,61 +414,6 @@ execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MapAny
 ################################################ DEVELOPMENT PACKAGES ##################################################
 ########################################################################################################################
 ########################################################################################################################
-
-########################################################################################################################
-# cuda129
-# CUDA 12.9 build toolchain and libraries (the linux-64-cuda129 workspace platform).
-[feature.cuda129]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda129"]
-
-[feature.cuda129.dependencies]
-# CUDA Build Tools
-cuda-compiler = "*"
-cuda-version = "12.9.*"
-cuda-cudart-dev = "*"
-cuda-crt = "*"
-libcusparse-dev = "*"
-cuda-driver-dev = "*"
-cuda-nvcc = "*"
-cuda-nvrtc-dev = "*"
-cuda-nvtx = "*"
-cuda-nvtx-dev = "*"
-cuda-nvml-dev = "*"
-cuda-profiler-api = "*"
-
-# CUDA Libraries
-cudnn = "*"
-libcublas-dev = "*"
-libcudss-dev = "*"
-libcufile-dev = "*"
-libcufft-dev = "*"
-libcurand-dev = "*"
-libcusolver-dev = "*"
-cusparselt = "*"
-libnvjitlink = "*"
-
-# ########################################################################################################################
-# py10
-[feature.py10]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
-
-[feature.py10.dependencies]
-python = "3.10.*"
-setuptools = "*"
-pip = "*"
-
-# ########################################################################################################################
-# py11
-[feature.py11]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
-
-[feature.py11.dependencies]
-python = "3.11.*"
-setuptools = "*"
-pip = "*"
 
 ########################################################################################################################
 ########################################################################################################################
