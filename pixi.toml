@@ -55,7 +55,6 @@ orbslam2-dev = { features = ["orbslam2-dev"] }
 orbslam3-dev = { features = ["orbslam3-dev"] }
 okvis2-dev = { features = ["okvis2-dev"] }
 vggtslam-dev = { features = ["vggtslam-dev"] }
-
 allfeature-dev = { features = ["allfeature-dev"] }
 
 da3 = { features = ["da3"] }
