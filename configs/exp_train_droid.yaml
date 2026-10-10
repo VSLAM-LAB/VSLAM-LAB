@@ -98,42 +98,72 @@
 #     verbose: 0
 #     weights: checkpoints/tartanair-eth_semi_w4-05_consLoss_joint_116000.pth
 
-exp_train_droid_pth_v2: # Original droid-slam
-  Config: config_train_droid.yaml
-  Module: droidslam-dev
-  NumRuns: 6
-  Parameters:
-    mode: mono
-    upsample: 0
-    verbose: 0
-    weights: droid.pth
+# exp_train_droid_pth_v2: # Original droid-slam
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: droid.pth
 
-exp_train_droid_tartanair-eth-table_3_semi_w4-05_consLoss_joint_002500_pth:
-  Config: config_train_droid.yaml
-  Module: droidslam-dev
-  NumRuns: 6
-  Parameters:
-    mode: mono
-    upsample: 0
-    verbose: 0
-    weights: checkpoints/tartanair-eth-table_3_semi_w4-05_consLoss_joint_002500.pth
+# exp_train_droid_tartanair-eth-table_3_semi_w4-05_consLoss_joint_002500_pth:
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/tartanair-eth-table_3_semi_w4-05_consLoss_joint_002500.pth
 
-exp_train_droid_tartanair-eth-table_3_semi_w4-05_consLoss_joint_005000_pth:
-  Config: config_train_droid.yaml
-  Module: droidslam-dev
-  NumRuns: 6
-  Parameters:
-    mode: mono
-    upsample: 0
-    verbose: 0
-    weights: checkpoints/tartanair-eth-table_3_semi_w4-05_consLoss_joint_005000.pth
+# exp_train_droid_tartanair-eth-table_3_semi_w4-05_consLoss_joint_005000_pth:
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/tartanair-eth-table_3_semi_w4-05_consLoss_joint_005000.pth
 
-exp_train_droid_tartanair-eth-table_3_semi_w4-05_consLoss_joint_010000_pth:
-  Config: config_train_droid.yaml
-  Module: droidslam-dev
-  NumRuns: 6
-  Parameters:
-    mode: mono
-    upsample: 0
-    verbose: 0
-    weights: checkpoints/tartanair-eth-table_3_semi_w4-05_consLoss_joint_010000.pth
+# exp_train_droid_tartanair-eth-table_3_semi_w4-05_consLoss_joint_010000_pth:
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/tartanair-eth-table_3_semi_w4-05_consLoss_joint_010000.pth
+
+# exp_train_droid_tartanair-eth-table_4_semi_w4-05_consLoss_joint_002500_pth:
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/tartanair-eth-table_4_semi_w4-05_consLoss_joint_002500.pth
+
+# exp_train_droid_tartanair-eth-table_4_semi_w4-05_consLoss_joint_005000_pth:
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/tartanair-eth-table_4_semi_w4-05_consLoss_joint_005000.pth
+
+# exp_train_droid_tartanair-eth-table_4_semi_w4-05_consLoss_joint_010000_pth:
+#   Config: config_train_droid.yaml
+#   Module: droidslam-dev
+#   NumRuns: 6
+#   Parameters:
+#     mode: mono
+#     upsample: 0
+#     verbose: 0
+#     weights: checkpoints/tartanair-eth-table_4_semi_w4-05_consLoss_joint_010000.pth

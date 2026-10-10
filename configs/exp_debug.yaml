@@ -1,8 +1,152 @@
-gym_eth_droidslam:
+# test_eth_da3_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: mono, rgb_max: 30, rgb_step: 10}
+#   Module: da3
+
+test_eth_da3_streaming_mono:
   Config: config_debug.yaml
-  NumRuns: 3
-  Parameters: {verbose: 0}
-  Module: droidslam
+  NumRuns: 1
+  Parameters: {verbose: 0, mode: mono, rgb_max: 120, rgb_step: 5, chunk_size: 60, overlap: 30, loop_enable: 1}
+  Module: da3-streaming
+
+# test_eth_mapanything_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: mono, module: mapanything, rgb_max: 30, rgb_step: 10}
+#   Module: mapanything
+
+# test_eth_mapanything_vggt_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: mono, module: vggt, rgb_max: 30, rgb_step: 10}
+#   Module: mapanything
+
+# test_euroc_pycuvslam_mono:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: pycuvslam
+
+# test_eth_pycuvslam_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: pycuvslam
+
+# test_eth_pycuvslam_rgbd:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: pycuvslam
+
+# test_euroc_pycuvslam_stereo:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: stereo}
+#   Module: pycuvslam
+
+# test_euroc_pycuvslam_stereo_vi:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: stereo-vi}
+#   Module: pycuvslam
+
+# test_euroc_okvis2_mono_vi:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono-vi}
+#   Module: okvis2
+
+# test_euroc_okvis2_dev_mono_vi:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono-vi}
+#   Module: okvis2-dev
+
+# test_eth_orbslam3_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: orbslam3
+
+# test_eth_orbslam3_dev_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: orbslam3-dev
+
+# test_eth_orbslam3_rgbd:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: orbslam3
+
+# test_eth_orbslam3_dev_rgbd:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: orbslam3-dev
+
+# test_euroc_orbslam3_mono_vi:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono-vi}
+#   Module: orbslam3
+
+# test_euroc_orbslam3_dev_mono_vi:
+#   Config: config_debug_euroc.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono-vi}
+#   Module: orbslam3-dev
+
+# test_eth_orbslam2_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: orbslam2
+
+# test_eth_orbslam2_dev_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: orbslam2-dev
+
+# test_eth_orbslam2_rgbd:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: orbslam2
+
+# test_eth_orbslam2_dev_rgbd:
+#   Config: config_debug.yaml
+#   NumRuns: 3
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: orbslam2-dev
+
+# test_eth_monogs_dev_rgbd:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: monogs-dev
+
+# test_kitti_dpvo:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, loop_closure: 2}
+#   Module: dpvo
+
+# test_eth_droidslam:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0}
+#   Module: droidslam
+
+# test_eth_droidslam_dev:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0}
+#   Module: droidslam-dev
 
 
 
