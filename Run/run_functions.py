@@ -244,14 +244,15 @@ def create_rgb_exp_csv(exp: Any, dataset: Any, sequence_name: str, default_param
 
 def ensure_vpr_matrix(dataset: Any, sequence_name: str, sequence_path: Path, total_frames: int, parameter: str) -> Path:
     """<sequence>/vpr-lab/D.npy, the VPR distance matrix both rgb_vpr and rgb_placecell select
-    frames on. Generated with 'pixi run vpr' (Capabilities/vpr.py, vpr-lab environment) when
+    frames on. Generated with the vpr capability (Capabilities/vpr.py) when
     missing. Its row count must match the frame list the experiment indexes it with
     (total_frames): a mismatch (e.g. rgb.csv sampled after the matrix was computed) would
     silently pick the wrong frames, so it stops the run instead."""
     d_matrix_path = sequence_path / "vpr-lab" / "D.npy"
     if not d_matrix_path.exists():
-        print_msg(SCRIPT_LABEL, f"{parameter}: {d_matrix_path} not found, running 'pixi run vpr {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-        subprocess.run(["pixi", "run", "-e", "vpr-lab", "vpr", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=True)
+        print_msg(SCRIPT_LABEL, f"{parameter}: {d_matrix_path} not found, running the vpr capability ...", verb='LOW')
+        from Capabilities.vpr import compute_d_matrix
+        compute_d_matrix([(dataset.dataset_name, sequence_name)])
     if not d_matrix_path.exists():
         print_msg(SCRIPT_LABEL, f"{parameter}: 'pixi run vpr' did not produce {d_matrix_path} (see its output above)", flag="error", verb='NONE')
         sys.exit(1)

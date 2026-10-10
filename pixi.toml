@@ -64,13 +64,12 @@ vggtslam-dev = { features = ["vggtslam-dev"] }
 
 allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
 
-lightglue = { features = ["lightglue", "cuda126", "py11"], solve-group = "lightglue" }
 da3 = { features = ["da3"] }
 da3-streaming = { features = ["da3-streaming"] }
 mask2former = { features = ["mask2former"] }
 fastfoundationstereo = { features = ["fastfoundationstereo"] }
 anycalib = { features = ["anycalib"] }
-vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
+vpr-lab = { features = ["vpr-lab"] }
 refrax = { features = ["refrax"] }
 placecell = { features = ["placecell"] }
 
@@ -167,6 +166,7 @@ calib-inference = "python Capabilities/anycalib.py"
 depth-inference = "python Capabilities/depth_anything.py"
 placecell-select = "python Capabilities/placecell.py"
 refrax-inference = "python Capabilities/refrax.py"
+vpr = "python Capabilities/vpr.py"
 
 [feature.vslamlab.dependencies]
 python = "3.13.*"
@@ -716,51 +716,6 @@ fetch-source = "./git-clone.sh VSLAM-LAB vggtslam VGGT-SLAM-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/VGGT-SLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
-# ########################################################################################################################
-# ########################################################################################################################
-# lightglue
-[feature.lightglue]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
-
-[feature.lightglue.tasks]
-fetch-source.cmd = 'git clone --recursive https://github.com/cvg/LightGlue.git'
-fetch-source.cwd = 'Baselines'
-install = {cmd = 'python -m pip install -e .', cwd = 'Baselines/LightGlue', depends-on = ['fetch-source']}
-
-[feature.lightglue.dependencies]
-# Core Libraries
-pytorch-gpu = "*"
-torchvision = "*"
-pytorch_scatter = "*"
-numpy = "*"
-opencv = "*"
-
-yq = "*"
-pandas = "*"
-sqlite = "*"
-tqdm = "*"
-pyqt = "*"
-matplotlib = "*"
-kornia = "*"
-pyyaml = "*"
-seaborn = "*"
-haversine = "*"
-pdf2image = "*"
-pillow = "*"
-pypdf2 = "*"
-pymupdf = "*"
-scikit-image = "*"
-scikit-learn = "=1.6.1"
-scipy = "=1.15.1"
-faiss-cpu = "=1.8.0"
-loguru = "*"
-gdown = "*"
-einops = "*"
-pyproj = ">=3.7.1,<4"
-psutil = "*"
-timm = ">=1.0.15,<2"
-
 ########################################################################################################################
 ########################################################################################################################
 # allfeature (conda package `allfeature-vslamlab`, fontan channel; TensorRT packages from spqr-tests)
@@ -954,37 +909,16 @@ fetch-source = "test -d Capabilities/sources/placecell || git clone --recursive 
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/placecell", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
-# vpr-lab
+# vpr-lab (Capabilities/vpr.py, <sequence>/vpr-lab/D.npy for rgb_vpr / rgb_placecell)
 [feature.vpr-lab]
-channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
+# Capability repository (github.com/alejandrofontan/VPR-methods-evaluation, the extraction code VPR-LAB also uses)
+# cloned to Capabilities/sources/vpr, with its own environment and weights; `vpr` (vslamlab environment) runs it on
+# dataset/sequence targets.
 [feature.vpr-lab.tasks]
-fetch-source.cmd = "./git-clone.sh VSLAM-LAB VPR-LAB VPR-LAB"
-fetch-source.outputs = ["Baselines/VPR-LAB"]
-
-setup.cmd = "pixi run setup"
-setup.cwd = "Baselines/VPR-LAB"
-setup.depends-on = ["fetch-source"]
-setup.outputs = ["Baselines/VPR-LAB/LightGlue", "Baselines/VPR-LAB/VPR-methods-evaluation"]
-
-vpr.cmd = "python Capabilities/vpr.py"
-vpr.depends-on = ["setup"]
-
-[feature.vpr-lab.dependencies]
-pixi = "*"
-python = "*"
-pyyaml = "*"
-numpy = "*"
-pandas = "*"
-scipy = "*"
-pillow = "*"
-colorama = "*"
-cryptography = "*"
-huggingface_hub = "*"
-py7zr = "*"
-matplotlib = "*"
-opencv = "*"
+fetch-source = "test -d Capabilities/sources/vpr || git clone --recursive https://github.com/alejandrofontan/VPR-methods-evaluation.git Capabilities/sources/vpr"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/vpr", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
 # ########################################################################################################################

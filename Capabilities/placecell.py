@@ -32,15 +32,13 @@ from __future__ import annotations
 
 import argparse
 import functools
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from Capabilities.CapabilityVSLAMLAB import CapabilityVSLAMLAB  # noqa: E402
-from Capabilities.vpr import sequence_d_matrix  # noqa: E402
-from path_constants import VSLAM_LAB_DIR  # noqa: E402
+from Capabilities.vpr import compute_d_matrix, sequence_d_matrix  # noqa: E402
 from utilities import (  # noqa: E402
     add_sequence_target_args, resolve_sequence_targets_or_exit, make_printers,
     sequence_path, sequence_rgb_csv, raw_path, read_csv_rows,
@@ -60,13 +58,10 @@ def ensure_d_matrix(dataset_name: str, sequence_name: str, *, overwrite: bool = 
     overwrite is set). None if the matrix is still missing afterwards."""
     d_matrix_path = sequence_d_matrix(dataset_name, sequence_name)
     if not d_matrix_path.exists() or overwrite:
-        print_info(f"{dataset_name}:{sequence_name} - {d_matrix_path.name} missing, running 'pixi run vpr' ...")
-        cmd = ["pixi", "run", "-e", "vpr-lab", "vpr", dataset_name, sequence_name]
-        if overwrite:
-            cmd.append("--overwrite")
-        subprocess.run(cmd, cwd=VSLAM_LAB_DIR, check=True)
+        print_info(f"{dataset_name}:{sequence_name} - {d_matrix_path.name} missing, running the vpr capability ...")
+        compute_d_matrix([(dataset_name, sequence_name)], ["--overwrite"] if overwrite else None)
     if not d_matrix_path.exists():
-        print_warning(f"Skipping {dataset_name}:{sequence_name} - 'pixi run vpr' did not produce {d_matrix_path}")
+        print_warning(f"Skipping {dataset_name}:{sequence_name} - the vpr capability did not produce {d_matrix_path}")
         return None
     return d_matrix_path
 
