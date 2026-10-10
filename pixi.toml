@@ -538,7 +538,8 @@ execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/VGGT-S
 ########################################################################################################################
 ########################################################################################################################
 # allfeature (conda package `allfeature` from prefix.dev/vslamlab/vslamlab, built and published by the CI of
-# github.com/alejandrofontan/AllFeature-VSLAM; TensorRT 10.3 packages from spqr-tests)
+# github.com/alejandrofontan/AllFeature-VSLAM; TensorRT 10.3 packages from spqr-tests until the conda-forge TensorRT 11
+# migration, alejandrofontan/AllFeature-VSLAM#41)
 [feature.allfeature]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab", "https://repo.prefix.dev/spqr-tests"]
 platforms = ["linux-64-cuda129"]
