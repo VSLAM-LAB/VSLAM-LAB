@@ -16,9 +16,9 @@ done
 
 if ! $DO_PIXI && ! $DO_DATASETS && ! $DO_BASELINES && ! $DO_EVALUATION; then
     echo "Usage: $0 [--pixi] [--datasets] [--baselines] [--evaluation]"
-    echo "  --pixi        Remove __pycache__ dirs, pixi envs/lock, and the system .cache directory"
+    echo "  --pixi        Remove __pycache__ dirs, pixi envs/lock, recipes/*/.pixi, and the system .cache directory"
     echo "  --datasets    Remove downloaded benchmark datasets"
-    echo "  --baselines   Remove cloned baseline source directories"
+    echo "  --baselines   Remove cloned baseline and capability source directories"
     echo "  --evaluation  Remove the VSLAM-LAB-Evaluation folder"
     exit 0
 fi
@@ -40,6 +40,9 @@ if $DO_PIXI; then
     rm -rf "$VSLAM_LAB_DIR"/.pixi/envs*
     rm -rf "$VSLAM_LAB_DIR"/.pixi/task-cache-v0*
 
+    echo "Removing conda-recipes build envs: $VSLAM_LAB_DIR/recipes/*/.pixi"
+    rm -rf "$VSLAM_LAB_DIR"/recipes/*/.pixi
+
     echo "Removing pixi.lock: $VSLAM_LAB_DIR/pixi.lock*"
     rm -rf "$VSLAM_LAB_DIR"/pixi.lock*
 
@@ -54,26 +57,20 @@ if $DO_BASELINES; then
     rm -rf "$BASELINES_DIR"/DPVO
     rm -rf "$BASELINES_DIR"/DROID-SLAM
     rm -rf "$BASELINES_DIR"/DROID-SLAM-DEV
-    rm -rf "$BASELINES_DIR"/glomap
-    rm -rf "$BASELINES_DIR"/LightGlue
     rm -rf "$BASELINES_DIR"/MASt3R-SLAM
-    rm -rf "$BASELINES_DIR"/MonoGS
     rm -rf "$BASELINES_DIR"/OKVIS2
     rm -rf "$BASELINES_DIR"/ORB-SLAM2
     rm -rf "$BASELINES_DIR"/ORB-SLAM3
     rm -rf "$BASELINES_DIR"/PyCuVSLAM
     rm -rf "$BASELINES_DIR"/VGGT-SLAM
-    rm -rf "$BASELINES_DIR"/VGGT
     rm -rf "$BASELINES_DIR"/AllFeature-VSLAM
     rm -rf "$BASELINES_DIR"/Depth-Anything-3
-    rm -rf "$BASELINES_DIR"/VGGT-Omega
     rm -rf "$BASELINES_DIR"/MapAnything
     rm -rf "$BASELINES_DIR"/VPR-LAB
-    rm -rf "$BASELINES_DIR"/Fast-FoundationStereo
-    rm -rf "$BASELINES_DIR"/AnyCalib
-    rm -rf "$BASELINES_DIR"/Refrax
     rm -rf "$BASELINES_DIR"/torch_home
-    rm -rf "$BASELINES_DIR"/asmk
+
+    echo "Removing Capabilities sources..."
+    rm -rf "$VSLAM_LAB_DIR"/Capabilities/sources/*
 fi
 
 if $DO_DATASETS; then
