@@ -32,12 +32,9 @@ download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-d
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
-cuda126 = { features = ["cuda126"], solve-group = "cuda126" }
 cuda129 = { features = ["cuda129"], solve-group = "cuda129" }
 py10 = { features = ["py10"], solve-group = "py10" }
 py11 = { features = ["py11"], solve-group = "py11" }
-x11 = { features = ["x11"], solve-group = "x11" }
-opengl = { features = ["opengl"], solve-group = "opengl" }
 
 mast3rslam = { features = ["mast3rslam"], solve-group = "mast3r" }
 droidslam = { features = ["droidslam"], solve-group = "droid" }
@@ -60,7 +57,7 @@ orbslam3-dev = { features = ["orbslam3-dev"] }
 okvis2-dev = { features = ["okvis2-dev"] }
 vggtslam-dev = { features = ["vggtslam-dev"] }
 
-allfeature-dev = { features = ["allfeature-dev", "cuda126", "x11", "opengl"] }
+allfeature-dev = { features = ["allfeature-dev"] }
 
 da3 = { features = ["da3"] }
 da3-streaming = { features = ["da3-streaming"] }
@@ -421,42 +418,9 @@ execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MapAny
 ########################################################################################################################
 ########################################################################################################################
 
-# ########################################################################################################################
-# ########################################################################################################################
-# cuda126
-[feature.cuda126]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
-
-[feature.cuda126.dependencies]
-# CUDA Build Tools
-cuda-compiler = "*"
-cuda-version = "12.6.*"
-cuda-cudart-dev = "*"
-cuda-crt = "*"
-libcusparse-dev = "*"
-cuda-driver-dev = "*"
-cuda-nvcc = "*"
-cuda-nvrtc-dev = "*"
-cuda-nvtx = "*"
-cuda-nvtx-dev = "*"
-cuda-nvml-dev = "*"
-cuda-profiler-api = "*"
-
-# CUDA Libraries
-cudnn = "*"
-libcublas-dev = "*"
-libcudss-dev = "*"
-libcufile-dev = "*"
-libcufft-dev = "*"
-libcurand-dev = "*"
-libcusolver-dev = "*"
-cusparselt = "*"
-libnvjitlink = "*"
-
 ########################################################################################################################
 # cuda129
-# Same toolchain as cuda126 on CUDA 12.9 (the linux-64-cuda129 workspace platform).
+# CUDA 12.9 build toolchain and libraries (the linux-64-cuda129 workspace platform).
 [feature.cuda129]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda129"]
@@ -508,38 +472,6 @@ platforms = ["linux-64", "osx-arm64", "win-64"]
 python = "3.11.*"
 setuptools = "*"
 pip = "*"
-
-# ########################################################################################################################
-# x11
-[feature.x11]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64", "win-64"]
-
-[feature.x11.dependencies]
-xorg-libxext = "*"
-xorg-libx11 = "*"
-xorg-libxfixes = "*"
-xorg-libxrender = "*"
-xorg-libice = "*"
-xorg-libsm = "*"
-xorg-libxdmcp = "*"
-xorg-libxau = "*"
-xorg-xorgproto = "*"
-
-[feature.x11.target.linux-64.dependencies]
-libxkbcommon = "*"
-
-# ########################################################################################################################
-# opengl
-[feature.opengl]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64"]
-
-[feature.opengl.target.linux-64.dependencies]
-libgl-devel = "*"
-libegl-devel = "*"
-libglvnd-devel = "*"
-libopengl-devel = "*"
 
 ########################################################################################################################
 ########################################################################################################################
@@ -691,19 +623,16 @@ cuda-version = "12.6.*"   # the package is compiled against the cuda126 libtorch
 ########################################################################################################################
 # allfeature-dev
 [feature.allfeature-dev]
-channels = ["https://prefix.dev/conda-forge", "fontan", "https://repo.prefix.dev/spqr-tests"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64"]
 
+# Tasks forward to the clone's own pixi.toml (github.com/alejandrofontan/AllFeature-VSLAM, branch dev), whose
+# environment lives in Baselines/AllFeature-VSLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves it.
 [feature.allfeature-dev.tasks]
 fetch-source = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV dev"
-install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV"}
-execute-mono = { cmd = "pixi run execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
-execute-rgbd = { cmd = "pixi run execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
-
-stream = { cmd = "pixi run stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
-
-[feature.allfeature-dev.dependencies]
-pixi = "*"
+install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+stream = { cmd = "pixi run --frozen stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 
 # ########################################################################################################################
 # ########################################################################################################################

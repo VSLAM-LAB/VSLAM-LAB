@@ -106,7 +106,7 @@ One feature + environment per capability in `pixi.toml`, named after it:
 
 ```toml
 [environments]
-<name> = { features = ["<name>", "cuda126", "py11"], solve-group = "<name>" }
+<name> = { features = ["<name>", "cuda129", "py11"], solve-group = "<name>" }
 
 [feature.<name>.tasks]
 fetch-source = ...                                              # only if the upstream repo is imported from Baselines/<Upstream>/
