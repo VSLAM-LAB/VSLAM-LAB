@@ -27,10 +27,9 @@ platforms:
   - __unix=0=0
   - __osx=13.0
   - __archspec=0=m1
-- name: osx-arm64-cuda129
+- name: osx-arm64-macos133
   subdir: osx-arm64
   virtual-packages:
-  - __cuda=12.9
   - __osx=13.3
   - __unix=0=0
   - __archspec=0=m1
@@ -596,7 +595,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/six-1.17.0-pyhe01879c_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wayland-protocols-1.49-hd8ed1ab_0.conda
-      osx-arm64-cuda129:
+      osx-arm64-macos133:
       - conda: https://prefix.dev/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
       - conda: https://prefix.dev/conda-forge/noarch/font-ttf-inconsolata-3.000-h77eed37_0.tar.bz2
