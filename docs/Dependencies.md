@@ -13,11 +13,6 @@ Please follow the license of
 
 Licence URL: https://github.com/JakobEngel/dso/blob/master/LICENSE
 
-##### Code in AnyFeature-VSLAM
-Please follow the license of 
-
-https://github.com/alejandrofontan/AnyFeature-VSLAM/blob/main/docs/LICENSE.txt 
-
 ##### Datasets
 Please follow the licenses of each dataset. We provide a spreadsheet with citation for each dataset and VSLAM system for your convenience:
 https://docs.google.com/spreadsheets/d/1V8_TLqlccipJ6x_TXkgLsw9zWszHU9M-0mGgDT92TEs/edit?usp=drive_link 

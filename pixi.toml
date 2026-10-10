@@ -16,7 +16,7 @@ platforms = [
 [activation.env]
 # Regex matched against full command lines: defines what counts as a VSLAM-LAB job
 # for list-jobs and kill-all, so the two always agree.
-VSLAMLAB_JOBS_PATTERN = "mapanything|droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|anyfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
+VSLAMLAB_JOBS_PATTERN = "mapanything|droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|allfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
@@ -43,7 +43,6 @@ mast3rslam = { features = ["mast3rslam"], solve-group = "mast3r" }
 droidslam = { features = ["droidslam"], solve-group = "droid" }
 dpvo = { features = ["dpvo"], solve-group = "dpvo" }
 orbslam2 = { features = ["orbslam2"] }
-anyfeature = { features = ["anyfeature"], solve-group = "anyfeature" }
 allfeature = { features = ["allfeature"] }
 colmap = { features = ["colmap"], solve-group = "colmap" }
 orbslam3 = { features = ["orbslam3"] }
@@ -57,7 +56,6 @@ droidslam-dev = { features = ["droidslam-dev"] }
 dpvo-dev = { features = ["dpvo-dev"] }
 monogs-dev = { features = ["monogs-dev"] }
 orbslam2-dev = { features = ["orbslam2-dev"] }
-anyfeature-dev = { features = ["anyfeature-dev", "cuda126", "x11", "opengl"]}
 orbslam3-dev = { features = ["orbslam3-dev"] }
 okvis2-dev = { features = ["okvis2-dev"] }
 vggtslam-dev = { features = ["vggtslam-dev"] }
@@ -277,26 +275,6 @@ execute-stereo = 'vslamlab_orbslam2_stereo'
 
 [feature.orbslam2.dependencies]
 orbslam2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
-
-########################################################################################################################
-########################################################################################################################
-# anyfeature
-[feature.anyfeature]
-channels = ["fontan", "https://prefix.dev/conda-forge"]
-platforms = ["linux-64"]
-
-[feature.anyfeature.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/anyfeature-vslamlab Baselines/AnyFeature-VSLAM'
-execute-mono = 'vslamlab_anyfeature_mono'
-
-[feature.anyfeature.dependencies]
-anyfeature-vslamlab = { channel = "fontan" }
-pangolin = { channel = "fontan" }
-brisk = { channel = "fontan" }
-akaze = { channel = "fontan" }
-siftgpu = { channel = "fontan" }
-g2o = { channel = "fontan" }
-opencv = { channel = "fontan" }
 
 ########################################################################################################################
 ########################################################################################################################
@@ -635,41 +613,6 @@ install = { cmd = "pixi run install", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-stereo = { cmd = "pixi run --frozen execute-stereo", cwd = "Baselines/ORB-SLAM2-DEV" }
-
-########################################################################################################################
-########################################################################################################################
-# anyfeature-dev
-[feature.anyfeature-dev]
-channels = ["https://prefix.dev/conda-forge", "fontan"]
-platforms = ["linux-64-cuda"]
-
-[feature.anyfeature-dev.tasks]
-fetch-source = "./git-clone.sh alejandrofontan AnyFeature-VSLAM AnyFeature-VSLAM-DEV"
-install = { cmd = "./build.sh", cwd = "Baselines/AnyFeature-VSLAM-DEV" }
-execute-mono = { cmd = "./bin/vslamlab_anyfeature_mono",  cwd = "Baselines/AnyFeature-VSLAM-DEV" }
-
-[feature.anyfeature-dev.dependencies]
-cuda-cudart = "*"
-compilers = "*"
-ninja = "*"
-cmake = "*"
-pkg-config = "*"
-eigen  = "*"
-yaml-cpp = "*"
-opencv = "*"
-pangolin = { channel = "fontan" }
-brisk-vslamlab = { channel = "fontan" }
-akaze-vslamlab = { channel = "fontan" }
-siftgpu-vslamlab = { channel = "fontan" }
-g2o = { channel = "fontan" }
-
-huggingface_hub = "*"
-pandas = "*"
-glew = "*"
-
-pytorch-gpu = "*"
-git-lfs = "*"
-zlib = "*"
 
 # ########################################################################################################################
 # ########################################################################################################################
