@@ -185,7 +185,7 @@ py7zr = "*"
 exifread = "*"
 pyproj = "*"
 nvidia-ml-py = "*"
-evo = "==1.34.3"
+evo = "1.34.*"            # evaluation numbers validated on 1.34 (pinned since b51bf3c, reason not recorded)
 git-lfs = "*"
 piexif = "*"
 psutil = "*"
@@ -728,11 +728,11 @@ rerun-vis.args = [
 rerun-vis.cwd = "Utilities"
 
 [feature.rerun.dependencies]
-rerun-sdk = ">=0.22.1,<0.32"
-opencv = ">=4.11.0,<5"
-numpy = ">=1.26.4,<3"
-pandas = ">=2.3.3,<4"
-pyyaml = ">=6.0.2,<7"
+rerun-sdk = "0.31.*"
+opencv = "*"
+numpy = "*"
+pandas = "*"
+pyyaml = "*"
 
 ########################################################################################################################
 # projectaria
