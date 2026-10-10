@@ -43,7 +43,6 @@ Baselines/Depth-Anything-3
 Baselines/VPR-LAB
 Baselines/Fast-FoundationStereo
 Baselines/AnyCalib
-Baselines/Refrax
 Baselines/refraction_simulator
 Baselines/torch_home
 

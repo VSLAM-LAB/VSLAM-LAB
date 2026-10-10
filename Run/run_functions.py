@@ -43,8 +43,8 @@ DEPTH_FACTOR_DEFAULT = 256.0  # the capabilities' default; only used for markers
 # Same reasoning as above: not imported to avoid torch deps.
 ANYCALIB_FOLDER = "anycalib"
 
-# Refraction-corrected rgb_0 frames written by Capabilities/refrax.py
-# ('pixi run refrax-inference'). Same reasoning as above: kept as local constants.
+# Refraction-corrected rgb_0 frames written by the refrax capability (Capabilities/refrax.py,
+# 'pixi run refrax-inference'). Same reasoning as above: kept as local constants.
 REFRACTION_FOLDER_BASE = "refrax"
 REFRACTION_COMPLETE_MARKER = ".refrax_complete"
 
@@ -391,8 +391,8 @@ def replace_rgb_with_refraction_corrected(dataset: Any, sequence_name: str, sequ
     """Point path_rgb_0 of the experiment's rgb_exp csv at the sequence's refrax_0
     corrected frames (<frame stem>.png) and replace the experiment's calibration_exp.yaml with the
     artifact's calibration.yaml (the rgb_0 entry rewritten for the corrected pinhole camera). If
-    the .refrax_complete marker is missing, 'pixi run refrax-inference' is
-    triggered first (it resumes per frame). ts_mask_0 (ns)/path_mask_0 columns pointing at the
+    the .refrax_complete marker is missing, the refrax capability is run first
+    (Capabilities/refrax.py; it resumes per frame). ts_mask_0 (ns)/path_mask_0 columns pointing at the
     artifact's mask.png (1 = usable pixel; all ones for cropped artifacts, the invalid border for
     --no-crop ones) are appended like mask2former's, unless the csv already has them. Only the
     experiment's rgb_exp.csv and calibration_exp.yaml are rewritten - the sequence's own files are
@@ -405,13 +405,17 @@ def replace_rgb_with_refraction_corrected(dataset: Any, sequence_name: str, sequ
     folder = f"{REFRACTION_FOLDER_BASE}_0"
     marker = sequence_path / folder / REFRACTION_COMPLETE_MARKER
     if not marker.exists():
-        print_msg(SCRIPT_LABEL, f"refraction: corrected frames missing for {sequence_name}, running 'pixi run refrax-inference {dataset.dataset_name} {sequence_name}' ...", verb='LOW')
-        # check=False: a capability that skips the sequence (missing frames, uncalibrated camera, ...) exits 0 with a
-        # warning, so the marker check below is the real test either way and gives one clear message.
-        subprocess.run(["pixi", "run", "-e", "refrax", "refrax-inference", dataset.dataset_name, sequence_name], cwd=VSLAM_LAB_DIR, check=False)
+        print_msg(SCRIPT_LABEL, f"refraction: corrected frames missing for {sequence_name}, running the refrax capability ...", verb='LOW')
+        from Capabilities.refrax import remove_refraction
+        # A capability that skips the sequence (missing frames, uncalibrated camera, ...) exits 0 with a warning and a
+        # failing one raises: the marker check below is the real test either way and gives one clear message.
+        try:
+            remove_refraction([(dataset.dataset_name, sequence_name)])
+        except subprocess.CalledProcessError:
+            pass
     artifact_yaml = sequence_path / folder / 'calibration.yaml'
     if not marker.exists() or not artifact_yaml.exists():
-        print_msg(SCRIPT_LABEL, f"refraction: 'pixi run refrax-inference {dataset.dataset_name} {sequence_name}' did not produce {marker.parent} "
+        print_msg(SCRIPT_LABEL, f"refraction: the refrax capability did not produce {marker.parent} "
                   f"(see its output above); cannot run {sequence_name} on refraction-corrected frames", flag="error", verb='NONE')
         sys.exit(1)
 

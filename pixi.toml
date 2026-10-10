@@ -71,7 +71,7 @@ mask2former = { features = ["mask2former"] }
 fastfoundationstereo = { features = ["fastfoundationstereo"] }
 anycalib = { features = ["anycalib"] }
 vpr-lab = { features = ["vpr-lab"], solve-group = "vpr-lab" }
-refrax = { features = ["refrax"], solve-group = "refrax" }
+refrax = { features = ["refrax"] }
 placecell = { features = ["placecell"] }
 
 ros1 = { features = ["ros1"], solve-group = "ros1" }
@@ -166,6 +166,7 @@ mask-inference = "python Capabilities/mask2former.py"
 calib-inference = "python Capabilities/anycalib.py"
 depth-inference = "python Capabilities/depth_anything.py"
 placecell-select = "python Capabilities/placecell.py"
+refrax-inference = "python Capabilities/refrax.py"
 
 [feature.vslamlab.dependencies]
 python = "3.13.*"
@@ -931,32 +932,13 @@ pyyaml = ">=6.0.2,<7"
 # ########################################################################################################################
 # refrax
 [feature.refrax]
-channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64"]
 
+# Capability repository (github.com/VSLAM-LAB/refrax, a fork of cllim118/Refrax) cloned to Capabilities/sources/, with its
+# own environment; `refrax-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.refrax.tasks]
-fetch-source.cmd = "./git-clone.sh VSLAM-LAB Refrax Refrax"
-fetch-source.outputs = ["Baselines/Refrax"]
-install = { cmd = "python Capabilities/refrax.py --prefetch", depends-on = ["fetch-source"] }
-refrax-inference = { cmd = "python Capabilities/refrax.py", depends-on = ["install"] }
-
-[feature.refrax.dependencies]
-# Refrax (pure Python: numpy ray tracing + scipy map inversion/optimisation + opencv remap)
-python = "3.11.*"
-numpy = "*"
-scipy = "*"
-py-opencv = "*"
-pyyaml = "*"
-tqdm = "*"
-
-# What utilities.py imports at module level (the capability uses its sequence-target/CSV helpers)
-pandas = "*"
-pillow = "*"
-py7zr = "*"
-colorama = "*"
-cryptography = "*"
-huggingface_hub = "*"
-matplotlib = "*"
+fetch-source = "test -d Capabilities/sources/refrax || git clone --recursive https://github.com/VSLAM-LAB/refrax.git Capabilities/sources/refrax"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/refrax", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
 # ########################################################################################################################
