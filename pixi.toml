@@ -63,7 +63,7 @@ da3-streaming = { features = ["da3-streaming"] }
 mask2former = { features = ["mask2former"] }
 fastfoundationstereo = { features = ["fastfoundationstereo"] }
 anycalib = { features = ["anycalib"] }
-vpr-lab = { features = ["vpr-lab"] }
+vpr = { features = ["vpr"] }
 refrax = { features = ["refrax"] }
 placecell = { features = ["placecell"] }
 
@@ -727,14 +727,14 @@ fetch-source = "test -d Capabilities/sources/placecell || git clone --recursive 
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/placecell", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
-# vpr-lab (Capabilities/vpr.py, <sequence>/vpr-lab/D.npy for rgb_vpr / rgb_placecell)
-[feature.vpr-lab]
+# vpr (Capabilities/vpr.py, <sequence>/vpr-lab/D.npy for rgb_vpr / rgb_placecell)
+[feature.vpr]
 platforms = ["linux-64"]
 
 # Capability repository (github.com/alejandrofontan/VPR-methods-evaluation, the extraction code VPR-LAB also uses)
 # cloned to Capabilities/sources/vpr, with its own environment and weights; `vpr` (vslamlab environment) runs it on
 # dataset/sequence targets.
-[feature.vpr-lab.tasks]
+[feature.vpr.tasks]
 fetch-source = "test -d Capabilities/sources/vpr || git clone --recursive https://github.com/alejandrofontan/VPR-methods-evaluation.git Capabilities/sources/vpr"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/vpr", depends-on = ["fetch-source"] }
 

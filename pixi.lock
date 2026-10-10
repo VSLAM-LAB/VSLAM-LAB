@@ -5662,7 +5662,7 @@ environments:
     channels:
     - url: https://prefix.dev/conda-forge/
     packages: {}
-  vpr-lab:
+  vpr:
     channels:
     - url: https://prefix.dev/conda-forge/
     packages: {}
@@ -18716,70 +18716,6 @@ packages:
     - ffmpeg >=8.0.1,<9.0a0
   size: 12479894
   timestamp: 1769713683312
-- conda: https://prefix.dev/conda-forge/linux-64/ffmpeg-8.0.1-gpl_h58e20a3_707.conda
-  sha256: cab8795b674824c77e670adbac35191d62e1490b833f6ca1d5b2a9142928ddd8
-  md5: 722e485c92c66e32f810a8a83bcdde8c
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - alsa-lib >=1.2.14,<1.3.0a0
-  - aom >=3.9.1,<3.10.0a0
-  - bzip2 >=1.0.8,<2.0a0
-  - dav1d >=1.2.1,<1.2.2.0a0
-  - fontconfig >=2.15.0,<3.0a0
-  - fonts-conda-ecosystem
-  - gmp >=6.3.0,<7.0a0
-  - harfbuzz >=12.2.0
-  - lame >=3.100,<3.101.0a0
-  - libass >=0.17.4,<0.17.5.0a0
-  - libexpat >=2.7.3,<3.0a0
-  - libfreetype >=2.14.1
-  - libfreetype6 >=2.14.1
-  - libgcc >=14
-  - libiconv >=1.18,<2.0a0
-  - liblzma >=5.8.1,<6.0a0
-  - libopenvino >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-auto-batch-plugin >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-auto-plugin >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-hetero-plugin >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-intel-cpu-plugin >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-intel-gpu-plugin >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-intel-npu-plugin >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-ir-frontend >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-onnx-frontend >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-paddle-frontend >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-pytorch-frontend >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-tensorflow-frontend >=2025.3.0,<2025.3.1.0a0
-  - libopenvino-tensorflow-lite-frontend >=2025.3.0,<2025.3.1.0a0
-  - libopus >=1.6,<2.0a0
-  - librsvg >=2.60.0,<3.0a0
-  - libstdcxx >=14
-  - libva >=2.23.0,<3.0a0
-  - libvorbis >=1.3.7,<1.4.0a0
-  - libvpl >=2.15.0,<2.16.0a0
-  - libvpx >=1.15.2,<1.16.0a0
-  - libvulkan-loader >=1.4.328.1,<2.0a0
-  - libxcb >=1.17.0,<2.0a0
-  - libxml2
-  - libxml2-16 >=2.14.6
-  - libzlib >=1.3.1,<2.0a0
-  - openh264 >=2.6.0,<2.6.1.0a0
-  - openssl >=3.5.4,<4.0a0
-  - pulseaudio-client >=17.0,<17.1.0a0
-  - sdl2 >=2.32.56,<3.0a0
-  - shaderc >=2025.5,<2025.6.0a0
-  - svt-av1 >=3.1.2,<3.1.3.0a0
-  - x264 >=1!164.3095,<1!165
-  - x265 >=3.5,<3.6.0a0
-  - xorg-libx11 >=1.8.12,<2.0a0
-  constrains:
-  - __cuda  >=12.4
-  license: GPL-2.0-or-later
-  license_family: GPL
-  run_exports:
-    weak:
-    - ffmpeg >=8.0.1,<9.0a0
-  size: 12489752
-  timestamp: 1765872419738
 - conda: https://prefix.dev/conda-forge/linux-64/ffmpeg-8.0.1-gpl_h95b8bfc_907.conda
   sha256: 3442ba15fa027c7284fbc3d16fe151d8c3232158fec20b20367dcb23581746cb
   md5: 8458372dd1d9a95b69ab787c58533aa5
@@ -18844,72 +18780,6 @@ packages:
     - ffmpeg >=8.0.1,<9.0a0
   size: 12491236
   timestamp: 1765872413130
-- conda: https://prefix.dev/conda-forge/linux-64/ffmpeg-8.0.1-gpl_haeefe89_712.conda
-  sha256: b1256ff35ad2bc641564a7885baf8bbb2983df7283e0baee4c3c3630e54c6648
-  md5: 9fe7fa04087a43afc5bcff4afeec5209
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - alsa-lib >=1.2.15.3,<1.3.0a0
-  - aom >=3.9.1,<3.10.0a0
-  - bzip2 >=1.0.8,<2.0a0
-  - dav1d >=1.2.1,<1.2.2.0a0
-  - fontconfig >=2.15.0,<3.0a0
-  - fonts-conda-ecosystem
-  - gmp >=6.3.0,<7.0a0
-  - harfbuzz >=12.3.2
-  - lame >=3.100,<3.101.0a0
-  - libass >=0.17.4,<0.17.5.0a0
-  - libexpat >=2.7.3,<3.0a0
-  - libfreetype >=2.14.1
-  - libfreetype6 >=2.14.1
-  - libgcc >=14
-  - libiconv >=1.18,<2.0a0
-  - libjxl >=0.11,<0.12.0a0
-  - liblzma >=5.8.2,<6.0a0
-  - libopenvino >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-auto-batch-plugin >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-auto-plugin >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-hetero-plugin >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-intel-cpu-plugin >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-intel-gpu-plugin >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-intel-npu-plugin >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-ir-frontend >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-onnx-frontend >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-paddle-frontend >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-pytorch-frontend >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-tensorflow-frontend >=2025.4.1,<2025.4.2.0a0
-  - libopenvino-tensorflow-lite-frontend >=2025.4.1,<2025.4.2.0a0
-  - libopus >=1.6.1,<2.0a0
-  - librsvg >=2.60.0,<3.0a0
-  - libstdcxx >=14
-  - libva >=2.23.0,<3.0a0
-  - libvorbis >=1.3.7,<1.4.0a0
-  - libvpl >=2.15.0,<2.16.0a0
-  - libvpx >=1.15.2,<1.16.0a0
-  - libvulkan-loader >=1.4.328.1,<2.0a0
-  - libwebp-base >=1.6.0,<2.0a0
-  - libxcb >=1.17.0,<2.0a0
-  - libxml2
-  - libxml2-16 >=2.14.6
-  - libzlib >=1.3.1,<2.0a0
-  - openh264 >=2.6.0,<2.6.1.0a0
-  - openssl >=3.5.5,<4.0a0
-  - pulseaudio-client >=17.0,<17.1.0a0
-  - sdl2 >=2.32.56,<3.0a0
-  - shaderc >=2025.5,<2025.6.0a0
-  - svt-av1 >=4.0.1,<4.0.2.0a0
-  - x264 >=1!164.3095,<1!165
-  - x265 >=3.5,<3.6.0a0
-  - xorg-libx11 >=1.8.12,<2.0a0
-  constrains:
-  - __cuda  >=12.4
-  license: GPL-2.0-or-later
-  license_family: GPL
-  run_exports:
-    weak:
-    - ffmpeg >=8.0.1,<9.0a0
-  size: 12502844
-  timestamp: 1769713672683
 - conda: https://prefix.dev/conda-forge/linux-64/ffmpeg-8.1.1-gpl_hee00b0e_901.conda
   sha256: 6af3f45857478c28fa134e23a8ab7a81ce63cdd29aa2d899232eb7d9410b26e7
   md5: 57b938a79ebb6b996505ea79394bd0c9
