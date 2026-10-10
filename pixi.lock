@@ -6,7 +6,7 @@ platforms:
   - __linux=4.18
   - __glibc=2.28
   - __archspec=0=x86_64
-- name: linux-64-cuda
+- name: linux-64-cuda126
   subdir: linux-64
   virtual-packages:
   - __cuda=12.6
@@ -27,7 +27,7 @@ platforms:
   - __unix=0=0
   - __osx=13.0
   - __archspec=0=m1
-- name: osx-arm64-cuda
+- name: osx-arm64-cuda126
   subdir: osx-arm64
   virtual-packages:
   - __cuda=12.6
@@ -45,7 +45,7 @@ platforms:
   virtual-packages:
   - __win=10.0
   - __archspec=0=x86_64
-- name: win-64-cuda
+- name: win-64-cuda126
   subdir: win-64
   virtual-packages:
   - __cuda=12.6
@@ -1105,7 +1105,7 @@ environments:
     - url: https://prefix.dev/conda-forge/
     - url: https://prefix.dev/vslamlab/vslamlab/
     packages:
-      linux-64-cuda:
+      linux-64-cuda126:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
       - conda: https://prefix.dev/conda-forge/linux-64/alsa-lib-1.2.16.1-h7cc23a3_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aom-3.9.1-hac33072_0.conda
@@ -1880,7 +1880,7 @@ environments:
     - url: https://prefix.dev/conda-forge/
     - url: https://prefix.dev/vslamlab/vslamlab/
     packages:
-      linux-64-cuda:
+      linux-64-cuda126:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aiohttp-3.14.4-py311h364832d_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/alsa-lib-1.2.16.1-h7cc23a3_1.conda
@@ -2669,7 +2669,7 @@ environments:
     - url: https://prefix.dev/conda-forge/
     - url: https://prefix.dev/vslamlab/vslamlab/
     packages:
-      linux-64-cuda:
+      linux-64-cuda126:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
       - conda: https://prefix.dev/conda-forge/linux-64/alsa-lib-1.2.16.1-h7cc23a3_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aom-3.9.1-hac33072_0.conda
@@ -4866,7 +4866,7 @@ environments:
     indexes:
     - https://pypi.org/simple
     packages:
-      linux-64-cuda:
+      linux-64-cuda126:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-auth-0.10.4-hb7a77c6_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aws-c-cal-0.9.14-h2aa3ae6_4.conda
@@ -6558,7 +6558,7 @@ environments:
     - url: https://prefix.dev/conda-forge/
     - url: https://prefix.dev/vslamlab/vslamlab/
     packages:
-      linux-64-cuda:
+      linux-64-cuda126:
       - conda: https://prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
       - conda: https://prefix.dev/conda-forge/linux-64/aiohttp-3.14.4-py311h364832d_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/alsa-lib-1.2.16.1-h7cc23a3_1.conda

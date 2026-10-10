@@ -5,9 +5,9 @@ description = "VSLAM-LAB"
 channels = ["https://prefix.dev/conda-forge"]
 platforms = [
     "linux-64", "osx-arm64", "win-64",
-    { name = "linux-64-cuda", platform = "linux-64", cuda = "12.6" },
-    { name = "osx-arm64-cuda", platform = "osx-arm64", cuda = "12.6" },
-    { name = "win-64-cuda", platform = "win-64", cuda = "12.6" },
+    { name = "linux-64-cuda126", platform = "linux-64", cuda = "12.6" },
+    { name = "osx-arm64-cuda126", platform = "osx-arm64", cuda = "12.6" },
+    { name = "win-64-cuda126", platform = "win-64", cuda = "12.6" },
     { name = "linux-64-cuda129", platform = "linux-64", cuda = "12.9" },
     { name = "osx-arm64-cuda129", platform = "osx-arm64", cuda = "12.9", macos = "13.3" },  # macos: colmap 4.2.1 -> libfaiss 1.14.3 needs __osx >= 13.3 (only the colmap feature uses this entry)
     { name = "win-64-cuda129", platform = "win-64", cuda = "12.9" },
@@ -217,7 +217,7 @@ isort = "*"
 # droidslam
 [feature.droidslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda", "linux-64-cuda129"]
+platforms = ["linux-64-cuda126", "linux-64-cuda129"]
 
 [feature.droidslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
@@ -233,7 +233,7 @@ droidslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # mast3rslam
 [feature.mast3rslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda", "linux-64-cuda129"]
+platforms = ["linux-64-cuda126", "linux-64-cuda129"]
 
 [feature.mast3rslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
@@ -247,7 +247,7 @@ mast3rslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # dpvo
 [feature.dpvo]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda", "linux-64-cuda129"]
+platforms = ["linux-64-cuda126", "linux-64-cuda129"]
 
 # TORCH_HOME: DISK/LightGlue weights of the classic loop closure (loop_closure: 2) are downloaded there by torch.hub
 [feature.dpvo.tasks]
@@ -347,7 +347,7 @@ okvis2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # pycuvslam
 [feature.pycuvslam]
 channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64-cuda"]
+platforms = ["linux-64-cuda126"]
 
 # cuVSLAM is closed source: NVIDIA publishes the Python wheel (with its own CUDA runtime) on the GitHub releases of
 # nvidia-isaac/cuVSLAM, installed from there below. The clone only provides the VSLAM-LAB entry scripts and settings
@@ -384,7 +384,7 @@ cuvslam = { url = "https://github.com/nvidia-isaac/cuVSLAM/releases/download/v17
 # vggtslam
 [feature.vggtslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda", "linux-64-cuda129"]
+platforms = ["linux-64-cuda126", "linux-64-cuda129"]
 
 [feature.vggtslam.dependencies]
 # noarch package (github.com/VSLAM-LAB/vggtslam) with VGGT-SLAM's full runtime dependency set (gtsam >=4.3 from
