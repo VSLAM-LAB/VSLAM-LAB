@@ -18,7 +18,7 @@ VSLAMLAB_JOBS_PATTERN = "mapanything|droidslam|dpvo|mast3rslam|monogs|orbslam2|o
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
-kill-all = { cmd = "pkill -f -e $VSLAMLAB_JOBS_PATTERN && sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
+kill-all = { cmd = "pkill -f -e $VSLAMLAB_JOBS_PATTERN; sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }  # swap reset also when nothing matched (pkill exits 1)
 
 # VGGT-1B weights (5 GB) shared by vggtslam, vggtslam-dev and mapanything's vggt module. The vggtslam entry
 # points fetch them with torch.hub.load_state_dict_from_url, which neither resumes nor checks the byte count,
