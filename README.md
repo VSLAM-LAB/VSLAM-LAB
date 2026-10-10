@@ -144,8 +144,8 @@ In addition to running the full automated pipeline, **VSLAM-LAB** provides modul
 pixi run install-baseline <baseline>                     # Example: pixi run install-baseline droidslam
 pixi run download-sequence <dataset> <sequence>          # Example: pixi run download-sequence eth table_3
 pixi run run-exp <exp_yaml>                              # Example: pixi run run-exp configs/exp_vslamlab.yaml
-pixi run evaluate-exp <exp_yaml>                         # Example: pixi run evaluate-exp configs/exp_vslamlab.yaml
-pixi run compare-exp <exp_yaml>                          # Example: pixi run compare-exp configs/exp_vslamlab.yaml
+pixi run evaluate <exp_yaml>                             # Example: pixi run evaluate configs/exp_vslamlab.yaml
+pixi run compare <exp_yaml>                              # Example: pixi run compare configs/exp_vslamlab.yaml
 ```
 
 ## Add a new VSLAM Dataset

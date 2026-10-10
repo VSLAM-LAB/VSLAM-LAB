@@ -150,8 +150,6 @@ label-sequences = "python Gym/label_sequences.py"
 select-sequences = "python Gym/select_sequences.py"
 
 run-exp = "python vslamlab_gui.py run_exp"
-evaluate-exp = "python vslamlab_gui.py evaluate_exp"
-compare-exp = "python vslamlab_gui.py compare_exp"
 
 # Capabilities: the driver resolves dataset/sequence targets and runs the capability repo in its own environment
 stereo-inference = "python Capabilities/fastfoundationstereo.py"
