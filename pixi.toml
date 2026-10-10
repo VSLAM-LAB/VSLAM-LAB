@@ -6,8 +6,6 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = [
     "linux-64", "osx-arm64", "win-64",
     { name = "linux-64-cuda126", platform = "linux-64", cuda = "12.6" },
-    { name = "osx-arm64-cuda126", platform = "osx-arm64", cuda = "12.6" },
-    { name = "win-64-cuda126", platform = "win-64", cuda = "12.6" },
     { name = "linux-64-cuda129", platform = "linux-64", cuda = "12.9" },
     { name = "osx-arm64-cuda129", platform = "osx-arm64", cuda = "12.9", macos = "13.3" },  # macos: colmap 4.2.1 -> libfaiss 1.14.3 needs __osx >= 13.3 (only the colmap feature uses this entry)
     { name = "win-64-cuda129", platform = "win-64", cuda = "12.9" },

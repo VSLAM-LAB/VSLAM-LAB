@@ -27,13 +27,6 @@ platforms:
   - __unix=0=0
   - __osx=13.0
   - __archspec=0=m1
-- name: osx-arm64-cuda126
-  subdir: osx-arm64
-  virtual-packages:
-  - __cuda=12.6
-  - __unix=0=0
-  - __osx=13.0
-  - __archspec=0=m1
 - name: osx-arm64-cuda129
   subdir: osx-arm64
   virtual-packages:
@@ -43,12 +36,6 @@ platforms:
   - __archspec=0=m1
 - name: win-64
   virtual-packages:
-  - __win=10.0
-  - __archspec=0=x86_64
-- name: win-64-cuda126
-  subdir: win-64
-  virtual-packages:
-  - __cuda=12.6
   - __win=10.0
   - __archspec=0=x86_64
 - name: win-64-cuda129
