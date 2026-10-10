@@ -72,7 +72,14 @@ ros2 = { features = ["ros2"] }
 rerun = { features = ["rerun"] }
 projectaria = { features = ["projectaria"] }
 
-# VSLAM-LAB main pipeline
+########################################################################################################################
+########################################################################################################################
+################################################## VSLAM-LAB PIPELINE ##################################################
+########################################################################################################################
+########################################################################################################################
+
+########################################################################################################################
+# vslamlab: VSLAM-LAB main pipeline
 [feature.vslamlab]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64", "win-64"]
@@ -195,6 +202,8 @@ openpyxl = "*"
 [feature.vslamlab.pypi-dependencies]
 synapseclient = "*"     # Synapse (sagebase) downloads, e.g. the EndoMapper project; not on conda-forge
 
+########################################################################################################################
+# development
 [feature.development.tasks]
 validate-dataset.cmd = 'python validate_dataset.py {{ dataset_name }}'
 validate-dataset.cwd = 'Utilities'
@@ -210,6 +219,24 @@ isort = "*"
 
 ########################################################################################################################
 ########################################################################################################################
+###################################################### BASELINES #######################################################
+########################################################################################################################
+########################################################################################################################
+
+########################################################################################################################
+# mast3rslam
+[feature.mast3rslam]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
+platforms = ["linux-64-cuda129"]
+
+[feature.mast3rslam.tasks]
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM"
+execute-mono = 'vslamlab_mast3rslam_mono'
+
+[feature.mast3rslam.dependencies]
+mast3rslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
+
+########################################################################################################################
 # droidslam
 [feature.droidslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
@@ -224,21 +251,6 @@ execute-stereo = 'vslamlab_droidslam_stereo'
 [feature.droidslam.dependencies]
 droidslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
-# ########################################################################################################################
-# ########################################################################################################################
-# mast3rslam
-[feature.mast3rslam]
-channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda129"]
-
-[feature.mast3rslam.tasks]
-fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM"
-execute-mono = 'vslamlab_mast3rslam_mono'
-
-[feature.mast3rslam.dependencies]
-mast3rslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
-
-########################################################################################################################
 ########################################################################################################################
 # dpvo
 [feature.dpvo]
@@ -253,7 +265,6 @@ execute-mono = { cmd = 'vslamlab_dpvo_mono', env = { TORCH_HOME = "$PIXI_PROJECT
 [feature.dpvo.dependencies]
 dpvo = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
-########################################################################################################################
 ########################################################################################################################
 # orbslam2
 [feature.orbslam2]
@@ -270,6 +281,35 @@ execute-stereo = 'vslamlab_orbslam2_stereo'
 orbslam2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 ########################################################################################################################
+# allfeature (conda package `allfeature` from prefix.dev/vslamlab/vslamlab, built and published by the CI of
+# github.com/alejandrofontan/AllFeature-VSLAM; TensorRT 10.3 packages from spqr-tests until the conda-forge TensorRT 11
+# migration, alejandrofontan/AllFeature-VSLAM#41)
+[feature.allfeature]
+channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab", "https://repo.prefix.dev/spqr-tests"]
+platforms = ["linux-64-cuda129"]
+
+[feature.allfeature.tasks]
+# The executables resolve `megaloc_models/` and `segmentation_models/` relative to their cwd, so the
+# models are downloaded into the baseline folder and the execute tasks run from there.
+# GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
+# download task below fetches it into segmentation_models/ instead.
+fetch-source = { cmd = "./git-clone.sh https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
+download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
+download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
+download-lightglue-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'lightglue_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/lightglue_models/*.pt"] }
+# Settings shipped inside the conda package fill in whatever the HF clone does not provide (cp -n: never overwrite)
+copy-package-settings = { cmd = "bash -c 'mkdir -p Baselines/AllFeature-VSLAM/settings && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/settings/*.yaml Baselines/AllFeature-VSLAM/settings/ && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/vslamlab_allfeature-dev_settings.yaml Baselines/AllFeature-VSLAM/vslamlab_allfeature_settings.yaml'" }
+install = { cmd = "ls Baselines/AllFeature-VSLAM", depends-on = ["download-megaloc-models", "download-segmentation-models", "download-superpoint-models", "download-lightglue-models", "copy-package-settings"] }
+execute-mono = { cmd = "vslamlab_allfeature_mono", cwd = "Baselines/AllFeature-VSLAM" }
+execute-rgbd = { cmd = "vslamlab_allfeature_rgbd", cwd = "Baselines/AllFeature-VSLAM" }
+stream = { cmd = "vslamlab_allfeature_mono_stream", cwd = "Baselines/AllFeature-VSLAM" }
+
+[feature.allfeature.dependencies]
+allfeature = { version = "1.0.*", channel = "https://prefix.dev/vslamlab/vslamlab" }
+cuda-version = "12.9.*"   # the package is built for CUDA 12.9 (libtorch 2.7.1 cuda129)
+huggingface_hub = "*"     # `hf` CLI of the model-download tasks
+
 ########################################################################################################################
 # colmap
 [feature.colmap]
@@ -306,7 +346,6 @@ colmap = "=4.2.1"
 colmap = {version="=4.2.1", build = "*cuda*" }
 
 ########################################################################################################################
-########################################################################################################################
 # orbslam3
 [feature.orbslam3]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
@@ -325,7 +364,6 @@ execute-stereo-vi = 'vslamlab_orbslam3_stereo_vi'
 orbslam3 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
 ########################################################################################################################
-########################################################################################################################
 # okvis2
 [feature.okvis2]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
@@ -338,7 +376,6 @@ execute-mono-vi = 'vslamlab_okvis2_mono_vi'
 [feature.okvis2.dependencies]
 okvis2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 
-########################################################################################################################
 ########################################################################################################################
 # pycuvslam
 [feature.pycuvslam]
@@ -376,11 +413,15 @@ LD_LIBRARY_PATH = "$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
 cuvslam = { url = "https://github.com/nvidia-isaac/cuVSLAM/releases/download/v17.0.0/cuvslam-17.0.0%2Bcu12-cp310-cp310-manylinux_2_35_x86_64.whl" }
 
 ########################################################################################################################
-########################################################################################################################
 # vggtslam
 [feature.vggtslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
 platforms = ["linux-64-cuda129"]
+
+[feature.vggtslam.tasks]
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM"
+# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
+execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
 [feature.vggtslam.dependencies]
 # noarch package (github.com/VSLAM-LAB/vggtslam) with VGGT-SLAM's full runtime dependency set (gtsam >=4.3 from
@@ -388,12 +429,7 @@ platforms = ["linux-64-cuda129"]
 vggtslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 python = "3.11.*"
 
-[feature.vggtslam.tasks]
-fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM"
-# TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
-execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
-
-# ########################################################################################################################
+########################################################################################################################
 # mapanything: MapAnything plus the feed-forward models its model factory hosts (vggt, vggt-omega, pi3, pi3x, dust3r,
 # mast3r, must3r, pow3r), selected per experiment with the `module` parameter of the single `mapanything` baseline
 [feature.mapanything]
@@ -410,11 +446,22 @@ execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MapAny
 
 ########################################################################################################################
 ########################################################################################################################
-################################################ DEVELOPMENT PACKAGES ##################################################
+########################## DEVELOPMENT BASELINES (tasks forward to the clone's own pixi.toml) ##########################
 ########################################################################################################################
 ########################################################################################################################
 
 ########################################################################################################################
+# mast3rslam-dev
+[feature.mast3rslam-dev]
+platforms = ["linux-64-cuda129"]
+
+# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/mast3rslam), whose environment lives in
+# Baselines/MASt3R-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
+[feature.mast3rslam-dev.tasks]
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/mast3rslam Baselines/MASt3R-SLAM-DEV"
+install = { cmd = "pixi run install", cwd = "Baselines/MASt3R-SLAM-DEV" }
+execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MASt3R-SLAM-DEV" }
+
 ########################################################################################################################
 # droidslam-dev
 [feature.droidslam-dev]
@@ -430,20 +477,6 @@ execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/DROID-
 execute-stereo = { cmd = "pixi run --frozen execute-stereo", cwd = "Baselines/DROID-SLAM-DEV" }
 train = { cmd = "pixi run --frozen train", cwd = "Baselines/DROID-SLAM-DEV" }
 
-# ########################################################################################################################
-# ########################################################################################################################
-# mast3rslam-dev
-[feature.mast3rslam-dev]
-platforms = ["linux-64-cuda129"]
-
-# Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/mast3rslam), whose environment lives in
-# Baselines/MASt3R-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
-[feature.mast3rslam-dev.tasks]
-fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/mast3rslam Baselines/MASt3R-SLAM-DEV"
-install = { cmd = "pixi run install", cwd = "Baselines/MASt3R-SLAM-DEV" }
-execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MASt3R-SLAM-DEV" }
-
-########################################################################################################################
 ########################################################################################################################
 # dpvo-dev
 [feature.dpvo-dev]
@@ -457,7 +490,6 @@ fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/dpvo Baselines/DPVO-
 install = { cmd = "pixi run install", cwd = "Baselines/DPVO-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/DPVO-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
 
-########################################################################################################################
 ########################################################################################################################
 # monogs-dev
 [feature.monogs-dev]
@@ -473,7 +505,6 @@ execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MonoGS
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MonoGS-DEV" }
 
 ########################################################################################################################
-########################################################################################################################
 # orbslam2-dev
 [feature.orbslam2-dev]
 platforms = ["linux-64", "osx-arm64", "win-64"]
@@ -487,8 +518,7 @@ execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/ORB-SL
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-stereo = { cmd = "pixi run --frozen execute-stereo", cwd = "Baselines/ORB-SLAM2-DEV" }
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # orbslam3-dev
 [feature.orbslam3-dev]
 platforms = ["linux-64", "osx-arm64", "win-64"]
@@ -505,8 +535,7 @@ execute-mono-vi = { cmd = "pixi run --frozen execute-mono-vi", cwd = "Baselines/
 execute-rgbd-vi = { cmd = "pixi run --frozen execute-rgbd-vi", cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-stereo-vi = { cmd = "pixi run --frozen execute-stereo-vi", cwd = "Baselines/ORB-SLAM3-DEV" }
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # okvis2-dev
 [feature.okvis2-dev]
 platforms = ["linux-64"]
@@ -519,7 +548,6 @@ install = { cmd = "pixi run install", cwd = "Baselines/OKVIS2-DEV" }
 execute-mono-vi = { cmd = "pixi run --frozen execute-mono-vi", cwd = "Baselines/OKVIS2-DEV" }
 
 ########################################################################################################################
-# ########################################################################################################################
 # vggtslam-dev
 [feature.vggtslam-dev]
 platforms = ["linux-64-cuda129"]
@@ -532,38 +560,6 @@ fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/vggtslam Baselines/V
 install = { cmd = "pixi run install", cwd = "Baselines/VGGT-SLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
-########################################################################################################################
-########################################################################################################################
-# allfeature (conda package `allfeature` from prefix.dev/vslamlab/vslamlab, built and published by the CI of
-# github.com/alejandrofontan/AllFeature-VSLAM; TensorRT 10.3 packages from spqr-tests until the conda-forge TensorRT 11
-# migration, alejandrofontan/AllFeature-VSLAM#41)
-[feature.allfeature]
-channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab", "https://repo.prefix.dev/spqr-tests"]
-platforms = ["linux-64-cuda129"]
-
-[feature.allfeature.tasks]
-# The executables resolve `megaloc_models/` and `segmentation_models/` relative to their cwd, so the
-# models are downloaded into the baseline folder and the execute tasks run from there.
-# GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
-# download task below fetches it into segmentation_models/ instead.
-fetch-source = { cmd = "./git-clone.sh https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
-download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
-download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
-download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
-download-lightglue-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'lightglue_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/lightglue_models/*.pt"] }
-# Settings shipped inside the conda package fill in whatever the HF clone does not provide (cp -n: never overwrite)
-copy-package-settings = { cmd = "bash -c 'mkdir -p Baselines/AllFeature-VSLAM/settings && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/settings/*.yaml Baselines/AllFeature-VSLAM/settings/ && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/vslamlab_allfeature-dev_settings.yaml Baselines/AllFeature-VSLAM/vslamlab_allfeature_settings.yaml'" }
-install = { cmd = "ls Baselines/AllFeature-VSLAM", depends-on = ["download-megaloc-models", "download-segmentation-models", "download-superpoint-models", "download-lightglue-models", "copy-package-settings"] }
-execute-mono = { cmd = "vslamlab_allfeature_mono", cwd = "Baselines/AllFeature-VSLAM" }
-execute-rgbd = { cmd = "vslamlab_allfeature_rgbd", cwd = "Baselines/AllFeature-VSLAM" }
-stream = { cmd = "vslamlab_allfeature_mono_stream", cwd = "Baselines/AllFeature-VSLAM" }
-
-[feature.allfeature.dependencies]
-allfeature = { version = "1.0.*", channel = "https://prefix.dev/vslamlab/vslamlab" }
-cuda-version = "12.9.*"   # the package is built for CUDA 12.9 (libtorch 2.7.1 cuda129)
-huggingface_hub = "*"     # `hf` CLI of the model-download tasks
-
-########################################################################################################################
 ########################################################################################################################
 # allfeature-dev
 [feature.allfeature-dev]
@@ -578,13 +574,17 @@ execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/AllFea
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 stream = { cmd = "pixi run --frozen stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+########################################## DEPTH ANYTHING 3 AND CAPABILITIES ###########################################
+########################################################################################################################
+########################################################################################################################
+
+########################################################################################################################
 # da3 (Depth Anything 3): one checkout (Baselines/Depth-Anything-3), one environment in it, three uses
 #   da3           -> vslamlab_da3.py (single window)
 #   da3-streaming -> vslamlab_da3_streaming.py (chunked full sequence + SALAD loop closure)
 #   depth_anything capability (Capabilities/depth_anything.py)
-# ########################################################################################################################
 [feature.da3]
 platforms = ["linux-64"]
 
@@ -596,6 +596,8 @@ fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/depthanything3 Basel
 install = { cmd = "pixi run install", cwd = "Baselines/Depth-Anything-3" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/Depth-Anything-3" }
 
+########################################################################################################################
+# da3-streaming
 [feature.da3-streaming]
 platforms = ["linux-64"]
 
@@ -605,9 +607,7 @@ fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/depthanything3 Basel
 install = { cmd = "pixi run install", cwd = "Baselines/Depth-Anything-3" }
 execute-mono = { cmd = "pixi run --frozen execute-mono-streaming", cwd = "Baselines/Depth-Anything-3" }
 
-# ########################################################################################################################
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # mask2former
 [feature.mask2former]
 platforms = ["linux-64"]
@@ -618,8 +618,7 @@ platforms = ["linux-64"]
 fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/mask2former Capabilities/sources/mask2former"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/mask2former", depends-on = ["fetch-source"] }
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # fastfoundationstereo
 [feature.fastfoundationstereo]
 platforms = ["linux-64"]
@@ -630,8 +629,7 @@ platforms = ["linux-64"]
 fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/fastfoundationstereo Capabilities/sources/fastfoundationstereo"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/fastfoundationstereo", depends-on = ["fetch-source"] }
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # anycalib
 [feature.anycalib]
 platforms = ["linux-64"]
@@ -642,8 +640,48 @@ platforms = ["linux-64"]
 fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/anycalib Capabilities/sources/anycalib"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/anycalib", depends-on = ["fetch-source"] }
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
+# vpr (Capabilities/vpr.py, <sequence>/vpr-lab/D.npy for rgb_vpr / rgb_placecell)
+[feature.vpr]
+platforms = ["linux-64"]
+
+# Capability repository (github.com/alejandrofontan/VPR-methods-evaluation, the extraction code VPR-LAB also uses)
+# cloned to Capabilities/sources/vpr, with its own environment and weights; `vpr` (vslamlab environment) runs it on
+# dataset/sequence targets.
+[feature.vpr.tasks]
+fetch-source = "./git-clone.sh https://github.com/alejandrofontan/VPR-methods-evaluation Capabilities/sources/vpr"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/vpr", depends-on = ["fetch-source"] }
+
+########################################################################################################################
+# refrax
+[feature.refrax]
+platforms = ["linux-64"]
+
+# Capability repository (github.com/VSLAM-LAB/refrax, a fork of cllim118/Refrax) cloned to Capabilities/sources/, with its
+# own environment; `refrax-inference` (vslamlab environment) runs it on dataset/sequence targets.
+[feature.refrax.tasks]
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/refrax Capabilities/sources/refrax"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/refrax", depends-on = ["fetch-source"] }
+
+########################################################################################################################
+# placecell (Capabilities/placecell.py, 'rgb_placecell: <n>'): keep the n least redundant frames of a sequence with
+# placecell's information culler on the VPR matrix (<sequence>/vpr-lab/D.npy, generated by the vpr capability (Capabilities/vpr.py) when missing).
+[feature.placecell]
+platforms = ["linux-64"]
+
+# Capability repository (github.com/VSLAM-LAB/placecell) cloned to Capabilities/sources/, with its own environment (the
+# placecell library as a conda package); `placecell-select` (vslamlab environment) runs it on dataset/sequence targets.
+[feature.placecell.tasks]
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/placecell Capabilities/sources/placecell"
+install = { cmd = "pixi run install", cwd = "Capabilities/sources/placecell", depends-on = ["fetch-source"] }
+
+########################################################################################################################
+########################################################################################################################
+######################################################## TOOLS #########################################################
+########################################################################################################################
+########################################################################################################################
+
+########################################################################################################################
 # ros1
 [feature.ros1]
 channels = ["https://prefix.dev/conda-forge", "robostack-noetic"]
@@ -658,8 +696,7 @@ ros-noetic-desktop = "*"
 tqdm = "*"
 pandas = "*"
 
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # ros2
 [feature.ros2]
 channels = ["https://prefix.dev/conda-forge", "robostack-humble"]
@@ -676,9 +713,7 @@ colcon-common-extensions = "*"
 tqdm = "*"
 pandas = "*"
 
-
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # rerun
 [feature.rerun]
 channels = ["https://prefix.dev/conda-forge"]
@@ -699,45 +734,7 @@ numpy = ">=1.26.4,<3"
 pandas = ">=2.3.3,<4"
 pyyaml = ">=6.0.2,<7"
 
-# ########################################################################################################################
-# ########################################################################################################################
-# refrax
-[feature.refrax]
-platforms = ["linux-64"]
-
-# Capability repository (github.com/VSLAM-LAB/refrax, a fork of cllim118/Refrax) cloned to Capabilities/sources/, with its
-# own environment; `refrax-inference` (vslamlab environment) runs it on dataset/sequence targets.
-[feature.refrax.tasks]
-fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/refrax Capabilities/sources/refrax"
-install = { cmd = "pixi run install", cwd = "Capabilities/sources/refrax", depends-on = ["fetch-source"] }
-
-# ########################################################################################################################
-# ########################################################################################################################
-# placecell (Capabilities/placecell.py, 'rgb_placecell: <n>'): keep the n least redundant frames of a sequence with
-# placecell's information culler on the VPR matrix (<sequence>/vpr-lab/D.npy, generated by the vpr capability (Capabilities/vpr.py) when missing).
-[feature.placecell]
-platforms = ["linux-64"]
-
-# Capability repository (github.com/VSLAM-LAB/placecell) cloned to Capabilities/sources/, with its own environment (the
-# placecell library as a conda package); `placecell-select` (vslamlab environment) runs it on dataset/sequence targets.
-[feature.placecell.tasks]
-fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/placecell Capabilities/sources/placecell"
-install = { cmd = "pixi run install", cwd = "Capabilities/sources/placecell", depends-on = ["fetch-source"] }
-
-# ########################################################################################################################
-# vpr (Capabilities/vpr.py, <sequence>/vpr-lab/D.npy for rgb_vpr / rgb_placecell)
-[feature.vpr]
-platforms = ["linux-64"]
-
-# Capability repository (github.com/alejandrofontan/VPR-methods-evaluation, the extraction code VPR-LAB also uses)
-# cloned to Capabilities/sources/vpr, with its own environment and weights; `vpr` (vslamlab environment) runs it on
-# dataset/sequence targets.
-[feature.vpr.tasks]
-fetch-source = "./git-clone.sh https://github.com/alejandrofontan/VPR-methods-evaluation Capabilities/sources/vpr"
-install = { cmd = "pixi run install", cwd = "Capabilities/sources/vpr", depends-on = ["fetch-source"] }
-
-# ########################################################################################################################
-# ########################################################################################################################
+########################################################################################################################
 # projectaria
 [feature.projectaria]
 channels = ["https://prefix.dev/conda-forge"]
