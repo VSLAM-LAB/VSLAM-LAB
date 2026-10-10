@@ -146,6 +146,7 @@ pixi run download-sequence <dataset> <sequence>          # Example: pixi run dow
 pixi run run-exp <exp_yaml>                              # Example: pixi run run-exp configs/exp_vslamlab.yaml
 pixi run evaluate <exp_yaml>                             # Example: pixi run evaluate configs/exp_vslamlab.yaml
 pixi run compare <exp_yaml>                              # Example: pixi run compare configs/exp_vslamlab.yaml
+pixi run rerun-vis <dataset> <sequence>                  # Example: pixi run rerun-vis eth table_3 (Rerun viewer of a sequence)
 ```
 
 ## Add a new VSLAM Dataset
