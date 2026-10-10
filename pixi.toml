@@ -12,9 +12,13 @@ platforms = [
 ]
 
 [activation.env]
-# Regex matched against full command lines: defines what counts as a VSLAM-LAB job
-# for list-jobs and kill-all, so the two always agree.
-VSLAMLAB_JOBS_PATTERN = "mapanything|droidslam|dpvo|mast3rslam|monogs|orbslam2|orbslam3|allfeature|okvis2|colmap|vpr-lab|vggt|pycuvslam|vslamlab"
+# Regex matched against full command lines: defines what counts as a VSLAM-LAB job for list-jobs, kill-jobs and
+# kill-all, so they always agree. vslamlab_: every entry point (vslamlab_gui.py, vslamlab_<baseline>_<mode>,
+# vslamlab_<capability>.py); exp_folder:: every baseline run and the pixi wrappers around it; Capabilities/: capability
+# drivers and their wrappers; vpr-lab.py: the VPR extraction; colmap: COLMAP's own binaries. kill-jobs climbs through
+# matching parents to the experiment, so the wrappers must match too. Unrelated processes of the vslamlab environment
+# (own scripts, hf downloads) do not.
+VSLAMLAB_JOBS_PATTERN = 'vslamlab_|exp_folder:|Capabilities/|vpr-lab\.py|colmap'
 
 [tasks]
 clean-swap = { cmd = "sudo /sbin/swapoff -a && sudo /sbin/swapon -a" }
