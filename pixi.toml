@@ -101,7 +101,7 @@ get-resources.args = [
 ]
 
 vslamlab-debug.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_debug.yaml", "--overwrite"] }]
-vslamlab-allfeature = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
+vslamlab-allfeature.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
 demo = "python vslamlab_gui.py demo"
 
 premerge-smoke.cmd = "python vslamlab_gui.py vslamlab configs/premerge-smoke/exp_premerge_smoke_{{ mode }}.yaml {{ overwrite }}"
@@ -111,9 +111,9 @@ premerge-smoke.args = [
 ]
 
 evaluate-debug.depends-on = [{ "task" = "evaluate", "args" = ["configs/exp_debug.yaml", "--overwrite"] }]
-evaluate-allfeature = [{ "task" = "evaluate", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
+evaluate-allfeature.depends-on = [{ "task" = "evaluate", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
 compare-debug.depends-on = [{ "task" = "compare", "args" = ["configs/exp_debug.yaml"] }]
-compare-allfeature = [{ "task" = "compare", "args" = ["configs/exp_allfeature.yaml"] }]
+compare-allfeature.depends-on = [{ "task" = "compare", "args" = ["configs/exp_allfeature.yaml"] }]
 
 # VSLAM-LAB info functions
 baseline-info = "python vslamlab_gui.py baseline_info"
