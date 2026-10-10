@@ -216,7 +216,7 @@ channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslam
 platforms = ["linux-64-cuda129"]
 
 [feature.droidslam.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM"
 execute-mono = 'vslamlab_droidslam_mono'
 execute-rgbd = 'vslamlab_droidslam_rgbd'
 execute-stereo = 'vslamlab_droidslam_stereo'
@@ -232,7 +232,7 @@ channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslam
 platforms = ["linux-64-cuda129"]
 
 [feature.mast3rslam.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM"
 execute-mono = 'vslamlab_mast3rslam_mono'
 
 [feature.mast3rslam.dependencies]
@@ -247,7 +247,7 @@ platforms = ["linux-64-cuda129"]
 
 # TORCH_HOME: DISK/LightGlue weights of the classic loop closure (loop_closure: 2) are downloaded there by torch.hub
 [feature.dpvo.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/dpvo-vslamlab Baselines/DPVO"
 execute-mono = { cmd = 'vslamlab_dpvo_mono', env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
 
 [feature.dpvo.dependencies]
@@ -261,7 +261,7 @@ channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslam
 platforms = ["linux-64", "osx-arm64", "win-64"]
 
 [feature.orbslam2.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/orbslam2-vslamlab Baselines/ORB-SLAM2'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/orbslam2-vslamlab Baselines/ORB-SLAM2"
 execute-mono = 'vslamlab_orbslam2_mono'
 execute-rgbd = 'vslamlab_orbslam2_rgbd'
 execute-stereo = 'vslamlab_orbslam2_stereo'
@@ -277,7 +277,7 @@ channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64-cuda129", "osx-arm64-cuda129", "win-64-cuda129"]
 
 [feature.colmap.tasks]
-fetch-source = { cmd = 'git clone https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB colmap', cwd = 'Baselines' }
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/COLMAP-VSLAM-LAB Baselines/colmap"
 execute-mono = 'python Baselines/colmap/vslamlab_colmap.py'
 # Pre-warm COLMAP's download cache (~/.cache/colmap: ALIKED / LightGlue / LoMa ONNX models and the FAISS vocabulary
 # trees for sequential loop detection) before running on nodes without internet; COLMAP fetches on demand otherwise.
@@ -313,7 +313,7 @@ channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslam
 platforms = ["linux-64", "osx-arm64", "win-64"]
 
 [feature.orbslam3.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/orbslam3-vslamlab Baselines/ORB-SLAM3'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/orbslam3-vslamlab Baselines/ORB-SLAM3"
 execute-mono = 'vslamlab_orbslam3_mono'
 execute-rgbd = 'vslamlab_orbslam3_rgbd'
 execute-stereo = 'vslamlab_orbslam3_stereo'
@@ -332,7 +332,7 @@ channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslam
 platforms = ["linux-64"]
 
 [feature.okvis2.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/okvis2-vslamlab Baselines/OKVIS2'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/okvis2-vslamlab Baselines/OKVIS2"
 execute-mono-vi = 'vslamlab_okvis2_mono_vi'
 
 [feature.okvis2.dependencies]
@@ -349,7 +349,7 @@ platforms = ["linux-64-cuda126"]
 # nvidia-isaac/cuVSLAM, installed from there below. The clone only provides the VSLAM-LAB entry scripts and settings
 # (github.com/VSLAM-LAB/pycuvslam).
 [feature.pycuvslam.tasks]
-fetch-source = './git-clone.sh VSLAM-LAB pycuvslam PyCuVSLAM'
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/pycuvslam Baselines/PyCuVSLAM"
 execute-rgbd = { cmd = 'python vslamlab_pycuvslam_rgbd.py', cwd = 'Baselines/PyCuVSLAM' }
 execute-stereo = { cmd = 'python vslamlab_pycuvslam_stereo.py', cwd = 'Baselines/PyCuVSLAM' }
 execute-stereo-vi = { cmd = 'python vslamlab_pycuvslam_stereo_vi.py', cwd = 'Baselines/PyCuVSLAM' }
@@ -389,7 +389,7 @@ vggtslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 python = "3.11.*"
 
 [feature.vggtslam.tasks]
-fetch-source = 'git clone https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM'
+fetch-source = "./git-clone.sh https://huggingface.co/vslamlab/vggtslam-vslamlab Baselines/VGGT-SLAM"
 # TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
 execute-mono = { cmd = 'vslamlab_vggtslam_mono', cwd = "Baselines/VGGT-SLAM", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
@@ -403,7 +403,7 @@ platforms = ["linux-64"]
 # Baselines/MapAnything/.pixi (MapAnything is installed from the checkout, not published as a package). Run tasks use
 # --frozen so only `install` re-solves that environment.
 [feature.mapanything.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB mapanything MapAnything"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/mapanything Baselines/MapAnything"
 install = { cmd = "pixi run install", cwd = "Baselines/MapAnything" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MapAnything" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MapAnything" }
@@ -423,7 +423,7 @@ platforms = ["linux-64-cuda129"]
 # Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/droidslam), whose environment lives in
 # Baselines/DROID-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.droidslam-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB droidslam DROID-SLAM-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/droidslam Baselines/DROID-SLAM-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/DROID-SLAM-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/DROID-SLAM-DEV" }
@@ -439,7 +439,7 @@ platforms = ["linux-64-cuda129"]
 # Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/mast3rslam), whose environment lives in
 # Baselines/MASt3R-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.mast3rslam-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB mast3rslam MASt3R-SLAM-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/mast3rslam Baselines/MASt3R-SLAM-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/MASt3R-SLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MASt3R-SLAM-DEV" }
 
@@ -453,7 +453,7 @@ platforms = ["linux-64-cuda129"]
 # Baselines/DPVO-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 # TORCH_HOME: DISK/LightGlue weights of the classic loop closure (loop_closure: 2) are downloaded there by torch.hub
 [feature.dpvo-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB dpvo DPVO-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/dpvo Baselines/DPVO-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/DPVO-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/DPVO-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" } }
 
@@ -467,7 +467,7 @@ platforms = ["linux-64-cuda129"]
 # copies, so there is no conda package. Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/monogs), whose
 # environment lives in Baselines/MonoGS-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.monogs-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB monogs MonoGS-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/monogs Baselines/MonoGS-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/MonoGS-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/MonoGS-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/MonoGS-DEV" }
@@ -481,7 +481,7 @@ platforms = ["linux-64", "osx-arm64", "win-64"]
 # Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/orbslam2), whose environment lives in
 # Baselines/ORB-SLAM2-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.orbslam2-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB orbslam2 ORB-SLAM2-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/orbslam2 Baselines/ORB-SLAM2-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/ORB-SLAM2-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/ORB-SLAM2-DEV" }
@@ -496,7 +496,7 @@ platforms = ["linux-64", "osx-arm64", "win-64"]
 # Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/orbslam3), whose environment lives in
 # Baselines/ORB-SLAM3-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.orbslam3-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB orbslam3 ORB-SLAM3-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/orbslam3 Baselines/ORB-SLAM3-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/ORB-SLAM3-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/ORB-SLAM3-DEV" }
@@ -514,7 +514,7 @@ platforms = ["linux-64"]
 # Tasks forward to the clone's own pixi.toml (github.com/VSLAM-LAB/okvis2), whose environment lives in
 # Baselines/OKVIS2-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 [feature.okvis2-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB okvis2 OKVIS2-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/okvis2 Baselines/OKVIS2-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/OKVIS2-DEV" }
 execute-mono-vi = { cmd = "pixi run --frozen execute-mono-vi", cwd = "Baselines/OKVIS2-DEV" }
 
@@ -528,7 +528,7 @@ platforms = ["linux-64-cuda129"]
 # Baselines/VGGT-SLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves that environment.
 # TORCH_HOME: VGGT-1B weights pre-fetched by download-vggt-weights (see [tasks]); SALAD/DINOv2 land there too
 [feature.vggtslam-dev.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB vggtslam VGGT-SLAM-DEV"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/vggtslam Baselines/VGGT-SLAM-DEV"
 install = { cmd = "pixi run install", cwd = "Baselines/VGGT-SLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/VGGT-SLAM-DEV", env = { TORCH_HOME = "$PIXI_PROJECT_ROOT/Baselines/torch_home" }, depends-on = ["download-vggt-weights"] }
 
@@ -546,7 +546,7 @@ platforms = ["linux-64-cuda129"]
 # models are downloaded into the baseline folder and the execute tasks run from there.
 # GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
 # download task below fetches it into segmentation_models/ instead.
-fetch-source = { cmd = "git clone https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+fetch-source = { cmd = "./git-clone.sh https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
 download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
 download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
 download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
@@ -572,7 +572,7 @@ platforms = ["linux-64"]
 # Tasks forward to the clone's own pixi.toml (github.com/alejandrofontan/AllFeature-VSLAM, branch dev), whose
 # environment lives in Baselines/AllFeature-VSLAM-DEV/.pixi. Run tasks use --frozen so only `install` re-solves it.
 [feature.allfeature-dev.tasks]
-fetch-source = "./git-clone.sh alejandrofontan AllFeature-VSLAM AllFeature-VSLAM-DEV dev"
+fetch-source = "./git-clone.sh https://github.com/alejandrofontan/AllFeature-VSLAM Baselines/AllFeature-VSLAM-DEV dev"
 install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
@@ -592,7 +592,7 @@ platforms = ["linux-64"]
 # Baselines/Depth-Anything-3/.pixi and serves da3, da3-streaming and the depth_anything capability. Run tasks use
 # --frozen so only `install` re-solves that environment.
 [feature.da3.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB depthanything3 Depth-Anything-3"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/depthanything3 Baselines/Depth-Anything-3"
 install = { cmd = "pixi run install", cwd = "Baselines/Depth-Anything-3" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/Depth-Anything-3" }
 
@@ -601,7 +601,7 @@ platforms = ["linux-64"]
 
 # Same clone and environment as da3 (see above)
 [feature.da3-streaming.tasks]
-fetch-source = "./git-clone.sh VSLAM-LAB depthanything3 Depth-Anything-3"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/depthanything3 Baselines/Depth-Anything-3"
 install = { cmd = "pixi run install", cwd = "Baselines/Depth-Anything-3" }
 execute-mono = { cmd = "pixi run --frozen execute-mono-streaming", cwd = "Baselines/Depth-Anything-3" }
 
@@ -615,7 +615,7 @@ platforms = ["linux-64"]
 # Capability repository (github.com/VSLAM-LAB/mask2former) cloned to Capabilities/sources/, with its own
 # environment and checkpoint; `mask-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.mask2former.tasks]
-fetch-source = "test -d Capabilities/sources/mask2former || git clone --recursive https://github.com/VSLAM-LAB/mask2former.git Capabilities/sources/mask2former"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/mask2former Capabilities/sources/mask2former"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/mask2former", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
@@ -627,7 +627,7 @@ platforms = ["linux-64"]
 # Capability repository (github.com/VSLAM-LAB/fastfoundationstereo) cloned to Capabilities/sources/, with its own
 # environment and weights; `stereo-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.fastfoundationstereo.tasks]
-fetch-source = "test -d Capabilities/sources/fastfoundationstereo || git clone --recursive https://github.com/VSLAM-LAB/fastfoundationstereo.git Capabilities/sources/fastfoundationstereo"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/fastfoundationstereo Capabilities/sources/fastfoundationstereo"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/fastfoundationstereo", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
@@ -639,7 +639,7 @@ platforms = ["linux-64"]
 # Capability repository (github.com/VSLAM-LAB/anycalib) cloned to Capabilities/sources/, with its own environment and
 # weights; `calib-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.anycalib.tasks]
-fetch-source = "test -d Capabilities/sources/anycalib || git clone --recursive https://github.com/VSLAM-LAB/anycalib.git Capabilities/sources/anycalib"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/anycalib Capabilities/sources/anycalib"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/anycalib", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
@@ -708,7 +708,7 @@ platforms = ["linux-64"]
 # Capability repository (github.com/VSLAM-LAB/refrax, a fork of cllim118/Refrax) cloned to Capabilities/sources/, with its
 # own environment; `refrax-inference` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.refrax.tasks]
-fetch-source = "test -d Capabilities/sources/refrax || git clone --recursive https://github.com/VSLAM-LAB/refrax.git Capabilities/sources/refrax"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/refrax Capabilities/sources/refrax"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/refrax", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
@@ -721,7 +721,7 @@ platforms = ["linux-64"]
 # Capability repository (github.com/VSLAM-LAB/placecell) cloned to Capabilities/sources/, with its own environment (the
 # placecell library as a conda package); `placecell-select` (vslamlab environment) runs it on dataset/sequence targets.
 [feature.placecell.tasks]
-fetch-source = "test -d Capabilities/sources/placecell || git clone --recursive https://github.com/VSLAM-LAB/placecell.git Capabilities/sources/placecell"
+fetch-source = "./git-clone.sh https://github.com/VSLAM-LAB/placecell Capabilities/sources/placecell"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/placecell", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
@@ -733,7 +733,7 @@ platforms = ["linux-64"]
 # cloned to Capabilities/sources/vpr, with its own environment and weights; `vpr` (vslamlab environment) runs it on
 # dataset/sequence targets.
 [feature.vpr.tasks]
-fetch-source = "test -d Capabilities/sources/vpr || git clone --recursive https://github.com/alejandrofontan/VPR-methods-evaluation.git Capabilities/sources/vpr"
+fetch-source = "./git-clone.sh https://github.com/alejandrofontan/VPR-methods-evaluation Capabilities/sources/vpr"
 install = { cmd = "pixi run install", cwd = "Capabilities/sources/vpr", depends-on = ["fetch-source"] }
 
 # ########################################################################################################################
