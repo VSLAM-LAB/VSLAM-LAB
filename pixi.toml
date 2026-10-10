@@ -133,7 +133,6 @@ overwrite-exp = "python vslamlab_gui.py overwrite_exp"
 update-experiment-csv-logs = "python vslamlab_gui.py update_experiment_csv_logs"
 
 check-experiment-resources = "python vslamlab_gui.py check_experiment_resources"
-get-experiment-resources = "python vslamlab_gui.py get_experiment_resources"
 
 check-experiment-state = "python vslamlab_gui.py check_experiment_state"
 
