@@ -32,20 +32,20 @@ download-vggt-weights = { cmd = "hf download facebook/VGGT-1B model.pt --local-d
 
 [environments]
 vslamlab = { features = ["vslamlab", "development"] }
-cuda129 = { features = ["cuda129"], solve-group = "cuda129" }
-py10 = { features = ["py10"], solve-group = "py10" }
-py11 = { features = ["py11"], solve-group = "py11" }
+cuda129 = { features = ["cuda129"] }
+py10 = { features = ["py10"] }
+py11 = { features = ["py11"] }
 
-mast3rslam = { features = ["mast3rslam"], solve-group = "mast3r" }
-droidslam = { features = ["droidslam"], solve-group = "droid" }
-dpvo = { features = ["dpvo"], solve-group = "dpvo" }
+mast3rslam = { features = ["mast3rslam"] }
+droidslam = { features = ["droidslam"] }
+dpvo = { features = ["dpvo"] }
 orbslam2 = { features = ["orbslam2"] }
 allfeature = { features = ["allfeature"] }
-colmap = { features = ["colmap"], solve-group = "colmap" }
+colmap = { features = ["colmap"] }
 orbslam3 = { features = ["orbslam3"] }
 okvis2 = { features = ["okvis2"] }
 pycuvslam = { features = ["pycuvslam"] }
-vggtslam = { features = ["vggtslam"], solve-group = "vggt" }
+vggtslam = { features = ["vggtslam"] }
 mapanything = { features = ["mapanything"] }
 
 mast3rslam-dev = { features = ["mast3rslam-dev"] }
@@ -68,9 +68,9 @@ vpr-lab = { features = ["vpr-lab"] }
 refrax = { features = ["refrax"] }
 placecell = { features = ["placecell"] }
 
-ros1 = { features = ["ros1"], solve-group = "ros1" }
-ros2 = { features = ["ros2"], solve-group = "ros2" }
-rerun = { features = ["rerun"], solve-group = "rerun" }
+ros1 = { features = ["ros1"] }
+ros2 = { features = ["ros2"] }
+rerun = { features = ["rerun"] }
 projectaria = { features = ["projectaria"] }
 
 # VSLAM-LAB main pipeline
