@@ -734,26 +734,23 @@ def check_experiment_sequence_names(exp_data: Any, exp_yaml: str | Path) -> None
     sys.exit(1)
 
 ###################### Check experiment conflicts ######################
-def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) -> str:
+def experiment_mode(settings: dict[str, Any]) -> str:
+    """Mode of one experiment: its `mode` parameter, else its baseline's default."""
+    return settings.get("Parameters", {}).get("mode") or get_baseline(settings.get("Module")).default_parameters.get("mode")
 
+def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) -> None:
+    """Each experiment's baseline must handle that experiment's mode (experiments in one file may differ in mode)."""
     errors: list[str] = []
-    modes: list[str] = []
 
     for exp_name, settings in exp_data.items():
         baseline_name = settings.get("Module")
         baseline = get_baseline(baseline_name)
-
-        mode = (settings.get("Parameters", {}).get("mode") or baseline.default_parameters.get("mode"))
-        if not mode in modes:
-            modes.append(mode)
-
+        mode = experiment_mode(settings)
         if mode not in baseline.modes:
             errors.append(
                 f"Baseline '{baseline_name}' in '{exp_name}' doesn't handle "
                 f"mode '{mode}'. Available modes are: {baseline.modes}."
             )
-    # if len(modes) > 1:
-    #     errors.append(f"[Error] Only one mode is allowed per config file. Conflicts: {modes}")
 
     if errors:
         print_msg(f"\n{SCRIPT_LABEL}", f"Checking experiment baseline conflicts (in '{exp_yaml}'):", "info")
@@ -761,19 +758,14 @@ def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) 
             print_msg(SCRIPT_LABEL, error, "error")
         sys.exit(1)
 
-    return modes[0]
-
-def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mode: str) -> None:
+def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path) -> None:
+    """Each experiment's mode and baseline cam models are checked against the datasets of its own Config only."""
     errors: list[str] = []
-    configs: set[str] = set()
-    baselines: set[str] = set()
-    for _, settings in exp_data.items():
-        config_yaml = Path(settings.get("Config"))
-        configs.add(config_yaml)
-        baselines.add(settings.get("Module"))
-
-    for config_yaml in configs:
-        config_file = VSLAM_LAB_DIR / 'configs' / config_yaml
+    for exp_name, settings in exp_data.items():
+        baseline_name = settings.get("Module")
+        baseline = get_baseline(baseline_name)
+        mode = experiment_mode(settings)
+        config_file = VSLAM_LAB_DIR / 'configs' / Path(settings.get("Config"))
         config_file_data = load_yaml_file(config_file)
 
         for dataset_name in config_file_data.keys():
@@ -781,19 +773,15 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path, mo
             if mode not in dataset.modes:
                 errors.append(
                     f"[Error] Dataset '{dataset_name}' (in config '{config_file}') doesn't handle mode "
-                    f"'{mode}'. Available modes are: {dataset.modes}."
+                    f"'{mode}' of '{exp_name}'. Available modes are: {dataset.modes}."
                 )
-            dataset_cam_models = dataset.cam_models
-            for baseline_name in baselines:
-                baseline = get_baseline(baseline_name)
-                baseline_cam_models = baseline.cam_models
-                if not any(cam_model in baseline_cam_models for cam_model in dataset_cam_models):
-                    errors.append(
-                        f"[Error] Baseline '{baseline_name}' and dataset '{dataset_name}' "
-                        f"have no compatible cam models. "
-                        f"Baseline: {baseline_cam_models}. "
-                        f"Dataset: {dataset_cam_models}."
-                    )
+            if not any(cam_model in baseline.cam_models for cam_model in dataset.cam_models):
+                errors.append(
+                    f"[Error] Baseline '{baseline_name}' ('{exp_name}') and dataset '{dataset_name}' "
+                    f"have no compatible cam models. "
+                    f"Baseline: {baseline.cam_models}. "
+                    f"Dataset: {dataset.cam_models}."
+                )
 
     if not errors:
         return
@@ -814,8 +802,8 @@ def validate_experiment_yaml(exp_yaml: str | Path) -> None:
     check_experiment_sequence_names(exp_data, exp_yaml)
 
     # Check conflicts
-    mode = check_experiment_baselines_conflicts(exp_data, exp_yaml)
-    check_experiment_sequence_conflicts(exp_data, exp_yaml, mode)
+    check_experiment_baselines_conflicts(exp_data, exp_yaml)
+    check_experiment_sequence_conflicts(exp_data, exp_yaml)
 
     # Print Summary
     print_msg(f"\n{SCRIPT_LABEL}", f"Experiment summary: {exp_yaml}", flag="info", verb='NONE')
