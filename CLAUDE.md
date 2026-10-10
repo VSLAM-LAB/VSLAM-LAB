@@ -23,7 +23,7 @@ Install pixi first (`curl -fsSL https://pixi.sh/install.sh | bash`), then all co
 
 There is **no automated test suite**. To verify a change works, run the relevant experiment config, e.g. `pixi run vslamlab configs/test_exp_<name>.yaml` or `pixi run vslamlab configs/exp_debug.yaml`, targeting the baseline/dataset you touched.
 
-There's no linter/formatter configured yet. `ruff` is a reasonable option if one gets added later (as a pixi feature/environment) — not currently set up.
+ruff, isort and pycodestyle are installed in the `vslamlab` environment (its `development` feature; e.g. `pixi run -e vslamlab ruff check <file> --line-length 120`), but there is no project linter/formatter configuration and no pre-commit setup.
 
 ## Project structure
 

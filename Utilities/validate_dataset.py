@@ -359,9 +359,9 @@ def check_pep8(py_path: Path) -> None:
 
     console.print()
     console.print("  [bold yellow]To fix automatically, run:[/bold yellow]")
-    console.print(f"    [dim]pixi run -e development ruff check {py_path} --line-length 120[/dim]")
-    console.print(f"    [dim]pixi run -e development ruff format {py_path} --line-length 120[/dim]")
-    console.print(f"    [dim]pixi run -e development isort {py_path}[/dim]")
+    console.print(f"    [dim]pixi run -e vslamlab ruff check {py_path} --line-length 120[/dim]")
+    console.print(f"    [dim]pixi run -e vslamlab ruff format {py_path} --line-length 120[/dim]")
+    console.print(f"    [dim]pixi run -e vslamlab isort {py_path}[/dim]")
 
 
 # ──────────────────────────────────────────────
