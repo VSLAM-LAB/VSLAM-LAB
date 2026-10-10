@@ -214,7 +214,7 @@ isort = "*"
 # droidslam
 [feature.droidslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda126", "linux-64-cuda129"]
+platforms = ["linux-64-cuda129"]
 
 [feature.droidslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/droidslam-vslamlab Baselines/DROID-SLAM'
@@ -230,7 +230,7 @@ droidslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # mast3rslam
 [feature.mast3rslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda126", "linux-64-cuda129"]
+platforms = ["linux-64-cuda129"]
 
 [feature.mast3rslam.tasks]
 fetch-source = 'git clone https://huggingface.co/vslamlab/mast3rslam-vslamlab Baselines/MASt3R-SLAM'
@@ -244,7 +244,7 @@ mast3rslam = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # dpvo
 [feature.dpvo]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda126", "linux-64-cuda129"]
+platforms = ["linux-64-cuda129"]
 
 # TORCH_HOME: DISK/LightGlue weights of the classic loop closure (loop_closure: 2) are downloaded there by torch.hub
 [feature.dpvo.tasks]
@@ -381,7 +381,7 @@ cuvslam = { url = "https://github.com/nvidia-isaac/cuVSLAM/releases/download/v17
 # vggtslam
 [feature.vggtslam]
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab"]
-platforms = ["linux-64-cuda126", "linux-64-cuda129"]
+platforms = ["linux-64-cuda129"]
 
 [feature.vggtslam.dependencies]
 # noarch package (github.com/VSLAM-LAB/vggtslam) with VGGT-SLAM's full runtime dependency set (gtsam >=4.3 from
