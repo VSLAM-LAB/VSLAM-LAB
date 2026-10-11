@@ -68,8 +68,8 @@ def main() -> None:
     toggles = {
         "fit-canvas": "Size the output canvas to the whole corrected image (default)",
         "no-fit-canvas": "Keep the source W x H (pair with --zoom in-bounds)",
-        "crop": "Crop outputs to the largest all-valid rectangle",
-        "no-crop": "Keep the full canvas, invalid border recorded in mask.png (default)",
+        "crop": "Crop outputs to the largest all-valid rectangle (default)",
+        "no-crop": "Keep the full canvas, invalid border recorded in mask.png",
         "overwrite": "Recompute even if the artifact already exists",
     }
     for flag, help_text in toggles.items():
