@@ -738,6 +738,16 @@ def experiment_mode(settings: dict[str, Any]) -> str:
     """Mode of one experiment: its `mode` parameter, else its baseline's default."""
     return settings.get("Parameters", {}).get("mode") or get_baseline(settings.get("Module")).default_parameters.get("mode")
 
+# depth capability (experiment `depth:` parameter) -> dataset mode it generates depth from
+DEPTH_CAPABILITY_SOURCE_MODE = {'fastfoundationstereo': 'stereo', 'depth_anything': 'mono'}
+
+def dataset_modes_with_depth_capability(dataset_modes: list[str], settings: dict[str, Any]) -> list[str]:
+    """The dataset's modes, plus 'rgbd' when the experiment's depth capability can generate depth from them."""
+    source_mode = DEPTH_CAPABILITY_SOURCE_MODE.get(settings.get("Parameters", {}).get("depth"))
+    if source_mode in dataset_modes and 'rgbd' not in dataset_modes:
+        return [*dataset_modes, 'rgbd']
+    return dataset_modes
+
 def check_experiment_baselines_conflicts(exp_data:  Any, exp_yaml: str | Path,) -> None:
     """Each experiment's baseline must handle that experiment's mode (experiments in one file may differ in mode)."""
     errors: list[str] = []
@@ -770,7 +780,13 @@ def check_experiment_sequence_conflicts(exp_data:  Any, exp_yaml: str | Path) ->
 
         for dataset_name in config_file_data.keys():
             dataset = get_dataset(dataset_name)
-            if mode not in dataset.modes:
+            depth = settings.get("Parameters", {}).get("depth")
+            if depth in DEPTH_CAPABILITY_SOURCE_MODE and DEPTH_CAPABILITY_SOURCE_MODE[depth] not in dataset.modes:
+                errors.append(
+                    f"[Error] 'depth: {depth}' of '{exp_name}' needs a '{DEPTH_CAPABILITY_SOURCE_MODE[depth]}' "
+                    f"dataset; '{dataset_name}' only has {dataset.modes}."
+                )
+            if mode not in dataset_modes_with_depth_capability(dataset.modes, settings):
                 errors.append(
                     f"[Error] Dataset '{dataset_name}' (in config '{config_file}') doesn't handle mode "
                     f"'{mode}' of '{exp_name}'. Available modes are: {dataset.modes}."
