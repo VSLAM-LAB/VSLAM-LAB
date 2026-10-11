@@ -2114,7 +2114,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wayland-protocols-1.49-hd8ed1ab_0.conda
       - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/lietorch-1.0.2-py311he38a381_0.conda
-      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/mast3rslam-1.0-py311he38a381_0.conda
+      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/mast3rslam-1.1-py311he38a381_0.conda
       - conda: https://prefix.dev/vslamlab/vslamlab/noarch/roma-1.5.2.1-pyh4616a5c_0.conda
   mast3rslam-dev:
     channels:
@@ -46902,9 +46902,9 @@ packages:
   run_exports: {}
   size: 2175602
   timestamp: 1791377128608
-- conda: https://prefix.dev/vslamlab/vslamlab/linux-64/mast3rslam-1.0-py311he38a381_0.conda
-  sha256: 4642401e41c48298786b634cfaf69d49e5b6f06d290162c99a95586a43918039
-  md5: 88e07eb71de258ffcc8ab4f02921e826
+- conda: https://prefix.dev/vslamlab/vslamlab/linux-64/mast3rslam-1.1-py311he38a381_0.conda
+  sha256: 92f7149069b84b36d74a44bd41fbc71124cd0c64c76d175bb238dd6676cf528f
+  md5: 266478911c986a649dcfc846fe0e5453
   depends:
   - python
   - python >=3.9
@@ -46944,8 +46944,8 @@ packages:
   - libcusolver >=11.7.5.82,<12.0a0
   license: CC-BY-NC-SA-4.0
   run_exports: {}
-  size: 2889738
-  timestamp: 1791456323220
+  size: 2890234
+  timestamp: 1791676148556
 - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/okvis2-1.1-ha35fb5c_0.conda
   sha256: fc49cf6b6d7ed857e80f879a7fa323fdb3ae0a531c35dd2b4edb3027be91853d
   md5: d939127d2b91542c7cb8f1b60e9c1fcb
