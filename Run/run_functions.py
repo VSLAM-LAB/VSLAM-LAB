@@ -385,7 +385,7 @@ def append_depth_columns(dataset: Any, sequence_name: str, sequence_path: Path, 
     df.to_csv(rgb_exp_csv, index=False)
     print_msg(SCRIPT_LABEL, f"depth: appended {capability} depth columns to {rgb_exp_csv.name}", verb='LOW')
 
-    register_depth_stream(calibration_exp_yaml, depth_folder, depth_factor)
+    register_depth_stream(calibration_exp_yaml, "depth_0", depth_factor)
 
 def replace_rgb_with_refraction_corrected(dataset: Any, sequence_name: str, sequence_path: Path, rgb_exp_csv: Path,
                                           calibration_exp_yaml: Path, calibration_overridden: bool = False) -> None:
@@ -447,15 +447,16 @@ def replace_rgb_with_refraction_corrected(dataset: Any, sequence_name: str, sequ
     print_msg(SCRIPT_LABEL, f"refraction: path_rgb_0 -> {folder}/ (zoom={metadata.get('zoom')}, z0={metadata.get('z0')}, crop={metadata.get('crop')}), "
               f"path_mask_0 -> {folder}/mask.png, {calibration_exp_yaml.name} replaced by {folder}/calibration.yaml for {sequence_name}", verb='LOW')
 
-def register_depth_stream(calibration_exp_yaml: Path, depth_folder: str, depth_factor: float) -> None:
+def register_depth_stream(calibration_exp_yaml: Path, depth_name: str, depth_factor: float) -> None:
     """Declare a generated depth stream on the rgb_0 camera entry of the experiment's
     calibration_exp.yaml: depth_name/depth_factor and a '+depth' cam_type, with the same field
     placement as DatasetVSLAMLAB_calibration._get_rgbd_yaml_section (depth_name after cam_type,
     depth_factor after fps), so rgbd baselines - which read depth_name/depth_factor from the
-    calibration yaml - can consume it. The edit is line-based (the file's hand-formatted flow
-    style and comments are preserved) and idempotent. An rgb_0 entry that already declares a
-    different depth stream (a real RGBD dataset) is left untouched. Only the per-experiment copy
-    is edited - never the sequence's calibration.yaml."""
+    calibration yaml - can consume it. depth_name is the stream name of the rgb csv columns
+    (path_<depth_name>, i.e. depth_0), not the artifact folder the paths point into. The edit is
+    line-based (the file's hand-formatted flow style and comments are preserved) and idempotent.
+    An rgb_0 entry that already declares a different depth stream (a real RGBD dataset) is left
+    untouched. Only the per-experiment copy is edited - never the sequence's calibration.yaml."""
     if not calibration_exp_yaml.exists():
         print_msg(SCRIPT_LABEL, f"depth: {calibration_exp_yaml} missing; cannot register the depth stream", flag="error", verb='NONE')
         return
@@ -474,7 +475,7 @@ def register_depth_stream(calibration_exp_yaml: Path, depth_folder: str, depth_f
     factor_line = f"     depth_factor: {float(depth_factor)},"
     depth_name_idx = find("depth_name:")
     if depth_name_idx is not None:
-        if depth_folder not in lines[depth_name_idx]:
+        if depth_name not in lines[depth_name_idx]:
             print_msg(SCRIPT_LABEL, f"depth: rgb_0 already declares another depth stream ({lines[depth_name_idx].strip().rstrip(',')}); leaving {calibration_exp_yaml.name} untouched", flag="error", verb='NONE')
             return
         factor_idx = find("depth_factor:")
@@ -494,10 +495,10 @@ def register_depth_stream(calibration_exp_yaml: Path, depth_folder: str, depth_f
             lines[cam_type_idx] = f"     cam_type: {cam_type}+depth,"
         # insert bottom-up so the earlier index stays valid
         lines.insert(fps_idx + 1, factor_line)
-        lines.insert(cam_type_idx + 1, f"     depth_name: {depth_folder},")
+        lines.insert(cam_type_idx + 1, f"     depth_name: {depth_name},")
 
     calibration_exp_yaml.write_text("\n".join(lines) + "\n")
-    print_msg(SCRIPT_LABEL, f"depth: registered depth stream '{depth_folder}' (depth_factor={depth_factor:g}) in {calibration_exp_yaml.name}", verb='LOW')
+    print_msg(SCRIPT_LABEL, f"depth: registered depth stream '{depth_name}' (depth_factor={depth_factor:g}) in {calibration_exp_yaml.name}", verb='LOW')
 
 def get_sequence_data_for_evaluation(exp: Any, dataset: Any, sequence_name: str) -> None:
     sequence_path = dataset.dataset_path /  sequence_name
