@@ -34,6 +34,14 @@ class ALLFEATURE_baseline(BaselineVSLAMLAB):
         parameters['feature_yaml'] = parameters['feature_yaml'].replace('feature_name_to_fill', parameters['feature'])
         return parameters
 
+    def build_stream_command(self, mode: str, stream_url: str, calibration_yaml: Path, exp_folder: Path,
+                             exp_it: int = 0, overrides: dict | None = None) -> str:
+        # Same feature -> feature_yaml derivation as resolve_parameters, on the defaults the stream command is built from
+        overrides = dict(overrides or {})
+        feature = overrides.get('feature', self.default_parameters['feature'])
+        overrides.setdefault('feature_yaml', self.default_parameters['feature_yaml'].replace('feature_name_to_fill', feature))
+        return super().build_stream_command(mode, stream_url, calibration_yaml, exp_folder, exp_it, overrides)
+
     def is_installed(self) -> tuple[bool, str]:
         # The conda package provides the executables; "installed" means the baseline folder holds
         # the settings and the model folders (all resolved relative to the cwd by the executables),

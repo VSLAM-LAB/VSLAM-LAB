@@ -191,10 +191,14 @@ def main() -> None:
     except KeyboardInterrupt:
         print_info("Stopping the stream ...")
     finally:
-        # Relay first: its end-of-stream message is what makes the subscribers finish and save
+        # Relay first: its end-of-stream message is what makes the subscribers finish and save. A subscriber that
+        # is not reading the stream right now (a baseline paused from its viewer) never sees it, so each one also
+        # gets the same Ctrl-C the terminal would have given it: their handlers stop the subscription (and lift a
+        # pause), after which they save and exit like on the end message.
         interrupt(relay)
         wait(relay, "relay", SHUTDOWN_TIMEOUT_S)
         for process, name in subscribers:
+            interrupt(process)
             wait(process, name, SHUTDOWN_TIMEOUT_S)
             print_info(f"{name} finished ({process.returncode})")
         if baseline_command is not None and started:

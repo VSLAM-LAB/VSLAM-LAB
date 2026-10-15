@@ -587,7 +587,10 @@ fetch-source = "./git-clone.sh https://github.com/alejandrofontan/AllFeature-VSL
 install = { cmd = "pixi run setup", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-mono = { cmd = "pixi run --frozen execute-mono", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 execute-rgbd = { cmd = "pixi run --frozen execute-rgbd", cwd = "Baselines/AllFeature-VSLAM-DEV" }
-stream = { cmd = "pixi run --frozen stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+stream = { cmd = "pixi run --frozen stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }   # RTMP video input (e.g. Larix)
+# Online on an ARStream relay: `pixi run stream-iphone --run allfeature-dev [--mode rgbd]`
+execute-mono-stream = { cmd = "pixi run --frozen execute-mono-stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
+execute-rgbd-stream = { cmd = "pixi run --frozen execute-rgbd-stream", cwd = "Baselines/AllFeature-VSLAM-DEV" }
 
 ########################################################################################################################
 ########################################################################################################################
