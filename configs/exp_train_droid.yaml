@@ -167,3 +167,23 @@
 #     upsample: 0
 #     verbose: 0
 #     weights: checkpoints/tartanair-eth-table_4_semi_w4-05_consLoss_joint_010000.pth
+
+exp_train_droid_pth_v3: # Original droid-slam
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 10
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: droid.pth
+
+exp_train_droid_tartanair-eth-table_semi_w4-05_consLoss_joint_012000_pth:
+  Config: config_train_droid.yaml
+  Module: droidslam-dev
+  NumRuns: 10
+  Parameters:
+    mode: mono
+    upsample: 0
+    verbose: 0
+    weights: checkpoints/tartanair-eth-table_semi_w4-05_consLoss_joint_012000.pth

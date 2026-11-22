@@ -1,19 +1,71 @@
+allfeature_underwater_demo:
+  Config: config_debug.yaml
+  NumRuns: 1
+  Parameters: {verbose: 1, mode: mono, refraction: refrax}
+  Module: allfeature-dev
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # test_eth_da3_mono:
 #   Config: config_debug.yaml
 #   NumRuns: 1
 #   Parameters: {verbose: 0, mode: mono, rgb_max: 30, rgb_step: 10}
 #   Module: da3
 
-test_eth_da3_streaming_mono:
-  Config: config_debug.yaml
-  NumRuns: 1
-  Parameters: {verbose: 0, mode: mono, rgb_max: 120, rgb_step: 5, chunk_size: 60, overlap: 30, loop_enable: 1}
-  Module: da3-streaming
+# test_eth_da3_streaming_mono:
+#   Config: config_debug.yaml
+#   NumRuns: 1
+#   Parameters: {verbose: 0, mode: mono, rgb_max: 120, rgb_step: 5, chunk_size: 60, overlap: 30, loop_enable: 1}
+#   Module: da3-streaming
 
 # test_eth_mapanything_mono:
 #   Config: config_debug.yaml
 #   NumRuns: 1
-#   Parameters: {verbose: 0, mode: mono, module: mapanything, rgb_max: 30, rgb_step: 10}
+#   Parameters: {verbose: 1, mode: mono, module: mapanything, rgb_max: 40, rgb_step: 30}
 #   Module: mapanything
 
 # test_eth_mapanything_vggt_mono:

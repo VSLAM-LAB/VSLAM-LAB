@@ -1,7 +1,8 @@
 # kitti:
 #   - '07'
-
-eth:
+lizard-island:
+  - 'feb24_gp1'
+# eth:
   # Training split (groundtruth.txt published)
   # - cables_1
   # - cables_2
@@ -53,7 +54,7 @@ eth:
   # - sofa_3
   # - sofa_4
   # - sofa_shake
-  - table_3
+  # - table_3
   # - table_4
   # - table_7
   # - vicon_light_1
