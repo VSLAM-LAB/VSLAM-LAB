@@ -290,28 +290,28 @@ orbslam2 = { version = "*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 # github.com/alejandrofontan/AllFeature-VSLAM; TensorRT 10.3 packages from spqr-tests until the conda-forge TensorRT 11
 # migration, alejandrofontan/AllFeature-VSLAM#41)
 [feature.allfeature]
+activation = { env = { ALLFEATURE_MODELS_REVISION = "v1.1.0" } }
 channels = ["https://prefix.dev/conda-forge", "https://prefix.dev/vslamlab/vslamlab", "https://repo.prefix.dev/spqr-tests"]
 platforms = ["linux-64-cuda129"]
 
 [feature.allfeature.tasks]
-# The executables resolve `megaloc_models/` and `segmentation_models/` relative to their cwd, so the
-# models are downloaded into the baseline folder and the execute tasks run from there.
-# GIT_LFS_SKIP_SMUDGE: the HF repo also carries the segmentation ONNX at its root (LFS); the
-# download task below fetches it into segmentation_models/ instead.
-fetch-source = { cmd = "./git-clone.sh https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+# The executables resolve `feature_models/`, `megaloc_models/` and `segmentation_models/` relative to their cwd, so
+# the models are downloaded into the baseline folder and the execute tasks run from there. The HF repo's tag matches
+# the package version (ALLFEATURE_MODELS_REVISION): a later upload never changes a released package's models.
+# GIT_LFS_SKIP_SMUDGE: the clone holds LFS pointers only; the download tasks replace the ones that are used.
+fetch-source = { cmd = "./git-clone.sh https://huggingface.co/vslamlab/allfeature-vslamlab Baselines/AllFeature-VSLAM $ALLFEATURE_MODELS_REVISION", env = { GIT_LFS_SKIP_SMUDGE = "1" } }
+download-feature-models = { cmd = "hf download vslamlab/allfeature-vslamlab --revision $ALLFEATURE_MODELS_REVISION --include 'feature_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/feature_models/*.onnx"] }
 download-megaloc-models = { cmd = "hf download vslamlab/megaloc-models --local-dir Baselines/AllFeature-VSLAM/megaloc_models", outputs = ["Baselines/AllFeature-VSLAM/megaloc_models/*.onnx"] }
-download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
-download-superpoint-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'superpoint_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/superpoint_models/*.onnx"] }
-download-lightglue-models = { cmd = "hf download vslamlab/allfeature-vslamlab --include 'lightglue_models/*' --local-dir Baselines/AllFeature-VSLAM", outputs = ["Baselines/AllFeature-VSLAM/lightglue_models/*.pt"] }
-# Settings shipped inside the conda package fill in whatever the HF clone does not provide (cp -n: never overwrite)
-copy-package-settings = { cmd = "bash -c 'mkdir -p Baselines/AllFeature-VSLAM/settings && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/settings/*.yaml Baselines/AllFeature-VSLAM/settings/ && cp -n $CONDA_PREFIX/share/allfeature-vslamlab/vslamlab_allfeature-dev_settings.yaml Baselines/AllFeature-VSLAM/vslamlab_allfeature_settings.yaml'" }
-install = { cmd = "ls Baselines/AllFeature-VSLAM", depends-on = ["download-megaloc-models", "download-segmentation-models", "download-superpoint-models", "download-lightglue-models", "copy-package-settings"] }
+download-segmentation-models = { cmd = "hf download vslamlab/allfeature-vslamlab --revision $ALLFEATURE_MODELS_REVISION --include 'efficientvit-seg*' --local-dir Baselines/AllFeature-VSLAM/segmentation_models", outputs = ["Baselines/AllFeature-VSLAM/segmentation_models/*.onnx"] }
+# The settings shipped inside the conda package (cp -n: an edited copy is kept; delete it to take a new release's)
+copy-package-settings = { cmd = "bash -c 'cp -n $CONDA_PREFIX/share/allfeature-vslamlab/vslamlab_allfeature-dev_settings.yaml Baselines/AllFeature-VSLAM/vslamlab_allfeature_settings.yaml'" }
+install = { cmd = "ls Baselines/AllFeature-VSLAM", depends-on = ["download-feature-models", "download-megaloc-models", "download-segmentation-models", "copy-package-settings"] }
 execute-mono = { cmd = "vslamlab_allfeature_mono", cwd = "Baselines/AllFeature-VSLAM" }
 execute-rgbd = { cmd = "vslamlab_allfeature_rgbd", cwd = "Baselines/AllFeature-VSLAM" }
 stream = { cmd = "vslamlab_allfeature_mono_stream", cwd = "Baselines/AllFeature-VSLAM" }
 
 [feature.allfeature.dependencies]
-allfeature = { version = "1.0.*", channel = "https://prefix.dev/vslamlab/vslamlab" }
+allfeature = { version = "1.1.*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 cuda-version = "12.9.*"   # the package is built for CUDA 12.9 (libtorch 2.7.1 cuda129)
 huggingface_hub = "*"     # `hf` CLI of the model-download tasks
 
