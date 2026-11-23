@@ -107,7 +107,7 @@ def evo_get_accuracy(zip_files, accuracy_csv):
 
         if os.path.exists(accuracy_csv):
             new_data = pd.read_csv(accuracy_csv)
-            new_data.columns.values[0] = "traj_name"
+            new_data = new_data.rename(columns={new_data.columns[0]: "traj_name"})
             new_columns = ['num_frames', 'num_tracked_frames', 'num_evaluated_frames']
             for col in new_columns:
                 new_data[col] = 0
