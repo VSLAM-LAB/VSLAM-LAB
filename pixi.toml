@@ -312,7 +312,7 @@ execute-rgbd = { cmd = "vslamlab_allfeature_rgbd", cwd = "Baselines/AllFeature-V
 stream = { cmd = "vslamlab_allfeature_mono_stream", cwd = "Baselines/AllFeature-VSLAM" }
 
 [feature.allfeature.dependencies]
-allfeature = { version = "1.1.*", channel = "https://prefix.dev/vslamlab/vslamlab" }
+allfeature = { version = "1.2.*", channel = "https://prefix.dev/vslamlab/vslamlab" }
 cuda-version = "12.9.*"   # the package is built for CUDA 12.9 (libtorch 2.7.1 cuda129)
 huggingface_hub = "*"     # `hf` CLI of the model-download tasks
 

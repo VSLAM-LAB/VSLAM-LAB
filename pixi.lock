@@ -297,7 +297,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026e-h5d301ff_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wayland-protocols-1.50-hd8ed1ab_0.conda
       - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/akaze-1.0.1-ha35fb5c_0.conda
-      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/allfeature-1.1.0-h50d569a_0.conda
+      - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/allfeature-1.2.0-h50d569a_0.conda
       - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/brisk-1.0.1-ha35fb5c_0.conda
       - conda: https://repo.prefix.dev/spqr-tests/linux-64/tensorrt-cxx-builder-10.3.0.26-h736c03c_1.conda
       - conda: https://repo.prefix.dev/spqr-tests/linux-64/tensorrt-cxx-full-10.3.0.26-h736c03c_1.conda
@@ -47704,9 +47704,9 @@ packages:
   run_exports: {}
   size: 59215
   timestamp: 1791847279938
-- conda: https://prefix.dev/vslamlab/vslamlab/linux-64/allfeature-1.1.0-h50d569a_0.conda
-  sha256: c30e58f7df8015d5aba8781afb9921a166a5ecc15871c2072c33a4497e5717f5
-  md5: fd6909e3356db227cb697395a1bb49a6
+- conda: https://prefix.dev/vslamlab/vslamlab/linux-64/allfeature-1.2.0-h50d569a_0.conda
+  sha256: cbfd94f4ca281396f30b216103296434f93e13799bc72d4310850c3e97c21560
+  md5: fcaccf6b0b45fdb01d60d62802c81f8f
   depends:
   - cuda-nvrtc
   - cuda-nvrtc >=12.9.86,<13.0a0
@@ -47746,8 +47746,8 @@ packages:
   - libxkbcommon >=1.13.2,<2.0a0
   license: GPL-3.0-only
   run_exports: {}
-  size: 2688753
-  timestamp: 1795407904805
+  size: 2693053
+  timestamp: 1795645618732
 - conda: https://prefix.dev/vslamlab/vslamlab/linux-64/brisk-1.0.1-ha35fb5c_0.conda
   sha256: fe9b33f0efb406199244ffa60ddc70c6bc7da48c83fe374605615c2594ebd3c4
   md5: 7f1d6b076142f2aa75da09a1c3f11359
