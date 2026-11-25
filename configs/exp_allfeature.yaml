@@ -4,14 +4,38 @@ exp_23_11_2026_allfeature_mono:
   Parameters: {verbose: 0, mode: mono}
   Module: allfeature-dev
 
-exp_23_11_2026_droidslam_mono:
-  Config: config_allfeature.yaml
-  NumRuns: 5
-  Parameters: {verbose: 0, mode: mono}
-  Module: droidslam
+# exp_23_11_2026_droidslam_mono:
+#   Config: config_allfeature.yaml
+#   NumRuns: 5
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: droidslam
 
-exp_23_11_2026_orbslam3_mono:
+# exp_23_11_2026_orbslam3_mono:
+#   Config: config_allfeature.yaml
+#   NumRuns: 5
+#   Parameters: {verbose: 0, mode: mono}
+#   Module: orbslam3
+
+# exp_23_11_2026_allfeature_rgbd:
+#   Config: config_allfeature.yaml
+#   NumRuns: 5
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: allfeature-dev
+
+# exp_23_11_2026_droidslam_rgbd:
+#   Config: config_allfeature.yaml
+#   NumRuns: 5
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: droidslam
+
+# exp_23_11_2026_orbslam3_rgbd:
+#   Config: config_allfeature.yaml
+#   NumRuns: 5
+#   Parameters: {verbose: 0, mode: rgbd}
+#   Module: orbslam3
+
+exp_24_11_2026_allfeature_mono:
   Config: config_allfeature.yaml
   NumRuns: 5
   Parameters: {verbose: 0, mode: mono}
-  Module: orbslam3
+  Module: allfeature-dev

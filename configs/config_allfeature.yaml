@@ -1,9 +1,15 @@
 eth:
   - 'table_3'
+  - 'table_4'
+  - 'table_7'
+
+rgbdtum:
+  - 'rgbd_dataset_freiburg1_xyz'
+  - 'rgbd_dataset_freiburg2_desk'
+  - 'rgbd_dataset_freiburg3_long_office_household'
+
 # 7scenes:
 #   - 'chess_seq-01'
-# rgbdtum:
-#   - 'rgbd_dataset_freiburg1_xyz'
 # drunkards:
 #   - 00000_320_level0
 # nuim:

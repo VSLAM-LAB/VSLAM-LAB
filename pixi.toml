@@ -108,7 +108,8 @@ get-resources.args = [
 ]
 
 vslamlab-debug.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_debug.yaml", "--overwrite"] }]
-vslamlab-allfeature.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
+#vslamlab-allfeature.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", "--overwrite"] }]
+vslamlab-allfeature.depends-on = [{ "task" = "vslamlab", "args" = ["configs/exp_allfeature.yaml", ""] }]
 demo = "python vslamlab_gui.py demo"
 
 premerge-smoke.cmd = "python vslamlab_gui.py vslamlab configs/premerge-smoke/exp_premerge_smoke.yaml {{ overwrite }}"
