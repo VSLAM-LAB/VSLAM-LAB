@@ -735,7 +735,9 @@ def num_tracked_frames(values, dataset_sequences, figures_path, experiments, sha
         axs[splt['id']].set_xticklabels([])
         axs[splt['id']].set_ylim(yticks)
         axs[splt['id']].tick_params(axis='y', labelsize=FONT_SIZE)
-        axs[splt['id']].yaxis.set_minor_locator(ticker.MultipleLocator(max_rgb[sequence_name] / 4))
+        # max_rgb is 0 when no run of this sequence produced a trajectory
+        if max_rgb[sequence_name] > 0:
+            axs[splt['id']].yaxis.set_minor_locator(ticker.MultipleLocator(max_rgb[sequence_name] / 4))
         axs[splt['id']].set_yticks(yticks)
         if not shared_scale:
             axs[splt['id']].set_yticks(yticks)
