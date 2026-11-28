@@ -35,7 +35,7 @@ class NsavpDataset(DatasetVSLAMLAB):
     # Deep Blue Data's calibration/measured-extrinsics files carry a per-sequence session index
     # (e.g. "C1") baked into the filename that isn't derivable from sequence_name - hand-maintained
     # per sequence, same spirit as ROVER's DATES table.
-    CALIBRATION_PREFIX: Final = {"R0_FA0": "C1"}
+    # CALIBRATION_PREFIX: Final = {"R0_FA0": "C1"}
 
     def __init__(self, dataset_name: str = "nsavp") -> None:
         super().__init__(dataset_name)
@@ -52,13 +52,13 @@ class NsavpDataset(DatasetVSLAMLAB):
 
         sequence_path.mkdir(parents=True, exist_ok=True)
         root = self.url_download_root[sequence_name]
-        calibration_prefix = self.CALIBRATION_PREFIX[sequence_name]
+        # calibration_prefix = self.CALIBRATION_PREFIX[sequence_name]
 
         filenames = [
             f"{sequence_name}_mono_left.h5",
             f"{sequence_name}_mono_right.h5",
             f"{sequence_name}_applanix.h5",
-            f"{sequence_name}_{calibration_prefix}_calibration_results.yaml",
+            f"{sequence_name}_C1_calibration_results.yaml",
         ]
         for filename in filenames:
             if not (sequence_path / filename).exists():
@@ -124,8 +124,8 @@ class NsavpDataset(DatasetVSLAMLAB):
 
     def create_calibration_yaml(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        calibration_prefix = self.CALIBRATION_PREFIX[sequence_name]
-        calibration_file = sequence_path / f"{sequence_name}_{calibration_prefix}_calibration_results.yaml"
+        # calibration_prefix = self.CALIBRATION_PREFIX[sequence_name]
+        calibration_file = sequence_path / f"{sequence_name}_C1_calibration_results.yaml"
         with open(calibration_file, "r") as f:
             data = yaml.safe_load(f)
 
@@ -195,10 +195,10 @@ class NsavpDataset(DatasetVSLAMLAB):
 
     def remove_unused_files(self, sequence_name: str) -> None:
         sequence_path = self.sequence_path(sequence_name)
-        calibration_prefix = self.CALIBRATION_PREFIX[sequence_name]
+        # calibration_prefix = self.CALIBRATION_PREFIX[sequence_name]
 
         if BENCHMARK_RETENTION != Retention.FULL:
-            (sequence_path / f"{sequence_name}_{calibration_prefix}_calibration_results.yaml").unlink(missing_ok=True)
+            (sequence_path / f"{sequence_name}_C1_calibration_results.yaml").unlink(missing_ok=True)
             (sequence_path / f"{sequence_name}_applanix.h5").unlink(missing_ok=True)
 
         if BENCHMARK_RETENTION == Retention.MINIMAL:
